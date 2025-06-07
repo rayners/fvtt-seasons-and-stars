@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.3.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.2.3...v0.3.0) (2025-06-07)
+
+
+### Features
+
+* add manual trigger to release workflow ([45064ba](https://github.com/rayners/fvtt-seasons-and-stars/commit/45064ba5590cb477fae52245696cb58bcfa6b755))
+* update to foundry-module-actions@v2 with modern version extraction ([d242d05](https://github.com/rayners/fvtt-seasons-and-stars/commit/d242d051aa1b234206488c5a2fde92000b6b5e81))
+
 ## [0.2.2] - 2025-06-06
 
 ### Added
