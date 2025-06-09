@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.2.5](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.2.4...seasons-and-stars-v0.2.5) (2025-06-09)
+
+
+### Bug Fixes
+
+* exclude CHANGELOG.md from prettier to prevent release-please conflicts ([a589c53](https://github.com/rayners/fvtt-seasons-and-stars/commit/a589c53df746116c162aa108450fedb8c45d6a94))
+
 ## [0.2.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.2.3...seasons-and-stars-v0.2.4) (2025-06-09)
 
 
