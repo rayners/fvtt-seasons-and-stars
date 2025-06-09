@@ -9,6 +9,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.2.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.2.3...seasons-and-stars-v0.2.4) (2025-06-09)
+
+
+### Features
+
+* add comprehensive Patreon and GitHub Sponsors support ([5c4d0e8](https://github.com/rayners/fvtt-seasons-and-stars/commit/5c4d0e864c9983dfebc1a6bcd5b55dc0fe0483fa))
+* add manual trigger to release workflow ([45064ba](https://github.com/rayners/fvtt-seasons-and-stars/commit/45064ba5590cb477fae52245696cb58bcfa6b755))
+* **automation:** add comprehensive workflow automation suite ([7bb8738](https://github.com/rayners/fvtt-seasons-and-stars/commit/7bb8738c5a60e39c2246da113bece7bac508d90f))
+* **ci:** add comprehensive CI/CD pipeline and code quality tools ([3de9ae8](https://github.com/rayners/fvtt-seasons-and-stars/commit/3de9ae8d0450448f1c4f11d00280d5082cf9fa09))
+* complete Phase 1 Day 5 - Release Infrastructure for public release ([fb82682](https://github.com/rayners/fvtt-seasons-and-stars/commit/fb82682cd860fdcf5e13361c0271ab4349b5a5f8))
+* complete Phase 2 Beta Testing Program infrastructure setup ([09d5f0f](https://github.com/rayners/fvtt-seasons-and-stars/commit/09d5f0f0c0a0278f78d2893d8bad77b245e3b017))
+* implement comprehensive widget switching UI controls ([d5a0738](https://github.com/rayners/fvtt-seasons-and-stars/commit/d5a073808a7e502d3995c0f0fa0d5f93d40c5cfb))
+* implement intercalary day display support for WFRP calendar ([6cef541](https://github.com/rayners/fvtt-seasons-and-stars/commit/6cef5410299e2588e33c8480dad1633ab23ede0b))
+* **repo:** add comprehensive GitHub collaboration infrastructure ([7510165](https://github.com/rayners/fvtt-seasons-and-stars/commit/7510165cda12ad371c78b1291934e7132f63ef6a))
+* update to foundry-module-actions@v2 with modern version extraction ([d242d05](https://github.com/rayners/fvtt-seasons-and-stars/commit/d242d051aa1b234206488c5a2fde92000b6b5e81))
+
+
+### Bug Fixes
+
+* add api property to Module interface for TypeScript compatibility ([5551ec2](https://github.com/rayners/fvtt-seasons-and-stars/commit/5551ec2cf8943846c1b48afc1c598c839cabfcac))
+* calendar macro now respects default widget setting ([7bd7b29](https://github.com/rayners/fvtt-seasons-and-stars/commit/7bd7b29ac44e189ea16c777aa3c76662cc50d012))
+* **ci:** add explicit config file paths to release-please action ([98b920a](https://github.com/rayners/fvtt-seasons-and-stars/commit/98b920a3989c817d14bb42051ed073d67072185c))
+* **ci:** add issues write permission to release-please workflow ([ce29072](https://github.com/rayners/fvtt-seasons-and-stars/commit/ce29072e011a9bb2f08171421c0ab50caf840d12))
+* complete API implementation and fix TypeScript compilation ([fa4e2a6](https://github.com/rayners/fvtt-seasons-and-stars/commit/fa4e2a6aeea542f98f630cdd9c68c07216875d6c))
+* correct foundry-module-actions path in release workflow ([e4597b2](https://github.com/rayners/fvtt-seasons-and-stars/commit/e4597b239a6b69777c0f31f6929d0ffb16e35392))
+* deleted journals now properly removed from calendar display ([0a3baec](https://github.com/rayners/fvtt-seasons-and-stars/commit/0a3baec47987ef8ddb0f0fdc6bcbee417c969556))
+* migrate to foundry-dev-tools ESLint configuration ([996e2cc](https://github.com/rayners/fvtt-seasons-and-stars/commit/996e2cc3e026bae11506c97ef64f4fcde43e7439))
+* replace globalThis usage with standard Foundry module integration patterns ([a548887](https://github.com/rayners/fvtt-seasons-and-stars/commit/a548887be65b2eb9ef6ba3912363924c6eb4b22b))
+* resolve D&D 5e calendar leap year validation error and add comprehensive testing ([8746daf](https://github.com/rayners/fvtt-seasons-and-stars/commit/8746daf0b5a034a44600caaa3183e202d441697e))
+* resolve test failures in comprehensive regression suite ([588e99b](https://github.com/rayners/fvtt-seasons-and-stars/commit/588e99bc0d7cf33931425dade989aa6a8dac79b1))
+* **tests:** resolve year boundary test failures with intercalary day handling ([7b3a6be](https://github.com/rayners/fvtt-seasons-and-stars/commit/7b3a6be510ab98fc8a56548d5c288c4df9ad54a2))
+* **ui:** comprehensive intercalary day handling improvements ([5a10ee7](https://github.com/rayners/fvtt-seasons-and-stars/commit/5a10ee7d0a6cbff798333296cda93b1c41b652e9))
+* **ui:** prevent duplicate TODAY indicators for intercalary and regular days ([00b54d5](https://github.com/rayners/fvtt-seasons-and-stars/commit/00b54d542c8e50f8fc6f32e5742bb8f97510656c))
+
+
+### Documentation
+
+* accuracy review and note editing system prep for v0.2.2 ([dad12b0](https://github.com/rayners/fvtt-seasons-and-stars/commit/dad12b03e5b55d52a5e1758024ea3a6a8e7480c5))
+* add Foundry package listing description ([38426d5](https://github.com/rayners/fvtt-seasons-and-stars/commit/38426d5610b2430e9959e89872086c772a08ae8b))
+* complete Phase 2 Day 1 - Documentation Verification for public release ([f8bf69e](https://github.com/rayners/fvtt-seasons-and-stars/commit/f8bf69e3a992690d3c87854add21dc4c4f9cdb73))
+* update changelog for v0.2.2 widget switching implementation ([be038d4](https://github.com/rayners/fvtt-seasons-and-stars/commit/be038d41d69ff3d1548df750441ec9e31812fe2c))
+* Update development notes and preserve TypeScript compilation fix artifacts ([4ba685f](https://github.com/rayners/fvtt-seasons-and-stars/commit/4ba685febe1c309476d24252f49a9cb1788ccaa9))
+* update ROADMAP to accurately reflect v0.2.1 current state ([81e0c5f](https://github.com/rayners/fvtt-seasons-and-stars/commit/81e0c5fb438af0e4b680e5a2af6544d1f98191df))
+
+
+### Miscellaneous
+
+* release 0.2.4 ([cace1c8](https://github.com/rayners/fvtt-seasons-and-stars/commit/cace1c835a06a66ac75e7211005a0d02e1a32a32))
+
+
+### Code Refactoring
+
+* modernize E&E registration and clean up development artifacts ([61b6ca7](https://github.com/rayners/fvtt-seasons-and-stars/commit/61b6ca71902430e8edad6b0faa852c2622c7aae3))
+
 ## [0.2.3] - 2025-06-07
 
 ### Added
