@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0  # Required for version tag extraction
 
       - name: Release Seasons & Stars
-        uses: rayners/foundry-module-actions/release@v2
+        uses: rayners/foundry-module-actions/release@v3
         with:
           node-version: '18'
           build-command: 'npm run build'
