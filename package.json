@@ -1,6 +1,6 @@
 {
   "name": "seasons-and-stars",
-  "version": "0.2.7-test8",
+  "version": "0.2.7-test9",
   "description": "A clean calendar and timekeeping module for Foundry VTT v13+",
   "type": "module",
   "main": "dist/module.js",
