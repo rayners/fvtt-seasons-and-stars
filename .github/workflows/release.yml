@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0  # Required for version tag extraction
 
       - name: Release Seasons & Stars
-        uses: rayners/foundry-module-actions/release@v3
+        uses: rayners/foundry-module-actions/release@v4
         with:
           node-version: '18'
           build-command: 'npm run build'
@@ -29,4 +29,3 @@ jobs:
           module-files: 'module.js module.json templates/ calendars/ styles/ languages/ README.md CHANGELOG.md LICENSE'
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_RELEASE_BUILD: true
