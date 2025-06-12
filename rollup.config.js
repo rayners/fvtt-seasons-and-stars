@@ -2,6 +2,8 @@ import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import copy from 'rollup-plugin-copy';
 import scss from 'rollup-plugin-scss';
+import { createSentryConfig } from '@rayners/foundry-dev-tools/sentry';
+import packageJson from './package.json' with { type: 'json' };
 
 export default {
   input: 'src/module.ts',
@@ -31,5 +33,6 @@ export default {
         { src: 'LICENSE', dest: 'dist' },
       ],
     }),
-  ],
+    createSentryConfig('seasons-and-stars', packageJson.version),
+  ].filter(Boolean), // Remove null plugins (Sentry disabled in non-CI)
 };
