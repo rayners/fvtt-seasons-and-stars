@@ -26,3 +26,5 @@ jobs:
           build-command: 'npm run build'
           working-directory: 'dist'
           module-files: 'module.js module.json templates/ calendars/ styles/ languages/ README.md CHANGELOG.md LICENSE'
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
