@@ -15,13 +15,16 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      packages: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for bundle size comparison
 
       - name: Bundle Analysis
-        uses: rayners/foundry-module-actions/bundle-analysis@v1
+        uses: rayners/foundry-module-actions/bundle-analysis@v5
         with:
           node-version: '18'
-          github-packages: false
+          github-packages: true
           minimum-change-threshold: 100
