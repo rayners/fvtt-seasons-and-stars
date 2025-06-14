@@ -314,6 +314,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         CalendarMiniWidget.activeInstance.render();
       }
     });
+
+    // Update widget when settings change (especially quick time buttons)
+    Hooks.on('seasons-stars:settingsChanged', (settingName: string) => {
+      if (settingName === 'quickTimeButtons' && CalendarMiniWidget.activeInstance?.rendered) {
+        CalendarMiniWidget.activeInstance.render();
+      }
+    });
   }
 
   /**

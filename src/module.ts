@@ -22,6 +22,8 @@ import { SeasonsStarsKeybindings } from './core/keybindings';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { TIME_CONSTANTS } from './core/constants';
+import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
+import { SettingsPreview } from './core/settings-preview';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
 import type {
   CalendarDate as ICalendarDate,
@@ -245,6 +247,12 @@ Hooks.once('init', async () => {
   // Register module settings
   registerSettings();
 
+  // Register Handlebars helpers
+  registerQuickTimeButtonsHelper();
+
+  // Register settings preview functionality
+  SettingsPreview.registerHooks();
+
   // Register keyboard shortcuts (must be in init hook)
   Logger.debug('Registering keyboard shortcuts');
   SeasonsStarsKeybindings.registerKeybindings();
@@ -393,6 +401,25 @@ function registerSettings(): void {
     config: true,
     type: Boolean,
     default: true,
+  });
+
+  game.settings.register('seasons-and-stars', 'quickTimeButtons', {
+    name: 'Quick Time Buttons',
+    hint: 'Comma-separated time values for quick advancement buttons. Supports: 15, 30m, 1h, 2d, 1w. Negative values go backward. Examples: "10,30,60" or "-1h,15m,30m,1h"',
+    scope: 'world',
+    config: true,
+    type: String,
+    default: '15,30,60,240',
+    onChange: () => {
+      // Trigger widget refresh when settings change
+      try {
+        if (game.seasonsStars?.manager) {
+          Hooks.callAll('seasons-stars:settingsChanged', 'quickTimeButtons');
+        }
+      } catch (error) {
+        console.warn('Failed to trigger quick time buttons settings refresh:', error);
+      }
+    },
   });
 
   // Notes system settings

@@ -6,12 +6,15 @@
     <div class="mini-date" data-action="openCalendarSelection" title="{{shortDate}} (Click to change calendar, Double-click for larger view)">{{shortDate}}</div>
     {{#if showTimeControls}}
       <div class="mini-time-controls">
-        <button data-action="advanceTime" data-amount="15" data-unit="minutes" title="Advance 15 minutes">
-          <i class="fas fa-clock"></i> +15m
-        </button>
-        <button data-action="advanceTime" data-amount="1" data-unit="hours" title="Advance 1 hour">
-          <i class="fas fa-clock"></i> +1h
-        </button>
+        {{#each (getQuickTimeButtons true)}}
+          <button data-action="advanceTime" 
+                  data-amount="{{this.amount}}" 
+                  data-unit="{{this.unit}}"
+                  class="{{#if (lt this.amount 0)}}rewind{{/if}}"
+                  title="{{#if (lt this.amount 0)}}Go back{{else}}Advance{{/if}} {{this.label}}">
+            <i class="fas fa-{{#if (lt this.amount 0)}}backward{{else}}clock{{/if}}"></i> {{#if (lt this.amount 0)}}{{this.label}}{{else}}+{{this.label}}{{/if}}
+          </button>
+        {{/each}}
       </div>
     {{/if}}
   {{/if}}

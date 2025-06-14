@@ -119,6 +119,18 @@
           border-color: rgba(255, 100, 0, 0.8);
           color: white;
         }
+        
+        // Rewind button styling for mini widget
+        &.rewind {
+          background: rgba(187, 66, 66, 0.4);
+          border-color: rgba(187, 66, 66, 0.6);
+          
+          &:hover {
+            background: rgba(187, 66, 66, 0.7);
+            border-color: rgba(187, 66, 66, 0.9);
+            color: white;
+          }
+        }
 
         i {
           font-size: 0.6rem;
@@ -202,6 +214,18 @@
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
           }
+          
+          &.rewind {
+            background: rgba(187, 66, 66, 0.4);
+            border-color: rgba(187, 66, 66, 0.7);
+            
+            &:hover {
+              background: rgba(187, 66, 66, 0.8);
+              border-color: rgba(187, 66, 66, 1);
+              transform: translateY(-1px);
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            }
+          }
         }
       }
     }
@@ -231,6 +255,16 @@
           &:hover {
             background: rgba(255, 100, 0, 0.6);
             border-color: rgba(255, 100, 0, 0.8);
+          }
+          
+          &.rewind {
+            background: rgba(187, 66, 66, 0.4);
+            border-color: rgba(187, 66, 66, 0.6);
+            
+            &:hover {
+              background: rgba(187, 66, 66, 0.7);
+              border-color: rgba(187, 66, 66, 0.9);
+            }
           }
         }
       }
