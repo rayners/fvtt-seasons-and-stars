@@ -45,18 +45,15 @@
             <div class="control-group horizontal">
               <label>Quick Time:</label>
               <div class="time-buttons">
-                <button data-action="advanceDate" data-amount="15" data-unit="minutes" title="Advance 15 minutes">
-                  <i class="fas fa-clock"></i> 15m
-                </button>
-                <button data-action="advanceDate" data-amount="1" data-unit="hours" title="Advance 1 hour">
-                  <i class="fas fa-clock"></i> 1h
-                </button>
-                <button data-action="advanceDate" data-amount="4" data-unit="hours" title="Advance 4 hours">
-                  <i class="fas fa-clock"></i> 4h
-                </button>
-                <button data-action="advanceDate" data-amount="8" data-unit="hours" title="Advance 8 hours">
-                  <i class="fas fa-clock"></i> 8h
-                </button>
+                {{#each (getQuickTimeButtons false)}}
+                  <button data-action="advanceDate" 
+                          data-amount="{{this.amount}}" 
+                          data-unit="{{this.unit}}"
+                          class="{{#if (lt this.amount 0)}}rewind{{/if}}"
+                          title="{{#if (lt this.amount 0)}}Go back{{else}}Advance{{/if}} {{this.label}}">
+                    <i class="fas fa-{{#if (lt this.amount 0)}}backward{{else}}clock{{/if}}"></i> {{this.label}}
+                  </button>
+                {{/each}}
               </div>
             </div>
           </div>
