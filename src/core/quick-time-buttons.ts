@@ -138,6 +138,16 @@ export function getQuickTimeButtonsFromSettings(
     // Get appropriate subset for widget type
     const buttons = getQuickTimeButtons(allButtons, isMiniWidget);
 
+    // If no valid buttons, fall back to defaults
+    if (buttons.length === 0) {
+      return [
+        { amount: 15, unit: 'minutes', label: '15m' },
+        { amount: 30, unit: 'minutes', label: '30m' },
+        { amount: 60, unit: 'minutes', label: '1h' },
+        { amount: 240, unit: 'minutes', label: '4h' },
+      ];
+    }
+
     // Convert to template format
     return buttons.map(minutes => ({
       amount: minutes,
