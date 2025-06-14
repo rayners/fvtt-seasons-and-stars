@@ -20,7 +20,7 @@ export class SettingsPreview {
     Hooks.on('renderSettingsConfig', (app: any, html: JQuery) => {
       this.enhanceQuickTimeButtonsSetting(html);
     });
-    
+
     Logger.debug('Settings preview hooks registered');
   }
 
@@ -114,7 +114,7 @@ export class SettingsPreview {
 
       // Parse the input value
       const allButtons = parseQuickTimeButtons(value, calendar);
-      
+
       if (allButtons.length === 0) {
         this.showErrorPreview('No valid time values found');
         return;
@@ -125,16 +125,20 @@ export class SettingsPreview {
       const miniWidgetButtons = getQuickTimeButtons(allButtons, true);
 
       // Update main widget preview
-      const mainContainer = this.previewContainer.querySelector('.preview-buttons.main-widget') as HTMLElement;
+      const mainContainer = this.previewContainer.querySelector(
+        '.preview-buttons.main-widget'
+      ) as HTMLElement;
       if (mainContainer) {
         mainContainer.innerHTML = this.renderButtonPreview(mainWidgetButtons, calendar);
       }
 
       // Update mini widget preview
-      const miniContainer = this.previewContainer.querySelector('.preview-buttons.mini-widget') as HTMLElement;
+      const miniContainer = this.previewContainer.querySelector(
+        '.preview-buttons.mini-widget'
+      ) as HTMLElement;
       if (miniContainer) {
         miniContainer.innerHTML = this.renderButtonPreview(miniWidgetButtons, calendar);
-        
+
         // Add note if auto-selection occurred
         if (allButtons.length > 4 && miniWidgetButtons.length === 4) {
           const note = document.createElement('div');
@@ -145,7 +149,6 @@ export class SettingsPreview {
           miniContainer.appendChild(note);
         }
       }
-
     } catch (error) {
       Logger.error('Error updating preview', error as Error);
       this.showErrorPreview('Error parsing input');
@@ -156,11 +159,12 @@ export class SettingsPreview {
    * Render button preview HTML for a set of buttons
    */
   private static renderButtonPreview(buttons: number[], calendar: any): string {
-    return buttons.map(minutes => {
-      const label = formatTimeButton(minutes, calendar);
-      const cssClass = minutes < 0 ? 'rewind' : 'forward';
-      
-      return `<span class="preview-button ${cssClass}" style="
+    return buttons
+      .map(minutes => {
+        const label = formatTimeButton(minutes, calendar);
+        const cssClass = minutes < 0 ? 'rewind' : 'forward';
+
+        return `<span class="preview-button ${cssClass}" style="
         display: inline-block;
         padding: 2px 6px;
         margin: 2px;
@@ -170,7 +174,8 @@ export class SettingsPreview {
         font-size: 0.8em;
         color: ${minutes < 0 ? 'white' : 'var(--color-text-primary)'};
       ">${label}</span>`;
-    }).join('');
+      })
+      .join('');
   }
 
   /**
@@ -179,11 +184,15 @@ export class SettingsPreview {
   private static showErrorPreview(message: string): void {
     if (!this.previewContainer) return;
 
-    const mainContainer = this.previewContainer.querySelector('.preview-buttons.main-widget') as HTMLElement;
-    const miniContainer = this.previewContainer.querySelector('.preview-buttons.mini-widget') as HTMLElement;
-    
+    const mainContainer = this.previewContainer.querySelector(
+      '.preview-buttons.main-widget'
+    ) as HTMLElement;
+    const miniContainer = this.previewContainer.querySelector(
+      '.preview-buttons.mini-widget'
+    ) as HTMLElement;
+
     const errorHtml = `<span style="color: var(--color-text-light-warning); font-style: italic;">${message}</span>`;
-    
+
     if (mainContainer) mainContainer.innerHTML = errorHtml;
     if (miniContainer) miniContainer.innerHTML = errorHtml;
   }

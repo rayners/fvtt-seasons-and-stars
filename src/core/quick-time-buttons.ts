@@ -8,7 +8,10 @@ import type { SeasonsStarsCalendar } from '../types/calendar';
 /**
  * Parse quick time button setting string into minute values
  */
-export function parseQuickTimeButtons(settingValue: string, calendar?: SeasonsStarsCalendar): number[] {
+export function parseQuickTimeButtons(
+  settingValue: string,
+  calendar?: SeasonsStarsCalendar
+): number[] {
   if (!settingValue || typeof settingValue !== 'string') {
     Logger.warn('Invalid quick time buttons setting value, using default');
     return [15, 30, 60, 240]; // Default values
@@ -17,36 +20,40 @@ export function parseQuickTimeButtons(settingValue: string, calendar?: SeasonsSt
   const hoursPerDay = calendar?.time?.hoursInDay || 24;
   const minutesPerHour = calendar?.time?.minutesInHour || 60;
   const daysPerWeek = calendar?.weekdays?.length || 7;
-  
+
   try {
     return settingValue
       .split(',')
       .map(val => {
         const trimmed = val.trim();
         if (!trimmed) return NaN;
-        
+
         const match = trimmed.match(/^(-?\d+)([mhdw]?)$/);
-        
+
         if (!match) {
           Logger.debug(`Invalid quick time button value: "${trimmed}"`);
           return NaN;
         }
-        
+
         const [, amount, unit] = match;
         const num = parseInt(amount);
-        
+
         if (!Number.isFinite(num)) {
           Logger.debug(`Non-finite number in quick time button value: "${trimmed}"`);
           return NaN;
         }
-        
+
         switch (unit) {
-          case 'w': return num * daysPerWeek * hoursPerDay * minutesPerHour;
-          case 'd': return num * hoursPerDay * minutesPerHour;
-          case 'h': return num * minutesPerHour;
+          case 'w':
+            return num * daysPerWeek * hoursPerDay * minutesPerHour;
+          case 'd':
+            return num * hoursPerDay * minutesPerHour;
+          case 'h':
+            return num * minutesPerHour;
           case 'm':
-          case '': return num; // Default to minutes
-          default: 
+          case '':
+            return num; // Default to minutes
+          default:
             Logger.debug(`Unknown unit in quick time button value: "${trimmed}"`);
             return NaN;
         }
@@ -70,14 +77,14 @@ export function formatTimeButton(minutes: number, calendar?: SeasonsStarsCalenda
   const minutesPerHour = calendar?.time?.minutesInHour || 60;
   const hoursPerDay = calendar?.time?.hoursInDay || 24;
   const daysPerWeek = calendar?.weekdays?.length || 7;
-  
+
   const absMinutes = Math.abs(minutes);
   const sign = minutes < 0 ? '-' : '';
-  
+
   // Calculate in calendar-specific units
   const minutesPerDay = hoursPerDay * minutesPerHour;
   const minutesPerWeek = daysPerWeek * minutesPerDay;
-  
+
   if (absMinutes >= minutesPerWeek && absMinutes % minutesPerWeek === 0) {
     return `${sign}${absMinutes / minutesPerWeek}w`;
   } else if (absMinutes >= minutesPerDay && absMinutes % minutesPerDay === 0) {
@@ -96,43 +103,46 @@ export function getQuickTimeButtons(allButtons: number[], isMiniWidget: boolean 
   if (!isMiniWidget || allButtons.length <= 4) {
     return allButtons;
   }
-  
+
   // Smart selection for mini widget: 1 most useful negative + 3 smallest positives
   // First ensure we work with sorted input
   const sorted = [...allButtons].sort((a, b) => a - b);
   const negatives = sorted.filter(b => b < 0);
   const positives = sorted.filter(b => b > 0);
-  
+
   // Take largest negative (closest to zero) + smallest positives
   const selectedNegative = negatives.length > 0 ? [negatives[negatives.length - 1]] : [];
   const selectedPositives = positives.slice(0, 4 - selectedNegative.length);
-  
+
   return [...selectedNegative, ...selectedPositives].sort((a, b) => a - b);
 }
 
 /**
  * Get quick time buttons from settings for specific widget type
  */
-export function getQuickTimeButtonsFromSettings(isMiniWidget: boolean = false): Array<{amount: number, unit: string, label: string}> {
+export function getQuickTimeButtonsFromSettings(
+  isMiniWidget: boolean = false
+): Array<{ amount: number; unit: string; label: string }> {
   try {
     // Get setting value
-    const settingValue = game.settings?.get('seasons-and-stars', 'quickTimeButtons') as string || '15,30,60,240';
-    
+    const settingValue =
+      (game.settings?.get('seasons-and-stars', 'quickTimeButtons') as string) || '15,30,60,240';
+
     // Get current calendar for parsing
     const manager = game.seasonsStars?.manager;
     const calendar = manager?.getActiveCalendar();
-    
+
     // Parse minute values
     const allButtons = parseQuickTimeButtons(settingValue, calendar);
-    
+
     // Get appropriate subset for widget type
     const buttons = getQuickTimeButtons(allButtons, isMiniWidget);
-    
+
     // Convert to template format
     return buttons.map(minutes => ({
       amount: minutes,
       unit: 'minutes',
-      label: formatTimeButton(minutes, calendar)
+      label: formatTimeButton(minutes, calendar),
     }));
   } catch (error) {
     Logger.error('Error getting quick time buttons from settings', error as Error);
@@ -141,7 +151,7 @@ export function getQuickTimeButtonsFromSettings(isMiniWidget: boolean = false): 
       { amount: 15, unit: 'minutes', label: '15m' },
       { amount: 30, unit: 'minutes', label: '30m' },
       { amount: 60, unit: 'minutes', label: '1h' },
-      { amount: 240, unit: 'minutes', label: '4h' }
+      { amount: 240, unit: 'minutes', label: '4h' },
     ];
   }
 }
@@ -152,18 +162,18 @@ export function getQuickTimeButtonsFromSettings(isMiniWidget: boolean = false): 
 export function registerQuickTimeButtonsHelper(): void {
   // Access Handlebars from global scope
   const handlebars = (globalThis as any).Handlebars;
-  
+
   if (handlebars && typeof handlebars.registerHelper === 'function') {
-    handlebars.registerHelper('getQuickTimeButtons', function(isMiniWidget: boolean = false) {
+    handlebars.registerHelper('getQuickTimeButtons', function (isMiniWidget: boolean = false) {
       return getQuickTimeButtonsFromSettings(isMiniWidget);
     });
-    
-    handlebars.registerHelper('formatTimeButton', function(minutes: number) {
+
+    handlebars.registerHelper('formatTimeButton', function (minutes: number) {
       const manager = game.seasonsStars?.manager;
       const calendar = manager?.getActiveCalendar();
       return formatTimeButton(minutes, calendar);
     });
-    
+
     Logger.debug('Registered quick time buttons Handlebars helpers');
   } else {
     Logger.warn('Handlebars not available for helper registration');
