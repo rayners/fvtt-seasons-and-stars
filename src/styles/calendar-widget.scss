@@ -296,17 +296,17 @@
             
             // Rewind button styling
             &.rewind {
-              background: var(--color-bg-red, rgba(187, 66, 66, 0.8));
-              border-color: var(--color-border-red, rgba(187, 66, 66, 1));
-              color: var(--color-text-light, #ffffff);
+              background: var(--color-level-error-bg);
+              border-color: var(--color-level-error-border);
+              color: var(--color-text-light-primary);
               
               &:hover {
-                background: var(--color-bg-red-hover, rgba(207, 86, 86, 0.9));
-                border-color: var(--color-border-red-hover, rgba(207, 86, 86, 1));
+                background: var(--color-level-error);
+                border-color: var(--color-level-error);
               }
               
               &:active {
-                background: var(--color-bg-red-active, rgba(167, 46, 46, 0.9));
+                background: var(--color-level-error-border);
               }
             }
           }

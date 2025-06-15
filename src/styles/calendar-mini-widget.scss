@@ -122,13 +122,13 @@
         
         // Rewind button styling for mini widget
         &.rewind {
-          background: var(--color-bg-red, rgba(187, 66, 66, 0.8));
-          border-color: var(--color-border-red, rgba(187, 66, 66, 1));
-          color: var(--color-text-light, #ffffff);
+          background: var(--color-level-error-bg);
+          border-color: var(--color-level-error-border);
+          color: var(--color-text-light-primary);
           
           &:hover {
-            background: var(--color-bg-red-hover, rgba(207, 86, 86, 0.9));
-            border-color: var(--color-border-red-hover, rgba(207, 86, 86, 1));
+            background: var(--color-level-error);
+            border-color: var(--color-level-error);
           }
         }
 
@@ -216,13 +216,13 @@
           }
           
           &.rewind {
-            background: var(--color-bg-red, rgba(187, 66, 66, 0.8));
-            border-color: var(--color-border-red, rgba(187, 66, 66, 1));
-            color: var(--color-text-light, #ffffff);
+            background: var(--color-level-error-bg);
+            border-color: var(--color-level-error-border);
+            color: var(--color-text-light-primary);
             
             &:hover {
-              background: var(--color-bg-red-hover, rgba(207, 86, 86, 0.9));
-              border-color: var(--color-border-red-hover, rgba(207, 86, 86, 1));
+              background: var(--color-level-error);
+              border-color: var(--color-level-error);
               transform: translateY(-1px);
               box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             }
@@ -259,13 +259,13 @@
           }
           
           &.rewind {
-            background: var(--color-bg-red, rgba(187, 66, 66, 0.8));
-            border-color: var(--color-border-red, rgba(187, 66, 66, 1));
-            color: var(--color-text-light, #ffffff);
+            background: var(--color-level-error-bg);
+            border-color: var(--color-level-error-border);
+            color: var(--color-text-light-primary);
             
             &:hover {
-              background: var(--color-bg-red-hover, rgba(207, 86, 86, 0.9));
-              border-color: var(--color-border-red-hover, rgba(207, 86, 86, 1));
+              background: var(--color-level-error);
+              border-color: var(--color-level-error);
             }
           }
         }

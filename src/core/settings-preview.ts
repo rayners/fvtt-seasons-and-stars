@@ -168,11 +168,11 @@ function renderButtonPreview(buttons: number[], calendar: any): string {
       display: inline-block;
       padding: 2px 6px;
       margin: 2px;
-      background: ${minutes < 0 ? 'var(--color-bg-red, rgba(187, 66, 66, 0.8))' : 'var(--color-button-background)'};
-      border: 1px solid ${minutes < 0 ? 'var(--color-border-red, rgba(187, 66, 66, 1))' : 'var(--color-border-light)'};
+      background: ${minutes < 0 ? 'var(--color-level-error-bg)' : 'var(--color-button-background)'};
+      border: 1px solid ${minutes < 0 ? 'var(--color-level-error-border)' : 'var(--color-border-light)'};
       border-radius: 3px;
       font-size: 0.8em;
-      color: ${minutes < 0 ? 'var(--color-text-light, #ffffff)' : 'var(--color-text-primary)'};
+      color: ${minutes < 0 ? 'var(--color-text-light-primary)' : 'var(--color-text-primary)'};
     "><i class="fas ${icon}" style="margin-right: 3px; font-size: 0.7em;"></i>${label}</span>`;
     })
     .join('');
