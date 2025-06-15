@@ -100,7 +100,7 @@ export function formatTimeButton(minutes: number, calendar?: SeasonsStarsCalenda
  * Get quick time buttons appropriate for widget context
  */
 export function getQuickTimeButtons(allButtons: number[], isMiniWidget: boolean = false): number[] {
-  if (!isMiniWidget || allButtons.length <= 4) {
+  if (!isMiniWidget || allButtons.length <= 3) {
     return allButtons;
   }
 
@@ -109,9 +109,9 @@ export function getQuickTimeButtons(allButtons: number[], isMiniWidget: boolean 
   const negatives = sorted.filter(b => b < 0);
   const positives = sorted.filter(b => b > 0);
 
-  // Take 1 largest negative + 3 smallest positives (or all if fewer available)
+  // Take 1 largest negative + 2 smallest positives (or all if fewer available)
   const selectedNegative = negatives.length > 0 ? [negatives[negatives.length - 1]] : [];
-  const selectedPositives = positives.slice(0, 4 - selectedNegative.length);
+  const selectedPositives = positives.slice(0, 3 - selectedNegative.length);
 
   return [...selectedNegative, ...selectedPositives];
 }

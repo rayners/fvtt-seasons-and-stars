@@ -73,7 +73,7 @@ export class NotePerformanceOptimizer {
   }
 
   /**
-   * Optimized note retrieval with smart caching
+   * Note retrieval with caching
    */
   async getOptimizedNotes(
     dateKeys: string[],
@@ -128,12 +128,12 @@ export class NotePerformanceOptimizer {
   }
 
   /**
-   * Optimized search with early termination and pagination
+   * Search with early termination and pagination
    */
   async optimizedSearch(criteria: NoteSearchCriteria): Promise<NoteSearchResult> {
     const startTime = performance.now();
 
-    // Apply smart filtering strategy
+    // Apply filtering strategy
     const searchStrategy = this.determineSearchStrategy(criteria);
     let notes: JournalEntry[] = [];
 

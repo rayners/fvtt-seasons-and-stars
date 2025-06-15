@@ -35,7 +35,7 @@ export interface SeasonsStarsAPI {
   getMonthNames(calendarId?: string): string[];
   getWeekdayNames(calendarId?: string): string[];
 
-  // Enhanced features (basic implementations available)
+  // Additional features (basic implementations available)
   getSunriseSunset(date: CalendarDate, calendarId?: string): TimeOfDay;
   getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo;
 
@@ -56,7 +56,7 @@ export interface SeasonsStarsNotesAPI {
   removeNote(noteId: string): Promise<void>;
   getNotesForDay(year: number, month: number, day: number, calendarId?: string): any[];
 
-  // Enhanced notes functionality
+  // Additional notes functionality
   createNote(data: CreateNoteData): Promise<JournalEntry>;
   updateNote(noteId: string, data: UpdateNoteData): Promise<JournalEntry>;
   deleteNote(noteId: string): Promise<void>;
@@ -722,7 +722,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     }
   }
 
-  // Enhanced notes functionality (async versions)
+  // Additional notes functionality (async versions)
   async createNote(data: CreateNoteData): Promise<JournalEntry> {
     const notesManager = game.seasonsStars?.notes;
     if (!notesManager) {
@@ -876,7 +876,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       // Foundry integration
       journalEntryId: note.id,
 
-      // Enhanced display data (matching SmallTime expectations)
+      // Complete display data (matching SmallTime expectations)
       display: {
         monthName: monthName,
         month: startDate.month.toString(),

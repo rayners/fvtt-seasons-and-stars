@@ -6,7 +6,7 @@ import type { CalendarDate as ICalendarDate } from '../types/calendar';
 import { CalendarDate } from './calendar-date';
 
 /**
- * Wrapper class for calendar notes with enhanced functionality
+ * Wrapper class for calendar notes with additional functionality
  */
 export class CalendarNote {
   constructor(private journal: JournalEntry) {

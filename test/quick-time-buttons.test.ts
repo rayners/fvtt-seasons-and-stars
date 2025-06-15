@@ -277,29 +277,29 @@ describe('getQuickTimeButtons (mini widget selection)', () => {
     });
   });
 
-  describe('mini widget selection (4 button limit)', () => {
-    it('should return all buttons when 4 or fewer', () => {
+  describe('mini widget selection (3 button limit)', () => {
+    it('should return all buttons when 3 or fewer', () => {
       const allButtons = [10, 30, 60];
       const result = getQuickTimeButtons(allButtons, true);
       expect(result).toEqual([10, 30, 60]);
     });
 
-    it('should return exactly 4 buttons when more available', () => {
+    it('should return exactly 3 buttons when more available', () => {
       const allButtons = [10, 30, 60, 120, 240];
       const result = getQuickTimeButtons(allButtons, true);
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(3);
     });
 
     it('should prioritize largest negative + smallest positives', () => {
       const allButtons = [-240, -60, -15, 10, 30, 60, 120, 240];
       const result = getQuickTimeButtons(allButtons, true);
-      expect(result).toEqual([-15, 10, 30, 60]); // -15 (largest negative) + 3 smallest positives
+      expect(result).toEqual([-15, 10, 30]); // -15 (largest negative) + 2 smallest positives
     });
 
-    it('should take 4 smallest positives when no negatives', () => {
+    it('should take 3 smallest positives when no negatives', () => {
       const allButtons = [10, 30, 60, 120, 240, 480];
       const result = getQuickTimeButtons(allButtons, true);
-      expect(result).toEqual([10, 30, 60, 120]);
+      expect(result).toEqual([10, 30, 60]);
     });
 
     it('should handle only negative values', () => {
@@ -311,7 +311,7 @@ describe('getQuickTimeButtons (mini widget selection)', () => {
     it('should handle mixed with multiple negatives', () => {
       const allButtons = [-120, -60, -15, 10, 30, 60, 120, 240, 480];
       const result = getQuickTimeButtons(allButtons, true);
-      expect(result).toEqual([-15, 10, 30, 60]); // 1 negative + 3 positives
+      expect(result).toEqual([-15, 10, 30]); // 1 negative + 2 positives
     });
 
     it('should handle single button', () => {
@@ -332,7 +332,7 @@ describe('getQuickTimeButtons (mini widget selection)', () => {
       // All positive
       const positiveButtons = [5, 10, 15, 30, 60, 120, 240];
       const result1 = getQuickTimeButtons(positiveButtons, true);
-      expect(result1).toEqual([5, 10, 15, 30]);
+      expect(result1).toEqual([5, 10, 15]);
 
       // All negative
       const negativeButtons = [-240, -120, -60, -30, -15, -10, -5];
@@ -344,21 +344,21 @@ describe('getQuickTimeButtons (mini widget selection)', () => {
       const allButtons = [-120, -15, 240, 10, 480, 30, -60];
       // After sorting: [-120, -60, -15, 10, 30, 240, 480]
       // Negatives: [-120, -60, -15], largest = -15
-      // Positives: [10, 30, 240, 480], take first 3 = [10, 30, 240]
+      // Positives: [10, 30, 240, 480], take first 2 = [10, 30]
       const result = getQuickTimeButtons(allButtons, true);
-      expect(result).toEqual([-15, 10, 30, 240]);
+      expect(result).toEqual([-15, 10, 30]);
     });
 
-    it('should handle exactly 4 buttons', () => {
-      const allButtons = [-60, 10, 30, 60];
+    it('should handle exactly 3 buttons', () => {
+      const allButtons = [-60, 10, 30];
       const result = getQuickTimeButtons(allButtons, true);
-      expect(result).toEqual([-60, 10, 30, 60]); // All 4 buttons
+      expect(result).toEqual([-60, 10, 30]); // All 3 buttons
     });
 
-    it('should handle exactly 5 buttons (edge of limitation)', () => {
-      const allButtons = [-60, -15, 10, 30, 60];
+    it('should handle exactly 4 buttons (edge of limitation)', () => {
+      const allButtons = [-60, -15, 10, 30];
       const result = getQuickTimeButtons(allButtons, true);
-      expect(result).toEqual([-15, 10, 30, 60]); // Drop one negative, keep largest
+      expect(result).toEqual([-15, 10, 30]); // Drop one negative, keep largest
     });
   });
 });
@@ -388,7 +388,7 @@ describe('integration scenarios', () => {
       expect(mainWidget).toHaveLength(8); // All buttons
 
       const miniWidget = getQuickTimeButtons(parsed, true);
-      expect(miniWidget).toEqual([-15, 10, 30, 60]); // Auto-selected subset
+      expect(miniWidget).toEqual([-15, 10, 30]); // Auto-selected subset
     });
 
     it('should handle backward-time-heavy configuration', () => {
@@ -437,9 +437,9 @@ describe('integration scenarios', () => {
       expect(parsed[19]).toBe(135); // Largest positive (i=19: (19-10)*15 = 135)
 
       const miniWidget = getQuickTimeButtons(parsed, true);
-      expect(miniWidget).toHaveLength(4); // Limited to 4
+      expect(miniWidget).toHaveLength(3); // Limited to 3
       expect(miniWidget[0]).toBe(-15); // Largest negative
-      expect(miniWidget.slice(1)).toEqual([15, 30, 45]); // 3 smallest positives
+      expect(miniWidget.slice(1)).toEqual([15, 30]); // 2 smallest positives
     });
   });
 });

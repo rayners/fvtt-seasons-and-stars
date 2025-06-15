@@ -138,7 +138,7 @@ function updatePreview(value: string): void {
       miniContainer.innerHTML = renderButtonPreview(miniWidgetButtons, calendar);
 
       // Add note if auto-selection occurred
-      if (allButtons.length > 4 && miniWidgetButtons.length === 4) {
+      if (allButtons.length > 3 && miniWidgetButtons.length === 3) {
         const note = document.createElement('div');
         note.style.fontSize = '0.8em';
         note.style.color = 'var(--color-text-dark-secondary)';

@@ -202,7 +202,7 @@ export class SeasonsStarsSceneControls {
       hideWidget: () => SeasonsStarsSceneControls.hideDefaultWidget(),
       toggleWidget: () => SeasonsStarsSceneControls.toggleDefaultWidget(),
 
-      // Specific widget controls (for advanced users who want to override default)
+      // Specific widget controls (for users who want to override default)
       showMainWidget: () => CalendarWidget.show(),
       hideMainWidget: () => CalendarWidget.hide(),
       toggleMainWidget: () => CalendarWidget.toggle(),

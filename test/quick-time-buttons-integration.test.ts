@@ -96,12 +96,11 @@ describe('Quick Time Buttons Integration Tests', () => {
 
       const result = getQuickTimeButtonsFromSettings(true);
 
-      expect(result).toHaveLength(4); // Mini widget limited to 4
+      expect(result).toHaveLength(3); // Mini widget limited to 3
       expect(result).toEqual([
         { amount: 5, unit: 'minutes', label: '5m' },
         { amount: 10, unit: 'minutes', label: '10m' },
         { amount: 15, unit: 'minutes', label: '15m' },
-        { amount: 30, unit: 'minutes', label: '30m' },
       ]);
     });
 
@@ -192,6 +191,9 @@ describe('Quick Time Buttons Integration Tests', () => {
     });
 
     it('should test getQuickTimeButtons helper function', () => {
+      // Set up a setting that will trigger mini widget reduction
+      mockSettings.set('seasons-and-stars.quickTimeButtons', '5,10,15,30,60,120');
+      
       registerQuickTimeButtonsHelper();
 
       const getQuickTimeButtonsHelper = mockHandlebarsHelpers.get('getQuickTimeButtons');
@@ -199,11 +201,11 @@ describe('Quick Time Buttons Integration Tests', () => {
 
       // Test helper with mini widget false
       const mainButtons = getQuickTimeButtonsHelper(false);
-      expect(mainButtons).toHaveLength(4);
+      expect(mainButtons).toHaveLength(6); // All buttons for main widget
 
       // Test helper with mini widget true
       const miniButtons = getQuickTimeButtonsHelper(true);
-      expect(miniButtons).toHaveLength(4);
+      expect(miniButtons).toHaveLength(3); // Mini widget limited to 3
     });
 
     it('should test formatTimeButton helper function', () => {

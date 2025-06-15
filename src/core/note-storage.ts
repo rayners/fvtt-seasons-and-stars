@@ -7,7 +7,7 @@ import { NotePerformanceOptimizer } from './note-performance-optimizer';
 import { Logger } from './logger';
 
 /**
- * High-performance storage system with date-based indexing
+ * Storage system with date-based indexing
  */
 export class NoteStorage {
   private dateIndex: Map<string, Set<string>> = new Map();
