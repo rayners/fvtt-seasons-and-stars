@@ -276,6 +276,47 @@ describe('Quick Time Buttons Integration Tests', () => {
 
       globalThis.parseInt = originalParseInt;
     });
+
+    it('should handle getQuickTimeButtonsFromSettings errors gracefully', () => {
+      // Mock game.settings.get to throw an error
+      const originalGet = globalThis.game.settings.get;
+      globalThis.game.settings.get = vi.fn().mockImplementation(() => {
+        throw new Error('Settings error');
+      });
+
+      try {
+        const result = getQuickTimeButtonsFromSettings(false);
+        
+        // Should return default fallback values when error occurs
+        expect(result).toEqual([
+          { amount: 15, unit: 'minutes', label: '15m' },
+          { amount: 30, unit: 'minutes', label: '30m' },
+          { amount: 60, unit: 'minutes', label: '1h' },
+          { amount: 240, unit: 'minutes', label: '4h' },
+        ]);
+      } finally {
+        // Restore original
+        globalThis.game.settings.get = originalGet;
+      }
+    });
+
+    it('should handle missing seasonsStars manager gracefully', () => {
+      const originalSeasonsStars = globalThis.game.seasonsStars;
+      globalThis.game.seasonsStars = null;
+      
+      try {
+        const result = getQuickTimeButtonsFromSettings(false);
+        
+        // Should still work with null calendar (using defaults)
+        expect(result).toHaveLength(4);
+        expect(result[0].amount).toBe(15);
+        expect(result[1].amount).toBe(30);
+        expect(result[2].amount).toBe(60);
+        expect(result[3].amount).toBe(240);
+      } finally {
+        globalThis.game.seasonsStars = originalSeasonsStars;
+      }
+    });
   });
 });
 

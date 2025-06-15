@@ -219,6 +219,16 @@ describe('parseQuickTimeButtons', () => {
       const result = parseQuickTimeButtons('-1h,-30m,-1d', mockCalendar);
       expect(result).toEqual([-1440, -60, -30]);
     });
+
+    it('should handle unknown units by filtering them out', () => {
+      const result = parseQuickTimeButtons('15x,30,60y,120', mockCalendar);
+      expect(result).toEqual([30, 120]); // Should filter out 15x and 60y
+    });
+
+    it('should handle multiple unknown units', () => {
+      const result = parseQuickTimeButtons('15z,30y,60x,120', mockCalendar);
+      expect(result).toEqual([120]); // Only 120 (no unit) is valid
+    });
   });
 
   describe('calendar-aware parsing', () => {
@@ -300,12 +310,22 @@ describe('formatTimeButton', () => {
 
     it('should format weeks correctly', () => {
       expect(formatTimeButton(10080, mockCalendar)).toBe('1w'); // 7 * 24 * 60
+      expect(formatTimeButton(20160, mockCalendar)).toBe('2w'); // 2 weeks
+      expect(formatTimeButton(-10080, mockCalendar)).toBe('-1w'); // Negative week
     });
 
     it('should prefer largest appropriate unit', () => {
       expect(formatTimeButton(60, mockCalendar)).toBe('1h'); // Not "60m"
       expect(formatTimeButton(1440, mockCalendar)).toBe('1d'); // Not "24h"
       expect(formatTimeButton(10080, mockCalendar)).toBe('1w'); // Not "7d"
+    });
+
+    it('should format exact days when not exact weeks', () => {
+      // Test exact day formatting when it's not a full week
+      expect(formatTimeButton(1440, mockCalendar)).toBe('1d'); // 1 day
+      expect(formatTimeButton(2880, mockCalendar)).toBe('2d'); // 2 days
+      expect(formatTimeButton(4320, mockCalendar)).toBe('3d'); // 3 days
+      expect(formatTimeButton(-2880, mockCalendar)).toBe('-2d'); // Negative days
     });
 
     it('should handle non-exact divisions as minutes', () => {
