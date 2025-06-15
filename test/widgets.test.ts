@@ -15,7 +15,12 @@ function createWidgetTestSuite(WidgetClass: any, widgetName: string) {
 
     beforeEach(() => {
       vi.clearAllMocks();
-      widget = new WidgetClass(mockStandardCalendar, mockStandardDate);
+      // CalendarGridWidget only takes initialDate parameter, others take calendar and date
+      if (widgetName === 'CalendarGridWidget') {
+        widget = new WidgetClass(mockStandardDate);
+      } else {
+        widget = new WidgetClass(mockStandardCalendar, mockStandardDate);
+      }
     });
 
     describe('addSidebarButton', () => {
@@ -160,7 +165,7 @@ describe('Widget Hook Integration', () => {
     // Create widget instances
     calendarWidget = new CalendarWidget(mockStandardCalendar, mockStandardDate);
     miniWidget = new CalendarMiniWidget(mockStandardCalendar, mockStandardDate);
-    gridWidget = new CalendarGridWidget(mockStandardCalendar, mockStandardDate);
+    gridWidget = new CalendarGridWidget(mockStandardDate);
 
     // Mock the render method for all widgets
     calendarWidget.render = vi.fn();
