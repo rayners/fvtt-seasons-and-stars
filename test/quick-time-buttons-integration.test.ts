@@ -286,7 +286,7 @@ describe('Quick Time Buttons Integration Tests', () => {
 
       try {
         const result = getQuickTimeButtonsFromSettings(false);
-        
+
         // Should return default fallback values when error occurs
         expect(result).toEqual([
           { amount: 15, unit: 'minutes', label: '15m' },
@@ -303,10 +303,10 @@ describe('Quick Time Buttons Integration Tests', () => {
     it('should handle missing seasonsStars manager gracefully', () => {
       const originalSeasonsStars = globalThis.game.seasonsStars;
       globalThis.game.seasonsStars = null;
-      
+
       try {
         const result = getQuickTimeButtonsFromSettings(false);
-        
+
         // Should still work with null calendar (using defaults)
         expect(result).toHaveLength(4);
         expect(result[0].amount).toBe(15);
