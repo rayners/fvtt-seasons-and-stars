@@ -64,7 +64,6 @@ globalThis.Handlebars = {
 import {
   parseQuickTimeButtons,
   formatTimeButton,
-  getQuickTimeButtons,
   getQuickTimeButtonsFromSettings,
   registerQuickTimeButtonsHelper,
 } from '../src/core/quick-time-buttons';
