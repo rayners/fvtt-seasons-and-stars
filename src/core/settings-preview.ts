@@ -14,7 +14,7 @@ let debounceTimer: number | null = null;
  */
 export function registerSettingsPreviewHooks(): void {
   // Hook into settings config rendering
-  Hooks.on('renderSettingsConfig', (app: any, html: JQuery) => {
+  Hooks.on('renderSettingsConfig', (app: any, html: HTMLElement) => {
     enhanceQuickTimeButtonsSetting(html);
   });
 
@@ -24,11 +24,11 @@ export function registerSettingsPreviewHooks(): void {
 /**
  * Enhance the quick time buttons setting with live preview
  */
-function enhanceQuickTimeButtonsSetting(html: JQuery): void {
+function enhanceQuickTimeButtonsSetting(html: HTMLElement): void {
   try {
     // Find the quick time buttons input
-    const quickTimeInput = html.find('input[name="seasons-and-stars.quickTimeButtons"]');
-    if (quickTimeInput.length === 0) {
+    const quickTimeInput = html.querySelector('input[name="seasons-and-stars.quickTimeButtons"]') as HTMLInputElement;
+    if (!quickTimeInput) {
       Logger.debug('Quick time buttons setting not found in settings form');
       return;
     }
@@ -37,12 +37,13 @@ function enhanceQuickTimeButtonsSetting(html: JQuery): void {
     createPreviewContainer(quickTimeInput);
 
     // Add input event listener for live updates
-    quickTimeInput.on('input', (event: any) => {
-      debouncePreviewUpdate(event.target.value);
+    quickTimeInput.addEventListener('input', (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      debouncePreviewUpdate(target.value);
     });
 
     // Initial preview
-    updatePreview(quickTimeInput.val() as string);
+    updatePreview(quickTimeInput.value);
 
     Logger.debug('Added live preview to quick time buttons setting');
   } catch (error) {
@@ -53,7 +54,7 @@ function enhanceQuickTimeButtonsSetting(html: JQuery): void {
 /**
  * Create the preview container HTML
  */
-function createPreviewContainer(inputElement: JQuery): void {
+function createPreviewContainer(inputElement: HTMLInputElement): void {
   const previewHtml = `
     <div class="quick-time-preview" style="margin-top: 0.5rem; padding: 0.5rem; background: var(--color-bg-option); border-radius: 3px;">
       <div class="preview-content">
@@ -71,9 +72,9 @@ function createPreviewContainer(inputElement: JQuery): void {
 
   // Insert preview container after the input's parent form group
   const formGroup = inputElement.closest('.form-group');
-  if (formGroup.length) {
-    formGroup.after(previewHtml);
-    previewContainer = formGroup.next('.quick-time-preview')[0];
+  if (formGroup) {
+    formGroup.insertAdjacentHTML('afterend', previewHtml);
+    previewContainer = formGroup.nextElementSibling as HTMLElement;
   }
 }
 
