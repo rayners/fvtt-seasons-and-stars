@@ -271,7 +271,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         }
       }
 
-      // Create enhanced tooltip with note details
+      // Create tooltip with note details
       let noteTooltip = '';
       if (hasNotes && noteData) {
         const notesList = noteData.notes
@@ -1060,7 +1060,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           const autocompleteDropdown = html.find('.tag-autocomplete-dropdown');
           let selectedIndex = -1;
 
-          // Smart tag matching function
+          // Tag matching function
           function matchTag(
             searchTerm: string,
             tagToMatch: string

@@ -190,14 +190,14 @@
   // Standalone mode (when SmallTime is not available)
   &.standalone-mode {
     .calendar-mini-content {
-      // Enhanced styling for standalone mode
+      // Styling for standalone mode
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       border: 1px solid rgba(255, 255, 255, 0.15);
       
       // Slightly larger in standalone mode to accommodate time controls
       padding: 6px 10px;
       
-      // Enhanced background with more contrast
+      // Background with more contrast
       background: linear-gradient(135deg, #4a4a4a 0%, #2a2a2a 100%);
       
       .mini-time-controls {

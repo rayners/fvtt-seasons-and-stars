@@ -614,7 +614,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           WIDGET_POSITIONING.POSITIONING_RETRY_DELAY
         );
       } else {
-        // SmallTime not found - use smart standalone positioning
+        // SmallTime not found - use standalone positioning
         Logger.debug('SmallTime not found, using standalone positioning');
         this.positionStandalone();
       }
@@ -682,7 +682,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const smallTimeElement = SmallTimeUtils.getSmallTimeElement();
     if (!smallTimeElement || !this.element) {
       Logger.debug('SmallTime not found, using standalone positioning');
-      // Use smart standalone positioning instead of basic fallback
+      // Use standalone positioning instead of basic fallback
       this.positionStandalone();
       return;
     }

@@ -186,7 +186,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         (unit === 'months' && amount >= 1) ||
         (unit === 'years' && amount >= 1)
       ) {
-        ui.notifications?.info(`Advanced time by ${amount} ${unit}`);
+        ui.notifications?.info(`Time advanced by ${amount} ${unit}`);
       }
     } catch (error) {
       Logger.error('Error advancing date', error as Error);

@@ -6,6 +6,120 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CalendarWidget } from '../src/ui/calendar-widget';
 import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../src/ui/calendar-grid-widget';
+import { mockStandardCalendar, mockStandardDate } from './mocks/calendar-mocks';
+
+// Shared helper functions for widget API testing
+function createWidgetTestSuite(WidgetClass: any, widgetName: string) {
+  describe(`${widgetName} API`, () => {
+    let widget: any;
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      widget = new WidgetClass(mockStandardCalendar, mockStandardDate);
+    });
+
+    describe('addSidebarButton', () => {
+      it('should add a sidebar button', () => {
+        const callback = vi.fn();
+
+        widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
+
+        // Only check hasSidebarButton if it exists (CalendarWidget and CalendarMiniWidget have it)
+        if (typeof widget.hasSidebarButton === 'function') {
+          expect(widget.hasSidebarButton('test-button')).toBe(true);
+        } else {
+          // For CalendarGridWidget, just check internal storage
+          const buttons = (widget as any).sidebarButtons;
+          expect(buttons).toHaveLength(1);
+          expect(buttons[0].name).toBe('test-button');
+        }
+      });
+
+      it('should store button with correct properties', () => {
+        const callback = vi.fn();
+
+        widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
+
+        const buttons = (widget as any).sidebarButtons;
+        expect(buttons).toHaveLength(1);
+        expect(buttons[0]).toEqual({
+          name: 'test-button',
+          icon: 'fas fa-star',
+          tooltip: 'Test Button',
+          callback,
+        });
+      });
+
+      it('should not add duplicate buttons', () => {
+        const callback = vi.fn();
+
+        widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
+        widget.addSidebarButton('test-button', 'fas fa-heart', 'Another Button', callback);
+
+        const buttons = (widget as any).sidebarButtons;
+        expect(buttons).toHaveLength(1);
+        if (widgetName === 'CalendarWidget') {
+          expect(buttons[0].icon).toBe('fas fa-star'); // Should keep original
+        }
+      });
+    });
+
+    // Only test remove/has methods for widgets that have them
+    if (widgetName !== 'CalendarGridWidget') {
+      describe('removeSidebarButton', () => {
+        it('should remove existing button', () => {
+          const callback = vi.fn();
+
+          widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
+          expect(widget.hasSidebarButton('test-button')).toBe(true);
+
+          widget.removeSidebarButton('test-button');
+          expect(widget.hasSidebarButton('test-button')).toBe(false);
+        });
+
+        it('should handle removing non-existent button gracefully', () => {
+          widget.removeSidebarButton('non-existent');
+          expect(widget.hasSidebarButton('non-existent')).toBe(false);
+        });
+
+        if (widgetName === 'CalendarWidget') {
+          it('should only remove specified button', () => {
+            const callback = vi.fn();
+
+            widget.addSidebarButton('button1', 'fas fa-star', 'Button 1', callback);
+            widget.addSidebarButton('button2', 'fas fa-heart', 'Button 2', callback);
+
+            widget.removeSidebarButton('button1');
+
+            expect(widget.hasSidebarButton('button1')).toBe(false);
+            expect(widget.hasSidebarButton('button2')).toBe(true);
+          });
+        }
+      });
+
+      describe('hasSidebarButton', () => {
+        it('should return false for non-existent button', () => {
+          expect(widget.hasSidebarButton('non-existent')).toBe(false);
+        });
+
+        it('should return true for existing button', () => {
+          const callback = vi.fn();
+          widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
+
+          expect(widget.hasSidebarButton('test-button')).toBe(true);
+        });
+
+        it('should return false after button is removed', () => {
+          const callback = vi.fn();
+          widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
+          widget.removeSidebarButton('test-button');
+
+          expect(widget.hasSidebarButton('test-button')).toBe(false);
+        });
+      });
+    }
+  });
+}
 
 // Mock Foundry globals
 globalThis.game = {
@@ -30,213 +144,10 @@ globalThis.Hooks = {
   callAll: vi.fn(),
 } as any;
 
-// Mock calendar data
-const mockCalendar = {
-  id: 'test-calendar',
-  translations: { en: { label: 'Test Calendar' } },
-  year: { epoch: 2024, currentYear: 2024, prefix: '', suffix: '', startDay: 0 },
-  months: [{ name: 'January', days: 31 }],
-  weekdays: [{ name: 'Monday' }],
-  time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
-} as any;
-
-const mockDate = {
-  year: 2024,
-  month: 1,
-  day: 1,
-  weekday: 0,
-} as any;
-
-describe('CalendarWidget API', () => {
-  let widget: CalendarWidget;
-
-  beforeEach(() => {
-    // Reset mocks
-    vi.clearAllMocks();
-
-    // Create widget instance
-    widget = new CalendarWidget(mockCalendar, mockDate);
-  });
-
-  describe('addSidebarButton', () => {
-    it('should add a sidebar button', () => {
-      const callback = vi.fn();
-
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-
-      expect(widget.hasSidebarButton('test-button')).toBe(true);
-    });
-
-    it('should store button with correct properties', () => {
-      const callback = vi.fn();
-
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-
-      const buttons = (widget as any).sidebarButtons;
-      expect(buttons).toHaveLength(1);
-      expect(buttons[0]).toEqual({
-        name: 'test-button',
-        icon: 'fas fa-star',
-        tooltip: 'Test Button',
-        callback,
-      });
-    });
-
-    it('should not add duplicate buttons', () => {
-      const callback = vi.fn();
-
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      widget.addSidebarButton('test-button', 'fas fa-heart', 'Another Button', callback);
-
-      const buttons = (widget as any).sidebarButtons;
-      expect(buttons).toHaveLength(1);
-      expect(buttons[0].icon).toBe('fas fa-star'); // Should keep original
-    });
-  });
-
-  describe('removeSidebarButton', () => {
-    it('should remove existing button', () => {
-      const callback = vi.fn();
-
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      expect(widget.hasSidebarButton('test-button')).toBe(true);
-
-      widget.removeSidebarButton('test-button');
-      expect(widget.hasSidebarButton('test-button')).toBe(false);
-    });
-
-    it('should handle removing non-existent button', () => {
-      widget.removeSidebarButton('non-existent');
-      // Should not throw error
-      expect(widget.hasSidebarButton('non-existent')).toBe(false);
-    });
-
-    it('should only remove specified button', () => {
-      const callback = vi.fn();
-
-      widget.addSidebarButton('button1', 'fas fa-star', 'Button 1', callback);
-      widget.addSidebarButton('button2', 'fas fa-heart', 'Button 2', callback);
-
-      widget.removeSidebarButton('button1');
-
-      expect(widget.hasSidebarButton('button1')).toBe(false);
-      expect(widget.hasSidebarButton('button2')).toBe(true);
-    });
-  });
-
-  describe('hasSidebarButton', () => {
-    it('should return false for non-existent button', () => {
-      expect(widget.hasSidebarButton('non-existent')).toBe(false);
-    });
-
-    it('should return true for existing button', () => {
-      const callback = vi.fn();
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-
-      expect(widget.hasSidebarButton('test-button')).toBe(true);
-    });
-
-    it('should return false after button is removed', () => {
-      const callback = vi.fn();
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      widget.removeSidebarButton('test-button');
-
-      expect(widget.hasSidebarButton('test-button')).toBe(false);
-    });
-  });
-});
-
-describe('CalendarMiniWidget API', () => {
-  let widget: CalendarMiniWidget;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    widget = new CalendarMiniWidget(mockCalendar, mockDate);
-  });
-
-  describe('addSidebarButton', () => {
-    it('should add a sidebar button', () => {
-      const callback = vi.fn();
-
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-
-      expect(widget.hasSidebarButton('test-button')).toBe(true);
-    });
-
-    it('should not add duplicate buttons', () => {
-      const callback = vi.fn();
-
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      widget.addSidebarButton('test-button', 'fas fa-heart', 'Another Button', callback);
-
-      const buttons = (widget as any).sidebarButtons;
-      expect(buttons).toHaveLength(1);
-    });
-  });
-
-  describe('removeSidebarButton', () => {
-    it('should remove existing button', () => {
-      const callback = vi.fn();
-
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      widget.removeSidebarButton('test-button');
-
-      expect(widget.hasSidebarButton('test-button')).toBe(false);
-    });
-
-    it('should handle removing non-existent button gracefully', () => {
-      // Should not throw
-      widget.removeSidebarButton('non-existent');
-      expect(widget.hasSidebarButton('non-existent')).toBe(false);
-    });
-  });
-
-  describe('hasSidebarButton', () => {
-    it('should correctly identify existing buttons', () => {
-      const callback = vi.fn();
-
-      expect(widget.hasSidebarButton('test-button')).toBe(false);
-
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      expect(widget.hasSidebarButton('test-button')).toBe(true);
-
-      widget.removeSidebarButton('test-button');
-      expect(widget.hasSidebarButton('test-button')).toBe(false);
-    });
-  });
-});
-
-describe('CalendarGridWidget API', () => {
-  let widget: CalendarGridWidget;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    widget = new CalendarGridWidget(mockCalendar, mockDate);
-  });
-
-  describe('addSidebarButton', () => {
-    it('should add a sidebar button', () => {
-      const callback = vi.fn();
-
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-
-      // Check internal storage
-      const buttons = (widget as any).sidebarButtons;
-      expect(buttons).toHaveLength(1);
-      expect(buttons[0].name).toBe('test-button');
-    });
-
-    it('should prevent duplicate buttons', () => {
-      const callback = vi.fn();
-
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-      widget.addSidebarButton('test-button', 'fas fa-heart', 'Another Button', callback);
-
-      const buttons = (widget as any).sidebarButtons;
-      expect(buttons).toHaveLength(1);
-    });
-  });
-});
+// Use shared test suite for all widget types
+createWidgetTestSuite(CalendarWidget, 'CalendarWidget');
+createWidgetTestSuite(CalendarMiniWidget, 'CalendarMiniWidget');
+createWidgetTestSuite(CalendarGridWidget, 'CalendarGridWidget');
 
 describe('Widget Hook Integration', () => {
   let calendarWidget: CalendarWidget;
@@ -245,11 +156,11 @@ describe('Widget Hook Integration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Create widget instances
-    calendarWidget = new CalendarWidget(mockCalendar, mockDate);
-    miniWidget = new CalendarMiniWidget(mockCalendar, mockDate);
-    gridWidget = new CalendarGridWidget(mockCalendar, mockDate);
+    calendarWidget = new CalendarWidget(mockStandardCalendar, mockStandardDate);
+    miniWidget = new CalendarMiniWidget(mockStandardCalendar, mockStandardDate);
+    gridWidget = new CalendarGridWidget(mockStandardCalendar, mockStandardDate);
 
     // Mock the render method for all widgets
     calendarWidget.render = vi.fn();
@@ -276,7 +187,9 @@ describe('Widget Hook Integration', () => {
     it('should re-render on seasons-stars:dateChanged hook', () => {
       // Find and call the dateChanged hook
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const dateChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:dateChanged');
+      const dateChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:dateChanged'
+      );
       expect(dateChangedCall).toBeDefined();
 
       // Execute the hook callback
@@ -289,7 +202,9 @@ describe('Widget Hook Integration', () => {
 
     it('should re-render on seasons-stars:calendarChanged hook', () => {
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const calendarChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:calendarChanged');
+      const calendarChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:calendarChanged'
+      );
       expect(calendarChangedCall).toBeDefined();
 
       const callback = calendarChangedCall[1];
@@ -300,11 +215,13 @@ describe('Widget Hook Integration', () => {
 
     it('should re-render on seasons-stars:settingsChanged hook when quickTimeButtons setting changes', () => {
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const settingsChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:settingsChanged');
+      const settingsChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:settingsChanged'
+      );
       expect(settingsChangedCall).toBeDefined();
 
       const callback = settingsChangedCall[1];
-      
+
       // Test with quickTimeButtons setting
       callback('quickTimeButtons');
       expect(calendarWidget.render).toHaveBeenCalledTimes(1);
@@ -322,8 +239,10 @@ describe('Widget Hook Integration', () => {
       Object.defineProperty(calendarWidget, 'rendered', { value: false, writable: true });
 
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const dateChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:dateChanged');
-      
+      const dateChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:dateChanged'
+      );
+
       const callback = dateChangedCall[1];
       callback();
 
@@ -336,8 +255,10 @@ describe('Widget Hook Integration', () => {
       (CalendarWidget as any).activeInstance = null;
 
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const dateChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:dateChanged');
-      
+      const dateChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:dateChanged'
+      );
+
       const callback = dateChangedCall[1];
       callback();
 
@@ -353,7 +274,9 @@ describe('Widget Hook Integration', () => {
 
     it('should re-render on seasons-stars:dateChanged hook', () => {
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const dateChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:dateChanged');
+      const dateChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:dateChanged'
+      );
       expect(dateChangedCall).toBeDefined();
 
       const callback = dateChangedCall[1];
@@ -364,7 +287,9 @@ describe('Widget Hook Integration', () => {
 
     it('should re-render on seasons-stars:calendarChanged hook', () => {
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const calendarChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:calendarChanged');
+      const calendarChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:calendarChanged'
+      );
       expect(calendarChangedCall).toBeDefined();
 
       const callback = calendarChangedCall[1];
@@ -375,11 +300,13 @@ describe('Widget Hook Integration', () => {
 
     it('should re-render on seasons-stars:settingsChanged hook for relevant settings', () => {
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const settingsChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:settingsChanged');
+      const settingsChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:settingsChanged'
+      );
       expect(settingsChangedCall).toBeDefined();
 
       const callback = settingsChangedCall[1];
-      
+
       // Test with quickTimeButtons setting
       callback('quickTimeButtons');
       expect(miniWidget.render).toHaveBeenCalledTimes(1);
@@ -389,10 +316,12 @@ describe('Widget Hook Integration', () => {
       (CalendarMiniWidget as any).activeInstance = null;
 
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const dateChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:dateChanged');
-      
+      const dateChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:dateChanged'
+      );
+
       const callback = dateChangedCall[1];
-      
+
       // Should not throw
       expect(() => callback()).not.toThrow();
       expect(miniWidget.render).not.toHaveBeenCalled();
@@ -406,7 +335,9 @@ describe('Widget Hook Integration', () => {
 
     it('should re-render on seasons-stars:dateChanged hook', () => {
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const dateChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:dateChanged');
+      const dateChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:dateChanged'
+      );
       expect(dateChangedCall).toBeDefined();
 
       const callback = dateChangedCall[1];
@@ -417,7 +348,9 @@ describe('Widget Hook Integration', () => {
 
     it('should re-render on seasons-stars:calendarChanged hook', () => {
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const calendarChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:calendarChanged');
+      const calendarChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:calendarChanged'
+      );
       expect(calendarChangedCall).toBeDefined();
 
       const callback = calendarChangedCall[1];
@@ -430,8 +363,10 @@ describe('Widget Hook Integration', () => {
       Object.defineProperty(gridWidget, 'rendered', { value: false, writable: true });
 
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const dateChangedCall = hookCalls.find((call: any) => call[0] === 'seasons-stars:dateChanged');
-      
+      const dateChangedCall = hookCalls.find(
+        (call: any) => call[0] === 'seasons-stars:dateChanged'
+      );
+
       const callback = dateChangedCall[1];
       callback();
 
@@ -448,8 +383,10 @@ describe('Widget Hook Integration', () => {
 
       // Find all dateChanged hook registrations
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const dateChangedCalls = hookCalls.filter((call: any) => call[0] === 'seasons-stars:dateChanged');
-      
+      const dateChangedCalls = hookCalls.filter(
+        (call: any) => call[0] === 'seasons-stars:dateChanged'
+      );
+
       // Should have registered 3 hooks (one for each widget type)
       expect(dateChangedCalls.length).toBeGreaterThanOrEqual(3);
 
@@ -476,8 +413,10 @@ describe('Widget Hook Integration', () => {
       CalendarGridWidget.registerHooks();
 
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
-      const dateChangedCalls = hookCalls.filter((call: any) => call[0] === 'seasons-stars:dateChanged');
-      
+      const dateChangedCalls = hookCalls.filter(
+        (call: any) => call[0] === 'seasons-stars:dateChanged'
+      );
+
       dateChangedCalls.forEach((call: any) => {
         const callback = call[1];
         callback();
@@ -493,14 +432,14 @@ describe('Widget Hook Integration', () => {
   describe('Hook registration edge cases', () => {
     it('should handle registerHooks being called multiple times', () => {
       const initialHookCount = (globalThis.Hooks.on as any).mock.calls.length;
-      
+
       // Call registerHooks multiple times
       CalendarWidget.registerHooks();
       CalendarWidget.registerHooks();
       CalendarWidget.registerHooks();
 
       const finalHookCount = (globalThis.Hooks.on as any).mock.calls.length;
-      
+
       // Should have registered hooks (exact count depends on number of hooks per widget)
       expect(finalHookCount).toBeGreaterThan(initialHookCount);
     });

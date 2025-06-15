@@ -23,7 +23,7 @@ import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { TIME_CONSTANTS } from './core/constants';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
-import { SettingsPreview } from './core/settings-preview';
+import { registerSettingsPreviewHooks } from './core/settings-preview';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
 import type {
   CalendarDate as ICalendarDate,
@@ -251,7 +251,7 @@ Hooks.once('init', async () => {
   registerQuickTimeButtonsHelper();
 
   // Register settings preview functionality
-  SettingsPreview.registerHooks();
+  registerSettingsPreviewHooks();
 
   // Register keyboard shortcuts (must be in init hook)
   Logger.debug('Registering keyboard shortcuts');

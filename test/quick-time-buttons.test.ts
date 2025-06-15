@@ -3,7 +3,12 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { parseQuickTimeButtons, formatTimeButton, getQuickTimeButtons } from '../src/core/quick-time-buttons';
+import {
+  parseQuickTimeButtons,
+  formatTimeButton,
+  getQuickTimeButtons,
+} from '../src/core/quick-time-buttons';
+import { mockStandardCalendar, mockCustomCalendar } from './mocks/calendar-mocks';
 
 // Mock Foundry globals
 globalThis.game = {
@@ -35,135 +40,89 @@ globalThis.Hooks = {
   callAll: vi.fn(),
 } as any;
 
-// Mock calendar data - properly typed to match SeasonsStarsCalendar interface
-const mockCalendar = {
-  id: 'test-calendar',
-  translations: { en: { label: 'Test Calendar' } },
-  year: { epoch: 2024, currentYear: 2024, prefix: '', suffix: '', startDay: 0 },
-  months: [{ name: 'January', days: 31 }],
-  weekdays: [
-    { name: 'Monday' },
-    { name: 'Tuesday' },
-    { name: 'Wednesday' },
-    { name: 'Thursday' },
-    { name: 'Friday' },
-    { name: 'Saturday' },
-    { name: 'Sunday' },
-  ], // 7 days per week
-  intercalary: [],
-  time: {
-    hoursInDay: 24,
-    minutesInHour: 60,
-    secondsInMinute: 60,
-  },
-  leapYear: { rule: 'none' as const },
-};
-
-const mockCalendarCustom = {
-  id: 'custom-calendar',
-  translations: { en: { label: 'Custom Calendar' } },
-  year: { epoch: 2024, currentYear: 2024, prefix: '', suffix: '', startDay: 0 },
-  months: [{ name: 'CustomMonth', days: 20 }],
-  weekdays: [
-    { name: 'Day1' },
-    { name: 'Day2' },
-    { name: 'Day3' },
-    { name: 'Day4' },
-    { name: 'Day5' },
-    { name: 'Day6' },
-  ], // 6 days per week
-  intercalary: [],
-  time: {
-    hoursInDay: 20,
-    minutesInHour: 50,
-    secondsInMinute: 60,
-  },
-  leapYear: { rule: 'none' as const },
-};
-
 describe('parseQuickTimeButtons', () => {
   describe('basic parsing', () => {
     it('should parse basic minute values', () => {
-      const result = parseQuickTimeButtons('15,30,60', mockCalendar);
+      const result = parseQuickTimeButtons('15,30,60', mockStandardCalendar);
       expect(result).toEqual([15, 30, 60]);
     });
 
     it('should parse mixed positive and negative values', () => {
-      const result = parseQuickTimeButtons('30,-60,10,-15', mockCalendar);
+      const result = parseQuickTimeButtons('30,-60,10,-15', mockStandardCalendar);
       expect(result).toEqual([-60, -15, 10, 30]);
     });
 
     it('should sort values numerically', () => {
-      const result = parseQuickTimeButtons('240,10,60,30', mockCalendar);
+      const result = parseQuickTimeButtons('240,10,60,30', mockStandardCalendar);
       expect(result).toEqual([10, 30, 60, 240]);
     });
 
     it('should handle empty input gracefully', () => {
-      const result = parseQuickTimeButtons('', mockCalendar);
+      const result = parseQuickTimeButtons('', mockStandardCalendar);
       expect(result).toEqual([15, 30, 60, 240]); // Returns default values for empty input
     });
 
     it('should filter out invalid entries', () => {
-      const result = parseQuickTimeButtons('15,invalid,30,abc,60', mockCalendar);
+      const result = parseQuickTimeButtons('15,invalid,30,abc,60', mockStandardCalendar);
       expect(result).toEqual([15, 30, 60]);
     });
 
     it('should handle whitespace correctly', () => {
-      const result = parseQuickTimeButtons(' 15 , 30 , 60 ', mockCalendar);
+      const result = parseQuickTimeButtons(' 15 , 30 , 60 ', mockStandardCalendar);
       expect(result).toEqual([15, 30, 60]);
     });
   });
 
   describe('unit parsing', () => {
     it('should parse minute units correctly', () => {
-      const result = parseQuickTimeButtons('15m,30m,60m', mockCalendar);
+      const result = parseQuickTimeButtons('15m,30m,60m', mockStandardCalendar);
       expect(result).toEqual([15, 30, 60]);
     });
 
     it('should parse hour units correctly', () => {
-      const result = parseQuickTimeButtons('1h,2h,4h', mockCalendar);
+      const result = parseQuickTimeButtons('1h,2h,4h', mockStandardCalendar);
       expect(result).toEqual([60, 120, 240]);
     });
 
     it('should parse day units correctly', () => {
-      const result = parseQuickTimeButtons('1d,2d', mockCalendar);
+      const result = parseQuickTimeButtons('1d,2d', mockStandardCalendar);
       expect(result).toEqual([1440, 2880]); // 24 * 60 = 1440
     });
 
     it('should parse week units correctly', () => {
-      const result = parseQuickTimeButtons('1w', mockCalendar);
+      const result = parseQuickTimeButtons('1w', mockStandardCalendar);
       expect(result).toEqual([10080]); // 7 * 24 * 60 = 10080
     });
 
     it('should handle mixed units', () => {
-      const result = parseQuickTimeButtons('30m,1h,1d', mockCalendar);
+      const result = parseQuickTimeButtons('30m,1h,1d', mockStandardCalendar);
       expect(result).toEqual([30, 60, 1440]);
     });
 
     it('should handle negative units', () => {
-      const result = parseQuickTimeButtons('-1h,-30m,-1d', mockCalendar);
+      const result = parseQuickTimeButtons('-1h,-30m,-1d', mockStandardCalendar);
       expect(result).toEqual([-1440, -60, -30]);
     });
 
     it('should handle unknown units by filtering them out', () => {
-      const result = parseQuickTimeButtons('15x,30,60y,120', mockCalendar);
+      const result = parseQuickTimeButtons('15x,30,60y,120', mockStandardCalendar);
       expect(result).toEqual([30, 120]); // Should filter out 15x and 60y
     });
 
     it('should handle multiple unknown units', () => {
-      const result = parseQuickTimeButtons('15z,30y,60x,120', mockCalendar);
+      const result = parseQuickTimeButtons('15z,30y,60x,120', mockStandardCalendar);
       expect(result).toEqual([120]); // Only 120 (no unit) is valid
     });
   });
 
   describe('calendar-aware parsing', () => {
     it('should use custom calendar hour lengths', () => {
-      const result = parseQuickTimeButtons('1h,1d', mockCalendarCustom);
+      const result = parseQuickTimeButtons('1h,1d', mockCustomCalendar);
       expect(result).toEqual([50, 1000]); // 50 minutes/hour, 20 hours/day = 1000 minutes/day
     });
 
     it('should use custom calendar week lengths', () => {
-      const result = parseQuickTimeButtons('1w', mockCalendarCustom);
+      const result = parseQuickTimeButtons('1w', mockCustomCalendar);
       expect(result).toEqual([6000]); // 6 days/week * 20 hours/day * 50 minutes/hour = 6000
     });
 
@@ -184,32 +143,32 @@ describe('parseQuickTimeButtons', () => {
 
   describe('edge cases', () => {
     it('should handle very large numbers', () => {
-      const result = parseQuickTimeButtons('999999,1000000', mockCalendar);
+      const result = parseQuickTimeButtons('999999,1000000', mockStandardCalendar);
       expect(result).toEqual([999999, 1000000]);
     });
 
     it('should handle zero values', () => {
-      const result = parseQuickTimeButtons('0,15,30', mockCalendar);
+      const result = parseQuickTimeButtons('0,15,30', mockStandardCalendar);
       expect(result).toEqual([0, 15, 30]);
     });
 
     it('should handle duplicate values', () => {
-      const result = parseQuickTimeButtons('15,30,15,30', mockCalendar);
+      const result = parseQuickTimeButtons('15,30,15,30', mockStandardCalendar);
       expect(result).toEqual([15, 15, 30, 30]); // Keeps duplicates, sorts them
     });
 
     it('should handle single value', () => {
-      const result = parseQuickTimeButtons('60', mockCalendar);
+      const result = parseQuickTimeButtons('60', mockStandardCalendar);
       expect(result).toEqual([60]);
     });
 
     it('should handle trailing commas', () => {
-      const result = parseQuickTimeButtons('15,30,60,', mockCalendar);
+      const result = parseQuickTimeButtons('15,30,60,', mockStandardCalendar);
       expect(result).toEqual([15, 30, 60]);
     });
 
     it('should handle leading commas', () => {
-      const result = parseQuickTimeButtons(',15,30,60', mockCalendar);
+      const result = parseQuickTimeButtons(',15,30,60', mockStandardCalendar);
       expect(result).toEqual([15, 30, 60]);
     });
   });
@@ -218,78 +177,78 @@ describe('parseQuickTimeButtons', () => {
 describe('formatTimeButton', () => {
   describe('standard calendar formatting', () => {
     it('should format minutes correctly', () => {
-      expect(formatTimeButton(15, mockCalendar)).toBe('15m');
-      expect(formatTimeButton(45, mockCalendar)).toBe('45m');
+      expect(formatTimeButton(15, mockStandardCalendar)).toBe('15m');
+      expect(formatTimeButton(45, mockStandardCalendar)).toBe('45m');
     });
 
     it('should format hours correctly', () => {
-      expect(formatTimeButton(60, mockCalendar)).toBe('1h');
-      expect(formatTimeButton(120, mockCalendar)).toBe('2h');
-      expect(formatTimeButton(240, mockCalendar)).toBe('4h');
+      expect(formatTimeButton(60, mockStandardCalendar)).toBe('1h');
+      expect(formatTimeButton(120, mockStandardCalendar)).toBe('2h');
+      expect(formatTimeButton(240, mockStandardCalendar)).toBe('4h');
     });
 
     it('should format days correctly', () => {
-      expect(formatTimeButton(1440, mockCalendar)).toBe('1d'); // 24 * 60
-      expect(formatTimeButton(2880, mockCalendar)).toBe('2d');
+      expect(formatTimeButton(1440, mockStandardCalendar)).toBe('1d'); // 24 * 60
+      expect(formatTimeButton(2880, mockStandardCalendar)).toBe('2d');
     });
 
     it('should format weeks correctly', () => {
-      expect(formatTimeButton(10080, mockCalendar)).toBe('1w'); // 7 * 24 * 60
-      expect(formatTimeButton(20160, mockCalendar)).toBe('2w'); // 2 weeks
-      expect(formatTimeButton(-10080, mockCalendar)).toBe('-1w'); // Negative week
+      expect(formatTimeButton(10080, mockStandardCalendar)).toBe('1w'); // 7 * 24 * 60
+      expect(formatTimeButton(20160, mockStandardCalendar)).toBe('2w'); // 2 weeks
+      expect(formatTimeButton(-10080, mockStandardCalendar)).toBe('-1w'); // Negative week
     });
 
     it('should prefer largest appropriate unit', () => {
-      expect(formatTimeButton(60, mockCalendar)).toBe('1h'); // Not "60m"
-      expect(formatTimeButton(1440, mockCalendar)).toBe('1d'); // Not "24h"
-      expect(formatTimeButton(10080, mockCalendar)).toBe('1w'); // Not "7d"
+      expect(formatTimeButton(60, mockStandardCalendar)).toBe('1h'); // Not "60m"
+      expect(formatTimeButton(1440, mockStandardCalendar)).toBe('1d'); // Not "24h"
+      expect(formatTimeButton(10080, mockStandardCalendar)).toBe('1w'); // Not "7d"
     });
 
     it('should format exact days when not exact weeks', () => {
       // Test exact day formatting when it's not a full week
-      expect(formatTimeButton(1440, mockCalendar)).toBe('1d'); // 1 day
-      expect(formatTimeButton(2880, mockCalendar)).toBe('2d'); // 2 days
-      expect(formatTimeButton(4320, mockCalendar)).toBe('3d'); // 3 days
-      expect(formatTimeButton(-2880, mockCalendar)).toBe('-2d'); // Negative days
+      expect(formatTimeButton(1440, mockStandardCalendar)).toBe('1d'); // 1 day
+      expect(formatTimeButton(2880, mockStandardCalendar)).toBe('2d'); // 2 days
+      expect(formatTimeButton(4320, mockStandardCalendar)).toBe('3d'); // 3 days
+      expect(formatTimeButton(-2880, mockStandardCalendar)).toBe('-2d'); // Negative days
     });
 
     it('should handle non-exact divisions as minutes', () => {
-      expect(formatTimeButton(90, mockCalendar)).toBe('90m'); // 1.5 hours
-      expect(formatTimeButton(1500, mockCalendar)).toBe('25h'); // 25 hours (exact hours)
+      expect(formatTimeButton(90, mockStandardCalendar)).toBe('90m'); // 1.5 hours
+      expect(formatTimeButton(1500, mockStandardCalendar)).toBe('25h'); // 25 hours (exact hours)
     });
 
     it('should handle negative values correctly', () => {
-      expect(formatTimeButton(-60, mockCalendar)).toBe('-1h');
-      expect(formatTimeButton(-1440, mockCalendar)).toBe('-1d');
-      expect(formatTimeButton(-15, mockCalendar)).toBe('-15m');
+      expect(formatTimeButton(-60, mockStandardCalendar)).toBe('-1h');
+      expect(formatTimeButton(-1440, mockStandardCalendar)).toBe('-1d');
+      expect(formatTimeButton(-15, mockStandardCalendar)).toBe('-15m');
     });
   });
 
   describe('custom calendar formatting', () => {
     it('should use custom hour lengths', () => {
-      expect(formatTimeButton(50, mockCalendarCustom)).toBe('1h'); // 50 minutes/hour
-      expect(formatTimeButton(100, mockCalendarCustom)).toBe('2h');
+      expect(formatTimeButton(50, mockCustomCalendar)).toBe('1h'); // 50 minutes/hour
+      expect(formatTimeButton(100, mockCustomCalendar)).toBe('2h');
     });
 
     it('should use custom day lengths', () => {
-      expect(formatTimeButton(1000, mockCalendarCustom)).toBe('1d'); // 20 * 50 = 1000
-      expect(formatTimeButton(2000, mockCalendarCustom)).toBe('2d');
+      expect(formatTimeButton(1000, mockCustomCalendar)).toBe('1d'); // 20 * 50 = 1000
+      expect(formatTimeButton(2000, mockCustomCalendar)).toBe('2d');
     });
 
     it('should use custom week lengths', () => {
-      expect(formatTimeButton(6000, mockCalendarCustom)).toBe('1w'); // 6 * 20 * 50 = 6000
+      expect(formatTimeButton(6000, mockCustomCalendar)).toBe('1w'); // 6 * 20 * 50 = 6000
     });
 
     it('should handle mixed custom calendar units', () => {
-      expect(formatTimeButton(25, mockCalendarCustom)).toBe('25m'); // Less than 1 hour
-      expect(formatTimeButton(75, mockCalendarCustom)).toBe('75m'); // 1.5 hours, not exact
-      expect(formatTimeButton(150, mockCalendarCustom)).toBe('3h'); // Exact 3 hours
+      expect(formatTimeButton(25, mockCustomCalendar)).toBe('25m'); // Less than 1 hour
+      expect(formatTimeButton(75, mockCustomCalendar)).toBe('75m'); // 1.5 hours, not exact
+      expect(formatTimeButton(150, mockCustomCalendar)).toBe('3h'); // Exact 3 hours
     });
   });
 
   describe('edge cases', () => {
     it('should handle zero correctly', () => {
-      expect(formatTimeButton(0, mockCalendar)).toBe('0m');
+      expect(formatTimeButton(0, mockStandardCalendar)).toBe('0m');
     });
 
     it('should handle missing calendar gracefully', () => {
@@ -298,7 +257,7 @@ describe('formatTimeButton', () => {
     });
 
     it('should handle very large numbers', () => {
-      expect(formatTimeButton(999999, mockCalendar)).toBe('999999m');
+      expect(formatTimeButton(999999, mockStandardCalendar)).toBe('999999m');
     });
   });
 });
@@ -408,7 +367,7 @@ describe('integration scenarios', () => {
   describe('PF2e use case', () => {
     it('should handle PF2e exploration mode configuration', () => {
       const pf2eInput = '10,30,60';
-      const parsed = parseQuickTimeButtons(pf2eInput, mockCalendar);
+      const parsed = parseQuickTimeButtons(pf2eInput, mockStandardCalendar);
       expect(parsed).toEqual([10, 30, 60]);
 
       const mainWidget = getQuickTimeButtons(parsed, false);
@@ -422,19 +381,19 @@ describe('integration scenarios', () => {
   describe('complex user configurations', () => {
     it('should handle power user configuration with many options', () => {
       const powerUserInput = '-4h,-1h,-15m,10m,30m,1h,4h,8h';
-      const parsed = parseQuickTimeButtons(powerUserInput, mockCalendar);
+      const parsed = parseQuickTimeButtons(powerUserInput, mockStandardCalendar);
       expect(parsed).toEqual([-240, -60, -15, 10, 30, 60, 240, 480]);
 
       const mainWidget = getQuickTimeButtons(parsed, false);
       expect(mainWidget).toHaveLength(8); // All buttons
 
       const miniWidget = getQuickTimeButtons(parsed, true);
-      expect(miniWidget).toEqual([-15, 10, 30, 60]); // Smart selection
+      expect(miniWidget).toEqual([-15, 10, 30, 60]); // Auto-selected subset
     });
 
     it('should handle backward-time-heavy configuration', () => {
       const backwardInput = '-8h,-4h,-1h,-30m,15m,1h';
-      const parsed = parseQuickTimeButtons(backwardInput, mockCalendar);
+      const parsed = parseQuickTimeButtons(backwardInput, mockStandardCalendar);
       expect(parsed).toEqual([-480, -240, -60, -30, 15, 60]);
 
       const miniWidget = getQuickTimeButtons(parsed, true);
@@ -445,11 +404,11 @@ describe('integration scenarios', () => {
   describe('calendar-specific scenarios', () => {
     it('should work with custom calendar and complex input', () => {
       const customInput = '1h,1d,1w,-30m';
-      const parsed = parseQuickTimeButtons(customInput, mockCalendarCustom);
+      const parsed = parseQuickTimeButtons(customInput, mockCustomCalendar);
       // 1h = 50m, 1d = 1000m (20*50), 1w = 6000m (6*20*50), -30m = -30m
       expect(parsed).toEqual([-30, 50, 1000, 6000]);
 
-      const formatted = parsed.map(m => formatTimeButton(m, mockCalendarCustom));
+      const formatted = parsed.map(m => formatTimeButton(m, mockCustomCalendar));
       expect(formatted).toEqual(['-30m', '1h', '1d', '1w']);
     });
   });
@@ -457,13 +416,13 @@ describe('integration scenarios', () => {
   describe('error recovery and edge cases', () => {
     it('should handle malformed input gracefully', () => {
       const malformedInput = '15,,30,invalid,abc123,60m,1h,';
-      const parsed = parseQuickTimeButtons(malformedInput, mockCalendar);
+      const parsed = parseQuickTimeButtons(malformedInput, mockStandardCalendar);
       expect(parsed).toEqual([15, 30, 60, 60]); // Filters out invalid, keeps valid
     });
 
     it('should handle all invalid input', () => {
       const invalidInput = 'invalid,abc,xyz,';
-      const parsed = parseQuickTimeButtons(invalidInput, mockCalendar);
+      const parsed = parseQuickTimeButtons(invalidInput, mockStandardCalendar);
       expect(parsed).toEqual([]); // Empty result
 
       const miniWidget = getQuickTimeButtons(parsed, true);
@@ -472,7 +431,7 @@ describe('integration scenarios', () => {
 
     it('should handle very large mixed configuration', () => {
       const largeInput = Array.from({ length: 20 }, (_, i) => `${(i - 10) * 15}`).join(',');
-      const parsed = parseQuickTimeButtons(largeInput, mockCalendar);
+      const parsed = parseQuickTimeButtons(largeInput, mockStandardCalendar);
       expect(parsed).toHaveLength(20); // All valid
       expect(parsed[0]).toBe(-150); // Largest negative (i=0: (0-10)*15 = -150)
       expect(parsed[19]).toBe(135); // Largest positive (i=19: (19-10)*15 = 135)

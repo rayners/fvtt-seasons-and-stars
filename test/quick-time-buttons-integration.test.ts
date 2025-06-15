@@ -4,6 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mockMinimalCalendar } from './mocks/calendar-mocks';
 
 // Mock Foundry globals with more complete integration
 const mockSettings = new Map();
@@ -22,19 +23,7 @@ globalThis.game = {
   },
   seasonsStars: {
     manager: {
-      getActiveCalendar: vi.fn().mockReturnValue({
-        id: 'test-calendar',
-        time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
-        weekdays: [
-          { name: 'Monday' },
-          { name: 'Tuesday' },
-          { name: 'Wednesday' },
-          { name: 'Thursday' },
-          { name: 'Friday' },
-          { name: 'Saturday' },
-          { name: 'Sunday' },
-        ],
-      }),
+      getActiveCalendar: vi.fn().mockReturnValue(mockMinimalCalendar),
     },
   },
 } as any;
@@ -67,7 +56,7 @@ import {
   getQuickTimeButtonsFromSettings,
   registerQuickTimeButtonsHelper,
 } from '../src/core/quick-time-buttons';
-import { SettingsPreview } from '../src/core/settings-preview';
+import { registerSettingsPreviewHooks, cleanupSettingsPreview } from '../src/core/settings-preview';
 
 describe('Quick Time Buttons Integration Tests', () => {
   beforeEach(() => {
@@ -320,14 +309,14 @@ describe('Quick Time Buttons Integration Tests', () => {
   });
 });
 
-describe('SettingsPreview Integration Tests', () => {
+describe('Settings Preview Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe('registerHooks', () => {
     it('should register renderSettingsConfig hook', () => {
-      SettingsPreview.registerHooks();
+      registerSettingsPreviewHooks();
 
       expect(globalThis.Hooks.on).toHaveBeenCalledWith(
         'renderSettingsConfig',
@@ -339,19 +328,19 @@ describe('SettingsPreview Integration Tests', () => {
   describe('cleanup', () => {
     it('should clear timers and reset container', () => {
       // Test cleanup without any timers
-      expect(() => SettingsPreview.cleanup()).not.toThrow();
+      expect(() => cleanupSettingsPreview()).not.toThrow();
     });
   });
 
   describe('Error handling in enhanceQuickTimeButtonsSetting', () => {
     it('should register hooks without throwing', () => {
       // Test that the hook registration doesn't throw
-      expect(() => SettingsPreview.registerHooks()).not.toThrow();
+      expect(() => registerSettingsPreviewHooks()).not.toThrow();
     });
 
     it('should handle hook callback errors gracefully', () => {
       // Register hooks
-      SettingsPreview.registerHooks();
+      registerSettingsPreviewHooks();
 
       // Get the hook callback that was registered
       const hookCalls = (globalThis.Hooks.on as any).mock.calls;
@@ -373,12 +362,12 @@ describe('SettingsPreview Integration Tests', () => {
   });
 
   describe('Coverage for class methods', () => {
-    it('should cover SettingsPreview static methods', () => {
+    it('should cover settings preview functions', () => {
       // Test cleanup method
-      expect(() => SettingsPreview.cleanup()).not.toThrow();
+      expect(() => cleanupSettingsPreview()).not.toThrow();
 
       // Test registerHooks method
-      expect(() => SettingsPreview.registerHooks()).not.toThrow();
+      expect(() => registerSettingsPreviewHooks()).not.toThrow();
 
       // Verify hooks were registered
       expect(globalThis.Hooks.on).toHaveBeenCalledWith(
@@ -389,8 +378,8 @@ describe('SettingsPreview Integration Tests', () => {
 
     it('should handle registration edge cases', () => {
       // Test multiple registrations
-      SettingsPreview.registerHooks();
-      SettingsPreview.registerHooks();
+      registerSettingsPreviewHooks();
+      registerSettingsPreviewHooks();
 
       // Should not cause issues
       expect(globalThis.Hooks.on).toHaveBeenCalled();
