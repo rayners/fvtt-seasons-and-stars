@@ -133,7 +133,7 @@ export class NotePerformanceOptimizer {
   async optimizedSearch(criteria: NoteSearchCriteria): Promise<NoteSearchResult> {
     const startTime = performance.now();
 
-    // Apply filtering strategy
+    // Apply smart filtering strategy
     const searchStrategy = this.determineSearchStrategy(criteria);
     let notes: JournalEntry[] = [];
 

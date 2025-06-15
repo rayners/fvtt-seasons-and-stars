@@ -21,7 +21,7 @@ export interface NoteEditingData {
 }
 
 /**
- * Custom dialog for editing calendar notes with S&S features
+ * Custom dialog for editing calendar notes with enhanced S&S features
  */
 export class NoteEditingDialog {
   private journal: JournalEntry;
