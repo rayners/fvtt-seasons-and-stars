@@ -27,7 +27,9 @@ export function registerSettingsPreviewHooks(): void {
 function enhanceQuickTimeButtonsSetting(html: HTMLElement): void {
   try {
     // Find the quick time buttons input
-    const quickTimeInput = html.querySelector('input[name="seasons-and-stars.quickTimeButtons"]') as HTMLInputElement;
+    const quickTimeInput = html.querySelector(
+      'input[name="seasons-and-stars.quickTimeButtons"]'
+    ) as HTMLInputElement;
     if (!quickTimeInput) {
       Logger.debug('Quick time buttons setting not found in settings form');
       return;
@@ -163,16 +165,16 @@ function renderButtonPreview(buttons: number[], calendar: any): string {
       const cssClass = minutes < 0 ? 'rewind' : 'forward';
 
       const icon = minutes < 0 ? 'fa-backward' : 'fa-clock';
-      
+
       return `<span class="preview-button ${cssClass}" style="
       display: inline-block;
       padding: 2px 6px;
       margin: 2px;
-      background: ${minutes < 0 ? 'var(--color-level-error-bg)' : 'var(--color-button-background)'};
-      border: 1px solid ${minutes < 0 ? 'var(--color-level-error-border)' : 'var(--color-border-light)'};
+      background: ${minutes < 0 ? 'linear-gradient(135deg, #dc2626, #ef4444)' : 'linear-gradient(135deg, #10b981, #14b8a6)'};
+      border: 1px solid ${minutes < 0 ? '#dc2626' : '#10b981'};
       border-radius: 3px;
       font-size: 0.8em;
-      color: ${minutes < 0 ? 'var(--color-text-light-primary)' : 'var(--color-text-primary)'};
+      color: white;
     "><i class="fas ${icon}" style="margin-right: 3px; font-size: 0.7em;"></i>${label}</span>`;
     })
     .join('');

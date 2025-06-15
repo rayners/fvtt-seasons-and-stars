@@ -193,7 +193,7 @@ describe('Quick Time Buttons Integration Tests', () => {
     it('should test getQuickTimeButtons helper function', () => {
       // Set up a setting that will trigger mini widget reduction
       mockSettings.set('seasons-and-stars.quickTimeButtons', '5,10,15,30,60,120');
-      
+
       registerQuickTimeButtonsHelper();
 
       const getQuickTimeButtonsHelper = mockHandlebarsHelpers.get('getQuickTimeButtons');
