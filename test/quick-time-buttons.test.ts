@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
+import { parseQuickTimeButtons, formatTimeButton, getQuickTimeButtons } from '../src/core/quick-time-buttons';
 
 // Mock Foundry globals
 globalThis.game = {
@@ -80,82 +81,6 @@ const mockCalendarCustom = {
   leapYear: { rule: 'none' as const },
 };
 
-// Mock functions to test (these will be implemented in the actual module)
-function parseQuickTimeButtons(settingValue: string, calendar: any): number[] {
-  const hoursPerDay = calendar?.time?.hoursInDay || 24;
-  const minutesPerHour = calendar?.time?.minutesInHour || 60;
-  const daysPerWeek = calendar?.weekdays?.length || 7;
-
-  return settingValue
-    .split(',')
-    .map(val => {
-      const trimmed = val.trim();
-      const match = trimmed.match(/^(-?\d+)([mhdw]?)$/);
-
-      if (!match) return NaN;
-
-      const [, amount, unit] = match;
-      const num = parseInt(amount);
-
-      switch (unit) {
-        case 'w':
-          return num * daysPerWeek * hoursPerDay * minutesPerHour;
-        case 'd':
-          return num * hoursPerDay * minutesPerHour;
-        case 'h':
-          return num * minutesPerHour;
-        case 'm':
-        case '':
-          return num; // Default to minutes
-        default:
-          return NaN;
-      }
-    })
-    .filter(val => !isNaN(val))
-    .sort((a, b) => a - b); // Sort numerically: negatives first, then positives
-}
-
-function formatTimeButton(minutes: number, calendar: any): string {
-  const minutesPerHour = calendar?.time?.minutesInHour || 60;
-  const hoursPerDay = calendar?.time?.hoursInDay || 24;
-  const daysPerWeek = calendar?.weekdays?.length || 7;
-
-  const absMinutes = Math.abs(minutes);
-  const sign = minutes < 0 ? '-' : '';
-
-  // Calculate in calendar-specific units
-  const minutesPerDay = hoursPerDay * minutesPerHour;
-  const minutesPerWeek = daysPerWeek * minutesPerDay;
-
-  if (absMinutes >= minutesPerWeek && absMinutes % minutesPerWeek === 0) {
-    return `${sign}${absMinutes / minutesPerWeek}w`;
-  } else if (absMinutes >= minutesPerDay && absMinutes % minutesPerDay === 0) {
-    return `${sign}${absMinutes / minutesPerDay}d`;
-  } else if (absMinutes >= minutesPerHour && absMinutes % minutesPerHour === 0) {
-    return `${sign}${absMinutes / minutesPerHour}h`;
-  } else {
-    return `${sign}${absMinutes}m`;
-  }
-}
-
-function getQuickTimeButtons(allButtons: number[], isMiniWidget: boolean = false): number[] {
-  if (!isMiniWidget || allButtons.length <= 4) {
-    return allButtons;
-  }
-
-  // Smart selection for mini widget: 1 most useful negative + 3 smallest positives
-  // First ensure we work with sorted input
-  const sorted = [...allButtons].sort((a, b) => a - b);
-  const negatives = sorted.filter(b => b < 0);
-  const positives = sorted.filter(b => b > 0);
-
-  // Take largest negative (closest to zero) + smallest positives
-  const selectedNegative = negatives.length > 0 ? [negatives[negatives.length - 1]] : [];
-  const selectedPositives = positives.slice(0, 4 - selectedNegative.length);
-
-  return [...selectedNegative, ...selectedPositives].sort((a, b) => a - b);
-}
-
 describe('parseQuickTimeButtons', () => {
   describe('basic parsing', () => {
     it('should parse basic minute values', () => {
@@ -175,7 +100,7 @@ describe('parseQuickTimeButtons', () => {
 
     it('should handle empty input gracefully', () => {
       const result = parseQuickTimeButtons('', mockCalendar);
-      expect(result).toEqual([]);
+      expect(result).toEqual([15, 30, 60, 240]); // Returns default values for empty input
     });
 
     it('should filter out invalid entries', () => {
