@@ -9,6 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [Unreleased]
+
+### Added
+
+- **Configurable Quick Time Buttons**: Customizable time advancement buttons with comprehensive controls
+  - **Global Settings**: Configure button sets and formatting across all widgets
+  - **Settings Preview**: Live preview of button appearance and formatting in module settings
+  - **Smart Mini Widget Selection**: Automatic selection of most relevant buttons for compact display (3-button limit)
+  - **Comprehensive Formatting**: Supports days (d), weeks (w), hours (h), minutes (m) with intelligent display formatting
+
+### Enhanced
+
+- **Visual Consistency**: Standardized button styling and icons across all widget contexts
+  - **Consistent Icons**: Added missing icons to settings preview (fa-backward for rewind, fa-clock for advance) 
+  - **Unified Color System**: All widgets now use identical Foundry CSS variables for consistent theming
+  - **Vibrant Button Styling**: Enhanced gradient styling for better visual feedback
+    - **Advance Buttons**: Green gradient (teal to emerald) with white text
+    - **Rewind Buttons**: Red gradient (red-600 to red-400) with white text
+  - **Theme Integration**: Proper integration with Foundry's CSS variable system for automatic theme compatibility
+
+### Fixed
+
+- **Mini Widget Button Overflow**: Reduced button limit from 4 to 3 for better spacing and visual clarity
+- **Button Color Inconsistencies**: Resolved issues where buttons appeared different colors across widgets
+- **CSS Variable Usage**: Replaced non-existent CSS variables with proper Foundry variables for reliable theming
+- **Settings Preview Accuracy**: Settings preview now correctly shows icons and uses same styling as actual widgets
+
 ## [0.2.6](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.2.5...seasons-and-stars-v0.2.6) (2025-06-09)
 
 

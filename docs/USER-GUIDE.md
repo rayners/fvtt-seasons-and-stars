@@ -101,13 +101,23 @@ Browse and switch between available calendars.
 ### Advancing Time (GM Only)
 
 #### Quick Time Buttons
-Use the buttons in the full calendar widget:
-- **+1 Min**: Advance by 1 minute
-- **+10 Min**: Advance by 10 minutes  
-- **+1 Hour**: Advance by 1 hour
-- **+8 Hours**: Advance by 8 hours (rest period)
-- **+1 Day**: Advance by 1 day
-- **+1 Week**: Advance by 1 week
+Seasons & Stars provides configurable quick time advancement buttons that appear in all calendar widgets.
+
+**Default Button Set:**
+- **-1d**: Go back 1 day (rewind)
+- **+15m**: Advance 15 minutes 
+- **+30m**: Advance 30 minutes
+- **+1h**: Advance 1 hour
+
+**Button Types:**
+- **Advance Buttons**: Green gradient styling for forward time movement
+- **Rewind Buttons**: Red gradient styling for backward time movement  
+- **Smart Selection**: Mini widget automatically shows the 3 most relevant buttons
+
+**Where They Appear:**
+- **Full Calendar Widget**: Shows all configured buttons
+- **Mini Widget**: Shows 3 automatically selected buttons (1 largest negative + 2 smallest positives)
+- **Settings Preview**: Live preview when configuring buttons
 
 #### Direct Date Setting
 1. Open the **Monthly Grid View**
@@ -187,6 +197,7 @@ Access via **Game Settings → Module Settings → Seasons & Stars**:
 - **Active Calendar**: Choose which calendar system to use
 - **Default View**: Set preferred calendar view
 - **Time Format**: Configure date/time display options
+- **Quick Time Buttons**: Configure time advancement buttons (see [Quick Time Button Configuration](#quick-time-button-configuration))
 
 ### Calendar Configuration
 Each calendar includes:
@@ -195,6 +206,44 @@ Each calendar includes:
 - **Weekday Setup**: Names and cultural significance
 - **Leap Year Rules**: Gregorian, custom intervals, or none
 - **Time Structure**: Hours per day, minutes per hour, seconds per minute
+
+### Quick Time Button Configuration
+
+Customize the time advancement buttons that appear in all calendar widgets.
+
+#### Accessing Button Settings
+1. Navigate to **Game Settings → Module Settings → Seasons & Stars**
+2. Find the **Quick Time Buttons** setting
+3. Enter your desired button configuration in the text field
+4. View the live preview below the setting
+5. Save settings to apply changes
+
+#### Button Format
+Enter time values as a comma-separated list. Supports:
+- **Days**: `1d`, `7d`, `-1d` (positive advances, negative rewinds)
+- **Weeks**: `1w`, `2w`, `-1w` 
+- **Hours**: `1h`, `8h`, `-2h`
+- **Minutes**: `15m`, `30m`, `-15m`
+
+#### Examples
+```
+Default: -1d, 15m, 30m, 1h
+Rest-focused: -8h, 1h, 8h, 1d
+Travel campaign: -1d, 6h, 1d, 1w
+Quick sessions: 10m, 30m, 1h, 4h
+```
+
+#### Mini Widget Selection
+The mini widget automatically selects the 3 most relevant buttons:
+- **1 rewind button**: Largest negative value (e.g., `-1d` from `-1d, -1h`)
+- **2 advance buttons**: Smallest positive values (e.g., `15m, 30m` from `15m, 30m, 1h, 1d`)
+- **Smart filtering**: Ensures the most useful buttons for compact display
+
+#### Visual Styling
+- **Advance buttons**: Green gradient background with fa-clock icon
+- **Rewind buttons**: Red gradient background with fa-backward icon  
+- **Consistent appearance**: Same styling across all widgets and settings preview
+- **Theme integration**: Uses Foundry CSS variables for automatic theme compatibility
 
 ## 🕐 SmallTime Integration
 
