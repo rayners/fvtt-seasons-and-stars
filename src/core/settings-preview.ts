@@ -162,16 +162,18 @@ function renderButtonPreview(buttons: number[], calendar: any): string {
       const label = formatTimeButton(minutes, calendar);
       const cssClass = minutes < 0 ? 'rewind' : 'forward';
 
+      const icon = minutes < 0 ? 'fa-backward' : 'fa-clock';
+      
       return `<span class="preview-button ${cssClass}" style="
       display: inline-block;
       padding: 2px 6px;
       margin: 2px;
-      background: ${minutes < 0 ? 'rgba(187, 66, 66, 0.8)' : 'var(--color-button-background)'};
-      border: 1px solid ${minutes < 0 ? 'rgba(187, 66, 66, 1)' : 'var(--color-border-light)'};
+      background: ${minutes < 0 ? 'var(--color-bg-red, rgba(187, 66, 66, 0.8))' : 'var(--color-button-background)'};
+      border: 1px solid ${minutes < 0 ? 'var(--color-border-red, rgba(187, 66, 66, 1))' : 'var(--color-border-light)'};
       border-radius: 3px;
       font-size: 0.8em;
-      color: ${minutes < 0 ? 'white' : 'var(--color-text-primary)'};
-    ">${label}</span>`;
+      color: ${minutes < 0 ? 'var(--color-text-light, #ffffff)' : 'var(--color-text-primary)'};
+    "><i class="fas ${icon}" style="margin-right: 3px; font-size: 0.7em;"></i>${label}</span>`;
     })
     .join('');
 }
