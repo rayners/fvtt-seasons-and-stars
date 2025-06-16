@@ -234,33 +234,65 @@ describe('Calendar Click Behavior Feature', () => {
             getCalendar: () => ({
               name: 'Test Calendar',
               months: [
-                { name: 'January' }, { name: 'February' }, { name: 'March' },
-                { name: 'April' }, { name: 'May' }, { name: 'June' },
-                { name: 'July' }, { name: 'August' }, { name: 'September' },
-                { name: 'October' }, { name: 'November' }, { name: 'December' }
+                { name: 'January' },
+                { name: 'February' },
+                { name: 'March' },
+                { name: 'April' },
+                { name: 'May' },
+                { name: 'June' },
+                { name: 'July' },
+                { name: 'August' },
+                { name: 'September' },
+                { name: 'October' },
+                { name: 'November' },
+                { name: 'December' },
               ],
-              weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+              weekdays: [
+                'Sunday',
+                'Monday',
+                'Tuesday',
+                'Wednesday',
+                'Thursday',
+                'Friday',
+                'Saturday',
+              ],
               translations: {
                 en: {
-                  label: 'Test Calendar'
-                }
-              }
+                  label: 'Test Calendar',
+                },
+              },
             }),
           }),
           getActiveCalendar: () => ({
             name: 'Test Calendar',
             months: [
-              { name: 'January' }, { name: 'February' }, { name: 'March' },
-              { name: 'April' }, { name: 'May' }, { name: 'June' },
-              { name: 'July' }, { name: 'August' }, { name: 'September' },
-              { name: 'October' }, { name: 'November' }, { name: 'December' }
+              { name: 'January' },
+              { name: 'February' },
+              { name: 'March' },
+              { name: 'April' },
+              { name: 'May' },
+              { name: 'June' },
+              { name: 'July' },
+              { name: 'August' },
+              { name: 'September' },
+              { name: 'October' },
+              { name: 'November' },
+              { name: 'December' },
             ],
-            weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            weekdays: [
+              'Sunday',
+              'Monday',
+              'Tuesday',
+              'Wednesday',
+              'Thursday',
+              'Friday',
+              'Saturday',
+            ],
             translations: {
               en: {
-                label: 'Test Calendar'
-              }
-            }
+                label: 'Test Calendar',
+              },
+            },
           }),
           getCurrentDate: () => ({ year: 2024, month: 12, day: 25, weekday: 2 }),
         },
