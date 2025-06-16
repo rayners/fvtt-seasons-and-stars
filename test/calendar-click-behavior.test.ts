@@ -439,7 +439,7 @@ describe('Calendar Click Behavior Feature', () => {
     });
   });
 
-  describe('Ordinal Suffix Helper', () => {
+  describe('Helper Methods', () => {
     it('should generate correct ordinal suffixes', () => {
       expect((widget as any).addOrdinalSuffix(1)).toBe('1st');
       expect((widget as any).addOrdinalSuffix(2)).toBe('2nd');
@@ -453,9 +453,77 @@ describe('Calendar Click Behavior Feature', () => {
       expect((widget as any).addOrdinalSuffix(23)).toBe('23rd');
       expect((widget as any).addOrdinalSuffix(24)).toBe('24th');
     });
+
+    it('should format years with prefix and suffix', () => {
+      // Test with default calendar (no prefix/suffix)
+      expect((widget as any).formatYear(2024)).toBe('2024');
+
+      // Test with calendar that has suffix
+      const calendarWithSuffix = {
+        ...mockStandardCalendar,
+        year: { ...mockStandardCalendar.year, prefix: '', suffix: ' CE' },
+      };
+      vi.spyOn(manager, 'getActiveCalendar').mockReturnValue(calendarWithSuffix);
+      expect((widget as any).formatYear(1)).toBe('1 CE');
+
+      // Test with calendar that has prefix
+      const calendarWithPrefix = {
+        ...mockStandardCalendar,
+        year: { ...mockStandardCalendar.year, prefix: 'Year ', suffix: '' },
+      };
+      vi.spyOn(manager, 'getActiveCalendar').mockReturnValue(calendarWithPrefix);
+      expect((widget as any).formatYear(2024)).toBe('Year 2024');
+
+      // Test with both prefix and suffix
+      const calendarWithBoth = {
+        ...mockStandardCalendar,
+        year: { ...mockStandardCalendar.year, prefix: 'AC ', suffix: ' DR' },
+      };
+      vi.spyOn(manager, 'getActiveCalendar').mockReturnValue(calendarWithBoth);
+      expect((widget as any).formatYear(1372)).toBe('AC 1372 DR');
+    });
   });
 
   describe('Integration with Real Calendar Data', () => {
+    it('should format year with prefix and suffix in notifications', async () => {
+      // Create calendar with year prefix and suffix
+      const calendarWithYearSuffix = {
+        ...mockStandardCalendar,
+        year: {
+          ...mockStandardCalendar.year,
+          prefix: '',
+          suffix: ' CE',
+        },
+      };
+      engine = new CalendarEngine(calendarWithYearSuffix);
+      (manager as any).activeEngine = engine;
+      (manager as any).activeCalendar = calendarWithYearSuffix;
+
+      // Update the mocks to return the new engine and calendar
+      vi.spyOn(manager, 'getActiveEngine').mockReturnValue(engine);
+      vi.spyOn(manager, 'getActiveCalendar').mockReturnValue(calendarWithYearSuffix);
+
+      // Test in setDate mode
+      global.game.settings.get = vi.fn().mockReturnValue('setDate');
+
+      const mockTarget = document.createElement('div');
+      mockTarget.dataset.day = '15';
+      const mockEvent = new Event('click') as MouseEvent;
+
+      const setCurrentDateSpy = vi.spyOn(manager, 'setCurrentDate').mockResolvedValue();
+
+      await widget._onSelectDate(mockEvent, mockTarget);
+
+      expect(mockNotifications.info).toHaveBeenCalledWith('Date set to 15th of January, 2024 CE');
+
+      // Test in viewDetails mode
+      global.game.settings.get = vi.fn().mockReturnValue('viewDetails');
+
+      await widget._onSelectDate(mockEvent, mockTarget);
+
+      expect(mockNotifications.info).toHaveBeenCalledWith('15th of January, 2024 CE');
+    });
+
     it('should work with calendar containing month descriptions', async () => {
       // Create calendar with month description
       const calendarWithDesc = {

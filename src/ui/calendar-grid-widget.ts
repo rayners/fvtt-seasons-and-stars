@@ -447,6 +447,19 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Format a year with prefix and suffix from calendar configuration
+   */
+  private formatYear(year: number): string {
+    const manager = game.seasonsStars?.manager;
+    const calendar = manager?.getActiveCalendar();
+    if (!calendar) return year.toString();
+
+    const prefix = calendar.year?.prefix || '';
+    const suffix = calendar.year?.suffix || '';
+    return `${prefix}${year}${suffix}`;
+  }
+
+  /**
    * Check if two intercalary dates are the same
    */
   private isSameIntercalaryDate(date1: ICalendarDate, date2: ICalendarDate): boolean {
@@ -580,8 +593,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         };
 
         const afterMonthName = calendar.months[afterMonthIndex]?.name || 'Unknown';
+        const yearDisplay = this.formatYear(this.viewDate.year);
         ui.notifications?.info(
-          `Date set to ${intercalaryName} (intercalary day after ${afterMonthName} ${this.viewDate.year})`
+          `Date set to ${intercalaryName} (intercalary day after ${afterMonthName} ${yearDisplay})`
         );
       } else {
         // Handle regular day selection
@@ -599,7 +613,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         const calendar = engine.getCalendar();
         const monthName = calendar.months[targetDate.month - 1]?.name || 'Unknown';
         const dayWithSuffix = this.addOrdinalSuffix(targetDate.day);
-        ui.notifications?.info(`Date set to ${dayWithSuffix} of ${monthName}, ${targetDate.year}`);
+        const yearDisplay = this.formatYear(targetDate.year);
+        ui.notifications?.info(`Date set to ${dayWithSuffix} of ${monthName}, ${yearDisplay}`);
       }
 
       // Set the target date
@@ -637,8 +652,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
         const intercalaryDef = calendar.intercalary?.find(i => i.name === intercalaryName);
         const afterMonthName = intercalaryDef?.after || 'Unknown';
+        const yearDisplay = this.formatYear(this.viewDate.year);
 
-        dateInfo = `${intercalaryName} (intercalary day after ${afterMonthName}, ${this.viewDate.year})`;
+        dateInfo = `${intercalaryName} (intercalary day after ${afterMonthName}, ${yearDisplay})`;
         if (intercalaryDef?.description) {
           dateInfo += `\n${intercalaryDef.description}`;
         }
@@ -650,8 +666,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         const monthName = calendar.months[this.viewDate.month - 1]?.name || 'Unknown';
         const monthDesc = calendar.months[this.viewDate.month - 1]?.description;
         const dayWithSuffix = this.addOrdinalSuffix(day);
+        const yearDisplay = this.formatYear(this.viewDate.year);
 
-        dateInfo = `${dayWithSuffix} of ${monthName}, ${this.viewDate.year}`;
+        dateInfo = `${dayWithSuffix} of ${monthName}, ${yearDisplay}`;
         if (monthDesc) {
           dateInfo += `\n${monthDesc}`;
         }
