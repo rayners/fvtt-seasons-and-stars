@@ -9,6 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.3.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.2.6...v0.3.0) (2025-06-16)
+
+
+### Features
+
+* Add configurable calendar click behavior with modifier key support ([0a731d2](https://github.com/rayners/fvtt-seasons-and-stars/commit/0a731d2941f5b7f09fc60ca0ac4de725863dbf9c))
+* enable module.zip size analysis in bundle analysis workflow ([a9a290e](https://github.com/rayners/fvtt-seasons-and-stars/commit/a9a290eb6e29b7a66f16cf05ec1a1f31ac38b23d))
+* implement configurable quick time buttons ([8452899](https://github.com/rayners/fvtt-seasons-and-stars/commit/84528999f1b50621136ec56b57d1589ebf39c638))
+* implement single Sentry sourcemap upload system ([cde4085](https://github.com/rayners/fvtt-seasons-and-stars/commit/cde408512830e6c8aa4be2fd8a7a08606da19a73))
+
+
+### Bug Fixes
+
+* Prettier formatting - remove trailing whitespace in DialogV2 render callback ([7d26df9](https://github.com/rayners/fvtt-seasons-and-stars/commit/7d26df99500b200487773af0b6f5ee1a8f21e01e))
+* resolve dependency conflicts after foundry-dev-tools update ([b2398e9](https://github.com/rayners/fvtt-seasons-and-stars/commit/b2398e93cfae8b0c041c89b2bee88fcb3806c360))
+* update package-lock.json for foundry-dev-tools v1.2.0 ([b082111](https://github.com/rayners/fvtt-seasons-and-stars/commit/b082111807badd0b595da609a3b7ad56c1982724))
+
+
+### Documentation
+
+* add consistent Patreon badge to README_FOUNDRY.md ([69e54b2](https://github.com/rayners/fvtt-seasons-and-stars/commit/69e54b296d584840b6861f9a83b8fb11d8b2476d))
+* add issue [#35](https://github.com/rayners/fvtt-seasons-and-stars/issues/35) UI improvements to roadmap ([1fee106](https://github.com/rayners/fvtt-seasons-and-stars/commit/1fee106ca5e9d8f19d0704516bfca4309228e0cf))
+* add star emoji to README_FOUNDRY.md title ([4182716](https://github.com/rayners/fvtt-seasons-and-stars/commit/418271663a3d33ed811af5e5653a2a9abf76ffb0))
+* align ROADMAP with 0.4.0 milestone and fix documentation standards ([fda2d58](https://github.com/rayners/fvtt-seasons-and-stars/commit/fda2d58ecca14bbddd059d8e8325473c7b96ce61))
+
 ## [Unreleased]
 
 ### Added
