@@ -65,6 +65,7 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 - **API Expansion**: More comprehensive developer APIs
 - **Module Templates**: Examples for module developers
 - **UI/UX Improvements**: Enhanced widget interfaces and user experience refinements ([#35](https://github.com/rayners/fvtt-seasons-and-stars/issues/35))
+- **Date Context Menus**: Right-click context menus for calendar dates with additional actions and information
 
 ### **v1.0.0 - Stable Release** (Future)
 

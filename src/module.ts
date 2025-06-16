@@ -403,6 +403,19 @@ function registerSettings(): void {
     default: true,
   });
 
+  game.settings.register('seasons-and-stars', 'calendarClickBehavior', {
+    name: 'Calendar Click Behavior',
+    hint: 'Choose what happens when you click on a date in the calendar grid. "Set Current Date" immediately changes the world time (current behavior). "View Date Details" shows date information and flavor text without changing the date.',
+    scope: 'client',
+    config: true,
+    type: String,
+    default: 'setDate',
+    choices: {
+      setDate: 'Set Current Date',
+      viewDetails: 'View Date Details',
+    },
+  });
+
   game.settings.register('seasons-and-stars', 'quickTimeButtons', {
     name: 'Quick Time Buttons',
     hint: 'Comma-separated time values for quick advancement buttons. Supports: 15, 30m, 1h, 2d, 1w. Negative values go backward. Examples: "10,30,60" or "-1h,15m,30m,1h"',
