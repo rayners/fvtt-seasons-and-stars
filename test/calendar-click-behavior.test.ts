@@ -510,7 +510,7 @@ describe('Calendar Click Behavior Feature', () => {
       mockTarget.dataset.day = '15';
       const mockEvent = new Event('click') as MouseEvent;
 
-      const setCurrentDateSpy = vi.spyOn(manager, 'setCurrentDate').mockResolvedValue();
+      vi.spyOn(manager, 'setCurrentDate').mockResolvedValue();
 
       await widget._onSelectDate(mockEvent, mockTarget);
 
