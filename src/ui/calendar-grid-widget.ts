@@ -114,7 +114,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
     const clickBehavior = game.settings.get('seasons-and-stars', 'calendarClickBehavior') as string;
     const isGM = game.user?.isGM || false;
-    
+
     // Generate UI hint based on current settings
     let uiHint = '';
     if (isGM) {
@@ -516,7 +516,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onSelectDate(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
-    
+
     const clickBehavior = game.settings.get('seasons-and-stars', 'calendarClickBehavior') as string;
     const isGM = game.user?.isGM;
     const isCtrlClick = (event as MouseEvent).ctrlKey || (event as MouseEvent).metaKey;
@@ -536,7 +536,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       ui.notifications?.warn('Only GMs can change the current date');
       return;
     }
-    
+
     return this.setCurrentDate(target);
   }
 

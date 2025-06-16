@@ -37,7 +37,7 @@ describe('Calendar Click Behavior Feature', () => {
   describe('Click Behavior Setting Integration', () => {
     it('should check calendarClickBehavior setting in _onSelectDate', () => {
       const widget = new CalendarGridWidget();
-      
+
       // Create mock event and target
       const mockEvent = new Event('click') as MouseEvent;
       const mockTarget = document.createElement('div');
@@ -47,8 +47,12 @@ describe('Calendar Click Behavior Feature', () => {
       let setCurrentDateCalled = false;
       let showDateInfoCalled = false;
 
-      (widget as any).setCurrentDate = () => { setCurrentDateCalled = true; };
-      (widget as any).showDateInfo = () => { showDateInfoCalled = true; };
+      (widget as any).setCurrentDate = () => {
+        setCurrentDateCalled = true;
+      };
+      (widget as any).showDateInfo = () => {
+        showDateInfoCalled = true;
+      };
 
       // Test default behavior (setDate)
       widget._onSelectDate(mockEvent, mockTarget);
@@ -66,7 +70,7 @@ describe('Calendar Click Behavior Feature', () => {
       };
 
       const widget = new CalendarGridWidget();
-      
+
       const mockEvent = new Event('click') as MouseEvent;
       const mockTarget = document.createElement('div');
       mockTarget.dataset.day = '15';
@@ -74,8 +78,12 @@ describe('Calendar Click Behavior Feature', () => {
       let setCurrentDateCalled = false;
       let showDateInfoCalled = false;
 
-      (widget as any).setCurrentDate = () => { setCurrentDateCalled = true; };
-      (widget as any).showDateInfo = () => { showDateInfoCalled = true; };
+      (widget as any).setCurrentDate = () => {
+        setCurrentDateCalled = true;
+      };
+      (widget as any).showDateInfo = () => {
+        showDateInfoCalled = true;
+      };
 
       // Test viewDetails behavior
       widget._onSelectDate(mockEvent, mockTarget);
@@ -93,7 +101,7 @@ describe('Calendar Click Behavior Feature', () => {
       };
 
       const widget = new CalendarGridWidget();
-      
+
       // Create Ctrl+Click event
       const mockEvent = new MouseEvent('click', { ctrlKey: true });
       const mockTarget = document.createElement('div');
@@ -102,8 +110,12 @@ describe('Calendar Click Behavior Feature', () => {
       let setCurrentDateCalled = false;
       let showDateInfoCalled = false;
 
-      (widget as any).setCurrentDate = () => { setCurrentDateCalled = true; };
-      (widget as any).showDateInfo = () => { showDateInfoCalled = true; };
+      (widget as any).setCurrentDate = () => {
+        setCurrentDateCalled = true;
+      };
+      (widget as any).showDateInfo = () => {
+        showDateInfoCalled = true;
+      };
 
       // Test Ctrl+Click behavior - should force date setting even in viewDetails mode
       widget._onSelectDate(mockEvent, mockTarget);
@@ -116,7 +128,7 @@ describe('Calendar Click Behavior Feature', () => {
       global.game.user = { isGM: false };
 
       const widget = new CalendarGridWidget();
-      
+
       const mockEvent = new Event('click') as MouseEvent;
       const mockTarget = document.createElement('div');
       mockTarget.dataset.day = '15';
@@ -125,10 +137,16 @@ describe('Calendar Click Behavior Feature', () => {
       let showDateInfoCalled = false;
       let warningShown = false;
 
-      (widget as any).setCurrentDate = () => { setCurrentDateCalled = true; };
-      (widget as any).showDateInfo = () => { showDateInfoCalled = true; };
-      
-      global.ui.notifications.warn = () => { warningShown = true; };
+      (widget as any).setCurrentDate = () => {
+        setCurrentDateCalled = true;
+      };
+      (widget as any).showDateInfo = () => {
+        showDateInfoCalled = true;
+      };
+
+      global.ui.notifications.warn = () => {
+        warningShown = true;
+      };
 
       // Test default behavior with non-GM (should show warning and call showDateInfo)
       widget._onSelectDate(mockEvent, mockTarget);
@@ -140,19 +158,19 @@ describe('Calendar Click Behavior Feature', () => {
   describe('UI Hint Generation', () => {
     it('should generate correct hints for GM users', () => {
       global.game.user = { isGM: true };
-      
+
       // Test setDate mode hint
       global.game.settings.get = () => 'setDate';
       expect(true).toBe(true); // Context preparation tested in widget integration
-      
-      // Test viewDetails mode hint  
+
+      // Test viewDetails mode hint
       global.game.settings.get = () => 'viewDetails';
       expect(true).toBe(true); // Context preparation tested in widget integration
     });
 
     it('should generate correct hints for player users', () => {
       global.game.user = { isGM: false };
-      
+
       // Players always get view details hint regardless of setting
       expect(true).toBe(true); // Context preparation tested in widget integration
     });
