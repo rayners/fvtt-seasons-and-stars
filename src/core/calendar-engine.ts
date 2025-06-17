@@ -374,9 +374,16 @@ export class CalendarEngine {
   calculateWeekday(year: number, month: number, day: number): number {
     const weekdayContributingDays = this.dateToWeekdayDays({ year, month, day, weekday: 0 });
     const weekdayCount = this.calendar.weekdays.length;
-    const startDay = this.calendar.year.startDay;
+    const epochWeekday = this.calendar.year.startDay;
 
-    return (weekdayContributingDays + startDay) % weekdayCount;
+    // Calculate weekday: (days since epoch + weekday of epoch date) % weekday count
+    // Handle negative results for dates before epoch
+    let weekday = (weekdayContributingDays + epochWeekday) % weekdayCount;
+    if (weekday < 0) {
+      weekday += weekdayCount;
+    }
+
+    return weekday;
   }
 
   /**
