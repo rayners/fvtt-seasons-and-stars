@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.3.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.0...v0.3.1) (2025-06-17)
+
+
+### Bug Fixes
+
+* correct Gregorian calendar weekday calculations ([#58](https://github.com/rayners/fvtt-seasons-and-stars/issues/58)) ([22e9bcc](https://github.com/rayners/fvtt-seasons-and-stars/commit/22e9bcc8afb95e2bfb75cd37c080e7545d23b081))
+
 ## [0.3.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.2.6...v0.3.0) (2025-06-16)
 
 
