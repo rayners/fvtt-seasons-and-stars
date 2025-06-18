@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.3.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.1...v0.3.2) (2025-06-18)
+
+
+### Bug Fixes
+
+* apply journal permissions to calendar note display ([faa0710](https://github.com/rayners/fvtt-seasons-and-stars/commit/faa071055ee38da057c7adc20ee50215aee31a8b)), closes [#61](https://github.com/rayners/fvtt-seasons-and-stars/issues/61)
+
+
+### Documentation
+
+* clean up roadmap - remove install metrics and focus on development ([f66b8d6](https://github.com/rayners/fvtt-seasons-and-stars/commit/f66b8d6789b23fc3abf73c1b74c32985f4727b8c))
+* update documentation with latest features and improvements ([1a90da8](https://github.com/rayners/fvtt-seasons-and-stars/commit/1a90da839b30254a3816d2b8c9bb61d827cd580f))
+
 ## [0.3.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.0...v0.3.1) (2025-06-17)
 
 
