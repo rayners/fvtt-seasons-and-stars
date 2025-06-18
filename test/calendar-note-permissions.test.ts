@@ -137,11 +137,7 @@ describe('Calendar Note Permission Filtering', () => {
     });
 
     it('should show ALL notes to GM users', () => {
-      // Mock the _prepareContext method to get visible notes
-      const mockContext = (calendarWidget as any)._prepareMonthData?.() || {};
-      
       // Get notes for a specific date - this should use permission filtering
-      const dateKey = '2024-12-25';
       const dayDate = { year: 2024, month: 12, day: 25 };
       
       // This is the problematic line from calendar-grid-widget.ts:214
