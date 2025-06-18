@@ -216,10 +216,11 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             // Use Foundry's native permission checking
             if (!game.user) return false; // No user logged in
             if (game.user.isGM) return true;
-            
+
             const ownership = note.ownership;
-            const userLevel = ownership[game.user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
-            
+            const userLevel =
+              ownership[game.user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+
             return userLevel >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER;
           });
           if (notes.length > 0) {
