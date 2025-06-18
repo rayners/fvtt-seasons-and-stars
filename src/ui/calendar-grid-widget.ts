@@ -211,7 +211,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             time: { hour: 0, minute: 0, second: 0 },
           };
 
-          const notes = notesManager.storage?.findNotesByDateSync(dayDate) || [];
+          const allNotes = notesManager.storage?.findNotesByDateSync(dayDate) || [];
+          const notes = allNotes.filter(note => note.isVisibleToUser(game.user));
           if (notes.length > 0) {
             const dateKey = this.formatDateKey(dayDate);
             const dayCategories = new Set<string>();
