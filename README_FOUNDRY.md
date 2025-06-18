@@ -25,7 +25,7 @@ Seasons & Stars provides calendar and timekeeping functionality for Foundry VTT 
 
 ### **Calendar Systems**
 
-- **15 Built-in Calendars**: Gregorian, D&D settings (Forgotten Realms, Greyhawk, Eberron, Dark Sun), Pathfinder (Golarion), Critical Role (Exandrian), Warhammer, and more
+- **Built-in Options**: Gregorian and Vale Reckoning calendars included
 - **Custom Calendars**: JSON-based format for creating your own
 - **Calendar Switching**: Support for multiple calendar systems
 

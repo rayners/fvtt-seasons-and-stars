@@ -55,16 +55,7 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 - **Performance Optimization**: Reduced memory usage and faster module initialization
 - **Calendar System Enhancement**: Better error handling and validation for calendar definitions
 
-### **v0.5.0 - Notes System Enhancement** (Next Priority)
-
-**Focus**: Complete the calendar-aware notes editing system
-
-- **Enable Custom Note Editor**: Activate the existing `NoteEditingDialog` for calendar notes (code exists but disabled)
-- **Note Metadata Management**: Interface for changing categories, tags, and date associations after creation
-- **Enhanced Note Browser**: Dedicated interface for browsing and searching calendar notes with metadata filtering
-- **Advanced Notes Features**: Enhanced search UI, bulk operations, and note templates
-
-### **v0.6.0 - Calendar Creation and Import System** (Future)
+### **v0.5.0 - Calendar Creation and Import System** (Future)
 
 **Focus**: Calendar creation and migration tools
 
@@ -72,6 +63,16 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 - **Simple Calendar Import**: Tools for migrating Simple Calendar configurations and data
 - **Calendar Validation**: Built-in validation for custom calendar definitions
 - **Migration Wizard**: Step-by-step guide for Simple Calendar users
+
+### **v0.6.0 - Notes System Enhancement** (Future)
+
+**Focus**: Complete the calendar-aware notes editing system
+
+- **Calendar-Aware Note Editor**: Custom editing dialog that preserves calendar metadata (categories, tags, dates)
+- **Note Metadata Management**: Interface for changing categories, tags, and date associations after creation
+- **Note Management UI**: Proper calendar-integrated editing and deletion interface
+- **Enhanced Note Browser**: Dedicated interface for browsing and searching calendar notes with metadata filtering
+- **Advanced Notes Features**: Enhanced search, bulk operations, and note templates
 
 ### **v0.7.0 - Enhanced Module Integration** (Future)
 

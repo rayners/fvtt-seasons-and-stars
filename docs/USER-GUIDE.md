@@ -342,14 +342,17 @@ If you're using compatibility bridges (e.g., Simple Weather with Simple Calendar
 
 ## 📋 Keyboard Shortcuts
 
-### Widget Switching
-- **Alt + S**: Toggle default widget (configurable in settings)
-- **Alt + Shift + S**: Toggle mini widget
-- **Alt + Ctrl + S**: Toggle grid widget
-- **Alt + Shift + Ctrl + S**: Toggle main widget
+### Calendar Navigation
+- **T**: Toggle calendar widget
+- **G**: Open monthly grid view
 - **Escape**: Close open calendar dialogs
 
-*(Note: Additional keyboard shortcuts for time advancement planned for future updates)*
+### Time Controls (GM Only)
+- **Ctrl + →**: Advance 1 hour
+- **Ctrl + ↓**: Advance 1 day
+- **Ctrl + ↑**: Go to today
+
+*(Note: Keyboard shortcuts may be added in future updates)*
 
 ## 🎯 Best Practices
 
