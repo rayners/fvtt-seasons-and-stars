@@ -2,12 +2,6 @@
  * Calendar JSON format validation for Seasons & Stars
  */
 
-import type {
-  SeasonsStarsCalendar,
-  CalendarMonth,
-  CalendarWeekday,
-  CalendarIntercalary,
-} from '../types/calendar';
 
 export interface ValidationResult {
   isValid: boolean;

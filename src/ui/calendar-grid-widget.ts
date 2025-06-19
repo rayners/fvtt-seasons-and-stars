@@ -6,7 +6,7 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarWidget } from './calendar-widget';
 import { CalendarMiniWidget } from './calendar-mini-widget';
 import { Logger } from '../core/logger';
-import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type { CalendarDate as ICalendarDate, SeasonsStarsCalendar } from '../types/calendar';\nimport type { CalendarDayData } from '../types/external-integrations';
 
 export class CalendarGridWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -76,7 +76,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Handle post-render setup
    */
-  async _onRender(context: any, options: any): Promise<void> {
+  async _onRender(context: Record<string, unknown>, options: ApplicationV2.RenderOptions): Promise<void> {
     await super._onRender(context, options);
 
     // Register as active instance
@@ -89,7 +89,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Prepare rendering context for template
    */
-  async _prepareContext(options = {}): Promise<any> {
+  async _prepareContext(options = {}): Promise<Record<string, unknown>> {
     const context = await super._prepareContext(options);
 
     const manager = game.seasonsStars?.manager;
@@ -149,7 +149,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Generate calendar month data with day grid and note indicators
    */
-  private generateMonthData(calendar: any, viewDate: ICalendarDate, currentDate: ICalendarDate) {
+  private generateMonthData(calendar: SeasonsStarsCalendar, viewDate: ICalendarDate, currentDate: ICalendarDate) {
     const engine = game.seasonsStars?.manager?.getActiveEngine();
     if (!engine) return { weeks: [], totalDays: 0 };
 
@@ -171,7 +171,6 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
     // Get notes for this month for note indicators with category and tooltip information
     const notesManager = game.seasonsStars?.notes;
-    const categories = game.seasonsStars?.categories;
     const monthNotes = new Map<
       string,
       {
@@ -184,21 +183,6 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
     if (notesManager) {
       // Get all notes for the month
-      const monthStart: ICalendarDate = {
-        year: viewDate.year,
-        month: viewDate.month,
-        day: 1,
-        weekday: 0,
-        time: { hour: 0, minute: 0, second: 0 },
-      };
-
-      const monthEnd: ICalendarDate = {
-        year: viewDate.year,
-        month: viewDate.month,
-        day: monthLength,
-        weekday: 0,
-        time: { hour: 23, minute: 59, second: 59 },
-      };
 
       // Get notes synchronously for UI performance
       try {
@@ -263,8 +247,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     }
 
     // Build calendar grid
-    const weeks: Array<Array<any>> = [];
-    let currentWeek: Array<any> = [];
+    const weeks: Array<Array<CalendarDayData>> = [];
+    let currentWeek: Array<CalendarDayData> = [];
 
     // Fill in empty cells before month starts
     const startWeekday = firstDay.weekday || 0;
@@ -486,7 +470,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Navigate to previous month
    */
-  async _onPreviousMonth(event: Event, target: HTMLElement): Promise<void> {
+  async _onPreviousMonth(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
     const engine = game.seasonsStars?.manager?.getActiveEngine();
@@ -499,7 +483,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Navigate to next month
    */
-  async _onNextMonth(event: Event, target: HTMLElement): Promise<void> {
+  async _onNextMonth(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
     const engine = game.seasonsStars?.manager?.getActiveEngine();
@@ -512,7 +496,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Navigate to previous year
    */
-  async _onPreviousYear(event: Event, target: HTMLElement): Promise<void> {
+  async _onPreviousYear(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
     const engine = game.seasonsStars?.manager?.getActiveEngine();
@@ -525,7 +509,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Navigate to next year
    */
-  async _onNextYear(event: Event, target: HTMLElement): Promise<void> {
+  async _onNextYear(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
     const engine = game.seasonsStars?.manager?.getActiveEngine();
@@ -696,7 +680,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Go to current date
    */
-  async _onGoToToday(event: Event, target: HTMLElement): Promise<void> {
+  async _onGoToToday(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
     const manager = game.seasonsStars?.manager;
@@ -710,7 +694,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Set year via input dialog
    */
-  async _onSetYear(event: Event, target: HTMLElement): Promise<void> {
+  async _onSetYear(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
     const engine = game.seasonsStars?.manager?.getActiveEngine();
@@ -816,7 +800,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Show note creation dialog with enhanced category and tag support
    */
-  private async showCreateNoteDialog(date: ICalendarDate): Promise<any | null> {
+  private async showCreateNoteDialog(date: ICalendarDate): Promise<JournalEntry | null> {
     const categories = game.seasonsStars?.categories;
     if (!categories) {
       ui.notifications?.error('Note categories system not available');
@@ -1407,7 +1391,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Show selection dialog for multiple notes on the same date
    */
-  private async showNotesSelectionDialog(notes: any[], date: ICalendarDate): Promise<void> {
+  private async showNotesSelectionDialog(notes: JournalEntry[], date: ICalendarDate): Promise<void> {
     const manager = game.seasonsStars?.manager;
     const activeCalendar = manager?.getActiveCalendar();
     let dateDisplayStr = `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
@@ -1512,7 +1496,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Attach event listeners
    */
-  _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
+  _attachPartListeners(partId: string, htmlElement: HTMLElement, options: ApplicationV2.RenderOptions): void {
     super._attachPartListeners(partId, htmlElement, options);
 
     // Register this as the active instance
@@ -1522,7 +1506,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Handle closing the widget
    */
-  async close(options: any = {}): Promise<this> {
+  async close(options: ApplicationV2.CloseOptions = {}): Promise<this> {
     // Clear active instance if this is it
     if (CalendarGridWidget.activeInstance === this) {
       CalendarGridWidget.activeInstance = null;
@@ -1710,7 +1694,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Switch to main widget
    */
-  async _onSwitchToMain(event: Event, target: HTMLElement): Promise<void> {
+  async _onSwitchToMain(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
     Logger.debug('Switching from grid widget to main widget');
 
@@ -1730,7 +1714,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Switch to mini widget
    */
-  async _onSwitchToMini(event: Event, target: HTMLElement): Promise<void> {
+  async _onSwitchToMini(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
     Logger.debug('Switching from grid widget to mini widget');
 

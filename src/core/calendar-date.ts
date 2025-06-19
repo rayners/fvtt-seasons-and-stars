@@ -7,7 +7,6 @@ import type {
   SeasonsStarsCalendar,
   DateFormatOptions,
 } from '../types/calendar';
-import { CalendarLocalization } from './calendar-localization';
 import { CalendarTimeUtils } from './calendar-time-utils';
 
 export class CalendarDate implements ICalendarDate {

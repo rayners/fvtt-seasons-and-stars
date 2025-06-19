@@ -7,7 +7,6 @@ import { CalendarSelectionDialog } from './calendar-selection-dialog';
 import { CalendarGridWidget } from './calendar-grid-widget';
 import { CalendarMiniWidget } from './calendar-mini-widget';
 import { Logger } from '../core/logger';
-import type { CalendarDate as ICalendarDate } from '../types/calendar';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -119,7 +118,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Instance action handler for opening calendar selection dialog
    */
-  async _onOpenCalendarSelection(event: Event, target: HTMLElement): Promise<void> {
+  async _onOpenCalendarSelection(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
     CalendarSelectionDialog.show();
   }
@@ -127,7 +126,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Instance action handler for opening detailed view dialog
    */
-  async _onOpenDetailedView(event: Event, target: HTMLElement): Promise<void> {
+  async _onOpenDetailedView(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
     const manager = game.seasonsStars?.manager;
@@ -197,7 +196,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Instance action handler for opening bulk advance dialog
    */
-  async _onOpenBulkAdvance(event: Event, target: HTMLElement): Promise<void> {
+  async _onOpenBulkAdvance(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
     // Show placeholder for now - will implement proper dialog later
@@ -232,7 +231,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Switch to mini widget
    */
-  async _onSwitchToMini(event: Event, target: HTMLElement): Promise<void> {
+  async _onSwitchToMini(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
     Logger.debug('Switching from main widget to mini widget');
 
@@ -252,7 +251,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Switch to grid widget
    */
-  async _onSwitchToGrid(event: Event, target: HTMLElement): Promise<void> {
+  async _onSwitchToGrid(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
     Logger.debug('Switching from main widget to grid widget');
 
@@ -294,7 +293,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         if (document.querySelector(selector)) {
           return true;
         }
-      } catch (e) {
+      } catch (_e) {
         // Skip invalid selectors
         continue;
       }

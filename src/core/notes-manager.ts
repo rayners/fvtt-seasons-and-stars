@@ -3,7 +3,6 @@
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
-import { CalendarDate } from './calendar-date';
 import { NoteStorage } from './note-storage';
 import { notePermissions } from './note-permissions';
 import { NoteRecurrence, type RecurringPattern } from './note-recurring';

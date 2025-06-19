@@ -2,13 +2,11 @@
  * Calendar Mini Widget - Compact date display that pairs with SmallTime
  */
 
-import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarWidget } from './calendar-widget';
 import { CalendarGridWidget } from './calendar-grid-widget';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
-import type { CalendarDate as ICalendarDate } from '../types/calendar';
 import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -564,7 +562,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Handle opening calendar selection dialog
    */
-  async _onOpenCalendarSelection(event: Event, target: HTMLElement): Promise<void> {
+  async _onOpenCalendarSelection(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
     const manager = game.seasonsStars?.manager;
@@ -1043,7 +1041,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Open larger calendar view (default widget or grid based on setting)
    */
-  async _onOpenLargerView(event: Event, target: HTMLElement): Promise<void> {
+  async _onOpenLargerView(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
     Logger.info('Opening larger view from mini widget');
 

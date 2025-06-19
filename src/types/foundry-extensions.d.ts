@@ -24,9 +24,14 @@ declare global {
   interface Window {
     SeasonsStars?: {
       api: SeasonsStarsAPI;
-      manager: any;
-      notes: any;
+      manager: unknown;
+      notes: unknown;
       integration: typeof SeasonsStarsIntegration;
+      CalendarWidget?: unknown;
+      CalendarMiniWidget?: unknown;
+      CalendarGridWidget?: unknown;
+      CalendarSelectionDialog?: unknown;
+      NoteEditingDialog?: unknown;
     };
   }
 }
@@ -45,7 +50,7 @@ export interface SeasonsStarsAPI {
   getActiveCalendar(): SeasonsStarsCalendar | null;
   setActiveCalendar(calendarId: string): Promise<void>;
   getAvailableCalendars(): string[];
-  loadCalendar(data: any): void;
+  loadCalendar(data: SeasonsStarsCalendar): void;
   getMonthNames(calendarId?: string): string[];
   getWeekdayNames(calendarId?: string): string[];
   getSeasonInfo(date: CalendarDate, calendarId?: string): { name: string; icon: string };

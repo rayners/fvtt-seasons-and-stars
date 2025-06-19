@@ -10,12 +10,12 @@ import type { SidebarButton } from '../types/widget-types';
  * Base widget instance management (without generics for static compatibility)
  */
 export class WidgetInstanceManager {
-  protected static activeInstance: any = null;
+  protected static activeInstance: unknown = null;
 
   /**
    * Get the active instance of this widget
    */
-  static getInstance(): any {
+  static getInstance(): unknown {
     return this.activeInstance;
   }
 
@@ -30,7 +30,7 @@ export class WidgetInstanceManager {
         this.activeInstance.bringToTop();
       }
     } else {
-      this.activeInstance = new (this as any)().render(true);
+      this.activeInstance = new (this as { new (): { render: (force: boolean) => unknown } })().render(true);
     }
   }
 
@@ -95,8 +95,8 @@ export class SidebarButtonManager {
     Logger.debug(`Added sidebar button "${name}"`);
 
     // Trigger re-render if widget is already rendered
-    if ((this as any).rendered) {
-      (this as any).render();
+    if ((this as { rendered: boolean }).rendered) {
+      (this as { render: () => void }).render();
     }
   }
 
@@ -110,8 +110,8 @@ export class SidebarButtonManager {
       Logger.debug(`Removed sidebar button "${name}"`);
 
       // Trigger re-render if widget is already rendered
-      if ((this as any).rendered) {
-        (this as any).render();
+      if ((this as { rendered: boolean }).rendered) {
+        (this as { render: () => void }).render();
       }
     }
   }
@@ -137,8 +137,8 @@ export class SidebarButtonManager {
     this.sidebarButtons = [];
     Logger.debug('Cleared all sidebar buttons');
 
-    if ((this as any).rendered) {
-      (this as any).render();
+    if ((this as { rendered: boolean }).rendered) {
+      (this as { render: () => void }).render();
     }
   }
 }

@@ -21,10 +21,10 @@ import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
-import { TIME_CONSTANTS } from './core/constants';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
+import type { ErrorsAndEchoesAPI, ExtendedNotesManager, ExtendedCalendarManager } from './types/external-integrations';
 import type {
   CalendarDate as ICalendarDate,
   DateFormatOptions,
@@ -39,7 +39,7 @@ let notesManager: NotesManager;
 SeasonsStarsSceneControls.registerControls();
 
 // Register Errors and Echoes hook at top level (RECOMMENDED - eliminates timing issues)
-Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
+Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
   // E&E is guaranteed to be ready when this hook is called
   try {
     Logger.debug('Registering with Errors and Echoes via hook');
@@ -50,7 +50,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
       // Context provider - adds useful debugging information
       contextProvider: () => {
         // Use defensive programming to prevent context provider errors
-        const context: Record<string, any> = {};
+        const context: Record<string, unknown> = {};
 
         try {
           // Add current calendar information
@@ -65,7 +65,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
             context.activeCalendarLabel = activeCalendar?.translations?.en?.label || 'unknown';
             context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
           }
-        } catch (error) {
+        } catch (_error) {
           context.calendarDataError = 'Failed to access calendar data';
         }
 
@@ -78,7 +78,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
 
           context.activeWidgets = activeWidgets;
           context.widgetCount = activeWidgets.length;
-        } catch (error) {
+        } catch (_error) {
           context.widgetDataError = 'Failed to access widget data';
         }
 
@@ -87,7 +87,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
           context.smallTimeDetected = !!document.querySelector('#smalltime-app');
           context.simpleCalendarActive =
             game.modules?.get('foundryvtt-simple-calendar')?.active || false;
-        } catch (error) {
+        } catch (_error) {
           context.integrationDataError = 'Failed to check integrations';
         }
 
@@ -97,27 +97,27 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
             context.notesSystemInitialized = notesManager.isInitialized();
             // Don't expose note count as it might be sensitive
           }
-        } catch (error) {
+        } catch (_error) {
           context.notesError = 'Could not read notes state';
         }
 
         try {
           // Add current scene information
-          if ((game as any).scenes?.active) {
-            const scene = (game as any).scenes.active;
+          if (game.scenes?.active) {
+            const scene = game.scenes.active;
             context.sceneId = scene.id;
             context.sceneName = scene.name;
           }
-        } catch (error) {
+        } catch (_error) {
           context.sceneError = 'Could not read scene data';
         }
 
         try {
           // Add system information
-          context.gameSystem = (game as any).system?.id || 'unknown';
-          context.systemVersion = (game as any).system?.version || 'unknown';
-          context.foundryVersion = (game as any).version || 'unknown';
-        } catch (error) {
+          context.gameSystem = game.system?.id || 'unknown';
+          context.systemVersion = game.system?.version || 'unknown';
+          context.foundryVersion = game.version || 'unknown';
+        } catch (_error) {
           context.systemInfoError = 'Could not read system information';
         }
 
@@ -130,7 +130,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
             game.settings?.get('seasons-and-stars', 'showNotifications') || false;
           context.defaultWidget =
             game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
-        } catch (error) {
+        } catch (_error) {
           // Settings might not be registered yet
           context.settingsError = 'Could not read module settings';
         }
@@ -1030,7 +1030,7 @@ function setupAPI(): void {
       }
     },
 
-    loadCalendar: (data: any): void => {
+    loadCalendar: (data: SeasonsStarsCalendar): void => {
       try {
         Logger.api('loadCalendar', { calendarId: data?.id || 'unknown' });
 
@@ -1250,7 +1250,7 @@ function setupAPI(): void {
   }
 
   // Expose API to window for debugging
-  (window as any).SeasonsStars = {
+  window.SeasonsStars = {
     api,
     manager: calendarManager,
     notes: notesManager,
@@ -1271,7 +1271,7 @@ function setupAPI(): void {
  */
 function registerNoteEditingHooks(): void {
   // Hook into journal sheet rendering to intercept calendar notes
-  Hooks.on('renderJournalSheet', (sheet: any, html: JQuery, data: any) => {
+  Hooks.on('renderJournalSheet', (sheet: JournalSheet, _html: JQuery, _data: Record<string, unknown>) => {
     Logger.debug('renderJournalSheet hook fired', {
       journalName: sheet.document?.name,
       isCalendarNote: !!sheet.document?.flags?.['seasons-and-stars']?.calendarNote,
@@ -1304,7 +1304,7 @@ function registerNoteEditingHooks(): void {
   });
 
   // Also try intercepting at the preRender stage (before sheet opens)
-  Hooks.on('preRenderJournalSheet', (sheet: any) => {
+  Hooks.on('preRenderJournalSheet', (sheet: JournalSheet) => {
     Logger.debug('preRenderJournalSheet hook fired', {
       journalName: sheet.document?.name,
       isCalendarNote: !!sheet.document?.flags?.['seasons-and-stars']?.calendarNote,
@@ -1353,8 +1353,8 @@ Hooks.once('destroy', () => {
     delete game.seasonsStars;
   }
 
-  if ((window as any).SeasonsStars) {
-    delete (window as any).SeasonsStars;
+  if (window.SeasonsStars) {
+    delete window.SeasonsStars;
   }
 });
 
@@ -1364,7 +1364,7 @@ Hooks.once('destroy', () => {
 function registerMemoryMageIntegration(): void {
   try {
     // Check if Memory Mage is available (standard Foundry module pattern)
-    const memoryMage = (game as any).memoryMage || (game.modules?.get('memory-mage') as any)?.api;
+    const memoryMage = game.memoryMage || game.modules?.get('memory-mage')?.api;
     if (!memoryMage) {
       Logger.debug('Memory Mage not available - skipping memory monitoring integration');
       return;
@@ -1373,7 +1373,7 @@ function registerMemoryMageIntegration(): void {
     Logger.debug('Registering with Memory Mage for memory monitoring');
     // Register self-reporting memory usage
     memoryMage.registerModule('seasons-and-stars', () => {
-      const optimizer = (notesManager as any)?.getPerformanceOptimizer?.();
+      const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
       const widgetMemory = calculateWidgetMemory();
       const calendarMemory = calculateCalendarMemory();
 
@@ -1382,7 +1382,7 @@ function registerMemoryMageIntegration(): void {
         details: {
           notesCache: optimizer?.getMetrics()?.totalNotes || 0,
           activeWidgets: getActiveWidgetCount(),
-          loadedCalendars: (calendarManager as any)?.getLoadedCalendars?.()?.length || 0,
+          loadedCalendars: (calendarManager as ExtendedCalendarManager)?.getLoadedCalendars?.()?.length || 0,
           cacheSize: optimizer?.getMetrics()?.cacheHitRate || 0,
         },
       };
@@ -1394,26 +1394,26 @@ function registerMemoryMageIntegration(): void {
 
       if (level === 'warning') {
         // Light cleanup
-        const optimizer = (notesManager as any)?.getPerformanceOptimizer?.();
+        const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
         if (optimizer) {
           optimizer.relieveMemoryPressure();
         }
       } else if (level === 'critical') {
         // Aggressive cleanup
-        const optimizer = (notesManager as any)?.getPerformanceOptimizer?.();
+        const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
         if (optimizer) {
           optimizer.relieveMemoryPressure();
         }
 
         // Clear other caches if available
-        if ((calendarManager as any)?.clearCaches) {
-          (calendarManager as any).clearCaches();
+        if ((calendarManager as ExtendedCalendarManager)?.clearCaches) {
+          (calendarManager as ExtendedCalendarManager).clearCaches?.();
         }
 
         // Force close widgets if memory is critically low
         if (level === 'critical') {
-          (CalendarWidget as any).closeAll?.();
-          (CalendarGridWidget as any).closeAll?.();
+          (CalendarWidget as unknown as { closeAll?: () => void }).closeAll?.();
+          (CalendarGridWidget as unknown as { closeAll?: () => void }).closeAll?.();
         }
       }
     });
@@ -1444,7 +1444,7 @@ function calculateWidgetMemory(): number {
  * Calculate estimated memory usage of loaded calendars
  */
 function calculateCalendarMemory(): number {
-  const loadedCalendars = (calendarManager as any)?.getLoadedCalendars?.()?.length || 0;
+  const loadedCalendars = (calendarManager as ExtendedCalendarManager)?.getLoadedCalendars?.()?.length || 0;
   return loadedCalendars * 0.02; // 20KB per calendar
 }
 
@@ -1466,7 +1466,7 @@ function getActiveWidgetCount(): number {
  */
 function registerNotesCleanupHooks(): void {
   // Hook into journal deletion to clean up our notes storage
-  Hooks.on('deleteJournalEntry', async (journal: any, options: any, userId: string) => {
+  Hooks.on('deleteJournalEntry', async (journal: FoundryJournalEntry, _options: Record<string, unknown>, _userId: string) => {
     Logger.debug('Journal deletion detected', {
       journalId: journal.id,
       journalName: journal.name,
@@ -1523,13 +1523,13 @@ function registerNotesCleanupHooks(): void {
  */
 function setupTestErrorReporting(): void {
   if (game.seasonsStars) {
-    (game.seasonsStars as any).testErrorReporting = () => {
+    (game.seasonsStars as { testErrorReporting?: () => void }).testErrorReporting = () => {
       Logger.info('Testing E&E integration - triggering test error');
 
       // Check if E&E is available first (try multiple patterns)
       const errorReporterAPI =
-        (window as any).ErrorsAndEchoesAPI ||
-        (window as any).ErrorsAndEchoes?.API ||
+        (window as { ErrorsAndEchoesAPI?: unknown }).ErrorsAndEchoesAPI ||
+        (window as { ErrorsAndEchoes?: { API?: unknown } }).ErrorsAndEchoes?.API ||
         game.modules?.get('errors-and-echoes')?.api;
 
       if (!errorReporterAPI) {
@@ -1568,10 +1568,10 @@ function setupTestErrorReporting(): void {
     };
 
     // Also add a function to check E&E status
-    (game.seasonsStars as any).checkErrorReporting = () => {
+    (game.seasonsStars as { checkErrorReporting?: () => void }).checkErrorReporting = () => {
       const errorReporterAPI =
-        (window as any).ErrorsAndEchoesAPI ||
-        (window as any).ErrorsAndEchoes?.API ||
+        (window as { ErrorsAndEchoesAPI?: unknown }).ErrorsAndEchoesAPI ||
+        (window as { ErrorsAndEchoes?: { API?: unknown } }).ErrorsAndEchoes?.API ||
         game.modules?.get('errors-and-echoes')?.api;
 
       const hasAPI = !!errorReporterAPI;

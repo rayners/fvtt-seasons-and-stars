@@ -77,14 +77,28 @@ interface Game {
   journal: FoundryCollection<FoundryJournalEntry>;
   folders?: FoundryCollection<FoundryFolder>;
   keybindings?: FoundryKeybindings;
+  
+  // Additional Foundry properties
+  scenes?: FoundryCollection<FoundryScene> & {
+    active?: FoundryScene;
+  };
+  system?: {
+    id: string;
+    version: string;
+    title?: string;
+  };
+  version?: string;
+
+  // Module integration points
+  memoryMage?: unknown;
 
   // Season & Stars specific integration point
   seasonsStars?: {
-    manager?: any;
-    notes?: any;
-    integration?: any;
-    api?: any;
-    categories?: any;
+    manager?: unknown;
+    notes?: unknown;
+    integration?: unknown;
+    api?: unknown;
+    categories?: unknown;
   };
 }
 
@@ -109,6 +123,12 @@ interface FoundryUser {
   id: string;
   name: string;
   isGM: boolean;
+}
+
+interface FoundryScene {
+  id: string;
+  name: string;
+  active?: boolean;
 }
 
 declare class FoundryJournalEntry {
@@ -139,6 +159,11 @@ interface JournalEntryPage {
   update?(data: any): Promise<JournalEntryPage>;
 }
 
+interface JournalSheet {
+  document?: FoundryJournalEntry;
+  [key: string]: unknown;
+}
+
 declare class FoundryFolder {
   id: string;
   name: string;
@@ -165,7 +190,7 @@ interface Module {
   title: string;
   active: boolean;
   version?: string;
-  api?: any; // For modules that expose APIs
+  api?: unknown; // For modules that expose APIs
 }
 
 interface UI {

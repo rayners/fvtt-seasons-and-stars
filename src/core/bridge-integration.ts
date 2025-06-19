@@ -5,7 +5,7 @@
  * with S&S without requiring external calendar system knowledge in the core.
  */
 
-import type { CalendarDate, SeasonsStarsCalendar } from '../types/calendar';
+import type { CalendarDate, SeasonsStarsCalendar, DateFormatOptions } from '../types/calendar';\nimport type { CreateNoteData } from '../types/external-integrations';
 import { CalendarManager } from './calendar-manager';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
@@ -19,7 +19,7 @@ export interface SeasonsStarsAPI {
   getCurrentDate(calendarId?: string): CalendarDate;
   worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate;
   dateToWorldTime(date: CalendarDate, calendarId?: string): number;
-  formatDate(date: CalendarDate, options?: any): string;
+  formatDate(date: CalendarDate, options?: DateFormatOptions): string;
 
   // Calendar management
   getActiveCalendar(): SeasonsStarsCalendar;
@@ -48,13 +48,13 @@ export interface SeasonsStarsNotesAPI {
   addNote(
     title: string,
     content: string,
-    startDate: any,
-    endDate?: any,
+    startDate: CalendarDate,
+    endDate?: CalendarDate,
     allDay?: boolean,
     playerVisible?: boolean
-  ): Promise<any>;
+  ): Promise<JournalEntry>;
   removeNote(noteId: string): Promise<void>;
-  getNotesForDay(year: number, month: number, day: number, calendarId?: string): any[];
+  getNotesForDay(year: number, month: number, day: number, calendarId?: string): JournalEntry[];
 
   // Enhanced notes functionality
   createNote(data: CreateNoteData): Promise<JournalEntry>;
@@ -90,7 +90,7 @@ export interface BridgeCalendarWidget {
   addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void;
   removeSidebarButton(name: string): void;
   hasSidebarButton(name: string): boolean;
-  getInstance(): any;
+  getInstance(): unknown;
 }
 
 export interface SeasonsStarsHooks {
@@ -193,7 +193,7 @@ export class SeasonsStarsIntegration {
     }
 
     // Check if manager is available
-    const manager = (game as any).seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager;
     if (!manager) {
       return null;
     }
@@ -333,7 +333,7 @@ export class SeasonsStarsIntegration {
 class IntegrationAPI implements SeasonsStarsAPI {
   constructor(private manager: CalendarManager) {}
 
-  getCurrentDate(calendarId?: string): CalendarDate {
+  getCurrentDate(_calendarId?: string): CalendarDate {
     // The actual manager method doesn't take a calendarId
     const currentDate = this.manager.getCurrentDate();
     if (!currentDate) {
@@ -342,7 +342,7 @@ class IntegrationAPI implements SeasonsStarsAPI {
     return currentDate;
   }
 
-  worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate {
+  worldTimeToDate(timestamp: number, _calendarId?: string): CalendarDate {
     // Use engine to convert world time to date
     const engine = this.manager.getActiveEngine();
     if (!engine) {
@@ -351,7 +351,7 @@ class IntegrationAPI implements SeasonsStarsAPI {
     return engine.worldTimeToDate(timestamp);
   }
 
-  dateToWorldTime(date: CalendarDate, calendarId?: string): number {
+  dateToWorldTime(date: CalendarDate, _calendarId?: string): number {
     // Use engine to convert date to world time
     const engine = this.manager.getActiveEngine();
     if (!engine) {
@@ -360,7 +360,7 @@ class IntegrationAPI implements SeasonsStarsAPI {
     return engine.dateToWorldTime(date);
   }
 
-  formatDate(date: CalendarDate, options?: any): string {
+  formatDate(date: CalendarDate, options?: DateFormatOptions): string {
     // Use CalendarDate class to format date
     const calendar = this.manager.getActiveCalendar();
     if (!calendar) {
@@ -389,15 +389,15 @@ class IntegrationAPI implements SeasonsStarsAPI {
     return this.manager.getAvailableCalendars();
   }
 
-  async advanceDays(days: number, calendarId?: string): Promise<void> {
+  async advanceDays(days: number, _calendarId?: string): Promise<void> {
     return this.manager.advanceDays(days);
   }
 
-  async advanceHours(hours: number, calendarId?: string): Promise<void> {
+  async advanceHours(hours: number, _calendarId?: string): Promise<void> {
     return this.manager.advanceHours(hours);
   }
 
-  async advanceMinutes(minutes: number, calendarId?: string): Promise<void> {
+  async advanceMinutes(minutes: number, _calendarId?: string): Promise<void> {
     return this.manager.advanceMinutes(minutes);
   }
 
@@ -425,7 +425,7 @@ class IntegrationAPI implements SeasonsStarsAPI {
     return calendar.weekdays.map(weekday => weekday.name);
   }
 
-  getSunriseSunset(date: CalendarDate, calendarId?: string): TimeOfDay {
+  getSunriseSunset(_date: CalendarDate, _calendarId?: string): TimeOfDay {
     // Default implementation - can be enhanced with calendar-specific data
     return {
       sunrise: 6, // 6 AM
@@ -433,7 +433,7 @@ class IntegrationAPI implements SeasonsStarsAPI {
     };
   }
 
-  getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo {
+  getSeasonInfo(date: CalendarDate, _calendarId?: string): SeasonInfo {
     // Default seasonal calculation - can be enhanced with calendar-specific data
     const month = date.month;
 
@@ -688,7 +688,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     await notesManager.deleteNote(noteId);
   }
 
-  getNotesForDay(year: number, month: number, day: number, calendarId?: string): any[] {
+  getNotesForDay(year: number, month: number, day: number, _calendarId?: string): any[] {
     const notesManager = game.seasonsStars?.notes;
     if (!notesManager) {
       return [];
@@ -759,7 +759,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     return notesManager.getNote(noteId);
   }
 
-  async getNotesForDate(date: CalendarDate, calendarId?: string): Promise<JournalEntry[]> {
+  async getNotesForDate(date: CalendarDate, _calendarId?: string): Promise<JournalEntry[]> {
     const notesManager = game.seasonsStars?.notes;
     if (!notesManager) {
       return [];
@@ -771,7 +771,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
   async getNotesForDateRange(
     start: CalendarDate,
     end: CalendarDate,
-    calendarId?: string
+    _calendarId?: string
   ): Promise<JournalEntry[]> {
     const notesManager = game.seasonsStars?.notes;
     if (!notesManager) {

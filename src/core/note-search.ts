@@ -3,7 +3,6 @@
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
-import type { NoteCategory } from './note-categories';
 
 export interface NoteSearchCriteria {
   // Text search

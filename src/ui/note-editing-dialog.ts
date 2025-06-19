@@ -4,7 +4,6 @@
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
-import { CalendarDate } from '../core/calendar-date';
 import { Logger } from '../core/logger';
 import type { UpdateNoteData } from '../core/notes-manager';
 
