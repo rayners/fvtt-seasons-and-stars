@@ -5,7 +5,8 @@
  * with S&S without requiring external calendar system knowledge in the core.
  */
 
-import type { CalendarDate, SeasonsStarsCalendar, DateFormatOptions } from '../types/calendar';\nimport type { CreateNoteData } from '../types/external-integrations';
+import type { CalendarDate, SeasonsStarsCalendar, DateFormatOptions } from '../types/calendar';
+import type { CreateNoteData } from '../types/external-integrations';
 import { CalendarManager } from './calendar-manager';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';

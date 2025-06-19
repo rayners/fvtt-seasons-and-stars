@@ -6,7 +6,8 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarWidget } from './calendar-widget';
 import { CalendarMiniWidget } from './calendar-mini-widget';
 import { Logger } from '../core/logger';
-import type { CalendarDate as ICalendarDate, SeasonsStarsCalendar } from '../types/calendar';\nimport type { CalendarDayData } from '../types/external-integrations';
+import type { CalendarDate as ICalendarDate, SeasonsStarsCalendar } from '../types/calendar';
+import type { CalendarDayData } from '../types/external-integrations';
 
 export class CalendarGridWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2

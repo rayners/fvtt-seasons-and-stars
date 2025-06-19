@@ -293,7 +293,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         if (document.querySelector(selector)) {
           return true;
         }
-      } catch (_e) {
+      } catch (_error) {
         // Skip invalid selectors
         continue;
       }
