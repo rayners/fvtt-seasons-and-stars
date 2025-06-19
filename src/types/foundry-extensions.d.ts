@@ -13,11 +13,11 @@ import type { NoteCategories } from '../core/note-categories';
 declare global {
   interface Game {
     seasonsStars?: {
-      api: SeasonsStarsAPI;
-      manager: any; // CalendarManager - avoiding circular import
-      notes: NotesManagerInterface; // NotesManager interface
-      categories: NoteCategories; // Note categories management
-      integration: SeasonsStarsIntegration | null;
+      api?: SeasonsStarsAPI;
+      manager?: CalendarManagerInterface; // CalendarManager interface
+      notes?: NotesManagerInterface; // NotesManager interface
+      categories?: NoteCategories; // Note categories management
+      integration?: SeasonsStarsIntegration | null;
     };
   }
 
@@ -60,6 +60,33 @@ export interface SeasonsStarsAPI {
   worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate;
 }
 
+// Calendar Manager interface for type safety
+export interface CalendarManagerInterface {
+  getCurrentDate(): CalendarDate | null;
+  setCurrentDate(date: CalendarDate): Promise<boolean>;
+  getActiveCalendar(): SeasonsStarsCalendar | null;
+  getActiveEngine(): CalendarEngineInterface | null;
+  getAllCalendars(): SeasonsStarsCalendar[];
+  getCalendar(calendarId: string): SeasonsStarsCalendar | null;
+  getAvailableCalendars(): string[];
+  setActiveCalendar(calendarId: string): Promise<boolean>;
+  advanceMinutes(minutes: number): Promise<void>;
+  advanceHours(hours: number): Promise<void>;
+  advanceDays(days: number): Promise<void>;
+  advanceWeeks(weeks: number): Promise<void>;
+  advanceMonths(months: number): Promise<void>;
+  advanceYears(years: number): Promise<void>;
+}
+
+// Calendar Engine interface for date calculations
+export interface CalendarEngineInterface {
+  getCalendar(): SeasonsStarsCalendar;
+  calculateWeekday(year: number, month: number, day: number): number;
+  getMonthLength(month: number, year: number): number;
+  dateToWorldTime(date: CalendarDate): number;
+  worldTimeToDate(timestamp: number): CalendarDate;
+}
+
 // Notes Manager interface for type safety
 export interface NotesManagerInterface {
   createNote(data: any): Promise<JournalEntry>;
@@ -70,7 +97,14 @@ export interface NotesManagerInterface {
   getNotesForDateRange(start: CalendarDate, end: CalendarDate): Promise<JournalEntry[]>;
   setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void>;
   getNoteModuleData(noteId: string, moduleId: string): any;
+  getCategories(): any;
+  getPredefinedTags(): string[];
+  parseTagString(tags: string): string[];
+  validateTags(tags: string[]): boolean;
+  getDefaultCategory(): any;
+  getCategory(categoryId: string): any;
   storage: {
     findNotesByDateSync(date: CalendarDate): JournalEntry[];
+    removeNote(noteId: string): Promise<void>;
   };
 }

@@ -1477,7 +1477,7 @@ function registerNotesCleanupHooks(): void {
   // Hook into journal deletion to clean up our notes storage
   Hooks.on(
     'deleteJournalEntry',
-    async (journal: FoundryJournalEntry, _options: Record<string, unknown>, _userId: string) => {
+    async (journal: JournalEntry, _options: Record<string, unknown>, _userId: string) => {
       Logger.debug('Journal deletion detected', {
         journalId: journal.id,
         journalName: journal.name,

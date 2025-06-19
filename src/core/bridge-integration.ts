@@ -133,19 +133,7 @@ export interface SeasonInfo {
   description?: string;
 }
 
-// Notes system data types
-export interface CreateNoteData {
-  title: string;
-  content: string;
-  startDate: CalendarDate;
-  endDate?: CalendarDate;
-  allDay: boolean;
-  calendarId?: string;
-  category?: string;
-  tags?: string[];
-  playerVisible: boolean;
-}
-
+// UpdateNoteData is defined here as it's bridge-specific
 export interface UpdateNoteData {
   title?: string;
   content?: string;

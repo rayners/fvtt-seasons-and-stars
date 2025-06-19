@@ -15,6 +15,7 @@ export interface ErrorsAndEchoesConfig {
   contextProvider?: () => Record<string, unknown>;
   formatStackTrace?: (error: Error) => string[];
   submitError?: (error: Error, context: Record<string, unknown>) => Promise<void>;
+  errorFilter?: (error: Error) => boolean;
 }
 
 // Simple Calendar Module Types
@@ -106,7 +107,7 @@ export interface JournalEntryData extends DocumentData {
 
 // Scene Configuration Integration Types
 export interface SceneConfigRenderData {
-  object: Scene;
+  object: any;
   html: JQuery<HTMLElement>;
   data: Record<string, unknown>;
 }
@@ -167,7 +168,9 @@ export interface CreateNoteData {
   };
   allDay?: boolean;
   playerVisible?: boolean;
+  calendarId?: string;
   category?: string;
+  tags?: string[];
   recurring?: {
     frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
     interval: number;
@@ -202,33 +205,18 @@ export interface APIResponse<T = unknown> {
 }
 
 // Type guards for external modules
-export function isModuleAPI(obj: unknown): obj is ModuleAPI {
-  return typeof obj === 'object' && obj !== null;
-}
-
-export function isFoundryModule(obj: unknown): obj is FoundryModule {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'id' in obj &&
-    'active' in obj &&
-    typeof (obj as FoundryModule).id === 'string' &&
-    typeof (obj as FoundryModule).active === 'boolean'
-  );
-}
-
-export function isSimpleCalendarAPI(obj: unknown): obj is SimpleCalendarAPI {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'api' in obj &&
-    typeof (obj as SimpleCalendarAPI).api === 'object'
-  );
-}
+export declare function isModuleAPI(obj: unknown): obj is ModuleAPI;
+export declare function isFoundryModule(obj: unknown): obj is FoundryModule;
+export declare function isSimpleCalendarAPI(obj: unknown): obj is SimpleCalendarAPI;
 
 // Memory Mage integration types
 export interface MemoryMageAPI {
   registerModule: (moduleId: string, callback: () => MemoryReport) => void;
+  registerCleanupHandler?: (callback: () => void) => void;
+  report?: MemoryReport;
+  hasConsent?: () => boolean;
+  getPrivacyLevel?: () => string;
+  getStats?: () => Record<string, unknown>;
 }
 
 export interface MemoryReport {

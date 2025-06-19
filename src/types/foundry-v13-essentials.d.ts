@@ -46,12 +46,13 @@ declare global {
   const Folder: typeof FoundryFolder;
   const Dialog: typeof FoundryDialog;
   const Application: typeof FoundryApplication;
+  const Scene: typeof FoundryScene;
 
   type Folder = FoundryFolder;
-
   type JournalEntry = FoundryJournalEntry;
   type User = FoundryUser;
   type Calendar = FoundryCalendar;
+  type JournalSheet = FoundryJournalSheet;
 
   // Global Node.js compatibility
   interface NodeGlobal {
@@ -125,7 +126,7 @@ interface FoundryUser {
   isGM: boolean;
 }
 
-interface FoundryScene {
+declare class FoundryScene {
   id: string;
   name: string;
   active?: boolean;
@@ -139,6 +140,7 @@ declare class FoundryJournalEntry {
   flags: Record<string, any>;
   author?: FoundryUser;
   folder?: string;
+  sheet?: FoundryJournalSheet;
 
   static create(data: any): Promise<FoundryJournalEntry>;
   update(data: any): Promise<FoundryJournalEntry>;
@@ -161,6 +163,12 @@ interface JournalEntryPage {
 
 interface JournalSheet {
   document?: FoundryJournalEntry;
+  [key: string]: unknown;
+}
+
+declare class FoundryJournalSheet {
+  document: FoundryJournalEntry;
+  close(): Promise<void>;
   [key: string]: unknown;
 }
 
@@ -264,6 +272,7 @@ declare class FoundryCollection<T> extends Map<string, T> {
   find(predicate: (value: T) => boolean): T | undefined;
   filter(predicate: (value: T) => boolean): T[];
   map<U>(transform: (value: T) => U): U[];
+  contents: T[];
 }
 
 // =============================================================================
