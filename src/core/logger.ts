@@ -111,3 +111,4 @@ export class Logger {
     }
   }
 }
+// Test comment for lint-staged
