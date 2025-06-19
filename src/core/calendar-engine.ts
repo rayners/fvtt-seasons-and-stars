@@ -32,7 +32,12 @@ export class CalendarEngine {
       this.calendar.time.secondsInMinute;
 
     const totalDays = Math.floor(totalSeconds / secondsPerDay);
-    const secondsInDay = totalSeconds % secondsPerDay;
+    let secondsInDay = totalSeconds % secondsPerDay;
+
+    // Handle negative seconds in day (can happen with real-time interpretation)
+    if (secondsInDay < 0) {
+      secondsInDay += secondsPerDay;
+    }
 
     // Calculate time of day
     const secondsPerHour = this.calendar.time.minutesInHour * this.calendar.time.secondsInMinute;
@@ -223,8 +228,27 @@ export class CalendarEngine {
     if (worldTimeConfig.interpretation === 'real-time-based') {
       // Real-time mode: worldTime=0 should map to currentYear, not epochYear
       const yearDifference = worldTimeConfig.currentYear - worldTimeConfig.epochYear;
-      const secondsPerYear = 365.25 * 24 * 60 * 60; // Average seconds per year
-      const epochOffset = yearDifference * secondsPerYear;
+
+      // Use accurate year lengths instead of 365.25 average
+      let epochOffset = 0;
+      const secondsPerDay =
+        this.calendar.time.hoursInDay *
+        this.calendar.time.minutesInHour *
+        this.calendar.time.secondsInMinute;
+
+      if (yearDifference > 0) {
+        // Add up actual year lengths from epoch to current year
+        for (let year = worldTimeConfig.epochYear; year < worldTimeConfig.currentYear; year++) {
+          const yearLengthDays = this.getYearLength(year);
+          epochOffset += yearLengthDays * secondsPerDay;
+        }
+      } else if (yearDifference < 0) {
+        // Subtract actual year lengths from current year to epoch
+        for (let year = worldTimeConfig.currentYear; year < worldTimeConfig.epochYear; year++) {
+          const yearLengthDays = this.getYearLength(year);
+          epochOffset -= yearLengthDays * secondsPerDay;
+        }
+      }
 
       return worldTime + epochOffset;
     }
@@ -244,8 +268,27 @@ export class CalendarEngine {
 
     if (worldTimeConfig.interpretation === 'real-time-based') {
       const yearDifference = worldTimeConfig.currentYear - worldTimeConfig.epochYear;
-      const secondsPerYear = 365.25 * 24 * 60 * 60;
-      const epochOffset = yearDifference * secondsPerYear;
+
+      // Use accurate year lengths instead of 365.25 average
+      let epochOffset = 0;
+      const secondsPerDay =
+        this.calendar.time.hoursInDay *
+        this.calendar.time.minutesInHour *
+        this.calendar.time.secondsInMinute;
+
+      if (yearDifference > 0) {
+        // Add up actual year lengths from epoch to current year
+        for (let year = worldTimeConfig.epochYear; year < worldTimeConfig.currentYear; year++) {
+          const yearLengthDays = this.getYearLength(year);
+          epochOffset += yearLengthDays * secondsPerDay;
+        }
+      } else if (yearDifference < 0) {
+        // Subtract actual year lengths from current year to epoch
+        for (let year = worldTimeConfig.currentYear; year < worldTimeConfig.epochYear; year++) {
+          const yearLengthDays = this.getYearLength(year);
+          epochOffset -= yearLengthDays * secondsPerDay;
+        }
+      }
 
       return internalSeconds - epochOffset;
     }
@@ -459,7 +502,7 @@ export class CalendarEngine {
   /**
    * Get the length of a specific year in days
    */
-  private getYearLength(year: number): number {
+  getYearLength(year: number): number {
     const monthLengths = this.getMonthLengths(year);
     const baseLength = monthLengths.reduce((sum, length) => sum + length, 0);
     const intercalaryDays = this.getIntercalaryDays(year);

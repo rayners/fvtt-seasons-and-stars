@@ -352,6 +352,205 @@ describe('WorldTime Interpretation Regression Tests', () => {
     console.log('✅ Universal solution working across all interpretation modes');
   });
 
+  test('🐛 REGRESSION TEST: GitHub Issue #66 - Exact Pathfinder Time Calculation', () => {
+    console.log('\n=== EXACT PATHFINDER TIME CALCULATION TEST (Issue #66) ===');
+    console.log('Expected: Pathfinder calendar should produce exact correct dates/times');
+    console.log('Input: worldTime representing existing Pathfinder world state');
+
+    // Exact Pathfinder calendar configuration from the bug report
+    const pathfinderCalendar: SeasonsStarsCalendar = {
+      id: 'golarion-pf2e',
+      worldTime: {
+        interpretation: 'real-time-based',
+        epochYear: 2700,
+        currentYear: 4725,
+      },
+      year: {
+        epoch: 2700,
+        currentYear: 4725,
+        startDay: 6,
+      },
+      leapYear: {
+        rule: 'custom',
+        interval: 4,
+        month: 'Calistril',
+        extraDays: 1,
+      },
+      months: [
+        { name: 'Abadius', abbreviation: 'Aba', days: 31 },
+        { name: 'Calistril', abbreviation: 'Cal', days: 28 },
+        { name: 'Pharast', abbreviation: 'Pha', days: 31 },
+        { name: 'Gozran', abbreviation: 'Goz', days: 30 },
+        { name: 'Desnus', abbreviation: 'Des', days: 31 },
+        { name: 'Sarenith', abbreviation: 'Sar', days: 30 },
+        { name: 'Erastus', abbreviation: 'Era', days: 31 },
+        { name: 'Arodus', abbreviation: 'Aro', days: 31 },
+        { name: 'Rova', abbreviation: 'Rov', days: 30 },
+        { name: 'Lamashan', abbreviation: 'Lam', days: 31 },
+        { name: 'Neth', abbreviation: 'Net', days: 30 },
+        { name: 'Kuthona', abbreviation: 'Kut', days: 31 },
+      ],
+      weekdays: [
+        { name: 'Moonday', abbreviation: 'Mo' },
+        { name: 'Toilday', abbreviation: 'To' },
+        { name: 'Wealday', abbreviation: 'We' },
+        { name: 'Oathday', abbreviation: 'Oa' },
+        { name: 'Fireday', abbreviation: 'Fi' },
+        { name: 'Starday', abbreviation: 'St' },
+        { name: 'Sunday', abbreviation: 'Su' },
+      ],
+      intercalary: [],
+      time: {
+        hoursInDay: 24,
+        minutesInHour: 60,
+        secondsInMinute: 60,
+      },
+    };
+
+    const pathfinderEngine = new CalendarEngine(pathfinderCalendar);
+
+    // Test Case 1: worldTime = 0 (fresh world)
+    console.log('\n--- Test Case 1: worldTime = 0 (fresh world) ---');
+    const result1 = pathfinderEngine.worldTimeToDate(0);
+    console.log(
+      `Result: ${result1.year}/${result1.month}/${result1.day} ${result1.time?.hour}:${result1.time?.minute}:${result1.time?.second}`
+    );
+
+    // For real-time-based calendar with currentYear 4725, worldTime=0 should map to start of year 4725
+    expect(result1.year).toBe(4725);
+    expect(result1.month).toBe(1);
+    expect(result1.day).toBe(1);
+    expect(result1.time?.hour).toBe(0);
+    expect(result1.time?.minute).toBe(0);
+    expect(result1.time?.second).toBe(0);
+
+    // Test Case 2: worldTime = 86400 (1 day)
+    console.log('\n--- Test Case 2: worldTime = 86400 (1 day) ---');
+    const result2 = pathfinderEngine.worldTimeToDate(86400);
+    console.log(
+      `Result: ${result2.year}/${result2.month}/${result2.day} ${result2.time?.hour}:${result2.time?.minute}:${result2.time?.second}`
+    );
+
+    // 1 day after start of year 4725 should be 2nd day of first month
+    expect(result2.year).toBe(4725);
+    expect(result2.month).toBe(1);
+    expect(result2.day).toBe(2);
+    expect(result2.time?.hour).toBe(0);
+    expect(result2.time?.minute).toBe(0);
+    expect(result2.time?.second).toBe(0);
+
+    // Test Case 3: worldTime = 37423 (10:23:43 on day 1)
+    console.log('\n--- Test Case 3: worldTime = 37423 (10:23:43 on day 1) ---');
+    const result3 = pathfinderEngine.worldTimeToDate(37423);
+    console.log(
+      `Result: ${result3.year}/${result3.month}/${result3.day} ${result3.time?.hour}:${result3.time?.minute}:${result3.time?.second}`
+    );
+
+    // Should be 10:23:43 on the first day of year 4725
+    expect(result3.year).toBe(4725);
+    expect(result3.month).toBe(1);
+    expect(result3.day).toBe(1);
+    expect(result3.time?.hour).toBe(10);
+    expect(result3.time?.minute).toBe(23);
+    expect(result3.time?.second).toBe(43);
+
+    console.log('✅ Pathfinder calendar should produce exact correct dates and times');
+  });
+
+  test('🐛 REGRESSION TEST: Bidirectional Conversion Exactness', () => {
+    console.log('\n=== EXACT BIDIRECTIONAL CONVERSION TEST ===');
+    console.log('Expected: Date → WorldTime → Date should produce exactly the same date');
+
+    const pathfinderCalendar: SeasonsStarsCalendar = {
+      id: 'golarion-pf2e-test',
+      worldTime: {
+        interpretation: 'real-time-based',
+        epochYear: 2700,
+        currentYear: 4725,
+      },
+      year: {
+        epoch: 2700,
+        currentYear: 4725,
+        startDay: 6,
+      },
+      leapYear: {
+        rule: 'custom',
+        interval: 4,
+        month: 'Calistril',
+        extraDays: 1,
+      },
+      months: [
+        { name: 'Abadius', abbreviation: 'Aba', days: 31 },
+        { name: 'Calistril', abbreviation: 'Cal', days: 28 },
+        { name: 'Pharast', abbreviation: 'Pha', days: 31 },
+        { name: 'Gozran', abbreviation: 'Goz', days: 30 },
+        { name: 'Desnus', abbreviation: 'Des', days: 31 },
+        { name: 'Sarenith', abbreviation: 'Sar', days: 30 },
+        { name: 'Erastus', abbreviation: 'Era', days: 31 },
+        { name: 'Arodus', abbreviation: 'Aro', days: 31 },
+        { name: 'Rova', abbreviation: 'Rov', days: 30 },
+        { name: 'Lamashan', abbreviation: 'Lam', days: 31 },
+        { name: 'Neth', abbreviation: 'Net', days: 30 },
+        { name: 'Kuthona', abbreviation: 'Kut', days: 31 },
+      ],
+      weekdays: [
+        { name: 'Moonday', abbreviation: 'Mo' },
+        { name: 'Toilday', abbreviation: 'To' },
+        { name: 'Wealday', abbreviation: 'We' },
+        { name: 'Oathday', abbreviation: 'Oa' },
+        { name: 'Fireday', abbreviation: 'Fi' },
+        { name: 'Starday', abbreviation: 'St' },
+        { name: 'Sunday', abbreviation: 'Su' },
+      ],
+      intercalary: [],
+      time: {
+        hoursInDay: 24,
+        minutesInHour: 60,
+        secondsInMinute: 60,
+      },
+    };
+
+    const pathfinderEngine = new CalendarEngine(pathfinderCalendar);
+
+    // Test exact date from the bug report: 19th of Desnus, 2024 AR (10:23:00)
+    const testDate = {
+      year: 2024,
+      month: 5, // Desnus is 5th month
+      day: 19,
+      weekday: 0, // Will be calculated
+      time: {
+        hour: 10,
+        minute: 23,
+        second: 0,
+      },
+    };
+
+    console.log('\n--- Test Case: 19th Desnus, 2024 AR (10:23:00) ---');
+    console.log(
+      `Input date: ${testDate.year}/${testDate.month}/${testDate.day} ${testDate.time.hour}:${testDate.time.minute}:${testDate.time.second}`
+    );
+
+    // Convert date to worldTime
+    const worldTime = pathfinderEngine.dateToWorldTime(testDate);
+    console.log(`Converted to worldTime: ${worldTime}`);
+
+    // Convert back to date
+    const roundTripDate = pathfinderEngine.worldTimeToDate(worldTime);
+    console.log(
+      `Converted back: ${roundTripDate.year}/${roundTripDate.month}/${roundTripDate.day} ${roundTripDate.time?.hour}:${roundTripDate.time?.minute}:${roundTripDate.time?.second}`
+    );
+
+    // Should be exactly the same
+    expect(roundTripDate.year).toBe(testDate.year);
+    expect(roundTripDate.month).toBe(testDate.month);
+    expect(roundTripDate.day).toBe(testDate.day);
+    expect(roundTripDate.time?.hour).toBe(testDate.time.hour);
+    expect(roundTripDate.time?.minute).toBe(testDate.time.minute);
+    expect(roundTripDate.time?.second).toBe(testDate.time.second);
+
+    console.log('✅ Bidirectional conversion should be exactly preserved');
+  });
+
   test('🐛 REGRESSION TEST: Original GitHub Issue #20 Bug is Fixed', () => {
     console.log('\n=== ORIGINAL BUG REGRESSION TEST ===');
     console.log('GitHub Issue #20: PF2e Calendar Date Mismatch');
