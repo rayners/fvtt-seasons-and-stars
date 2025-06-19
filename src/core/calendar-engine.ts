@@ -8,6 +8,7 @@ import type {
   CalendarCalculation,
   CalendarIntercalary,
 } from '../types/calendar';
+import { CalendarTimeUtils } from './calendar-time-utils';
 
 export class CalendarEngine {
   private calendar: SeasonsStarsCalendar;
@@ -26,10 +27,7 @@ export class CalendarEngine {
     const adjustedWorldTime = this.adjustWorldTimeForInterpretation(worldTime);
 
     const totalSeconds = Math.floor(adjustedWorldTime);
-    const secondsPerDay =
-      this.calendar.time.hoursInDay *
-      this.calendar.time.minutesInHour *
-      this.calendar.time.secondsInMinute;
+    const secondsPerDay = CalendarTimeUtils.getSecondsPerDay(this.calendar);
 
     const totalDays = Math.floor(totalSeconds / secondsPerDay);
     let secondsInDay = totalSeconds % secondsPerDay;
@@ -40,7 +38,7 @@ export class CalendarEngine {
     }
 
     // Calculate time of day
-    const secondsPerHour = this.calendar.time.minutesInHour * this.calendar.time.secondsInMinute;
+    const secondsPerHour = CalendarTimeUtils.getSecondsPerHour(this.calendar);
     const hour = Math.floor(secondsInDay / secondsPerHour);
     const minute = Math.floor((secondsInDay % secondsPerHour) / this.calendar.time.secondsInMinute);
     const second = secondsInDay % this.calendar.time.secondsInMinute;
@@ -64,16 +62,13 @@ export class CalendarEngine {
    */
   dateToWorldTime(date: CalendarDate): number {
     const totalDays = this.dateToDays(date);
-    const secondsPerDay =
-      this.calendar.time.hoursInDay *
-      this.calendar.time.minutesInHour *
-      this.calendar.time.secondsInMinute;
+    const secondsPerDay = CalendarTimeUtils.getSecondsPerDay(this.calendar);
 
     let totalSeconds = totalDays * secondsPerDay;
 
     // Add time of day if provided
     if (date.time) {
-      const secondsPerHour = this.calendar.time.minutesInHour * this.calendar.time.secondsInMinute;
+      const secondsPerHour = CalendarTimeUtils.getSecondsPerHour(this.calendar);
       totalSeconds += date.time.hour * secondsPerHour;
       totalSeconds += date.time.minute * this.calendar.time.secondsInMinute;
       totalSeconds += date.time.second;
@@ -101,18 +96,11 @@ export class CalendarEngine {
    * Add months to a calendar date
    */
   addMonths(date: CalendarDate, months: number): CalendarDate {
-    let targetYear = date.year;
-    let targetMonth = date.month + months;
-
-    // Handle month overflow/underflow
-    while (targetMonth > this.calendar.months.length) {
-      targetMonth -= this.calendar.months.length;
-      targetYear++;
-    }
-    while (targetMonth < 1) {
-      targetMonth += this.calendar.months.length;
-      targetYear--;
-    }
+    const { month: targetMonth, year: targetYear } = CalendarTimeUtils.normalizeMonth(
+      date.month + months,
+      date.year,
+      this.calendar
+    );
 
     // Adjust day if target month is shorter
     const targetMonthDays = this.getMonthLength(targetMonth, targetYear);

@@ -7,6 +7,7 @@
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
 import type { NoteSearchCriteria, NoteSearchResult } from './note-search';
+import { CalendarTimeUtils } from './calendar-time-utils';
 import { Logger } from './logger';
 
 export interface PerformanceMetrics {
@@ -475,9 +476,7 @@ export class NotePerformanceOptimizer {
   }
 
   private compareDates(date1: ICalendarDate, date2: ICalendarDate): number {
-    if (date1.year !== date2.year) return date1.year - date2.year;
-    if (date1.month !== date2.month) return date1.month - date2.month;
-    return date1.day - date2.day;
+    return CalendarTimeUtils.compareDates(date1, date2);
   }
 
   private incrementDate(date: ICalendarDate): void {

@@ -3,6 +3,7 @@
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import { CalendarTimeUtils } from './calendar-time-utils';
 
 export type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export type WeekdayName =
@@ -116,7 +117,10 @@ export class NoteRecurrence {
         if (pattern.weekdays && pattern.weekdays.length > 0) {
           return this.getNextWeekdayOccurrence(currentDate, pattern, engine);
         } else {
-          return this.addDays(currentDate, 7 * pattern.interval, engine);
+          // Use calendar-specific week length instead of hardcoded 7
+          const calendar = engine.getCalendar();
+          const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
+          return this.addDays(currentDate, weekLength * pattern.interval, engine);
         }
 
       case 'monthly':
@@ -139,7 +143,10 @@ export class NoteRecurrence {
     engine: any
   ): ICalendarDate {
     if (!pattern.weekdays || pattern.weekdays.length === 0) {
-      return this.addDays(currentDate, 7 * pattern.interval, engine);
+      // Use calendar-specific week length instead of hardcoded 7
+      const calendar = engine.getCalendar();
+      const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
+      return this.addDays(currentDate, weekLength * pattern.interval, engine);
     }
 
     const weekdayNumbers = pattern.weekdays.map(day => this.weekdayNameToNumber(day));
@@ -156,8 +163,10 @@ export class NoteRecurrence {
       return this.addDays(currentDate, daysToAdd, engine);
     } else {
       // Move to next interval week and use first weekday
-      const daysToNextWeek = 7 - currentWeekday + weekdayNumbers[0];
-      const daysToAdd = daysToNextWeek + (pattern.interval - 1) * 7;
+      const calendar = engine.getCalendar();
+      const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
+      const daysToNextWeek = weekLength - currentWeekday + weekdayNumbers[0];
+      const daysToAdd = daysToNextWeek + (pattern.interval - 1) * weekLength;
       return this.addDays(currentDate, daysToAdd, engine);
     }
   }
@@ -286,7 +295,9 @@ export class NoteRecurrence {
   private static addDays(date: ICalendarDate, days: number, engine: any): ICalendarDate {
     // Convert to world time, add days, convert back
     const worldTime = engine.dateToWorldTime(date);
-    const dayInSeconds = 24 * 60 * 60;
+    // Use calendar-specific day length instead of hardcoded 24 * 60 * 60
+    const calendar = engine.getCalendar();
+    const dayInSeconds = CalendarTimeUtils.getSecondsPerDay(calendar);
     const newWorldTime = worldTime + days * dayInSeconds;
     return engine.worldTimeToDate(newWorldTime);
   }
@@ -298,13 +309,15 @@ export class NoteRecurrence {
     let newYear = date.year;
     let newMonth = date.month + months;
 
-    // Handle year overflow/underflow
-    while (newMonth > 12) {
-      newMonth -= 12;
+    // Handle year overflow/underflow using calendar-specific month count
+    const calendar = engine.getCalendar();
+    const monthsPerYear = CalendarTimeUtils.getMonthsPerYear(calendar);
+    while (newMonth > monthsPerYear) {
+      newMonth -= monthsPerYear;
       newYear++;
     }
     while (newMonth < 1) {
-      newMonth += 12;
+      newMonth += monthsPerYear;
       newYear--;
     }
 
@@ -335,7 +348,10 @@ export class NoteRecurrence {
     let day = 1;
     let foundWeekday = engine.calculateWeekday(year, month, day);
 
-    while (foundWeekday !== weekday && day <= 7) {
+    const calendar = engine.getCalendar();
+    const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
+    
+    while (foundWeekday !== weekday && day <= weekLength) {
       day++;
       if (day <= engine.getMonthLength(month, year)) {
         foundWeekday = engine.calculateWeekday(year, month, day);
@@ -345,7 +361,7 @@ export class NoteRecurrence {
     }
 
     // Add weeks to get to the Nth occurrence
-    const targetDay = day + (week - 1) * 7;
+    const targetDay = day + (week - 1) * weekLength;
 
     if (targetDay > engine.getMonthLength(month, year)) {
       return null; // Nth occurrence doesn't exist
@@ -384,35 +400,28 @@ export class NoteRecurrence {
     start: ICalendarDate,
     end: ICalendarDate
   ): boolean {
-    return !this.isDateBefore(date, start) && !this.isDateAfter(date, end);
+    return !CalendarTimeUtils.isDateBefore(date, start) && !CalendarTimeUtils.isDateAfter(date, end);
   }
 
   /**
    * Check if date A is before date B
    */
   private static isDateBefore(dateA: ICalendarDate, dateB: ICalendarDate): boolean {
-    if (dateA.year !== dateB.year) return dateA.year < dateB.year;
-    if (dateA.month !== dateB.month) return dateA.month < dateB.month;
-    return dateA.day < dateB.day;
+    return CalendarTimeUtils.isDateBefore(dateA, dateB);
   }
 
   /**
    * Check if date A is after date B
    */
   private static isDateAfter(dateA: ICalendarDate, dateB: ICalendarDate): boolean {
-    if (dateA.year !== dateB.year) return dateA.year > dateB.year;
-    if (dateA.month !== dateB.month) return dateA.month > dateB.month;
-    return dateA.day > dateB.day;
+    return CalendarTimeUtils.isDateAfter(dateA, dateB);
   }
 
   /**
    * Check if a date is an exception (should be skipped)
    */
   private static isExceptionDate(date: ICalendarDate, exceptions: ICalendarDate[]): boolean {
-    return exceptions.some(
-      exception =>
-        exception.year === date.year && exception.month === date.month && exception.day === date.day
-    );
+    return exceptions.some(exception => CalendarTimeUtils.isDateEqual(date, exception));
   }
 
   /**

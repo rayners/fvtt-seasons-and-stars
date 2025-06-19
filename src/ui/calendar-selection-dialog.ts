@@ -5,6 +5,7 @@
 
 import { CalendarLocalization } from '../core/calendar-localization';
 import { Logger } from '../core/logger';
+import { CalendarTimeUtils } from '../core/calendar-time-utils';
 import type { SeasonsStarsCalendar } from '../types/calendar';
 
 export class CalendarSelectionDialog extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -253,7 +254,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       // Use current world time for default sample
       const currentTime = game.time?.worldTime || 0;
       Logger.debug(`Using current world time for sample: ${currentTime} seconds`);
-      const secondsPerDay = 86400; // 24 * 60 * 60
+      // Use calendar-specific day length instead of hardcoded 86400
+      const secondsPerDay = CalendarTimeUtils.getSecondsPerDay(calendar);
       totalDays = Math.floor(currentTime / secondsPerDay);
       Logger.debug(`Converted to total days: ${totalDays}`);
     } else {
@@ -262,8 +264,11 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       Logger.debug(`Using offset days for sample: ${totalDays}`);
     }
 
-    const year = 1000 + Math.floor(totalDays / 365);
-    const dayInYear = totalDays % 365;
+    // Use approximate year calculation for sample generation
+    // For accurate date calculation, use the calendar engine, but this is just for preview samples
+    const approximateYearLength = CalendarTimeUtils.getApproximateYearLength(calendar);
+    const year = 1000 + Math.floor(totalDays / approximateYearLength);
+    const dayInYear = totalDays % approximateYearLength;
     Logger.debug('Calculated year and day in year', { year, dayInYear });
 
     let remainingDays = dayInYear;

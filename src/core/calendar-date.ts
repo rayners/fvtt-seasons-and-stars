@@ -8,6 +8,7 @@ import type {
   DateFormatOptions,
 } from '../types/calendar';
 import { CalendarLocalization } from './calendar-localization';
+import { CalendarTimeUtils } from './calendar-time-utils';
 
 export class CalendarDate implements ICalendarDate {
   year: number;
@@ -186,9 +187,9 @@ export class CalendarDate implements ICalendarDate {
     const { hour, minute, second } = this.time;
 
     // Use 24-hour format by default
-    const hourStr = hour.toString().padStart(2, '0');
-    const minuteStr = minute.toString().padStart(2, '0');
-    const secondStr = second.toString().padStart(2, '0');
+    const hourStr = CalendarTimeUtils.formatTimeComponent(hour);
+    const minuteStr = CalendarTimeUtils.formatTimeComponent(minute);
+    const secondStr = CalendarTimeUtils.formatTimeComponent(second);
 
     return `${hourStr}:${minuteStr}:${secondStr}`;
   }
@@ -197,25 +198,7 @@ export class CalendarDate implements ICalendarDate {
    * Add ordinal suffix to a number (1st, 2nd, 3rd, etc.)
    */
   private addOrdinalSuffix(num: number): string {
-    const lastDigit = num % 10;
-    const lastTwoDigits = num % 100;
-
-    // Handle special cases (11th, 12th, 13th)
-    if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
-      return `${num}th`;
-    }
-
-    // Handle regular cases
-    switch (lastDigit) {
-      case 1:
-        return `${num}st`;
-      case 2:
-        return `${num}nd`;
-      case 3:
-        return `${num}rd`;
-      default:
-        return `${num}th`;
-    }
+    return CalendarTimeUtils.addOrdinalSuffix(num);
   }
 
   /**
