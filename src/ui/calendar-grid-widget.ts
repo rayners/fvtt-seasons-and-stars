@@ -77,7 +77,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Handle post-render setup
    */
-  async _onRender(context: Record<string, unknown>, options: ApplicationV2.RenderOptions): Promise<void> {
+  async _onRender(
+    context: Record<string, unknown>,
+    options: ApplicationV2.RenderOptions
+  ): Promise<void> {
     await super._onRender(context, options);
 
     // Register as active instance
@@ -150,7 +153,11 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Generate calendar month data with day grid and note indicators
    */
-  private generateMonthData(calendar: SeasonsStarsCalendar, viewDate: ICalendarDate, currentDate: ICalendarDate) {
+  private generateMonthData(
+    calendar: SeasonsStarsCalendar,
+    viewDate: ICalendarDate,
+    currentDate: ICalendarDate
+  ) {
     const engine = game.seasonsStars?.manager?.getActiveEngine();
     if (!engine) return { weeks: [], totalDays: 0 };
 
@@ -1392,7 +1399,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Show selection dialog for multiple notes on the same date
    */
-  private async showNotesSelectionDialog(notes: JournalEntry[], date: ICalendarDate): Promise<void> {
+  private async showNotesSelectionDialog(
+    notes: JournalEntry[],
+    date: ICalendarDate
+  ): Promise<void> {
     const manager = game.seasonsStars?.manager;
     const activeCalendar = manager?.getActiveCalendar();
     let dateDisplayStr = `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
@@ -1497,7 +1507,11 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Attach event listeners
    */
-  _attachPartListeners(partId: string, htmlElement: HTMLElement, options: ApplicationV2.RenderOptions): void {
+  _attachPartListeners(
+    partId: string,
+    htmlElement: HTMLElement,
+    options: ApplicationV2.RenderOptions
+  ): void {
     super._attachPartListeners(partId, htmlElement, options);
 
     // Register this as the active instance

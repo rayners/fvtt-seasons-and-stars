@@ -24,7 +24,11 @@ import { ValidationUtils } from './core/validation-utils';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
-import type { ErrorsAndEchoesAPI, ExtendedNotesManager, ExtendedCalendarManager } from './types/external-integrations';
+import type {
+  ErrorsAndEchoesAPI,
+  ExtendedNotesManager,
+  ExtendedCalendarManager,
+} from './types/external-integrations';
 import type {
   CalendarDate as ICalendarDate,
   DateFormatOptions,
@@ -1271,37 +1275,40 @@ function setupAPI(): void {
  */
 function registerNoteEditingHooks(): void {
   // Hook into journal sheet rendering to intercept calendar notes
-  Hooks.on('renderJournalSheet', (sheet: JournalSheet, _html: JQuery, _data: Record<string, unknown>) => {
-    Logger.debug('renderJournalSheet hook fired', {
-      journalName: sheet.document?.name,
-      isCalendarNote: !!sheet.document?.flags?.['seasons-and-stars']?.calendarNote,
-    });
+  Hooks.on(
+    'renderJournalSheet',
+    (sheet: JournalSheet, _html: JQuery, _data: Record<string, unknown>) => {
+      Logger.debug('renderJournalSheet hook fired', {
+        journalName: sheet.document?.name,
+        isCalendarNote: !!sheet.document?.flags?.['seasons-and-stars']?.calendarNote,
+      });
 
-    try {
-      const journal = sheet.document;
+      try {
+        const journal = sheet.document;
 
-      // Check if this is a calendar note
-      const flags = journal.flags?.['seasons-and-stars'];
-      if (!flags?.calendarNote) {
-        Logger.debug('Not a calendar note, allowing default sheet');
-        return; // Not a calendar note, let default sheet handle it
+        // Check if this is a calendar note
+        const flags = journal.flags?.['seasons-and-stars'];
+        if (!flags?.calendarNote) {
+          Logger.debug('Not a calendar note, allowing default sheet');
+          return; // Not a calendar note, let default sheet handle it
+        }
+
+        Logger.debug('Calendar note detected, intercepting sheet');
+
+        // Close the default sheet immediately
+        sheet.close();
+
+        // Show our custom editing dialog instead
+        NoteEditingDialog.showEditDialog(journal);
+      } catch (error) {
+        Logger.error(
+          'Failed to intercept journal sheet for calendar note',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        // Let the default sheet continue if our custom dialog fails
       }
-
-      Logger.debug('Calendar note detected, intercepting sheet');
-
-      // Close the default sheet immediately
-      sheet.close();
-
-      // Show our custom editing dialog instead
-      NoteEditingDialog.showEditDialog(journal);
-    } catch (error) {
-      Logger.error(
-        'Failed to intercept journal sheet for calendar note',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      // Let the default sheet continue if our custom dialog fails
     }
-  });
+  );
 
   // Also try intercepting at the preRender stage (before sheet opens)
   Hooks.on('preRenderJournalSheet', (sheet: JournalSheet) => {
@@ -1382,7 +1389,8 @@ function registerMemoryMageIntegration(): void {
         details: {
           notesCache: optimizer?.getMetrics()?.totalNotes || 0,
           activeWidgets: getActiveWidgetCount(),
-          loadedCalendars: (calendarManager as ExtendedCalendarManager)?.getLoadedCalendars?.()?.length || 0,
+          loadedCalendars:
+            (calendarManager as ExtendedCalendarManager)?.getLoadedCalendars?.()?.length || 0,
           cacheSize: optimizer?.getMetrics()?.cacheHitRate || 0,
         },
       };
@@ -1444,7 +1452,8 @@ function calculateWidgetMemory(): number {
  * Calculate estimated memory usage of loaded calendars
  */
 function calculateCalendarMemory(): number {
-  const loadedCalendars = (calendarManager as ExtendedCalendarManager)?.getLoadedCalendars?.()?.length || 0;
+  const loadedCalendars =
+    (calendarManager as ExtendedCalendarManager)?.getLoadedCalendars?.()?.length || 0;
   return loadedCalendars * 0.02; // 20KB per calendar
 }
 
@@ -1466,52 +1475,55 @@ function getActiveWidgetCount(): number {
  */
 function registerNotesCleanupHooks(): void {
   // Hook into journal deletion to clean up our notes storage
-  Hooks.on('deleteJournalEntry', async (journal: FoundryJournalEntry, _options: Record<string, unknown>, _userId: string) => {
-    Logger.debug('Journal deletion detected', {
-      journalId: journal.id,
-      journalName: journal.name,
-      isCalendarNote: !!journal.flags?.['seasons-and-stars']?.calendarNote,
-    });
+  Hooks.on(
+    'deleteJournalEntry',
+    async (journal: FoundryJournalEntry, _options: Record<string, unknown>, _userId: string) => {
+      Logger.debug('Journal deletion detected', {
+        journalId: journal.id,
+        journalName: journal.name,
+        isCalendarNote: !!journal.flags?.['seasons-and-stars']?.calendarNote,
+      });
 
-    try {
-      // Check if this was a calendar note
-      const flags = journal.flags?.['seasons-and-stars'];
-      if (flags?.calendarNote) {
-        Logger.info('Calendar note deleted externally, cleaning up storage', {
-          noteId: journal.id,
-          noteName: journal.name,
-        });
+      try {
+        // Check if this was a calendar note
+        const flags = journal.flags?.['seasons-and-stars'];
+        if (flags?.calendarNote) {
+          Logger.info('Calendar note deleted externally, cleaning up storage', {
+            noteId: journal.id,
+            noteName: journal.name,
+          });
 
-        // Remove from our storage system
-        if (notesManager?.storage) {
-          await notesManager.storage.removeNote(journal.id);
-          Logger.debug('Note removed from storage');
-        }
+          // Remove from our storage system
+          if (notesManager?.storage) {
+            await notesManager.storage.removeNote(journal.id);
+            Logger.debug('Note removed from storage');
+          }
 
-        // Emit our own deletion hook for UI updates
-        Hooks.callAll('seasons-stars:noteDeleted', journal.id);
+          // Emit our own deletion hook for UI updates
+          Hooks.callAll('seasons-stars:noteDeleted', journal.id);
 
-        // Refresh calendar widgets to remove the note from display
-        const calendarWidget = CalendarWidget.getInstance?.();
-        if (calendarWidget?.rendered) {
-          calendarWidget.render();
+          // Refresh calendar widgets to remove the note from display
+          const calendarWidget = CalendarWidget.getInstance?.();
+          if (calendarWidget?.rendered) {
+            calendarWidget.render();
+          }
+          const miniWidget = CalendarMiniWidget.getInstance?.();
+          if (miniWidget?.rendered) {
+            miniWidget.render();
+          }
+          const gridWidget = CalendarGridWidget.getInstance?.();
+          if (gridWidget?.rendered) {
+            gridWidget.render();
+          }
         }
-        const miniWidget = CalendarMiniWidget.getInstance?.();
-        if (miniWidget?.rendered) {
-          miniWidget.render();
-        }
-        const gridWidget = CalendarGridWidget.getInstance?.();
-        if (gridWidget?.rendered) {
-          gridWidget.render();
-        }
+      } catch (error) {
+        Logger.error(
+          'Failed to clean up deleted calendar note',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
-    } catch (error) {
-      Logger.error(
-        'Failed to clean up deleted calendar note',
-        error instanceof Error ? error : new Error(String(error))
-      );
     }
-  });
+  );
 
   Logger.debug('Notes cleanup hooks registered');
 }

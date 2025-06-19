@@ -1,7 +1,7 @@
 /**
  * External Integration Type Definitions
- * 
- * This file contains type definitions for external modules and APIs that 
+ *
+ * This file contains type definitions for external modules and APIs that
  * Seasons & Stars integrates with, replacing generic 'any' types.
  */
 
@@ -261,8 +261,19 @@ export interface CalendarEngineInterface {
   getCalendar(): unknown;
   calculateWeekday(year: number, month: number, day: number): number;
   getMonthLength(month: number, year: number): number;
-  dateToWorldTime(date: { year: number; month: number; day: number; time?: { hour: number; minute: number; second: number } }): number;
-  worldTimeToDate(timestamp: number): { year: number; month: number; day: number; weekday: number; time?: { hour: number; minute: number; second: number } };
+  dateToWorldTime(date: {
+    year: number;
+    month: number;
+    day: number;
+    time?: { hour: number; minute: number; second: number };
+  }): number;
+  worldTimeToDate(timestamp: number): {
+    year: number;
+    month: number;
+    day: number;
+    weekday: number;
+    time?: { hour: number; minute: number; second: number };
+  };
 }
 
 // Calendar grid day object for UI widgets

@@ -293,7 +293,11 @@ export class NoteRecurrence {
   /**
    * Add days to a date using the calendar engine
    */
-  private static addDays(date: ICalendarDate, days: number, engine: CalendarEngineInterface): ICalendarDate {
+  private static addDays(
+    date: ICalendarDate,
+    days: number,
+    engine: CalendarEngineInterface
+  ): ICalendarDate {
     // Convert to world time, add days, convert back
     const worldTime = engine.dateToWorldTime(date);
     // Use calendar-specific day length instead of hardcoded 24 * 60 * 60
@@ -306,7 +310,11 @@ export class NoteRecurrence {
   /**
    * Add months to a date using the calendar engine
    */
-  private static addMonths(date: ICalendarDate, months: number, engine: CalendarEngineInterface): ICalendarDate {
+  private static addMonths(
+    date: ICalendarDate,
+    months: number,
+    engine: CalendarEngineInterface
+  ): ICalendarDate {
     let newYear = date.year;
     let newMonth = date.month + months;
 

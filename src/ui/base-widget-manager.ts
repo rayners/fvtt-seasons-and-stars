@@ -30,7 +30,9 @@ export class WidgetInstanceManager {
         this.activeInstance.bringToTop();
       }
     } else {
-      this.activeInstance = new (this as { new (): { render: (force: boolean) => unknown } })().render(true);
+      this.activeInstance = new (this as {
+        new (): { render: (force: boolean) => unknown };
+      })().render(true);
     }
   }
 

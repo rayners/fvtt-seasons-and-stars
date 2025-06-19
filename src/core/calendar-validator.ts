@@ -2,7 +2,6 @@
  * Calendar JSON format validation for Seasons & Stars
  */
 
-
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];

@@ -77,7 +77,7 @@ interface Game {
   journal: FoundryCollection<FoundryJournalEntry>;
   folders?: FoundryCollection<FoundryFolder>;
   keybindings?: FoundryKeybindings;
-  
+
   // Additional Foundry properties
   scenes?: FoundryCollection<FoundryScene> & {
     active?: FoundryScene;
