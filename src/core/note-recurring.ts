@@ -350,7 +350,7 @@ export class NoteRecurrence {
 
     const calendar = engine.getCalendar();
     const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
-    
+
     while (foundWeekday !== weekday && day <= weekLength) {
       day++;
       if (day <= engine.getMonthLength(month, year)) {
@@ -400,7 +400,9 @@ export class NoteRecurrence {
     start: ICalendarDate,
     end: ICalendarDate
   ): boolean {
-    return !CalendarTimeUtils.isDateBefore(date, start) && !CalendarTimeUtils.isDateAfter(date, end);
+    return (
+      !CalendarTimeUtils.isDateBefore(date, start) && !CalendarTimeUtils.isDateAfter(date, end)
+    );
   }
 
   /**

@@ -108,7 +108,7 @@ export class CalendarTimeUtils {
   }
 
   // === DATE COMPARISON UTILITIES ===
-  
+
   /**
    * Compare two dates chronologically
    * Returns: -1 if dateA < dateB, 0 if equal, 1 if dateA > dateB
@@ -150,7 +150,11 @@ export class CalendarTimeUtils {
    * Normalize month values with year overflow/underflow handling
    * Replaces repeated month normalization patterns
    */
-  static normalizeMonth(month: number, year: number, calendar: SeasonsStarsCalendar): { month: number; year: number } {
+  static normalizeMonth(
+    month: number,
+    year: number,
+    calendar: SeasonsStarsCalendar
+  ): { month: number; year: number } {
     const monthsPerYear = this.getMonthsPerYear(calendar);
     let normalizedMonth = month;
     let normalizedYear = year;
@@ -174,10 +178,18 @@ export class CalendarTimeUtils {
    * Add months to a date with proper year overflow and day clamping
    * Replaces repeated month arithmetic patterns
    */
-  static addMonthsToDate(date: ICalendarDate, months: number, calendar: SeasonsStarsCalendar): ICalendarDate {
+  static addMonthsToDate(
+    date: ICalendarDate,
+    months: number,
+    calendar: SeasonsStarsCalendar
+  ): ICalendarDate {
     // Calculate new month and year
-    const { month: newMonth, year: newYear } = this.normalizeMonth(date.month + months, date.year, calendar);
-    
+    const { month: newMonth, year: newYear } = this.normalizeMonth(
+      date.month + months,
+      date.year,
+      calendar
+    );
+
     // Handle day overflow (e.g., Jan 31 + 1 month = Feb 28/29)
     const maxDayInNewMonth = calendar.months[newMonth - 1]?.days || 30; // Fallback to 30
     const clampedDay = Math.min(date.day, maxDayInNewMonth);
@@ -187,7 +199,7 @@ export class CalendarTimeUtils {
       month: newMonth,
       day: clampedDay,
       weekday: date.weekday, // Preserve weekday (would need calendar engine for accurate calculation)
-      time: date.time
+      time: date.time,
     };
   }
 
@@ -198,12 +210,12 @@ export class CalendarTimeUtils {
   static normalizeWeekday(weekday: number, calendar: SeasonsStarsCalendar): number {
     const weekLength = this.getDaysPerWeek(calendar);
     let normalized = weekday % weekLength;
-    
+
     // Handle negative weekdays
     if (normalized < 0) {
       normalized += weekLength;
     }
-    
+
     return normalized;
   }
 
@@ -216,18 +228,22 @@ export class CalendarTimeUtils {
   static addOrdinalSuffix(num: number): string {
     const lastDigit = num % 10;
     const lastTwoDigits = num % 100;
-    
+
     // Special cases for 11th, 12th, 13th (always 'th')
     if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
       return `${num}th`;
     }
-    
+
     // Regular ordinal rules
     switch (lastDigit) {
-      case 1: return `${num}st`;
-      case 2: return `${num}nd`;
-      case 3: return `${num}rd`;
-      default: return `${num}th`;
+      case 1:
+        return `${num}st`;
+      case 2:
+        return `${num}nd`;
+      case 3:
+        return `${num}rd`;
+      default:
+        return `${num}th`;
     }
   }
 

@@ -80,7 +80,7 @@ const nonStandardCalendar: SeasonsStarsCalendar = {
   ],
   intercalary: [],
   time: {
-    hoursInDay: 20,    // 20-hour day
+    hoursInDay: 20, // 20-hour day
     minutesInHour: 50, // 50-minute hour
     secondsInMinute: 50, // 50-second minute
   },
@@ -91,12 +91,8 @@ const extremeCalendar: SeasonsStarsCalendar = {
   id: 'extreme-test',
   year: { epoch: 0, currentYear: 100, startDay: 0 },
   leapYear: { rule: 'none' },
-  months: [
-    { name: 'Only', abbreviation: 'Onl', days: 100 },
-  ],
-  weekdays: [
-    { name: 'Single' },
-  ],
+  months: [{ name: 'Only', abbreviation: 'Onl', days: 100 }],
+  weekdays: [{ name: 'Single' }],
   intercalary: [],
   time: {
     hoursInDay: 1,
@@ -333,28 +329,28 @@ describe('CalendarTimeUtils', () => {
 
       // Same date comparison
       expect(CalendarTimeUtils.compareDates(date1, dateEqual)).toBe(0);
-      
+
       // Day comparison (same year/month)
       expect(CalendarTimeUtils.compareDates(date1, date2)).toBe(-1); // date1 < date2
-      expect(CalendarTimeUtils.compareDates(date2, date1)).toBe(1);  // date2 > date1
-      
+      expect(CalendarTimeUtils.compareDates(date2, date1)).toBe(1); // date2 > date1
+
       // Month comparison (same year)
       expect(CalendarTimeUtils.compareDates(date1, date3)).toBe(-1); // date1 < date3
-      expect(CalendarTimeUtils.compareDates(date3, date1)).toBe(1);  // date3 > date1
-      
+      expect(CalendarTimeUtils.compareDates(date3, date1)).toBe(1); // date3 > date1
+
       // Year comparison
       expect(CalendarTimeUtils.compareDates(date1, date4)).toBe(-1); // date1 < date4
-      expect(CalendarTimeUtils.compareDates(date4, date1)).toBe(1);  // date4 > date1
+      expect(CalendarTimeUtils.compareDates(date4, date1)).toBe(1); // date4 > date1
     });
 
     test('should check date equality with isDateEqual()', () => {
       const date1: ICalendarDate = { year: 2024, month: 6, day: 15, weekday: 0 };
       const date2: ICalendarDate = { year: 2024, month: 6, day: 15, weekday: 5 }; // Different weekday
       const date3: ICalendarDate = { year: 2024, month: 6, day: 16, weekday: 0 };
-      
+
       // Same date (weekday difference should not matter)
       expect(CalendarTimeUtils.isDateEqual(date1, date2)).toBe(true);
-      
+
       // Different dates
       expect(CalendarTimeUtils.isDateEqual(date1, date3)).toBe(false);
     });
@@ -363,13 +359,13 @@ describe('CalendarTimeUtils', () => {
       const earlier: ICalendarDate = { year: 2024, month: 6, day: 15, weekday: 0 };
       const later: ICalendarDate = { year: 2024, month: 6, day: 16, weekday: 1 };
       const same: ICalendarDate = { year: 2024, month: 6, day: 15, weekday: 3 };
-      
+
       // Before checks
       expect(CalendarTimeUtils.isDateBefore(earlier, later)).toBe(true);
       expect(CalendarTimeUtils.isDateBefore(later, earlier)).toBe(false);
       expect(CalendarTimeUtils.isDateBefore(earlier, same)).toBe(false); // Same date
-      
-      // After checks  
+
+      // After checks
       expect(CalendarTimeUtils.isDateAfter(later, earlier)).toBe(true);
       expect(CalendarTimeUtils.isDateAfter(earlier, later)).toBe(false);
       expect(CalendarTimeUtils.isDateAfter(earlier, same)).toBe(false); // Same date
@@ -380,48 +376,69 @@ describe('CalendarTimeUtils', () => {
     test('should normalize month overflow and underflow with normalizeMonth()', () => {
       // Standard calendar (12 months)
       // Month overflow
-      expect(CalendarTimeUtils.normalizeMonth(13, 2024, standardCalendar)).toEqual({ month: 1, year: 2025 });
-      expect(CalendarTimeUtils.normalizeMonth(25, 2024, standardCalendar)).toEqual({ month: 1, year: 2026 });
-      
+      expect(CalendarTimeUtils.normalizeMonth(13, 2024, standardCalendar)).toEqual({
+        month: 1,
+        year: 2025,
+      });
+      expect(CalendarTimeUtils.normalizeMonth(25, 2024, standardCalendar)).toEqual({
+        month: 1,
+        year: 2026,
+      });
+
       // Month underflow
-      expect(CalendarTimeUtils.normalizeMonth(0, 2024, standardCalendar)).toEqual({ month: 12, year: 2023 });
-      expect(CalendarTimeUtils.normalizeMonth(-11, 2024, standardCalendar)).toEqual({ month: 1, year: 2023 });
-      
+      expect(CalendarTimeUtils.normalizeMonth(0, 2024, standardCalendar)).toEqual({
+        month: 12,
+        year: 2023,
+      });
+      expect(CalendarTimeUtils.normalizeMonth(-11, 2024, standardCalendar)).toEqual({
+        month: 1,
+        year: 2023,
+      });
+
       // Normal months
-      expect(CalendarTimeUtils.normalizeMonth(6, 2024, standardCalendar)).toEqual({ month: 6, year: 2024 });
-      
+      expect(CalendarTimeUtils.normalizeMonth(6, 2024, standardCalendar)).toEqual({
+        month: 6,
+        year: 2024,
+      });
+
       // Non-standard calendar (10 months)
-      expect(CalendarTimeUtils.normalizeMonth(11, 1500, nonStandardCalendar)).toEqual({ month: 1, year: 1501 });
-      expect(CalendarTimeUtils.normalizeMonth(0, 1500, nonStandardCalendar)).toEqual({ month: 10, year: 1499 });
+      expect(CalendarTimeUtils.normalizeMonth(11, 1500, nonStandardCalendar)).toEqual({
+        month: 1,
+        year: 1501,
+      });
+      expect(CalendarTimeUtils.normalizeMonth(0, 1500, nonStandardCalendar)).toEqual({
+        month: 10,
+        year: 1499,
+      });
     });
 
     test('should add months to dates with addMonthsToDate()', () => {
       const baseDate: ICalendarDate = { year: 2024, month: 6, day: 15, weekday: 0 };
-      
+
       // Add positive months (standard calendar)
       const plus2Months = CalendarTimeUtils.addMonthsToDate(baseDate, 2, standardCalendar);
       expect(plus2Months.year).toBe(2024);
       expect(plus2Months.month).toBe(8);
       expect(plus2Months.day).toBe(15);
-      
+
       // Add months with year overflow
       const plus8Months = CalendarTimeUtils.addMonthsToDate(baseDate, 8, standardCalendar);
       expect(plus8Months.year).toBe(2025);
       expect(plus8Months.month).toBe(2);
       expect(plus8Months.day).toBe(15);
-      
+
       // Subtract months
       const minus3Months = CalendarTimeUtils.addMonthsToDate(baseDate, -3, standardCalendar);
       expect(minus3Months.year).toBe(2024);
       expect(minus3Months.month).toBe(3);
       expect(minus3Months.day).toBe(15);
-      
+
       // Subtract months with year underflow
       const minus8Months = CalendarTimeUtils.addMonthsToDate(baseDate, -8, standardCalendar);
       expect(minus8Months.year).toBe(2023);
       expect(minus8Months.month).toBe(10);
       expect(minus8Months.day).toBe(15);
-      
+
       // Day overflow handling (31st to February = 28th)
       const jan31: ICalendarDate = { year: 2024, month: 1, day: 31, weekday: 0 };
       const feb = CalendarTimeUtils.addMonthsToDate(jan31, 1, standardCalendar);
@@ -432,17 +449,17 @@ describe('CalendarTimeUtils', () => {
 
     test('should normalize weekday values with normalizeWeekday()', () => {
       // Standard 7-day week
-      expect(CalendarTimeUtils.normalizeWeekday(7, standardCalendar)).toBe(0);   // 7 → 0
-      expect(CalendarTimeUtils.normalizeWeekday(8, standardCalendar)).toBe(1);   // 8 → 1  
-      expect(CalendarTimeUtils.normalizeWeekday(-1, standardCalendar)).toBe(6);  // -1 → 6
-      expect(CalendarTimeUtils.normalizeWeekday(-8, standardCalendar)).toBe(6);  // -8 → 6
-      expect(CalendarTimeUtils.normalizeWeekday(3, standardCalendar)).toBe(3);   // 3 → 3 (no change)
-      
+      expect(CalendarTimeUtils.normalizeWeekday(7, standardCalendar)).toBe(0); // 7 → 0
+      expect(CalendarTimeUtils.normalizeWeekday(8, standardCalendar)).toBe(1); // 8 → 1
+      expect(CalendarTimeUtils.normalizeWeekday(-1, standardCalendar)).toBe(6); // -1 → 6
+      expect(CalendarTimeUtils.normalizeWeekday(-8, standardCalendar)).toBe(6); // -8 → 6
+      expect(CalendarTimeUtils.normalizeWeekday(3, standardCalendar)).toBe(3); // 3 → 3 (no change)
+
       // Non-standard 8-day week
-      expect(CalendarTimeUtils.normalizeWeekday(8, nonStandardCalendar)).toBe(0);  // 8 → 0
+      expect(CalendarTimeUtils.normalizeWeekday(8, nonStandardCalendar)).toBe(0); // 8 → 0
       expect(CalendarTimeUtils.normalizeWeekday(16, nonStandardCalendar)).toBe(0); // 16 → 0
       expect(CalendarTimeUtils.normalizeWeekday(-1, nonStandardCalendar)).toBe(7); // -1 → 7
-      expect(CalendarTimeUtils.normalizeWeekday(5, nonStandardCalendar)).toBe(5);  // 5 → 5 (no change)
+      expect(CalendarTimeUtils.normalizeWeekday(5, nonStandardCalendar)).toBe(5); // 5 → 5 (no change)
     });
   });
 
@@ -454,23 +471,23 @@ describe('CalendarTimeUtils', () => {
       expect(CalendarTimeUtils.addOrdinalSuffix(3)).toBe('3rd');
       expect(CalendarTimeUtils.addOrdinalSuffix(4)).toBe('4th');
       expect(CalendarTimeUtils.addOrdinalSuffix(5)).toBe('5th');
-      
+
       // Teen exceptions (11th, 12th, 13th always use 'th')
       expect(CalendarTimeUtils.addOrdinalSuffix(11)).toBe('11th');
       expect(CalendarTimeUtils.addOrdinalSuffix(12)).toBe('12th');
       expect(CalendarTimeUtils.addOrdinalSuffix(13)).toBe('13th');
-      
+
       // Higher numbers following same pattern
       expect(CalendarTimeUtils.addOrdinalSuffix(21)).toBe('21st');
       expect(CalendarTimeUtils.addOrdinalSuffix(22)).toBe('22nd');
       expect(CalendarTimeUtils.addOrdinalSuffix(23)).toBe('23rd');
       expect(CalendarTimeUtils.addOrdinalSuffix(24)).toBe('24th');
-      
+
       // Teen pattern in higher numbers
       expect(CalendarTimeUtils.addOrdinalSuffix(111)).toBe('111th');
       expect(CalendarTimeUtils.addOrdinalSuffix(112)).toBe('112th');
       expect(CalendarTimeUtils.addOrdinalSuffix(113)).toBe('113th');
-      
+
       // Large numbers
       expect(CalendarTimeUtils.addOrdinalSuffix(101)).toBe('101st');
       expect(CalendarTimeUtils.addOrdinalSuffix(102)).toBe('102nd');
@@ -482,12 +499,12 @@ describe('CalendarTimeUtils', () => {
       expect(CalendarTimeUtils.formatTimeComponent(5)).toBe('05');
       expect(CalendarTimeUtils.formatTimeComponent(10)).toBe('10');
       expect(CalendarTimeUtils.formatTimeComponent(123)).toBe('123'); // No truncation
-      
+
       // Custom padding
       expect(CalendarTimeUtils.formatTimeComponent(5, 3)).toBe('005');
       expect(CalendarTimeUtils.formatTimeComponent(12, 4)).toBe('0012');
       expect(CalendarTimeUtils.formatTimeComponent(1234, 2)).toBe('1234'); // No truncation
-      
+
       // Zero values
       expect(CalendarTimeUtils.formatTimeComponent(0)).toBe('00');
       expect(CalendarTimeUtils.formatTimeComponent(0, 4)).toBe('0000');
@@ -499,11 +516,11 @@ describe('CalendarTimeUtils', () => {
       // Standard calendar: sum of all month days
       const standardLength = CalendarTimeUtils.getApproximateYearLength(standardCalendar);
       expect(standardLength).toBe(365); // 31+28+31+30+31+30+31+31+30+31+30+31 = 365
-      
+
       // Non-standard calendar: 9 months of 40 days + 1 month of 45 days
       const nonStandardLength = CalendarTimeUtils.getApproximateYearLength(nonStandardCalendar);
       expect(nonStandardLength).toBe(405); // 9*40 + 45 = 360 + 45 = 405
-      
+
       // Extreme calendar: 1 month of 100 days
       const extremeLength = CalendarTimeUtils.getApproximateYearLength(extremeCalendar);
       expect(extremeLength).toBe(100);
