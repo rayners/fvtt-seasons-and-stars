@@ -66,8 +66,8 @@ export class NoteEditingDialog {
     }
 
     // Format date display
-    const manager = game.seasonsStars?.manager;
-    const activeCalendar = manager?.getActiveCalendar();
+    const manager = game.seasonsStars?.manager as any;
+    const activeCalendar = manager?.getActiveCalendar?.();
     let dateDisplayStr = `${this.originalData.startDate.year}-${this.originalData.startDate.month.toString().padStart(2, '0')}-${this.originalData.startDate.day.toString().padStart(2, '0')}`;
     let calendarInfo = '';
 
@@ -94,12 +94,12 @@ export class NoteEditingDialog {
     const predefinedTags = categories.getPredefinedTags();
 
     // Get existing tags from all notes for autocompletion
-    const notesManager = game.seasonsStars?.notes;
+    const notesManager = game.seasonsStars?.notes as any;
     const existingTags = new Set<string>();
-    if (notesManager && notesManager.storage) {
+    if (notesManager && (notesManager as any)?.storage) {
       try {
-        if (typeof notesManager.storage.getAllNotes === 'function') {
-          const allNotes = notesManager.storage.getAllNotes() || [];
+        if (typeof (notesManager as any).storage.getAllNotes === 'function') {
+          const allNotes = (notesManager as any).storage.getAllNotes() || [];
           allNotes.forEach(note => {
             const noteTags = note.flags?.['seasons-and-stars']?.tags || [];
             noteTags.forEach((tag: string) => existingTags.add(tag));

@@ -6,6 +6,7 @@ import { CalendarWidget } from './calendar-widget';
 import { CalendarMiniWidget } from './calendar-mini-widget';
 import { CalendarGridWidget } from './calendar-grid-widget';
 import { Logger } from '../core/logger';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import type { SceneControl } from '../types/widget-types';
 
 export class SeasonsStarsSceneControls {
@@ -220,28 +221,28 @@ export class SeasonsStarsSceneControls {
 
       // Time advancement functions for macros
       advanceMinutes: async (minutes: number) => {
-        const manager = game.seasonsStars?.manager;
-        if (manager) await manager.advanceMinutes(minutes);
+        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+        if (manager && manager.advanceMinutes) await manager.advanceMinutes(minutes);
       },
       advanceHours: async (hours: number) => {
-        const manager = game.seasonsStars?.manager;
-        if (manager) await manager.advanceHours(hours);
+        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+        if (manager && manager.advanceHours) await manager.advanceHours(hours);
       },
       advanceDays: async (days: number) => {
-        const manager = game.seasonsStars?.manager;
-        if (manager) await manager.advanceDays(days);
+        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+        if (manager && manager.advanceDays) await manager.advanceDays(days);
       },
       advanceWeeks: async (weeks: number) => {
-        const manager = game.seasonsStars?.manager;
-        if (manager) await manager.advanceWeeks(weeks);
+        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+        if (manager && manager.advanceWeeks) await manager.advanceWeeks(weeks);
       },
       advanceMonths: async (months: number) => {
-        const manager = game.seasonsStars?.manager;
-        if (manager) await manager.advanceMonths(months);
+        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+        if (manager && manager.advanceMonths) await manager.advanceMonths(months);
       },
       advanceYears: async (years: number) => {
-        const manager = game.seasonsStars?.manager;
-        if (manager) await manager.advanceYears(years);
+        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+        if (manager && manager.advanceYears) await manager.advanceYears(years);
       },
     });
 
