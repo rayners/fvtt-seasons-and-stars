@@ -5,14 +5,19 @@
  * with S&S without requiring external calendar system knowledge in the core.
  */
 
-import type { CalendarDate, SeasonsStarsCalendar, DateFormatOptions } from '../types/calendar';
+import type {
+  CalendarDate,
+  CalendarDateData,
+  SeasonsStarsCalendar,
+  DateFormatOptions,
+} from '../types/calendar';
+import { CalendarDate as CalendarDateClass } from './calendar-date';
 import type { CreateNoteData } from '../types/external-integrations';
 import type { CalendarManagerInterface, NotesManagerInterface } from '../types/foundry-extensions';
 import { isCalendarManager } from '../types/foundry-extensions';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
-import { CalendarDate as CalendarDateClass } from './calendar-date';
 import { Logger } from './logger';
 
 // Core integration interface types
@@ -693,12 +698,19 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     const ssDay = day + 1;
     const weekday = engine ? engine.calculateWeekday(ssYear, ssMonth, ssDay) : 0;
 
-    const date: CalendarDate = {
+    const dateData: CalendarDateData = {
       year: ssYear,
       month: ssMonth,
       day: ssDay,
       weekday,
     };
+
+    const calendar = this.manager.getActiveCalendar();
+    if (!calendar) {
+      Logger.warn('No active calendar found for note conversion');
+      return [];
+    }
+    const date = new CalendarDateClass(dateData, calendar);
 
     try {
       // Get notes synchronously from storage
@@ -804,12 +816,18 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     // Calculate weekday using engine
     const weekday = engine ? engine.calculateWeekday(year, month, day) : 0;
 
-    return {
+    const dateData: CalendarDateData = {
       year,
       month,
       day,
       weekday,
     };
+
+    const calendar = this.manager.getActiveCalendar();
+    if (!calendar) {
+      throw new Error('No active calendar found for date conversion');
+    }
+    return new CalendarDateClass(dateData, calendar);
   }
 
   private convertSSDateToSC(ssDate: CalendarDate): any {

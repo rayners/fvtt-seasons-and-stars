@@ -119,7 +119,7 @@ export class NoteRecurrence {
           return this.getNextWeekdayOccurrence(currentDate, pattern, engine);
         } else {
           // Use calendar-specific week length instead of hardcoded 7
-          const calendar = engine.getCalendar();
+          const calendar = engine.getCalendar() as SeasonsStarsCalendar;
           const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
           return this.addDays(currentDate, weekLength * pattern.interval, engine);
         }
@@ -145,7 +145,7 @@ export class NoteRecurrence {
   ): ICalendarDate {
     if (!pattern.weekdays || pattern.weekdays.length === 0) {
       // Use calendar-specific week length instead of hardcoded 7
-      const calendar = engine.getCalendar();
+      const calendar = engine.getCalendar() as SeasonsStarsCalendar;
       const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
       return this.addDays(currentDate, weekLength * pattern.interval, engine);
     }
@@ -164,7 +164,7 @@ export class NoteRecurrence {
       return this.addDays(currentDate, daysToAdd, engine);
     } else {
       // Move to next interval week and use first weekday
-      const calendar = engine.getCalendar();
+      const calendar = engine.getCalendar() as SeasonsStarsCalendar;
       const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
       const daysToNextWeek = weekLength - currentWeekday + weekdayNumbers[0];
       const daysToAdd = daysToNextWeek + (pattern.interval - 1) * weekLength;

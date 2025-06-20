@@ -15,7 +15,11 @@
  * actual time configuration instead of Earth-based assumptions.
  */
 
-import type { SeasonsStarsCalendar, CalendarDate as ICalendarDate } from '../types/calendar';
+import type {
+  SeasonsStarsCalendar,
+  CalendarDate as ICalendarDate,
+  CalendarDateData,
+} from '../types/calendar';
 
 export class CalendarTimeUtils {
   /**
@@ -182,7 +186,7 @@ export class CalendarTimeUtils {
     date: ICalendarDate,
     months: number,
     calendar: SeasonsStarsCalendar
-  ): ICalendarDate {
+  ): CalendarDateData {
     // Calculate new month and year
     const { month: newMonth, year: newYear } = this.normalizeMonth(
       date.month + months,

@@ -103,7 +103,8 @@ export interface CalendarSeason {
   };
 }
 
-export interface CalendarDate {
+// Data structure for calendar dates (plain objects)
+export interface CalendarDateData {
   year: number;
   month: number;
   day: number;
@@ -114,9 +115,12 @@ export interface CalendarDate {
     minute: number;
     second: number;
   };
+}
 
+// Interface for CalendarDate class instances (includes methods)
+export interface CalendarDate extends CalendarDateData {
   // Methods available on CalendarDate class instances
-  toObject(): CalendarDate;
+  toObject(): CalendarDateData;
   toLongString(): string;
   toDateString(): string;
   toTimeString(): string;
