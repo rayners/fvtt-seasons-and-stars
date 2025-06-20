@@ -2,7 +2,12 @@
  * Notes management system for Seasons & Stars calendar integration
  */
 
-import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type {
+  CalendarDate as ICalendarDate,
+  CalendarDateData,
+  SeasonsStarsCalendar,
+} from '../types/calendar';
+import { CalendarDate } from './calendar-date';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import { NoteStorage } from './note-storage';
 import { notePermissions } from './note-permissions';
@@ -541,7 +546,7 @@ export class NotesManager {
     if (!currentDate) return [];
 
     const result = await this.searchNotes({
-      dateFrom: currentDate.toObject(),
+      dateFrom: currentDate,
       limit,
       sortBy: 'date',
       sortOrder: 'asc',
@@ -581,14 +586,17 @@ export class NotesManager {
     const currentDate = (game.seasonsStars?.manager as CalendarManagerInterface)?.getCurrentDate();
     if (!currentDate) return;
 
-    const rangeStart = currentDate.toObject();
-    const rangeEnd: ICalendarDate = {
+    const rangeStart = currentDate;
+    const rangeEndData: CalendarDateData = {
       year: rangeStart.year + 2,
       month: rangeStart.month,
       day: rangeStart.day,
       weekday: rangeStart.weekday,
       time: rangeStart.time,
     };
+
+    const calendar = (game.seasonsStars?.manager as CalendarManagerInterface)?.getActiveCalendar();
+    const rangeEnd = calendar ? new CalendarDate(rangeEndData, calendar) : rangeStart;
 
     const occurrences = NoteRecurrence.generateOccurrences(
       startDate,

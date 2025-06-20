@@ -2,7 +2,11 @@
  * Time conversion and Foundry VTT integration for Seasons & Stars
  */
 
-import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type {
+  CalendarDate as ICalendarDate,
+  CalendarDateData,
+  SeasonsStarsCalendar,
+} from '../types/calendar';
 import type { DebugInfo } from '../types/widget-types';
 import { CalendarEngine } from './calendar-engine';
 import { CalendarDate } from './calendar-date';
@@ -53,7 +57,7 @@ export class TimeConverter {
    */
   private async initializeWithRealWorldDate(): Promise<void> {
     const now = new Date();
-    const realWorldDate = {
+    const realWorldDateData: CalendarDateData = {
       year: now.getFullYear(),
       month: now.getMonth() + 1, // JavaScript months are 0-indexed
       day: now.getDate(),
@@ -64,6 +68,8 @@ export class TimeConverter {
         second: now.getSeconds(),
       },
     };
+
+    const realWorldDate = new CalendarDate(realWorldDateData, this.engine.getCalendar());
 
     Logger.debug('Initializing Gregorian calendar with current date:', realWorldDate);
 
@@ -110,7 +116,7 @@ export class TimeConverter {
   /**
    * Set the current date by updating Foundry world time
    */
-  async setCurrentDate(date: ICalendarDate): Promise<void> {
+  async setCurrentDate(date: CalendarDate): Promise<void> {
     const worldTime = this.engine.dateToWorldTime(date);
 
     if (game.user?.isGM) {
@@ -125,7 +131,7 @@ export class TimeConverter {
    */
   async advanceDays(days: number): Promise<void> {
     const currentDate = this.getCurrentDate();
-    const newDate = this.engine.addDays(currentDate.toObject(), days);
+    const newDate = this.engine.addDays(currentDate, days);
     await this.setCurrentDate(newDate);
   }
 

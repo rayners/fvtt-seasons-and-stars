@@ -2,7 +2,12 @@
  * Search and filtering system for calendar notes
  */
 
-import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type {
+  CalendarDate as ICalendarDate,
+  CalendarDateData,
+  SeasonsStarsCalendar,
+} from '../types/calendar';
+import { CalendarDate } from './calendar-date';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export interface NoteSearchCriteria {
@@ -407,7 +412,7 @@ export class NoteSearch {
   /**
    * Get current date from calendar manager
    */
-  private static getCurrentDate(): ICalendarDate {
+  private static getCurrentDate(): CalendarDateData {
     const currentDate = (game.seasonsStars?.manager as CalendarManagerInterface)?.getCurrentDate();
     if (currentDate) {
       return currentDate.toObject();
