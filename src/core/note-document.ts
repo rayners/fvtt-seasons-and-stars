@@ -437,7 +437,7 @@ export class CalendarNote {
   static fromJournalEntry(journal: JournalEntry): CalendarNote | null {
     try {
       return new CalendarNote(journal);
-    } catch (_error) {
+    } catch {
       // Not a valid calendar note
       return null;
     }

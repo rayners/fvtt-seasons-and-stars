@@ -9,7 +9,6 @@ import type { CalendarDate, SeasonsStarsCalendar, DateFormatOptions } from '../t
 import type { CreateNoteData } from '../types/external-integrations';
 import type { CalendarManagerInterface, NotesManagerInterface } from '../types/foundry-extensions';
 import { isCalendarManager } from '../types/foundry-extensions';
-import { CalendarManager } from './calendar-manager';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
@@ -72,8 +71,8 @@ export interface SeasonsStarsNotesAPI {
   ): Promise<JournalEntry[]>;
 
   // Module integration
-  setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void>;
-  getNoteModuleData(noteId: string, moduleId: string): any;
+  setNoteModuleData(noteId: string, moduleId: string, data: unknown): Promise<void>;
+  getNoteModuleData(noteId: string, moduleId: string): unknown;
 }
 
 export interface SeasonsStarsWidgets {
@@ -90,7 +89,7 @@ export interface BridgeCalendarWidget {
   readonly id: string;
   readonly isVisible: boolean;
 
-  addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void;
+  addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void;
   removeSidebarButton(name: string): void;
   hasSidebarButton(name: string): boolean;
   getInstance(): unknown;
@@ -100,7 +99,7 @@ export interface SeasonsStarsHooks {
   onDateChanged(callback: (event: DateChangeEvent) => void): void;
   onCalendarChanged(callback: (event: CalendarChangeEvent) => void): void;
   onReady(callback: (event: ReadyEvent) => void): void;
-  off(hookName: string, callback: Function): void;
+  off(hookName: string, callback: (...args: unknown[]) => void): void;
 }
 
 // Event types
@@ -250,10 +249,11 @@ export class SeasonsStarsIntegration {
       case 'widget-system':
         return this.widgetManager.main || this.widgetManager.mini ? version : null;
 
-      case 'sidebar-buttons':
+      case 'sidebar-buttons': {
         // Check if widgets have addSidebarButton method
         const mainWidget = this.widgetManager.main;
         return mainWidget && typeof mainWidget.addSidebarButton === 'function' ? version : null;
+      }
 
       case 'mini-widget':
         return this.widgetManager.mini ? version : null;
@@ -278,7 +278,7 @@ export class SeasonsStarsIntegration {
         // Check if notes manager is available
         return game.seasonsStars?.notes ? version : null;
 
-      case 'simple-calendar-notes-api':
+      case 'simple-calendar-notes-api': {
         // Check if notes API methods are available
         const notesManager = game.seasonsStars?.notes;
         return notesManager &&
@@ -286,6 +286,7 @@ export class SeasonsStarsIntegration {
           typeof (notesManager as NotesManagerInterface).setNoteModuleData === 'function'
           ? version
           : null;
+      }
 
       default:
         return null;
@@ -527,7 +528,7 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
     return this.widget.rendered || false;
   }
 
-  addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
+  addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void {
     if (typeof this.widget.addSidebarButton === 'function') {
       this.widget.addSidebarButton(name, icon, tooltip, callback);
     } else {
@@ -557,7 +558,7 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
  * Hook manager for bridge integration
  */
 class IntegrationHookManager implements SeasonsStarsHooks {
-  private hookCallbacks: Map<string, Function[]> = new Map();
+  private hookCallbacks: Map<string, ((...args: unknown[]) => void)[]> = new Map();
 
   constructor(private manager: CalendarManagerInterface) {
     this.setupHookListeners();
@@ -590,7 +591,7 @@ class IntegrationHookManager implements SeasonsStarsHooks {
     this.addCallback('ready', callback);
   }
 
-  off(hookName: string, callback: Function): void {
+  off(hookName: string, callback: (...args: unknown[]) => void): void {
     const callbacks = this.hookCallbacks.get(hookName);
     if (callbacks) {
       const index = callbacks.indexOf(callback);
@@ -600,7 +601,7 @@ class IntegrationHookManager implements SeasonsStarsHooks {
     }
   }
 
-  private addCallback(hookName: string, callback: Function): void {
+  private addCallback(hookName: string, callback: (...args: unknown[]) => void): void {
     if (!this.hookCallbacks.has(hookName)) {
       this.hookCallbacks.set(hookName, []);
     }

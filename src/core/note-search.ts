@@ -273,31 +273,35 @@ export class NoteSearch {
           comparison = (a.name || '').localeCompare(b.name || '');
           break;
 
-        case 'category':
+        case 'category': {
           const catA = a.flags?.['seasons-and-stars']?.category || 'general';
           const catB = b.flags?.['seasons-and-stars']?.category || 'general';
           comparison = catA.localeCompare(catB);
           break;
+        }
 
-        case 'date':
+        case 'date': {
           const dateA = a.flags?.['seasons-and-stars']?.startDate;
           const dateB = b.flags?.['seasons-and-stars']?.startDate;
           if (dateA && dateB) {
             comparison = this.compareDates(dateA, dateB);
           }
           break;
+        }
 
-        case 'created':
+        case 'created': {
           const createdA = a.flags?.['seasons-and-stars']?.created || 0;
           const createdB = b.flags?.['seasons-and-stars']?.created || 0;
           comparison = createdA - createdB;
           break;
+        }
 
-        case 'modified':
+        case 'modified': {
           const modifiedA = a.flags?.['seasons-and-stars']?.modified || 0;
           const modifiedB = b.flags?.['seasons-and-stars']?.modified || 0;
           comparison = modifiedA - modifiedB;
           break;
+        }
       }
 
       return comparison * multiplier;

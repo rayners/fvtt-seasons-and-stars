@@ -70,7 +70,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
             context.activeCalendarLabel = activeCalendar?.translations?.en?.label || 'unknown';
             context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
           }
-        } catch (_error) {
+        } catch {
           context.calendarDataError = 'Failed to access calendar data';
         }
 
@@ -83,7 +83,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
 
           context.activeWidgets = activeWidgets;
           context.widgetCount = activeWidgets.length;
-        } catch (_error) {
+        } catch {
           context.widgetDataError = 'Failed to access widget data';
         }
 
@@ -92,7 +92,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
           context.smallTimeDetected = !!document.querySelector('#smalltime-app');
           context.simpleCalendarActive =
             game.modules?.get('foundryvtt-simple-calendar')?.active || false;
-        } catch (_error) {
+        } catch {
           context.integrationDataError = 'Failed to check integrations';
         }
 
@@ -102,7 +102,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
             context.notesSystemInitialized = notesManager.isInitialized();
             // Don't expose note count as it might be sensitive
           }
-        } catch (_error) {
+        } catch {
           context.notesError = 'Could not read notes state';
         }
 
@@ -113,7 +113,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
             context.sceneId = scene.id;
             context.sceneName = scene.name;
           }
-        } catch (_error) {
+        } catch {
           context.sceneError = 'Could not read scene data';
         }
 
@@ -122,7 +122,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
           context.gameSystem = game.system?.id || 'unknown';
           context.systemVersion = game.system?.version || 'unknown';
           context.foundryVersion = game.version || 'unknown';
-        } catch (_error) {
+        } catch {
           context.systemInfoError = 'Could not read system information';
         }
 
@@ -135,7 +135,7 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
             game.settings?.get('seasons-and-stars', 'showNotifications') || false;
           context.defaultWidget =
             game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
-        } catch (_error) {
+        } catch {
           // Settings might not be registered yet
           context.settingsError = 'Could not read module settings';
         }
@@ -1269,85 +1269,6 @@ function setupAPI(): void {
   Logger.debug('API and bridge integration exposed');
 
   Logger.debug('Module initialization complete');
-}
-
-/**
- * Register hooks for custom note editing dialog
- */
-function registerNoteEditingHooks(): void {
-  // Hook into journal sheet rendering to intercept calendar notes
-  Hooks.on(
-    'renderJournalSheet',
-    (sheet: JournalSheet, _html: JQuery, _data: Record<string, unknown>) => {
-      Logger.debug('renderJournalSheet hook fired', {
-        journalName: sheet.document?.name,
-        isCalendarNote: !!sheet.document?.flags?.['seasons-and-stars']?.calendarNote,
-      });
-
-      try {
-        const journal = sheet.document;
-
-        // Check if this is a calendar note
-        const flags = journal.flags?.['seasons-and-stars'];
-        if (!flags?.calendarNote) {
-          Logger.debug('Not a calendar note, allowing default sheet');
-          return; // Not a calendar note, let default sheet handle it
-        }
-
-        Logger.debug('Calendar note detected, intercepting sheet');
-
-        // Close the default sheet immediately
-        sheet.close();
-
-        // Show our custom editing dialog instead
-        NoteEditingDialog.showEditDialog(journal);
-      } catch (error) {
-        Logger.error(
-          'Failed to intercept journal sheet for calendar note',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        // Let the default sheet continue if our custom dialog fails
-      }
-    }
-  );
-
-  // Also try intercepting at the preRender stage (before sheet opens)
-  Hooks.on('preRenderJournalSheet', (sheet: JournalSheet) => {
-    Logger.debug('preRenderJournalSheet hook fired', {
-      journalName: sheet.document?.name,
-      isCalendarNote: !!sheet.document?.flags?.['seasons-and-stars']?.calendarNote,
-    });
-
-    try {
-      const journal = sheet.document;
-
-      // Check if this is a calendar note
-      const flags = journal.flags?.['seasons-and-stars'];
-      if (!flags?.calendarNote) {
-        return; // Not a calendar note, let default sheet handle it
-      }
-
-      Logger.debug('Calendar note detected in preRender, preventing default sheet');
-
-      // Prevent the default sheet from opening at all
-      setTimeout(() => {
-        // Show our custom editing dialog instead
-        NoteEditingDialog.showEditDialog(journal);
-      }, 10);
-
-      // Return false to prevent the default sheet from rendering
-      return false;
-    } catch (error) {
-      Logger.error(
-        'Failed to intercept journal sheet in preRender',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      // Let the default sheet continue if our custom dialog fails
-      return true;
-    }
-  });
-
-  Logger.debug('Note editing hooks registered');
 }
 
 /**
