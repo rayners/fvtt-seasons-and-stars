@@ -300,7 +300,7 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
           const firstDayBreeze = engine.calculateWeekday(year, 5, 1);
           expect(firstDayBreeze).toBe(0);
 
-          // Month 9 (Hoard) comes after Soaring Sun intercalary  
+          // Month 9 (Hoard) comes after Soaring Sun intercalary
           const firstDayHoard = engine.calculateWeekday(year, 9, 1);
           expect(firstDayHoard).toBe(0);
 
