@@ -236,6 +236,38 @@ declare class HooksManager {
 }
 
 // =============================================================================
+// APPLICATION V2 NAMESPACE
+// =============================================================================
+
+// ApplicationV2 namespace for v13 compatibility
+declare namespace ApplicationV2 {
+  interface Configuration {
+    window?: {
+      resizable?: boolean;
+      minimizable?: boolean;
+      contentClasses?: string[];
+    };
+    position?: {
+      width?: number | string;
+      height?: number | string;
+      top?: number;
+      left?: number;
+    };
+    actions?: Record<string, Function>;
+  }
+
+  interface RenderContext {
+    [key: string]: any;
+  }
+
+  interface RenderOptions {
+    force?: boolean;
+    position?: any;
+    [key: string]: any;
+  }
+}
+
+// =============================================================================
 // DIALOG SYSTEM
 // =============================================================================
 

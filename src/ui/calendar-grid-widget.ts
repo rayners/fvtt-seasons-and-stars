@@ -5,9 +5,14 @@
 import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarWidget } from './calendar-widget';
 import { CalendarMiniWidget } from './calendar-mini-widget';
+import { CalendarDate } from '../core/calendar-date';
 import { Logger } from '../core/logger';
 import type { NoteCategories } from '../core/note-categories';
-import type { CalendarDate as ICalendarDate, SeasonsStarsCalendar } from '../types/calendar';
+import type {
+  CalendarDate as ICalendarDate,
+  CalendarDateData,
+  SeasonsStarsCalendar,
+} from '../types/calendar';
 import type { CalendarDayData } from '../types/external-integrations';
 import type { CalendarManagerInterface, NotesManagerInterface } from '../types/foundry-extensions';
 
@@ -28,14 +33,23 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
     // Use provided date or current date
     const manager = game.seasonsStars?.manager as CalendarManagerInterface;
-    this.viewDate = initialDate ||
-      manager?.getCurrentDate() || {
-        year: 2024,
-        month: 1,
-        day: 1,
-        weekday: 0,
-        time: { hour: 0, minute: 0, second: 0 },
-      };
+    if (initialDate) {
+      this.viewDate = initialDate;
+    } else {
+      const currentDate = manager?.getCurrentDate();
+      if (currentDate) {
+        this.viewDate = currentDate;
+      } else {
+        // Fallback to default date
+        this.viewDate = {
+          year: 2024,
+          month: 1,
+          day: 1,
+          weekday: 0,
+          time: { hour: 0, minute: 0, second: 0 },
+        } as CalendarDate;
+      }
+    }
   }
 
   static DEFAULT_OPTIONS = {
@@ -263,18 +277,26 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     // Fill in empty cells before month starts
     const startWeekday = firstDay.weekday || 0;
     for (let i = 0; i < startWeekday; i++) {
-      currentWeek.push({ isEmpty: true });
+      currentWeek.push({
+        day: 0,
+        date: { year: 0, month: 0, day: 0, weekday: 0 },
+        isCurrentMonth: false,
+        isToday: false,
+        hasNotes: false,
+        isEmpty: true,
+      });
     }
 
     // Fill in the days of the month
     for (let day = 1; day <= monthLength; day++) {
-      const dayDate: ICalendarDate = {
+      const dayDateData = {
         year: viewDate.year,
         month: viewDate.month,
         day: day,
         weekday: engine.calculateWeekday(viewDate.year, viewDate.month, day),
         time: { hour: 0, minute: 0, second: 0 },
       };
+      const dayDate = new CalendarDate(dayDateData, calendar);
 
       const isToday = this.isSameDate(dayDate, currentDate);
       const isViewDate = this.isSameDate(dayDate, viewDate);
@@ -307,19 +329,37 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
       currentWeek.push({
         day: day,
-        date: dayDate,
+        date: {
+          year: dayDate.year,
+          month: dayDate.month,
+          day: dayDate.day,
+          weekday: dayDate.weekday,
+        },
+        isCurrentMonth: true,
         isToday: isToday,
+        hasNotes: hasNotes,
+        // Additional properties for template
         isSelected: isViewDate,
         isClickable: game.user?.isGM || false,
         weekday: dayDate.weekday,
         fullDate: `${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
-        hasNotes: hasNotes,
         noteCount: noteCount,
         noteMultiple: noteCount > 1,
         categoryClass: categoryClass,
         primaryCategory: noteData?.primaryCategory || 'general',
         noteTooltip: noteTooltip,
         canCreateNote: this.canCreateNote(),
+      } as CalendarDayData & {
+        isSelected: boolean;
+        isClickable: boolean;
+        weekday: number;
+        fullDate: string;
+        noteCount: number;
+        noteMultiple: boolean;
+        categoryClass: string;
+        primaryCategory: string;
+        noteTooltip: string;
+        canCreateNote: boolean;
       });
 
       // Start new week on last day of week
@@ -332,7 +372,14 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     // Fill in empty cells after month ends
     if (currentWeek.length > 0) {
       while (currentWeek.length < calendar.weekdays.length) {
-        currentWeek.push({ isEmpty: true });
+        currentWeek.push({
+          day: 0,
+          date: { year: 0, month: 0, day: 0, weekday: 0 },
+          isCurrentMonth: false,
+          isToday: false,
+          hasNotes: false,
+          isEmpty: true,
+        });
       }
       weeks.push(currentWeek);
     }
@@ -344,7 +391,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       const afterMonthIndex = calendar.months.findIndex(m => m.name === intercalary.after);
       const intercalaryMonth = afterMonthIndex >= 0 ? afterMonthIndex + 1 : viewDate.month;
 
-      const intercalaryDate: ICalendarDate = {
+      const intercalaryDateData = {
         year: viewDate.year,
         month: intercalaryMonth, // Use the month it comes after (1-based)
         day: 1, // Intercalary days don't have regular day numbers
@@ -352,6 +399,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         time: { hour: 0, minute: 0, second: 0 },
         intercalary: intercalary.name,
       };
+      const intercalaryDate = new CalendarDate(intercalaryDateData, calendar);
 
       const isToday = this.isSameIntercalaryDate(intercalaryDate, currentDate);
       const isViewDate = this.isSameIntercalaryDate(intercalaryDate, viewDate);
@@ -588,14 +636,15 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         const afterMonthIndex = calendar.months.findIndex(m => m.name === intercalaryDef.after);
         if (afterMonthIndex === -1) return;
 
-        targetDate = {
+        const targetDateData = {
           year: this.viewDate.year,
           month: afterMonthIndex + 1, // Use the month it comes after (1-based)
           day: 1, // Intercalary days typically use day 1 as a placeholder
           weekday: 0, // Intercalary days don't have weekdays
-          time: currentDate.time || { hour: 0, minute: 0, second: 0 },
+          time: currentDate?.time || { hour: 0, minute: 0, second: 0 },
           intercalary: intercalaryName,
         };
+        targetDate = new CalendarDate(targetDateData, calendar);
 
         const afterMonthName = calendar.months[afterMonthIndex]?.name || 'Unknown';
         const yearDisplay = this.formatYear(this.viewDate.year);
@@ -607,15 +656,15 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         const day = parseInt(target.dataset.day || '0');
         if (day < 1) return;
 
-        targetDate = {
+        const targetDateData = {
           year: this.viewDate.year,
           month: this.viewDate.month,
           day: day,
           weekday: engine.calculateWeekday(this.viewDate.year, this.viewDate.month, day),
-          time: currentDate.time || { hour: 0, minute: 0, second: 0 },
+          time: currentDate?.time || { hour: 0, minute: 0, second: 0 },
         };
-
         const calendar = engine.getCalendar();
+        targetDate = new CalendarDate(targetDateData, calendar);
         const monthName = calendar.months[targetDate.month - 1]?.name || 'Unknown';
         const dayWithSuffix = this.addOrdinalSuffix(targetDate.day);
         const yearDisplay = this.formatYear(targetDate.year);
@@ -749,7 +798,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     });
 
     if (newYear !== null) {
-      this.viewDate = { ...this.viewDate, year: newYear };
+      const viewDateData = this.viewDate.toObject
+        ? this.viewDate.toObject()
+        : (this.viewDate as any);
+      this.viewDate = { ...viewDateData, year: newYear } as CalendarDate;
       this.render();
     }
   }
