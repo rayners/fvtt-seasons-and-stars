@@ -783,7 +783,7 @@ export class NotesManager {
   /**
    * Get performance metrics for monitoring
    */
-  getPerformanceMetrics() {
+  getPerformanceMetrics(): object | null {
     return this.storage.getPerformanceMetrics();
   }
 

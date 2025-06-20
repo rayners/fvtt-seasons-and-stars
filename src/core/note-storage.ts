@@ -194,7 +194,7 @@ export class NoteStorage {
   /**
    * Get performance metrics
    */
-  getPerformanceMetrics() {
+  getPerformanceMetrics(): object | null {
     if (!this.performanceOptimizer) {
       return null;
     }

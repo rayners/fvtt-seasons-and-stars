@@ -1460,7 +1460,7 @@ function registerNotesCleanupHooks(): void {
  */
 function setupTestErrorReporting(): void {
   if (game.seasonsStars) {
-    (game.seasonsStars as { testErrorReporting?: () => void }).testErrorReporting = () => {
+    (game.seasonsStars as { testErrorReporting?: () => void }).testErrorReporting = (): void => {
       Logger.info('Testing E&E integration - triggering test error');
 
       // Check if E&E is available first (try multiple patterns)
@@ -1505,7 +1505,7 @@ function setupTestErrorReporting(): void {
     };
 
     // Also add a function to check E&E status
-    (game.seasonsStars as { checkErrorReporting?: () => void }).checkErrorReporting = () => {
+    (game.seasonsStars as { checkErrorReporting?: () => void }).checkErrorReporting = (): void => {
       const errorReporterAPI =
         (window as { ErrorsAndEchoesAPI?: unknown }).ErrorsAndEchoesAPI ||
         (window as { ErrorsAndEchoes?: { API?: unknown } }).ErrorsAndEchoes?.API ||
