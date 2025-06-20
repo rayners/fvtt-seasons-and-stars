@@ -15,7 +15,6 @@ describe('Dark Sun Calendar', () => {
 
       // Test each month
       for (let month = 1; month <= 12; month++) {
-        const monthName = darkSunCalendar.months[month - 1].name;
         const firstDayWeekday = engine.calculateWeekday(testYear, month, 1);
 
         expect(firstDayWeekday).toBe(0);
