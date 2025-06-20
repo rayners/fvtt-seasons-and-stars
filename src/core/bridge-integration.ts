@@ -7,6 +7,8 @@
 
 import type { CalendarDate, SeasonsStarsCalendar, DateFormatOptions } from '../types/calendar';
 import type { CreateNoteData } from '../types/external-integrations';
+import type { CalendarManagerInterface, NotesManagerInterface } from '../types/foundry-extensions';
+import { isCalendarManager } from '../types/foundry-extensions';
 import { CalendarManager } from './calendar-manager';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
@@ -157,11 +159,11 @@ export enum WidgetPreference {
  */
 export class SeasonsStarsIntegration {
   private static instance: SeasonsStarsIntegration | null = null;
-  private manager: CalendarManager;
+  private manager: CalendarManagerInterface;
   private widgetManager: IntegrationWidgetManager;
   private hookManager: IntegrationHookManager;
 
-  private constructor(manager: CalendarManager) {
+  private constructor(manager: CalendarManagerInterface) {
     this.manager = manager;
     this.widgetManager = new IntegrationWidgetManager();
     this.hookManager = new IntegrationHookManager(manager);
@@ -183,11 +185,11 @@ export class SeasonsStarsIntegration {
 
     // Check if manager is available
     const manager = game.seasonsStars?.manager;
-    if (!manager) {
+    if (!manager || !isCalendarManager(manager)) {
       return null;
     }
 
-    this.instance = new SeasonsStarsIntegration(manager);
+    this.instance = new SeasonsStarsIntegration(manager as CalendarManagerInterface);
     return this.instance;
   }
 
@@ -280,8 +282,8 @@ export class SeasonsStarsIntegration {
         // Check if notes API methods are available
         const notesManager = game.seasonsStars?.notes;
         return notesManager &&
-          typeof notesManager.createNote === 'function' &&
-          typeof notesManager.setNoteModuleData === 'function'
+          typeof (notesManager as NotesManagerInterface).createNote === 'function' &&
+          typeof (notesManager as NotesManagerInterface).setNoteModuleData === 'function'
           ? version
           : null;
 
@@ -320,7 +322,7 @@ export class SeasonsStarsIntegration {
  * API implementation that wraps the calendar manager
  */
 class IntegrationAPI implements SeasonsStarsAPI {
-  constructor(private manager: CalendarManager) {}
+  constructor(private manager: CalendarManagerInterface) {}
 
   getCurrentDate(_calendarId?: string): CalendarDate {
     // The actual manager method doesn't take a calendarId
@@ -557,7 +559,7 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
 class IntegrationHookManager implements SeasonsStarsHooks {
   private hookCallbacks: Map<string, Function[]> = new Map();
 
-  constructor(private manager: CalendarManager) {
+  constructor(private manager: CalendarManagerInterface) {
     this.setupHookListeners();
   }
 
@@ -632,7 +634,7 @@ class IntegrationHookManager implements SeasonsStarsHooks {
  * Provides complete Simple Calendar API compatibility with full notes functionality
  */
 class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
-  constructor(private manager: CalendarManager) {}
+  constructor(private manager: CalendarManagerInterface) {}
 
   // Simple Calendar API compatibility methods
   async addNote(
@@ -662,7 +664,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       playerVisible,
     };
 
-    const note = await notesManager.createNote(noteData);
+    const note = await (notesManager as NotesManagerInterface).createNote(noteData);
 
     // Return Simple Calendar compatible object
     return this.convertNoteToSCFormat(note);
@@ -674,7 +676,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       throw new Error('Notes system not available');
     }
 
-    await notesManager.deleteNote(noteId);
+    await (notesManager as NotesManagerInterface).deleteNote(noteId);
   }
 
   getNotesForDay(year: number, month: number, day: number, _calendarId?: string): any[] {
@@ -699,7 +701,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
 
     try {
       // Get notes synchronously from storage
-      const storage = notesManager.storage;
+      const storage = (notesManager as NotesManagerInterface).storage;
       const notes = storage.findNotesByDateSync(date);
       return notes.map(note => this.convertNoteToSCFormat(note));
     } catch (error) {
@@ -718,7 +720,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       throw new Error('Notes system not available');
     }
 
-    return notesManager.createNote(data);
+    return (notesManager as NotesManagerInterface).createNote(data);
   }
 
   async updateNote(noteId: string, data: UpdateNoteData): Promise<JournalEntry> {
@@ -727,7 +729,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       throw new Error('Notes system not available');
     }
 
-    return notesManager.updateNote(noteId, data);
+    return (notesManager as NotesManagerInterface).updateNote(noteId, data);
   }
 
   async deleteNote(noteId: string): Promise<void> {
@@ -736,7 +738,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       throw new Error('Notes system not available');
     }
 
-    return notesManager.deleteNote(noteId);
+    return (notesManager as NotesManagerInterface).deleteNote(noteId);
   }
 
   async getNote(noteId: string): Promise<JournalEntry | null> {
@@ -745,7 +747,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       return null;
     }
 
-    return notesManager.getNote(noteId);
+    return (notesManager as NotesManagerInterface).getNote(noteId);
   }
 
   async getNotesForDate(date: CalendarDate, _calendarId?: string): Promise<JournalEntry[]> {
@@ -754,7 +756,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       return [];
     }
 
-    return notesManager.getNotesForDate(date);
+    return (notesManager as NotesManagerInterface).getNotesForDate(date);
   }
 
   async getNotesForDateRange(
@@ -767,7 +769,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       return [];
     }
 
-    return notesManager.getNotesForDateRange(start, end);
+    return (notesManager as NotesManagerInterface).getNotesForDateRange(start, end);
   }
 
   // Module integration methods
@@ -777,7 +779,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       throw new Error('Notes system not available');
     }
 
-    return notesManager.setNoteModuleData(noteId, moduleId, data);
+    return (notesManager as NotesManagerInterface).setNoteModuleData(noteId, moduleId, data);
   }
 
   getNoteModuleData(noteId: string, moduleId: string): any {
@@ -786,7 +788,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
       return null;
     }
 
-    return notesManager.getNoteModuleData(noteId, moduleId);
+    return (notesManager as NotesManagerInterface).getNoteModuleData(noteId, moduleId);
   }
 
   // Date conversion utilities

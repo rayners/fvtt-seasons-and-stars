@@ -8,6 +8,7 @@ import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
 import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -52,7 +53,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   async _prepareContext(options: WidgetRenderOptions = {}): Promise<MiniWidgetContext> {
     const context = (await super._prepareContext(options)) as Record<string, unknown>;
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
 
     if (!manager) {
       return Object.assign(context, {
@@ -536,7 +537,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const amount = parseInt(target.dataset.amount || '0');
     const unit = target.dataset.unit || 'hours';
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     if (!manager) return;
 
     Logger.info(`Mini widget advancing time: ${amount} ${unit}`);
@@ -565,7 +566,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   async _onOpenCalendarSelection(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     if (!manager) return;
 
     try {

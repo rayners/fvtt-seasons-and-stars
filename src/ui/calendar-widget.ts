@@ -7,6 +7,7 @@ import { CalendarSelectionDialog } from './calendar-selection-dialog';
 import { CalendarGridWidget } from './calendar-grid-widget';
 import { CalendarMiniWidget } from './calendar-mini-widget';
 import { Logger } from '../core/logger';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -60,7 +61,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   async _prepareContext(options = {}): Promise<any> {
     const context = await super._prepareContext(options);
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
 
     if (!manager) {
       return Object.assign(context, {
@@ -129,7 +130,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   async _onOpenDetailedView(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     if (!manager) {
       ui.notifications?.error('Calendar manager not available');
       return;
@@ -149,7 +150,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     const amount = parseInt(target.dataset.amount || '0');
     const unit = target.dataset.unit || 'days';
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     if (!manager) return;
 
     Logger.info(`Advancing date: ${amount} ${unit}`);

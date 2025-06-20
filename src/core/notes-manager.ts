@@ -3,6 +3,7 @@
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import { NoteStorage } from './note-storage';
 import { notePermissions } from './note-permissions';
 import { NoteRecurrence, type RecurringPattern } from './note-recurring';
@@ -107,7 +108,9 @@ export class NotesManager {
     }
 
     const noteFolder = await this.getOrCreateNotesFolder();
-    const activeCalendar = game.seasonsStars?.manager?.getActiveCalendar();
+    const activeCalendar = (
+      game.seasonsStars?.manager as CalendarManagerInterface
+    )?.getActiveCalendar();
     if (!activeCalendar) {
       throw new Error('No active calendar available');
     }
@@ -534,7 +537,7 @@ export class NotesManager {
    * Get upcoming notes (from current date forward)
    */
   async getUpcomingNotes(limit: number = 20): Promise<JournalEntry[]> {
-    const currentDate = game.seasonsStars?.manager?.getCurrentDate();
+    const currentDate = (game.seasonsStars?.manager as CalendarManagerInterface)?.getCurrentDate();
     if (!currentDate) return [];
 
     const result = await this.searchNotes({
@@ -568,14 +571,14 @@ export class NotesManager {
     pattern: RecurringPattern,
     startDate: ICalendarDate
   ): Promise<void> {
-    const engine = game.seasonsStars?.manager?.getActiveEngine();
+    const engine = (game.seasonsStars?.manager as CalendarManagerInterface)?.getActiveEngine();
     if (!engine) {
       Logger.warn('No calendar engine available for recurring note generation');
       return;
     }
 
     // Generate occurrences for next 2 years to start
-    const currentDate = game.seasonsStars?.manager?.getCurrentDate();
+    const currentDate = (game.seasonsStars?.manager as CalendarManagerInterface)?.getCurrentDate();
     if (!currentDate) return;
 
     const rangeStart = currentDate.toObject();

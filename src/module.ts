@@ -22,6 +22,7 @@ import { SeasonsStarsKeybindings } from './core/keybindings';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
+import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
 import type {
@@ -1379,7 +1380,7 @@ function registerMemoryMageIntegration(): void {
 
     Logger.debug('Registering with Memory Mage for memory monitoring');
     // Register self-reporting memory usage
-    memoryMage.registerModule('seasons-and-stars', () => {
+    (memoryMage as MemoryMageAPI).registerModule('seasons-and-stars', () => {
       const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
       const widgetMemory = calculateWidgetMemory();
       const calendarMemory = calculateCalendarMemory();
@@ -1397,34 +1398,37 @@ function registerMemoryMageIntegration(): void {
     });
 
     // Register cleanup handler for memory pressure
-    memoryMage.registerCleanupHandler('seasons-and-stars', (level: 'warning' | 'critical') => {
-      Logger.info(`Memory Mage triggered cleanup: ${level} pressure detected`);
+    (memoryMage as MemoryMageAPI).registerCleanupHandler?.(
+      'seasons-and-stars',
+      (level: 'warning' | 'critical') => {
+        Logger.info(`Memory Mage triggered cleanup: ${level} pressure detected`);
 
-      if (level === 'warning') {
-        // Light cleanup
-        const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
-        if (optimizer) {
-          optimizer.relieveMemoryPressure();
-        }
-      } else if (level === 'critical') {
-        // Aggressive cleanup
-        const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
-        if (optimizer) {
-          optimizer.relieveMemoryPressure();
-        }
+        if (level === 'warning') {
+          // Light cleanup
+          const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
+          if (optimizer) {
+            optimizer.relieveMemoryPressure?.();
+          }
+        } else if (level === 'critical') {
+          // Aggressive cleanup
+          const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
+          if (optimizer) {
+            optimizer.relieveMemoryPressure?.();
+          }
 
-        // Clear other caches if available
-        if ((calendarManager as ExtendedCalendarManager)?.clearCaches) {
-          (calendarManager as ExtendedCalendarManager).clearCaches?.();
-        }
+          // Clear other caches if available
+          if ((calendarManager as ExtendedCalendarManager)?.clearCaches) {
+            (calendarManager as ExtendedCalendarManager).clearCaches?.();
+          }
 
-        // Force close widgets if memory is critically low
-        if (level === 'critical') {
-          (CalendarWidget as unknown as { closeAll?: () => void }).closeAll?.();
-          (CalendarGridWidget as unknown as { closeAll?: () => void }).closeAll?.();
+          // Force close widgets if memory is critically low
+          if (level === 'critical') {
+            (CalendarWidget as unknown as { closeAll?: () => void }).closeAll?.();
+            (CalendarGridWidget as unknown as { closeAll?: () => void }).closeAll?.();
+          }
         }
       }
-    });
+    );
 
     Logger.debug('Memory Mage integration registered successfully');
   } catch (error) {
@@ -1560,7 +1564,7 @@ function setupTestErrorReporting(): void {
 
       // Try manual reporting first
       try {
-        errorReporterAPI.report(testError, {
+        (errorReporterAPI as any).report?.(testError, {
           module: 'seasons-and-stars',
           context: {
             testType: 'manual-integration-test',
@@ -1587,9 +1591,9 @@ function setupTestErrorReporting(): void {
         game.modules?.get('errors-and-echoes')?.api;
 
       const hasAPI = !!errorReporterAPI;
-      const hasConsent = hasAPI ? errorReporterAPI.hasConsent() : false;
-      const privacyLevel = hasAPI ? errorReporterAPI.getPrivacyLevel() : 'unknown';
-      const stats = hasAPI ? errorReporterAPI.getStats() : null;
+      const hasConsent = hasAPI ? (errorReporterAPI as any).hasConsent?.() : false;
+      const privacyLevel = hasAPI ? (errorReporterAPI as any).getPrivacyLevel?.() : 'unknown';
+      const stats = hasAPI ? (errorReporterAPI as any).getStats?.() : null;
 
       console.log('🔍 E&E Integration Status:');
       console.log('  API Available:', hasAPI);

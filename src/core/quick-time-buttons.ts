@@ -4,6 +4,7 @@
 
 import { Logger } from './logger';
 import type { SeasonsStarsCalendar } from '../types/calendar';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 /**
  * Parse quick time button setting string into minute values
@@ -129,7 +130,7 @@ export function getQuickTimeButtonsFromSettings(
 
     // Get current calendar for parsing
     const manager = game.seasonsStars?.manager;
-    const calendar = manager?.getActiveCalendar();
+    const calendar = (manager as CalendarManagerInterface)?.getActiveCalendar();
 
     // Parse minute values
     const allButtons = parseQuickTimeButtons(settingValue, calendar);
@@ -179,7 +180,7 @@ export function registerQuickTimeButtonsHelper(): void {
 
     handlebars.registerHelper('formatTimeButton', function (minutes: number) {
       const manager = game.seasonsStars?.manager;
-      const calendar = manager?.getActiveCalendar();
+      const calendar = (manager as CalendarManagerInterface)?.getActiveCalendar();
       return formatTimeButton(minutes, calendar);
     });
 

@@ -24,15 +24,14 @@ export class WidgetInstanceManager {
    */
   static show(): void {
     if (this.activeInstance) {
-      if (!this.activeInstance.rendered) {
-        this.activeInstance.render(true);
+      if (!(this.activeInstance as any).rendered) {
+        (this.activeInstance as any).render(true);
       } else {
-        this.activeInstance.bringToTop();
+        (this.activeInstance as any).bringToTop();
       }
     } else {
-      this.activeInstance = new (this as {
-        new (): { render: (force: boolean) => unknown };
-      })().render(true);
+      this.activeInstance = new (this as any)();
+      (this.activeInstance as any).render(true);
     }
   }
 
@@ -40,8 +39,8 @@ export class WidgetInstanceManager {
    * Hide the widget
    */
   static hide(): void {
-    if (this.activeInstance?.rendered) {
-      this.activeInstance.close();
+    if ((this.activeInstance as any)?.rendered) {
+      (this.activeInstance as any).close();
     }
   }
 
@@ -49,7 +48,7 @@ export class WidgetInstanceManager {
    * Toggle the widget visibility
    */
   static toggle(): void {
-    if (this.activeInstance?.rendered) {
+    if ((this.activeInstance as any)?.rendered) {
       this.hide();
     } else {
       this.show();
@@ -62,13 +61,13 @@ export class WidgetInstanceManager {
   static registerHooks(): void {
     // Use arrow function to maintain proper 'this' context
     Hooks.on('seasons-stars:dateChanged', () => {
-      if (this.activeInstance?.rendered) {
+      if ((this.activeInstance as any)?.rendered) {
         this.activeInstance.render();
       }
     });
 
     Hooks.on('seasons-stars:calendarChanged', () => {
-      if (this.activeInstance?.rendered) {
+      if ((this.activeInstance as any)?.rendered) {
         this.activeInstance.render();
       }
     });

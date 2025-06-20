@@ -3,6 +3,7 @@
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export interface NoteSearchCriteria {
   // Text search
@@ -403,7 +404,7 @@ export class NoteSearch {
    * Get current date from calendar manager
    */
   private static getCurrentDate(): ICalendarDate {
-    const currentDate = game.seasonsStars?.manager?.getCurrentDate();
+    const currentDate = (game.seasonsStars?.manager as CalendarManagerInterface)?.getCurrentDate();
     if (currentDate) {
       return currentDate.toObject();
     }

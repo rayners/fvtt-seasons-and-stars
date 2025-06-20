@@ -8,6 +8,7 @@ import { CalendarMiniWidget } from './calendar-mini-widget';
 import { Logger } from '../core/logger';
 import type { CalendarDate as ICalendarDate, SeasonsStarsCalendar } from '../types/calendar';
 import type { CalendarDayData } from '../types/external-integrations';
+import type { CalendarManagerInterface, NotesManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarGridWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -25,7 +26,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     super();
 
     // Use provided date or current date
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     this.viewDate = initialDate ||
       manager?.getCurrentDate() || {
         year: 2024,
@@ -96,7 +97,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   async _prepareContext(options = {}): Promise<Record<string, unknown>> {
     const context = await super._prepareContext(options);
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
 
     if (!manager) {
       return Object.assign(context, {
@@ -158,7 +159,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     viewDate: ICalendarDate,
     currentDate: ICalendarDate
   ) {
-    const engine = game.seasonsStars?.manager?.getActiveEngine();
+    const engine = (game.seasonsStars?.manager as CalendarManagerInterface)?.getActiveEngine();
     if (!engine) return { weeks: [], totalDays: 0 };
 
     // Get month information
@@ -178,7 +179,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     };
 
     // Get notes for this month for note indicators with category and tooltip information
-    const notesManager = game.seasonsStars?.notes;
+    const notesManager = game.seasonsStars?.notes as NotesManagerInterface;
     const monthNotes = new Map<
       string,
       {
@@ -398,7 +399,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Check if current user can create notes
    */
   private canCreateNote(): boolean {
-    const notesManager = game.seasonsStars?.notes;
+    const notesManager = game.seasonsStars?.notes as NotesManagerInterface;
     if (!notesManager) return false;
 
     // Use notes manager's canCreateNote method
@@ -453,7 +454,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Format a year with prefix and suffix from calendar configuration
    */
   private formatYear(year: number): string {
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     const calendar = manager?.getActiveCalendar();
     if (!calendar) return year.toString();
 
@@ -481,7 +482,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   async _onPreviousMonth(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
-    const engine = game.seasonsStars?.manager?.getActiveEngine();
+    const engine = (game.seasonsStars?.manager as CalendarManagerInterface)?.getActiveEngine();
     if (!engine) return;
 
     this.viewDate = engine.addMonths(this.viewDate, -1);
@@ -494,7 +495,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   async _onNextMonth(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
-    const engine = game.seasonsStars?.manager?.getActiveEngine();
+    const engine = (game.seasonsStars?.manager as CalendarManagerInterface)?.getActiveEngine();
     if (!engine) return;
 
     this.viewDate = engine.addMonths(this.viewDate, 1);
@@ -507,7 +508,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   async _onPreviousYear(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
-    const engine = game.seasonsStars?.manager?.getActiveEngine();
+    const engine = (game.seasonsStars?.manager as CalendarManagerInterface)?.getActiveEngine();
     if (!engine) return;
 
     this.viewDate = engine.addYears(this.viewDate, -1);
@@ -520,7 +521,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   async _onNextYear(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
-    const engine = game.seasonsStars?.manager?.getActiveEngine();
+    const engine = (game.seasonsStars?.manager as CalendarManagerInterface)?.getActiveEngine();
     if (!engine) return;
 
     this.viewDate = engine.addYears(this.viewDate, 1);
@@ -560,7 +561,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Set the current date (extracted from _onSelectDate for reuse)
    */
   private async setCurrentDate(target: HTMLElement): Promise<void> {
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     const engine = manager?.getActiveEngine();
     if (!manager || !engine) return;
 
@@ -636,7 +637,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Show information about a specific date without setting it
    */
   private showDateInfo(target: HTMLElement): void {
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     const engine = manager?.getActiveEngine();
     if (!manager || !engine) return;
 
@@ -691,7 +692,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   async _onGoToToday(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     if (!manager) return;
 
     const currentDate = manager.getCurrentDate();
@@ -705,7 +706,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   async _onSetYear(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
-    const engine = game.seasonsStars?.manager?.getActiveEngine();
+    const engine = (game.seasonsStars?.manager as CalendarManagerInterface)?.getActiveEngine();
     if (!engine) return;
 
     // Create a simple input dialog
@@ -759,7 +760,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     event.preventDefault();
     event.stopPropagation();
 
-    const notesManager = game.seasonsStars?.notes;
+    const notesManager = game.seasonsStars?.notes as NotesManagerInterface;
     if (!notesManager) {
       ui.notifications?.error('Notes system not available');
       return;
@@ -824,7 +825,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       };
 
       // Format date using calendar system
-      const manager = game.seasonsStars?.manager;
+      const manager = game.seasonsStars?.manager as CalendarManagerInterface;
       const activeCalendar = manager?.getActiveCalendar();
       let dateDisplayStr = `${safeDate.year}-${safeDate.month.toString().padStart(2, '0')}-${safeDate.day.toString().padStart(2, '0')}`;
       let calendarInfo = '';
@@ -851,7 +852,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         .join(' ');
 
       // Get existing tags from notes for autocompletion
-      const notesManager = game.seasonsStars?.notes;
+      const notesManager = game.seasonsStars?.notes as NotesManagerInterface;
       const existingTags = new Set<string>();
       if (notesManager && notesManager.storage) {
         try {
@@ -1352,7 +1353,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     event.preventDefault();
     event.stopPropagation();
 
-    const notesManager = game.seasonsStars?.notes;
+    const notesManager = game.seasonsStars?.notes as NotesManagerInterface;
     if (!notesManager) {
       ui.notifications?.error('Notes system not available');
       return;
@@ -1403,7 +1404,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     notes: JournalEntry[],
     date: ICalendarDate
   ): Promise<void> {
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     const activeCalendar = manager?.getActiveCalendar();
     let dateDisplayStr = `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
 
@@ -1545,7 +1546,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     Hooks.on('seasons-stars:calendarChanged', () => {
       if (CalendarGridWidget.activeInstance?.rendered) {
         // Reset to current date when calendar changes
-        const manager = game.seasonsStars?.manager;
+        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
         if (manager) {
           CalendarGridWidget.activeInstance!.viewDate = manager.getCurrentDate();
         }

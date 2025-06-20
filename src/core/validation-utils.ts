@@ -2,6 +2,8 @@
  * Validation utilities for API parameter checking
  */
 
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
+
 export class ValidationUtils {
   /**
    * Validate calendar ID parameter
@@ -75,7 +77,7 @@ export class ValidationUtils {
    */
   static validateEngineAvailable(): void {
     const manager = game.seasonsStars?.manager;
-    const engine = manager?.getActiveEngine();
+    const engine = (manager as CalendarManagerInterface)?.getActiveEngine();
     if (!engine) {
       throw new Error('Calendar engine not available');
     }
