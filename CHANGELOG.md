@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.3.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.3...v0.3.4) (2025-06-20)
+
+
+### Bug Fixes
+
+* Dark Sun intercalary days should not count for weekdays ([fd99869](https://github.com/rayners/fvtt-seasons-and-stars/commit/fd998695419437d00de7c913bd9cb3bfcc31ce47))
+
 ## [0.3.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.2...v0.3.3) (2025-06-19)
 
 
