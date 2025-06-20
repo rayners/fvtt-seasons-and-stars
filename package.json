@@ -8,7 +8,7 @@
     "prebuild": "node scripts/generate-calendar-list.js",
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npm run prebuild && tsc --noEmit",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier --write \"src/**/*.{ts,js,json}\" \"test/**/*.{ts,js}\" \"*.{js,json,md}\"",
