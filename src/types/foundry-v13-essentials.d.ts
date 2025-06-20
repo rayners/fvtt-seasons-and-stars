@@ -62,6 +62,55 @@ declare global {
   const global: NodeGlobal;
 
   // jQuery globals provided by @types/jquery
+
+  // Make ApplicationV2 namespace available globally
+  namespace ApplicationV2 {
+    interface Configuration {
+      id?: string;
+      classes?: string[];
+      tag?: string;
+      window?: {
+        title?: string;
+        icon?: string;
+        positioned?: boolean;
+        minimizable?: boolean;
+        resizable?: boolean;
+      };
+      position?: Partial<Position>;
+      actions?: Record<string, any>;
+    }
+
+    interface Position {
+      top?: number;
+      left?: number;
+      width?: number | 'auto';
+      height?: number | 'auto';
+      scale?: number;
+    }
+
+    interface RenderOptions {
+      force?: boolean;
+      position?: Partial<Position>;
+      window?: Partial<ApplicationWindow>;
+      parts?: string[];
+    }
+
+    interface CloseOptions {
+      animate?: boolean;
+    }
+
+    interface ApplicationWindow {
+      title: string;
+      icon: string;
+      controls: ApplicationHeaderButton[];
+    }
+
+    interface ApplicationHeaderButton {
+      icon: string;
+      label: string;
+      action: string;
+    }
+  }
 }
 
 // =============================================================================
@@ -239,33 +288,7 @@ declare class HooksManager {
 // APPLICATION V2 NAMESPACE
 // =============================================================================
 
-// ApplicationV2 namespace for v13 compatibility
-declare namespace ApplicationV2 {
-  interface Configuration {
-    window?: {
-      resizable?: boolean;
-      minimizable?: boolean;
-      contentClasses?: string[];
-    };
-    position?: {
-      width?: number | string;
-      height?: number | string;
-      top?: number;
-      left?: number;
-    };
-    actions?: Record<string, Function>;
-  }
-
-  interface RenderContext {
-    [key: string]: any;
-  }
-
-  interface RenderOptions {
-    force?: boolean;
-    position?: any;
-    [key: string]: any;
-  }
-}
+// ApplicationV2 namespace moved to later in file to avoid conflicts
 
 // =============================================================================
 // DIALOG SYSTEM

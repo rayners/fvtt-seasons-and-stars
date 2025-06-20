@@ -386,7 +386,7 @@ export class NoteSearch {
         limit: 10,
       },
       upcoming: {
-        dateFrom: this.getCurrentDate().toObject(),
+        dateFrom: this.getCurrentDate(),
         sortBy: 'date',
         sortOrder: 'asc',
         limit: 10,
@@ -412,7 +412,7 @@ export class NoteSearch {
   /**
    * Get current date from calendar manager
    */
-  private static getCurrentDate(): CalendarDate {
+  private static getCurrentDate(): ICalendarDate {
     const currentDate = (game.seasonsStars?.manager as CalendarManagerInterface)?.getCurrentDate();
     if (currentDate) {
       return currentDate;
@@ -435,6 +435,6 @@ export class NoteSearch {
     }
 
     // If no calendar available, this shouldn't happen but return the data
-    return fallbackData as any;
+    return fallbackData as ICalendarDate;
   }
 }

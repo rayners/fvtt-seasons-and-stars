@@ -8,6 +8,7 @@ import { CalendarMiniWidget } from './calendar-mini-widget';
 import { CalendarDate } from '../core/calendar-date';
 import { Logger } from '../core/logger';
 import type { NoteCategories } from '../core/note-categories';
+import type { CreateNoteData } from '../core/notes-manager';
 import type {
   CalendarDate as ICalendarDate,
   CalendarDateData,
@@ -185,13 +186,14 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     const monthLength = engine.getMonthLength(viewDate.month, viewDate.year);
 
     // Find the first day of the month and its weekday
-    const firstDay: ICalendarDate = {
+    const firstDayData: CalendarDateData = {
       year: viewDate.year,
       month: viewDate.month,
       day: 1,
       weekday: engine.calculateWeekday(viewDate.year, viewDate.month, 1),
       time: { hour: 0, minute: 0, second: 0 },
     };
+    const firstDay = new CalendarDate(firstDayData, calendar);
 
     // Get notes for this month for note indicators with category and tooltip information
     const notesManager = game.seasonsStars?.notes as NotesManagerInterface;
@@ -211,13 +213,14 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Get notes synchronously for UI performance
       try {
         for (let day = 1; day <= monthLength; day++) {
-          const dayDate: ICalendarDate = {
+          const dayDateData: CalendarDateData = {
             year: viewDate.year,
             month: viewDate.month,
             day: day,
             weekday: 0,
             time: { hour: 0, minute: 0, second: 0 },
           };
+          const dayDate = new CalendarDate(dayDateData, calendar);
 
           const allNotes = notesManager.storage?.findNotesByDateSync(dayDate) || [];
           const notes = allNotes.filter(note => {
@@ -412,6 +415,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           isToday: isToday,
           isSelected: isViewDate,
           isClickable: game.user?.isGM || false,
+          isCurrentMonth: true, // Intercalary days are always part of the current month
           isIntercalary: true,
           intercalaryName: intercalary.name,
           intercalaryDescription: intercalary.description,
@@ -746,8 +750,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     if (!manager) return;
 
     const currentDate = manager.getCurrentDate();
-    this.viewDate = { ...currentDate };
-    this.render();
+    if (currentDate) {
+      this.viewDate = currentDate;
+      this.render();
+    }
   }
 
   /**
@@ -832,13 +838,17 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     const day = parseInt(dayElement.getAttribute('data-day') || '0');
     if (!day) return;
 
-    const targetDate: ICalendarDate = {
+    const targetDateData: CalendarDateData = {
       year: this.viewDate.year,
       month: this.viewDate.month,
       day: day,
       weekday: 0, // Will be calculated by the engine
       time: { hour: 0, minute: 0, second: 0 },
     };
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+    const calendar = manager?.getActiveCalendar();
+    if (!calendar) return;
+    const targetDate = new CalendarDate(targetDateData, calendar);
 
     // Show note creation dialog
     const noteData = await this.showCreateNoteDialog(targetDate);
@@ -862,7 +872,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Show note creation dialog with enhanced category and tag support
    */
-  private async showCreateNoteDialog(date: ICalendarDate): Promise<JournalEntry | null> {
+  private async showCreateNoteDialog(date: ICalendarDate): Promise<CreateNoteData | null> {
     const categories = game.seasonsStars?.categories as NoteCategories | undefined;
     if (!categories) {
       ui.notifications?.error('Note categories system not available');
@@ -1419,13 +1429,17 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     const day = parseInt(dayElement.getAttribute('data-day') || '0');
     if (!day) return;
 
-    const targetDate: ICalendarDate = {
+    const targetDateData: CalendarDateData = {
       year: this.viewDate.year,
       month: this.viewDate.month,
       day: day,
       weekday: 0, // Will be calculated by the engine
       time: { hour: 0, minute: 0, second: 0 },
     };
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+    const calendar = manager?.getActiveCalendar();
+    if (!calendar) return;
+    const targetDate = new CalendarDate(targetDateData, calendar);
 
     try {
       // Get notes for this date
@@ -1439,7 +1453,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       if (notes.length === 1) {
         // Single note - open directly
         const note = notes[0];
-        note.sheet?.render(true);
+        (note.sheet as any)?.render(true);
       } else {
         // Multiple notes - show selection dialog
         await this.showNotesSelectionDialog(notes, targetDate);
@@ -1549,7 +1563,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             const noteIndex = parseInt($(this).data('index'));
             const note = notes[noteIndex];
             if (note && note.sheet) {
-              note.sheet.render(true);
+              (note.sheet as any).render(true);
             }
             resolve();
           });

@@ -60,7 +60,7 @@ export class NoteEditingDialog {
    * Generate the dialog content HTML
    */
   private generateContent(): string {
-    const categories = game.seasonsStars?.categories;
+    const categories = game.seasonsStars?.categories as any;
     if (!categories) {
       return '<p style="color: red;">Note categories system not available</p>';
     }
@@ -94,7 +94,7 @@ export class NoteEditingDialog {
     const predefinedTags = categories.getPredefinedTags();
 
     // Get existing tags from all notes for autocompletion
-    const notesManager = game.seasonsStars?.notes as any;
+    const notesManager = game.seasonsStars?.notes as any as any;
     const existingTags = new Set<string>();
     if (notesManager && (notesManager as any)?.storage) {
       try {
@@ -338,7 +338,7 @@ export class NoteEditingDialog {
    * Setup tag autocompletion functionality
    */
   private setupTagAutocompletion(html: JQuery): void {
-    const categories = game.seasonsStars?.categories;
+    const categories = game.seasonsStars?.categories as any;
     if (!categories) return;
 
     const tagsInput = html.find('input[name="tags"]');
@@ -347,7 +347,7 @@ export class NoteEditingDialog {
 
     // Get all available tags for autocompletion
     const predefinedTags = categories.getPredefinedTags();
-    const notesManager = game.seasonsStars?.notes;
+    const notesManager = game.seasonsStars?.notes as any;
     const existingTags = new Set<string>();
 
     if (notesManager && notesManager.storage) {
@@ -565,7 +565,7 @@ export class NoteEditingDialog {
       }
 
       // Parse and validate tags
-      const categories = game.seasonsStars?.categories;
+      const categories = game.seasonsStars?.categories as any;
       if (!categories) {
         ui.notifications?.error('Note categories system not available');
         return;
@@ -589,7 +589,7 @@ export class NoteEditingDialog {
       };
 
       // Update the note
-      const notesManager = game.seasonsStars?.notes;
+      const notesManager = game.seasonsStars?.notes as any;
       if (!notesManager) {
         ui.notifications?.error('Notes manager not available');
         return;
@@ -661,7 +661,7 @@ export class NoteEditingDialog {
 
           // Update category select styling based on selection
           $html.find('.category-select').on('change', event => {
-            const categories = game.seasonsStars?.categories;
+            const categories = game.seasonsStars?.categories as any;
             if (!categories) return;
 
             const selectedCat = categories.getCategory($(event.currentTarget).val() as string);
@@ -672,7 +672,7 @@ export class NoteEditingDialog {
 
           // Initialize category border
           const categorySelect = $html.find('.category-select');
-          const categories = game.seasonsStars?.categories;
+          const categories = game.seasonsStars?.categories as any;
           if (categories) {
             const selectedCat = categories.getCategory(categorySelect.val() as string);
             if (selectedCat) {

@@ -14,7 +14,7 @@ import type {
 import { CalendarDate as CalendarDateClass } from './calendar-date';
 import type { CreateNoteData } from '../types/external-integrations';
 import type { CalendarManagerInterface, NotesManagerInterface } from '../types/foundry-extensions';
-import { isCalendarManager } from '../types/foundry-extensions';
+import { isCalendarManager } from '../types/type-guards';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
