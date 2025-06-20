@@ -170,7 +170,7 @@ export class TimeConverter {
     const currentDate = this.getCurrentDate();
     const weekLength = this.engine.getCalendar().weekdays.length;
     const days = weeks * weekLength; // Convert weeks to days using dynamic week length
-    const newDate = this.engine.addDays(currentDate.toObject(), days);
+    const newDate = this.engine.addDays(currentDate, days);
     await this.setCurrentDate(newDate);
   }
 
@@ -179,7 +179,7 @@ export class TimeConverter {
    */
   async advanceMonths(months: number): Promise<void> {
     const currentDate = this.getCurrentDate();
-    const newDate = this.engine.addMonths(currentDate.toObject(), months);
+    const newDate = this.engine.addMonths(currentDate, months);
     await this.setCurrentDate(newDate);
   }
 
@@ -188,7 +188,7 @@ export class TimeConverter {
    */
   async advanceYears(years: number): Promise<void> {
     const currentDate = this.getCurrentDate();
-    const newDate = this.engine.addYears(currentDate.toObject(), years);
+    const newDate = this.engine.addYears(currentDate, years);
     await this.setCurrentDate(newDate);
   }
 
@@ -196,12 +196,16 @@ export class TimeConverter {
    * Set a specific time of day while keeping the date
    */
   async setTimeOfDay(hour: number, minute: number = 0, second: number = 0): Promise<void> {
-    const currentDate = this.getCurrentDate().toObject();
+    const currentDate = this.getCurrentDate();
+    const currentDateData = currentDate.toObject();
 
     // Update the time component
-    currentDate.time = { hour, minute, second };
+    currentDateData.time = { hour, minute, second };
 
-    await this.setCurrentDate(currentDate);
+    // Create new CalendarDate instance
+    const calendar = this.engine.getCalendar();
+    const newDate = new CalendarDate(currentDateData, calendar);
+    await this.setCurrentDate(newDate);
   }
 
   /**
@@ -258,7 +262,7 @@ export class TimeConverter {
   /**
    * Calculate the difference between two dates in days
    */
-  daysBetween(date1: ICalendarDate, date2: ICalendarDate): number {
+  daysBetween(date1: CalendarDate, date2: CalendarDate): number {
     const time1 = this.engine.dateToWorldTime(date1);
     const time2 = this.engine.dateToWorldTime(date2);
 
@@ -287,7 +291,7 @@ export class TimeConverter {
   /**
    * Schedule a callback for a specific calendar date
    */
-  scheduleCallback(targetDate: ICalendarDate, callback: () => void): void {
+  scheduleCallback(targetDate: CalendarDate, callback: () => void): void {
     const targetTime = this.engine.dateToWorldTime(targetDate);
     const currentTime = game.time?.worldTime || 0;
 
@@ -334,7 +338,7 @@ export class TimeConverter {
       isDaytime: this.isDaytime(),
       season: this.getCurrentSeason(),
       lastKnownTime: this.lastKnownTime,
-      lastKnownDate: this.lastKnownDate,
+      lastKnownDate: this.lastKnownDate ? this.lastKnownDate.toObject() : null,
     };
   }
 }

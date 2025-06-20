@@ -61,14 +61,16 @@ export class WidgetInstanceManager {
   static registerHooks(): void {
     // Use arrow function to maintain proper 'this' context
     Hooks.on('seasons-stars:dateChanged', () => {
-      if ((this.activeInstance as any)?.rendered) {
-        this.activeInstance.render();
+      const instance = this.activeInstance as unknown;
+      if (instance && (instance as any)?.rendered) {
+        (instance as any).render();
       }
     });
 
     Hooks.on('seasons-stars:calendarChanged', () => {
-      if ((this.activeInstance as any)?.rendered) {
-        this.activeInstance.render();
+      const instance = this.activeInstance as unknown;
+      if (instance && (instance as any)?.rendered) {
+        (instance as any).render();
       }
     });
   }
