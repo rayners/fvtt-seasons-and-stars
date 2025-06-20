@@ -159,8 +159,8 @@ export class CalendarLocalization {
     return {
       id: calendar.id,
       label: this.getCalendarLabel(calendar),
-      description: this.getCalendarDescription(calendar),
-      setting: this.getCalendarSetting(calendar),
+      description: this.getCalendarDescription(calendar) || '',
+      setting: this.getCalendarSetting(calendar) || '',
       availableLanguages: this.getAvailableLanguages(calendar),
       currentLanguage: this.getCurrentLanguage(),
     };

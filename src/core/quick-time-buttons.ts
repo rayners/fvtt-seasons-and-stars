@@ -11,7 +11,7 @@ import type { CalendarManagerInterface } from '../types/foundry-extensions';
  */
 export function parseQuickTimeButtons(
   settingValue: string,
-  calendar?: SeasonsStarsCalendar
+  calendar?: SeasonsStarsCalendar | null
 ): number[] {
   if (!settingValue || typeof settingValue !== 'string') {
     Logger.warn('Invalid quick time buttons setting value, using default');
@@ -70,7 +70,7 @@ export function parseQuickTimeButtons(
 /**
  * Format minute values for button display using calendar-aware units
  */
-export function formatTimeButton(minutes: number, calendar?: SeasonsStarsCalendar): string {
+export function formatTimeButton(minutes: number, calendar?: SeasonsStarsCalendar | null): string {
   if (!Number.isFinite(minutes)) {
     return '0m';
   }

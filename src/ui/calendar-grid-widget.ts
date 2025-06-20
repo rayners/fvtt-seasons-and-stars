@@ -6,6 +6,7 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarWidget } from './calendar-widget';
 import { CalendarMiniWidget } from './calendar-mini-widget';
 import { Logger } from '../core/logger';
+import type { NoteCategories } from '../core/note-categories';
 import type { CalendarDate as ICalendarDate, SeasonsStarsCalendar } from '../types/calendar';
 import type { CalendarDayData } from '../types/external-integrations';
 import type { CalendarManagerInterface, NotesManagerInterface } from '../types/foundry-extensions';
@@ -810,7 +811,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Show note creation dialog with enhanced category and tag support
    */
   private async showCreateNoteDialog(date: ICalendarDate): Promise<JournalEntry | null> {
-    const categories = game.seasonsStars?.categories;
+    const categories = game.seasonsStars?.categories as NoteCategories | undefined;
     if (!categories) {
       ui.notifications?.error('Note categories system not available');
       return null;
@@ -1548,7 +1549,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         // Reset to current date when calendar changes
         const manager = game.seasonsStars?.manager as CalendarManagerInterface;
         if (manager) {
-          CalendarGridWidget.activeInstance!.viewDate = manager.getCurrentDate();
+          const currentDate = manager.getCurrentDate();
+          if (currentDate) {
+            CalendarGridWidget.activeInstance!.viewDate = currentDate;
+          }
         }
         CalendarGridWidget.activeInstance.render();
       }

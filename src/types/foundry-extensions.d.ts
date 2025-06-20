@@ -60,19 +60,9 @@ export interface SeasonsStarsAPI {
   worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate;
 }
 
-// Type guard functions
-export function isCalendarManager(obj: unknown): obj is CalendarManagerInterface {
-  return !!(
-    obj &&
-    typeof obj === 'object' &&
-    'getCurrentDate' in obj &&
-    'getActiveCalendar' in obj
-  );
-}
-
-export function isNotesManager(obj: unknown): obj is NotesManagerInterface {
-  return !!(obj && typeof obj === 'object' && 'createNote' in obj && 'storage' in obj);
-}
+// Type guard functions (implementations in type-guards.ts)
+export declare function isCalendarManager(obj: unknown): obj is CalendarManagerInterface;
+export declare function isNotesManager(obj: unknown): obj is NotesManagerInterface;
 
 // Calendar Manager interface for type safety
 export interface CalendarManagerInterface {
@@ -99,6 +89,9 @@ export interface CalendarEngineInterface {
   getMonthLength(month: number, year: number): number;
   dateToWorldTime(date: CalendarDate): number;
   worldTimeToDate(timestamp: number): CalendarDate;
+  getIntercalaryDaysAfterMonth(month: number, year: number): any[];
+  addMonths(date: CalendarDate, months: number): CalendarDate;
+  addYears(date: CalendarDate, years: number): CalendarDate;
 }
 
 // Notes Manager interface for type safety
@@ -111,14 +104,17 @@ export interface NotesManagerInterface {
   getNotesForDateRange(start: CalendarDate, end: CalendarDate): Promise<JournalEntry[]>;
   setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void>;
   getNoteModuleData(noteId: string, moduleId: string): any;
+  canCreateNote(): boolean;
   getCategories(): any;
   getPredefinedTags(): string[];
   parseTagString(tags: string): string[];
   validateTags(tags: string[]): boolean;
   getDefaultCategory(): any;
   getCategory(categoryId: string): any;
+  getAllNotes(): JournalEntry[];
   storage: {
     findNotesByDateSync(date: CalendarDate): JournalEntry[];
     removeNote(noteId: string): Promise<void>;
+    getAllNotes(): JournalEntry[];
   };
 }

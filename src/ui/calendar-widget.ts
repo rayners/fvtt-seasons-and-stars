@@ -138,7 +138,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
 
     // Open the calendar grid widget with the current date
     const currentDate = manager.getCurrentDate();
-    CalendarGridWidget.show(currentDate);
+    CalendarGridWidget.show(currentDate || undefined);
   }
 
   /**

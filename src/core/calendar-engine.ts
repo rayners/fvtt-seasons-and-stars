@@ -4,10 +4,11 @@
 
 import type {
   SeasonsStarsCalendar,
-  CalendarDate,
+  CalendarDate as ICalendarDate,
   CalendarCalculation,
   CalendarIntercalary,
 } from '../types/calendar';
+import { CalendarDate } from './calendar-date';
 import { CalendarTimeUtils } from './calendar-time-utils';
 
 export class CalendarEngine {
@@ -46,7 +47,7 @@ export class CalendarEngine {
     // Convert days to calendar date
     const dateInfo = this.daysToDate(totalDays);
 
-    return {
+    const dateData: ICalendarDate = {
       year: dateInfo.year,
       month: dateInfo.month,
       day: dateInfo.day,
@@ -54,6 +55,8 @@ export class CalendarEngine {
       intercalary: dateInfo.intercalary,
       time: { hour, minute, second },
     };
+
+    return new CalendarDate(dateData, this.calendar);
   }
 
   /**

@@ -4,6 +4,9 @@
 
 export interface SeasonsStarsCalendar {
   id: string;
+  name?: string; // Convenience property for calendar name
+  label?: string; // Convenience property for calendar label
+  description?: string; // Convenience property for calendar description
   translations: {
     [languageCode: string]: {
       label: string;
@@ -111,6 +114,12 @@ export interface CalendarDate {
     minute: number;
     second: number;
   };
+
+  // Methods available on CalendarDate class instances
+  toObject(): CalendarDate;
+  toLongString(): string;
+  toDateString(): string;
+  toTimeString(): string;
 }
 
 export interface CalendarCalculation {

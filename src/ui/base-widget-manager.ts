@@ -96,8 +96,8 @@ export class SidebarButtonManager {
     Logger.debug(`Added sidebar button "${name}"`);
 
     // Trigger re-render if widget is already rendered
-    if ((this as { rendered: boolean }).rendered) {
-      (this as { render: () => void }).render();
+    if ((this as unknown as { rendered: boolean }).rendered) {
+      (this as unknown as { render: () => void }).render();
     }
   }
 
@@ -111,8 +111,8 @@ export class SidebarButtonManager {
       Logger.debug(`Removed sidebar button "${name}"`);
 
       // Trigger re-render if widget is already rendered
-      if ((this as { rendered: boolean }).rendered) {
-        (this as { render: () => void }).render();
+      if ((this as unknown as { rendered: boolean }).rendered) {
+        (this as unknown as { render: () => void }).render();
       }
     }
   }
@@ -138,8 +138,8 @@ export class SidebarButtonManager {
     this.sidebarButtons = [];
     Logger.debug('Cleared all sidebar buttons');
 
-    if ((this as { rendered: boolean }).rendered) {
-      (this as { render: () => void }).render();
+    if ((this as unknown as { rendered: boolean }).rendered) {
+      (this as unknown as { render: () => void }).render();
     }
   }
 }

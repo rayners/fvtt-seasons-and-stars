@@ -580,15 +580,15 @@ class IntegrationHookManager implements SeasonsStarsHooks {
   }
 
   onDateChanged(callback: (event: DateChangeEvent) => void): void {
-    this.addCallback('dateChanged', callback);
+    this.addCallback('dateChanged', callback as (...args: unknown[]) => void);
   }
 
   onCalendarChanged(callback: (event: CalendarChangeEvent) => void): void {
-    this.addCallback('calendarChanged', callback);
+    this.addCallback('calendarChanged', callback as (...args: unknown[]) => void);
   }
 
   onReady(callback: (event: ReadyEvent) => void): void {
-    this.addCallback('ready', callback);
+    this.addCallback('ready', callback as (...args: unknown[]) => void);
   }
 
   off(hookName: string, callback: (...args: unknown[]) => void): void {

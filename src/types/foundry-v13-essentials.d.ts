@@ -135,6 +135,7 @@ declare class FoundryScene {
 declare class FoundryJournalEntry {
   id: string;
   name: string;
+  title?: string; // Alternative name property
   pages: FoundryCollection<JournalEntryPage>;
   ownership: Record<string, number>;
   flags: Record<string, any>;
