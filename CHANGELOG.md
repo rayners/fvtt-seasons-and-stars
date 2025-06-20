@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.3.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.2...v0.3.3) (2025-06-19)
+
+
+### Bug Fixes
+
+* consolidate repeated date/time calculations into CalendarTimeUtils ([1d65de8](https://github.com/rayners/fvtt-seasons-and-stars/commit/1d65de83066f7800044b9f2f5d6839c2d7892430)), closes [#66](https://github.com/rayners/fvtt-seasons-and-stars/issues/66)
+
 ## [0.3.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.1...v0.3.2) (2025-06-18)
 
 
