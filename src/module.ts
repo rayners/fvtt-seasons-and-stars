@@ -1323,34 +1323,35 @@ function registerMemoryMageIntegration(): void {
     });
 
     // Register cleanup handler for memory pressure
-    (memoryMage as MemoryMageAPI).registerCleanupHandler?.('seasons-and-stars', () => {
-      Logger.info(`Memory Mage triggered cleanup: ${level} pressure detected`);
+    (memoryMage as MemoryMageAPI).registerCleanupHandler?.(
+      'seasons-and-stars',
+      (level: 'warning' | 'critical') => {
+        Logger.info(`Memory Mage triggered cleanup: ${level} pressure detected`);
 
-      if (level === 'warning') {
-        // Light cleanup
-        const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
-        if (optimizer) {
-          optimizer.relieveMemoryPressure?.();
-        }
-      } else if (level === 'critical') {
-        // Aggressive cleanup
-        const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
-        if (optimizer) {
-          optimizer.relieveMemoryPressure?.();
-        }
+        if (level === 'warning') {
+          // Light cleanup
+          const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
+          if (optimizer) {
+            optimizer.relieveMemoryPressure?.();
+          }
+        } else if (level === 'critical') {
+          // Aggressive cleanup
+          const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
+          if (optimizer) {
+            optimizer.relieveMemoryPressure?.();
+          }
 
-        // Clear other caches if available
-        if ((calendarManager as ExtendedCalendarManager)?.clearCaches) {
-          (calendarManager as ExtendedCalendarManager).clearCaches?.();
-        }
+          // Clear other caches if available
+          if ((calendarManager as ExtendedCalendarManager)?.clearCaches) {
+            (calendarManager as ExtendedCalendarManager).clearCaches?.();
+          }
 
-        // Force close widgets if memory is critically low
-        if (level === 'critical') {
+          // Force close widgets if memory is critically low
           (CalendarWidget as unknown as { closeAll?: () => void }).closeAll?.();
           (CalendarGridWidget as unknown as { closeAll?: () => void }).closeAll?.();
         }
       }
-    });
+    );
 
     Logger.debug('Memory Mage integration registered successfully');
   } catch (error) {
