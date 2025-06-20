@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0  # Required for bundle size comparison
 
       - name: Bundle Analysis
-        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
+        uses: rayners/foundry-module-actions/bundle-analysis@v5
         with:
           node-version: '18'
           github-packages: true
