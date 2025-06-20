@@ -161,7 +161,7 @@
       "days": 5,
       "after": "Gather",
       "leapYearOnly": false,
-      "countsForWeekdays": true,
+      "countsForWeekdays": false,
       "description": "A five-day period when the sun's killing heat allegedly lessens. Even this 'cooling' would be deadly on any other world, but on Athas it represents a brief chance for survival and preparation."
     },
     {
@@ -169,7 +169,7 @@
       "days": 5,
       "after": "Haze",
       "leapYearOnly": false,
-      "countsForWeekdays": true,
+      "countsForWeekdays": false,
       "description": "Five days when the sun reaches one of its peaks of deadly intensity. A time of seeking shelter and enduring the worst that Athas can unleash upon its unfortunate inhabitants."
     },
     {
@@ -177,7 +177,7 @@
       "days": 5,
       "after": "Smolder", 
       "leapYearOnly": false,
-      "countsForWeekdays": true,
+      "countsForWeekdays": false,
       "description": "The most dreaded five days of the Athasian year when the sun reaches its absolute peak of killing power. Even the strongest creatures seek shelter from this ultimate test of survival."
     }
   ],

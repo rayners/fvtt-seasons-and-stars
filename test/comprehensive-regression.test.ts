@@ -282,6 +282,37 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
           );
         });
       }
+
+      // Dark Sun-specific test for Issue #69
+      if (calendarName === 'dark-sun') {
+        it('should ensure all months start on "1 Day" with countsForWeekdays: false', () => {
+          const cal = engine.getCalendar();
+          const year = cal.year.currentYear + 1;
+
+          // Test that every month starts on weekday 0 ("1 Day")
+          for (let month = 1; month <= cal.months.length; month++) {
+            const firstDayWeekday = engine.calculateWeekday(year, month, 1);
+            expect(firstDayWeekday).toBe(0);
+          }
+
+          // Test specifically that intercalary days don't affect month starts
+          // Month 5 (Breeze) comes after Cooling Sun intercalary
+          const firstDayBreeze = engine.calculateWeekday(year, 5, 1);
+          expect(firstDayBreeze).toBe(0);
+
+          // Month 9 (Hoard) comes after Soaring Sun intercalary  
+          const firstDayHoard = engine.calculateWeekday(year, 9, 1);
+          expect(firstDayHoard).toBe(0);
+
+          // Month 1 of next year comes after Highest Sun intercalary
+          const firstDayNextYear = engine.calculateWeekday(year + 1, 1, 1);
+          expect(firstDayNextYear).toBe(0);
+
+          console.log(
+            `✅ Dark Sun Issue #69 Test: All months start on "1 Day" with intercalary countsForWeekdays: false`
+          );
+        });
+      }
     });
   });
 
