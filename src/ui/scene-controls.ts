@@ -59,25 +59,10 @@ export class SeasonsStarsSceneControls {
       }
     });
 
-    // Update button state when any widget is shown/hidden
-    Hooks.on('renderApplication', (app: any) => {
-      if (
-        app instanceof CalendarWidget ||
-        app instanceof CalendarMiniWidget ||
-        app instanceof CalendarGridWidget
-      ) {
-        SeasonsStarsSceneControls.updateControlState(true);
-      }
-    });
-
-    Hooks.on('closeApplication', (app: any) => {
-      if (
-        app instanceof CalendarWidget ||
-        app instanceof CalendarMiniWidget ||
-        app instanceof CalendarGridWidget
-      ) {
-        SeasonsStarsSceneControls.updateControlState(false);
-      }
+    // Update button state based on widget manager state
+    Hooks.on('seasons-stars:widgetStateChanged', () => {
+      const hasVisibleWidget = CalendarWidgetManager.getVisibleWidgets().length > 0;
+      SeasonsStarsSceneControls.updateControlState(hasVisibleWidget);
     });
   }
 
@@ -92,10 +77,10 @@ export class SeasonsStarsSceneControls {
 
       switch (defaultWidget) {
         case 'mini':
-          CalendarMiniWidget.show();
+          CalendarWidgetManager.showWidget('mini');
           break;
         case 'grid':
-          CalendarGridWidget.show();
+          CalendarWidgetManager.showWidget('grid');
           break;
         case 'main':
         default:
@@ -123,10 +108,10 @@ export class SeasonsStarsSceneControls {
 
       switch (defaultWidget) {
         case 'mini':
-          CalendarMiniWidget.hide();
+          CalendarWidgetManager.hideWidget('mini');
           break;
         case 'grid':
-          CalendarGridWidget.hide();
+          CalendarWidgetManager.hideWidget('grid');
           break;
         case 'main':
         default:
@@ -154,10 +139,10 @@ export class SeasonsStarsSceneControls {
 
       switch (defaultWidget) {
         case 'mini':
-          CalendarMiniWidget.toggle();
+          CalendarWidgetManager.toggleWidget('mini');
           break;
         case 'grid':
-          CalendarGridWidget.toggle();
+          CalendarWidgetManager.toggleWidget('grid');
           break;
         case 'main':
         default:
@@ -205,17 +190,32 @@ export class SeasonsStarsSceneControls {
       showMainWidget: () => CalendarWidgetManager.showWidget('main'),
       hideMainWidget: () => CalendarWidgetManager.hideWidget('main'),
       toggleMainWidget: () => CalendarWidgetManager.toggleWidget('main'),
-      showMiniWidget: () => CalendarMiniWidget.show(),
-      hideMiniWidget: () => CalendarMiniWidget.hide(),
-      toggleMiniWidget: () => CalendarMiniWidget.toggle(),
-      showGridWidget: () => CalendarGridWidget.show(),
-      hideGridWidget: () => CalendarGridWidget.hide(),
-      toggleGridWidget: () => CalendarGridWidget.toggle(),
+      showMiniWidget: () => CalendarWidgetManager.showWidget('mini'),
+      hideMiniWidget: () => CalendarWidgetManager.hideWidget('mini'),
+      toggleMiniWidget: () => CalendarWidgetManager.toggleWidget('mini'),
+      showGridWidget: () => CalendarWidgetManager.showWidget('grid'),
+      hideGridWidget: () => CalendarWidgetManager.hideWidget('grid'),
+      toggleGridWidget: () => CalendarWidgetManager.toggleWidget('grid'),
 
       // Mini widget positioning (legacy support)
-      positionMiniAboveSmallTime: () => CalendarMiniWidget.positionAboveSmallTime(),
-      positionMiniBelowSmallTime: () => CalendarMiniWidget.positionBelowSmallTime(),
-      positionMiniBesideSmallTime: () => CalendarMiniWidget.positionBesideSmallTime(),
+      positionMiniAboveSmallTime: () => {
+        const miniWidget = CalendarWidgetManager.getWidgetInstance('mini');
+        if (miniWidget && typeof miniWidget.positionAboveSmallTime === 'function') {
+          miniWidget.positionAboveSmallTime();
+        }
+      },
+      positionMiniBelowSmallTime: () => {
+        const miniWidget = CalendarWidgetManager.getWidgetInstance('mini');
+        if (miniWidget && typeof miniWidget.positionBelowSmallTime === 'function') {
+          miniWidget.positionBelowSmallTime();
+        }
+      },
+      positionMiniBesideSmallTime: () => {
+        const miniWidget = CalendarWidgetManager.getWidgetInstance('mini');
+        if (miniWidget && typeof miniWidget.positionBesideSmallTime === 'function') {
+          miniWidget.positionBesideSmallTime();
+        }
+      },
 
       // Time advancement functions for macros
       advanceMinutes: async (minutes: number) => {

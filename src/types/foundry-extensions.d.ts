@@ -26,7 +26,7 @@ declare global {
       api: SeasonsStarsAPI;
       manager: unknown;
       notes: unknown;
-      integration: typeof SeasonsStarsIntegration;
+      integration: SeasonsStarsIntegration | null;
       CalendarWidget?: unknown;
       CalendarMiniWidget?: unknown;
       CalendarGridWidget?: unknown;

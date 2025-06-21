@@ -1263,7 +1263,7 @@ function setupAPI(): void {
     api,
     manager: calendarManager,
     notes: notesManager,
-    integration: SeasonsStarsIntegration,
+    integration: SeasonsStarsIntegration.detect() || null,
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,

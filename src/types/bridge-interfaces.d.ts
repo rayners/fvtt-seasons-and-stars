@@ -9,12 +9,14 @@ import type { CreateNoteData } from './external-integrations';
 
 // Forward declaration to avoid circular dependency
 export interface SeasonsStarsIntegration {
-  detect(): SeasonsStarsIntegration | null;
   hasFeature(feature: string): boolean;
   getFeatureVersion(feature: string): string | null;
   readonly api: SeasonsStarsAPI;
   readonly widgets: SeasonsStarsWidgets;
   readonly hooks: SeasonsStarsHooks;
+  readonly version: string;
+  readonly isAvailable: boolean;
+  cleanup(): void;
 }
 
 // Core integration interface types
@@ -83,15 +85,29 @@ export interface SeasonsStarsHooks {
 
 // Notes API interface
 export interface SeasonsStarsNotesAPI {
-  // Note CRUD operations
-  addNote(data: CreateNoteData): Promise<any>;
-  updateNote(noteId: string, data: Partial<CreateNoteData>): Promise<any>;
+  // Simple Calendar API compatibility methods (legacy signature)
+  addNote(
+    title: string,
+    content: string,
+    startDate: any,
+    endDate?: any,
+    allDay?: boolean,
+    playerVisible?: boolean
+  ): Promise<any>;
   removeNote(noteId: string): Promise<void>;
-  getNote(noteId: string): any | null;
+  getNotesForDay(year: number, month: number, day: number, calendarId?: string): any[];
 
-  // Date-based note queries
-  getNotesForDay(date: CalendarDate): any[];
-  getNotesForDateRange(startDate: CalendarDate, endDate: CalendarDate): any[];
+  // Enhanced notes functionality (S&S native)
+  createNote(data: CreateNoteData): Promise<any>;
+  updateNote(noteId: string, data: any): Promise<any>;
+  deleteNote(noteId: string): Promise<void>;
+  getNote(noteId: string): Promise<any | null>;
+  getNotesForDate(date: CalendarDate, calendarId?: string): Promise<any[]>;
+  getNotesForDateRange(start: CalendarDate, end: CalendarDate, calendarId?: string): Promise<any[]>;
+
+  // Module integration methods
+  setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void>;
+  getNoteModuleData(noteId: string, moduleId: string): any;
 
   // Display formatting for compatibility
   formatNoteDisplay(note: any): any;
