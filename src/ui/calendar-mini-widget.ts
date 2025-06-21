@@ -2,8 +2,7 @@
  * Calendar Mini Widget - Compact date display that pairs with SmallTime
  */
 
-import { CalendarWidget } from './calendar-widget';
-import { CalendarGridWidget } from './calendar-grid-widget';
+import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
@@ -1053,11 +1052,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Open either the default widget or grid widget (both are larger than mini)
       if (defaultWidget === 'grid') {
         Logger.info('Opening grid widget');
-        CalendarGridWidget.show();
+        CalendarWidgetManager.showWidget('grid');
       } else {
         // For 'main' or anything else, show the main widget
         Logger.info('Opening main calendar widget');
-        CalendarWidget.show();
+        CalendarWidgetManager.showWidget('main');
       }
     } catch (error) {
       Logger.error(
@@ -1066,7 +1065,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       );
       // Fallback to main widget
       Logger.info('Fallback: Opening main calendar widget');
-      CalendarWidget.show();
+      CalendarWidgetManager.showWidget('main');
     }
   }
 }

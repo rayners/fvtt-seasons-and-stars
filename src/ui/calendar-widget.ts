@@ -4,8 +4,7 @@
 
 import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarSelectionDialog } from './calendar-selection-dialog';
-import { CalendarGridWidget } from './calendar-grid-widget';
-import { CalendarMiniWidget } from './calendar-mini-widget';
+import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
@@ -138,7 +137,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
 
     // Open the calendar grid widget with the current date
     const currentDate = manager.getCurrentDate();
-    CalendarGridWidget.show(currentDate || undefined);
+    CalendarWidgetManager.showWidget('grid');
   }
 
   /**
@@ -240,7 +239,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       // Close current widget
       this.close();
       // Open mini widget
-      CalendarMiniWidget.show();
+      CalendarWidgetManager.showWidget('mini');
     } catch (error) {
       Logger.error(
         'Failed to switch to mini widget',
@@ -260,7 +259,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       // Close current widget
       this.close();
       // Open grid widget
-      CalendarGridWidget.show();
+      CalendarWidgetManager.showWidget('grid');
     } catch (error) {
       Logger.error(
         'Failed to switch to grid widget',

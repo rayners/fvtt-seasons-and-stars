@@ -14,98 +14,19 @@ import type {
 import { CalendarDate as CalendarDateClass } from './calendar-date';
 import type { CreateNoteData } from '../types/external-integrations';
 import type { CalendarManagerInterface, NotesManagerInterface } from '../types/foundry-extensions';
+import type {
+  SeasonsStarsAPI,
+  SeasonsStarsWidgets,
+  SeasonsStarsHooks,
+  SeasonsStarsNotesAPI,
+} from '../types/bridge-interfaces';
 import { isCalendarManager } from '../types/type-guards';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
 import { Logger } from './logger';
 
-// Core integration interface types
-export interface SeasonsStarsAPI {
-  // Core date operations
-  getCurrentDate(calendarId?: string): CalendarDate;
-  worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate;
-  dateToWorldTime(date: CalendarDate, calendarId?: string): number;
-  formatDate(date: CalendarDate, options?: DateFormatOptions): string;
-
-  // Calendar management
-  getActiveCalendar(): SeasonsStarsCalendar;
-  setActiveCalendar(calendarId: string): Promise<void>;
-  getAvailableCalendars(): string[];
-
-  // Time advancement (GM only)
-  advanceDays(days: number, calendarId?: string): Promise<void>;
-  advanceHours(hours: number, calendarId?: string): Promise<void>;
-  advanceMinutes(minutes: number, calendarId?: string): Promise<void>;
-
-  // Calendar metadata
-  getMonthNames(calendarId?: string): string[];
-  getWeekdayNames(calendarId?: string): string[];
-
-  // Enhanced features (basic implementations available)
-  getSunriseSunset(date: CalendarDate, calendarId?: string): TimeOfDay;
-  getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo;
-
-  // Notes API - Phase 2 addition
-  notes: SeasonsStarsNotesAPI;
-}
-
-export interface SeasonsStarsNotesAPI {
-  // Simple Calendar API compatibility
-  addNote(
-    title: string,
-    content: string,
-    startDate: CalendarDate,
-    endDate?: CalendarDate,
-    allDay?: boolean,
-    playerVisible?: boolean
-  ): Promise<JournalEntry>;
-  removeNote(noteId: string): Promise<void>;
-  getNotesForDay(year: number, month: number, day: number, calendarId?: string): JournalEntry[];
-
-  // Enhanced notes functionality
-  createNote(data: CreateNoteData): Promise<JournalEntry>;
-  updateNote(noteId: string, data: UpdateNoteData): Promise<JournalEntry>;
-  deleteNote(noteId: string): Promise<void>;
-  getNote(noteId: string): Promise<JournalEntry | null>;
-  getNotesForDate(date: CalendarDate, calendarId?: string): Promise<JournalEntry[]>;
-  getNotesForDateRange(
-    start: CalendarDate,
-    end: CalendarDate,
-    calendarId?: string
-  ): Promise<JournalEntry[]>;
-
-  // Module integration
-  setNoteModuleData(noteId: string, moduleId: string, data: unknown): Promise<void>;
-  getNoteModuleData(noteId: string, moduleId: string): unknown;
-}
-
-export interface SeasonsStarsWidgets {
-  readonly main: BridgeCalendarWidget | null;
-  readonly mini: BridgeCalendarWidget | null;
-  readonly grid: BridgeCalendarWidget | null;
-
-  getPreferredWidget(preference?: WidgetPreference): BridgeCalendarWidget | null;
-  onWidgetChange(callback: (widgets: SeasonsStarsWidgets) => void): void;
-  offWidgetChange(callback: (widgets: SeasonsStarsWidgets) => void): void;
-}
-
-export interface BridgeCalendarWidget {
-  readonly id: string;
-  readonly isVisible: boolean;
-
-  addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void;
-  removeSidebarButton(name: string): void;
-  hasSidebarButton(name: string): boolean;
-  getInstance(): unknown;
-}
-
-export interface SeasonsStarsHooks {
-  onDateChanged(callback: (event: DateChangeEvent) => void): void;
-  onCalendarChanged(callback: (event: CalendarChangeEvent) => void): void;
-  onReady(callback: (event: ReadyEvent) => void): void;
-  off(hookName: string, callback: (...args: unknown[]) => void): void;
-}
+// Additional bridge-specific interfaces not in the main bridge-interfaces file
 
 // Event types
 export interface DateChangeEvent {

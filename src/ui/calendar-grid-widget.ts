@@ -3,8 +3,7 @@
  */
 
 import { CalendarLocalization } from '../core/calendar-localization';
-import { CalendarWidget } from './calendar-widget';
-import { CalendarMiniWidget } from './calendar-mini-widget';
+import { CalendarWidgetManager } from './widget-manager';
 import { CalendarDate } from '../core/calendar-date';
 import { Logger } from '../core/logger';
 import type { NoteCategories } from '../core/note-categories';
@@ -1788,7 +1787,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Close current widget
       this.close();
       // Open main widget
-      CalendarWidget.show();
+      CalendarWidgetManager.showWidget('main');
     } catch (error) {
       Logger.error(
         'Failed to switch to main widget',
@@ -1808,7 +1807,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Close current widget
       this.close();
       // Open mini widget
-      CalendarMiniWidget.show();
+      CalendarWidgetManager.showWidget('mini');
     } catch (error) {
       Logger.error(
         'Failed to switch to mini widget',

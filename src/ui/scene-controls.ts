@@ -2,9 +2,7 @@
  * Scene controls integration for Seasons & Stars
  */
 
-import { CalendarWidget } from './calendar-widget';
-import { CalendarMiniWidget } from './calendar-mini-widget';
-import { CalendarGridWidget } from './calendar-grid-widget';
+import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import type { SceneControl } from '../types/widget-types';
@@ -101,7 +99,7 @@ export class SeasonsStarsSceneControls {
           break;
         case 'main':
         default:
-          CalendarWidget.show();
+          CalendarWidgetManager.showWidget('main');
           break;
       }
     } catch (error) {
@@ -110,7 +108,7 @@ export class SeasonsStarsSceneControls {
         error instanceof Error ? error : new Error(String(error))
       );
       // Fallback to main widget
-      CalendarWidget.show();
+      CalendarWidgetManager.showWidget('main');
     }
   }
 
@@ -132,7 +130,7 @@ export class SeasonsStarsSceneControls {
           break;
         case 'main':
         default:
-          CalendarWidget.hide();
+          CalendarWidgetManager.hideWidget('main');
           break;
       }
     } catch (error) {
@@ -141,7 +139,7 @@ export class SeasonsStarsSceneControls {
         error instanceof Error ? error : new Error(String(error))
       );
       // Fallback to main widget
-      CalendarWidget.hide();
+      CalendarWidgetManager.hideWidget('main');
     }
   }
 
@@ -163,7 +161,7 @@ export class SeasonsStarsSceneControls {
           break;
         case 'main':
         default:
-          CalendarWidget.toggle();
+          CalendarWidgetManager.toggleWidget('main');
           break;
       }
     } catch (error) {
@@ -172,7 +170,7 @@ export class SeasonsStarsSceneControls {
         error instanceof Error ? error : new Error(String(error))
       );
       // Fallback to main widget
-      CalendarWidget.toggle();
+      CalendarWidgetManager.toggleWidget('main');
     }
   }
 
@@ -204,9 +202,9 @@ export class SeasonsStarsSceneControls {
       toggleWidget: () => SeasonsStarsSceneControls.toggleDefaultWidget(),
 
       // Specific widget controls (for advanced users who want to override default)
-      showMainWidget: () => CalendarWidget.show(),
-      hideMainWidget: () => CalendarWidget.hide(),
-      toggleMainWidget: () => CalendarWidget.toggle(),
+      showMainWidget: () => CalendarWidgetManager.showWidget('main'),
+      hideMainWidget: () => CalendarWidgetManager.hideWidget('main'),
+      toggleMainWidget: () => CalendarWidgetManager.toggleWidget('main'),
       showMiniWidget: () => CalendarMiniWidget.show(),
       hideMiniWidget: () => CalendarMiniWidget.hide(),
       toggleMiniWidget: () => CalendarMiniWidget.toggle(),

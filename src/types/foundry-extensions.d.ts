@@ -6,7 +6,7 @@
  */
 
 import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
-import type { SeasonsStarsIntegration } from '../core/bridge-integration';
+import type { SeasonsStarsIntegration } from './bridge-interfaces';
 import type { NoteCategories } from '../core/note-categories';
 
 // Extend the Game interface to include S&S specific properties
