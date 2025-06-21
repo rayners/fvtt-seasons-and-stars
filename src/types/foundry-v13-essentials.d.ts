@@ -55,11 +55,14 @@ declare global {
   type JournalSheet = FoundryJournalSheet;
 
   // Global Node.js compatibility
-  interface NodeGlobal {
-    gc?: () => void;
+  namespace NodeJS {
+    interface Global {
+      gc?: () => void;
+      game?: Game;
+      ui?: UI;
+      Hooks?: HooksManager;
+    }
   }
-
-  const global: NodeGlobal;
 
   // jQuery globals provided by @types/jquery
 
