@@ -9,7 +9,7 @@ export default [
   // Use the shared Foundry VTT configuration
   ...foundryConfig,
 
-  // Project-specific overrides for source files only
+  // Project-specific overrides for source files
   {
     files: ['src/**/*.{js,ts}'],
     rules: {
@@ -22,8 +22,28 @@ export default [
     },
   },
 
-  // Ignore test files and type definition files completely
+  // Test files with relaxed rules
   {
-    ignores: ['test/**/*', 'dist/', 'node_modules/', 'coverage/', '*.js', '*.mjs'],
+    files: ['test/**/*.{js,ts}'],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.test.json',
+      },
+    },
+    rules: {
+      // Allow more flexibility in test files
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off', // Allow @ts-ignore in tests for mock types
+      'no-console': 'off',
+      'prefer-const': 'warn',
+    },
+  },
+
+  // Ignore build artifacts and dependencies
+  {
+    ignores: ['dist/', 'node_modules/', 'coverage/', '*.js', '*.mjs'],
   },
 ];

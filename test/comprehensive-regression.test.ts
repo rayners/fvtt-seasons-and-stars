@@ -287,7 +287,7 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
 
   describe('Cross-Calendar Compatibility', () => {
     it('should handle all calendars consistently', () => {
-      let allEngines: { [key: string]: CalendarEngine } = {};
+      const allEngines: { [key: string]: CalendarEngine } = {};
 
       // Load all calendars
       calendarFiles.forEach(calendarFile => {
