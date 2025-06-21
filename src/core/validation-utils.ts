@@ -52,34 +52,4 @@ export class ValidationUtils {
       throw new Error(`${paramName} cannot be empty`);
     }
   }
-
-  /**
-   * Validate boolean parameter
-   */
-  static validateBoolean(value: any, paramName: string): void {
-    if (typeof value !== 'boolean') {
-      throw new Error(`${paramName} must be a boolean`);
-    }
-  }
-
-  /**
-   * Validate that calendar manager is available
-   */
-  static validateManagerAvailable(): void {
-    const manager = game.seasonsStars?.manager;
-    if (!manager) {
-      throw new Error('Calendar manager not available');
-    }
-  }
-
-  /**
-   * Validate that calendar engine is available
-   */
-  static validateEngineAvailable(): void {
-    const manager = game.seasonsStars?.manager;
-    const engine = (manager as CalendarManagerInterface)?.getActiveEngine();
-    if (!engine) {
-      throw new Error('Calendar engine not available');
-    }
-  }
 }

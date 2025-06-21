@@ -21,6 +21,7 @@ import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
+import { APIWrapper } from './core/api-wrapper';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
@@ -54,91 +55,31 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
 
       // Context provider - adds useful debugging information
       contextProvider: () => {
-        // Use defensive programming to prevent context provider errors
         const context: Record<string, unknown> = {};
 
-        try {
-          // Add current calendar information
-          if (calendarManager) {
-            const currentDate = calendarManager.getCurrentDate();
-            const activeCalendar = calendarManager.getActiveCalendar();
+        // Add current calendar information - safe property access
+        if (calendarManager) {
+          const currentDate = calendarManager.getCurrentDate();
+          const activeCalendar = calendarManager.getActiveCalendar();
 
-            context.currentDate = currentDate
-              ? `${currentDate.year}-${currentDate.month}-${currentDate.day}`
-              : 'unknown';
-            context.activeCalendarId = activeCalendar?.id || 'unknown';
-            context.activeCalendarLabel = activeCalendar?.translations?.en?.label || 'unknown';
-            context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
-          }
-        } catch {
-          context.calendarDataError = 'Failed to access calendar data';
+          context.currentDate = currentDate
+            ? `${currentDate.year}-${currentDate.month}-${currentDate.day}`
+            : 'unknown';
+          context.activeCalendarId = activeCalendar?.id || 'unknown';
+          context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
         }
 
-        try {
-          // Add widget state information
-          const activeWidgets: string[] = [];
-          if (CalendarWidget.getInstance?.()?.rendered) activeWidgets.push('main');
-          if (CalendarMiniWidget.getInstance?.()?.rendered) activeWidgets.push('mini');
-          if (CalendarGridWidget.getInstance?.()?.rendered) activeWidgets.push('grid');
+        // Add widget state - simple property checks don't need try-catch
+        const activeWidgets: string[] = [];
+        if (CalendarWidget.getInstance?.()?.rendered) activeWidgets.push('main');
+        if (CalendarMiniWidget.getInstance?.()?.rendered) activeWidgets.push('mini');
+        if (CalendarGridWidget.getInstance?.()?.rendered) activeWidgets.push('grid');
+        context.activeWidgets = activeWidgets;
 
-          context.activeWidgets = activeWidgets;
-          context.widgetCount = activeWidgets.length;
-        } catch {
-          context.widgetDataError = 'Failed to access widget data';
-        }
-
-        try {
-          // Add system integration status
-          context.smallTimeDetected = !!document.querySelector('#smalltime-app');
-          context.simpleCalendarActive =
-            game.modules?.get('foundryvtt-simple-calendar')?.active || false;
-        } catch {
-          context.integrationDataError = 'Failed to check integrations';
-        }
-
-        try {
-          // Add notes information
-          if (notesManager) {
-            context.notesSystemInitialized = notesManager.isInitialized();
-            // Don't expose note count as it might be sensitive
-          }
-        } catch {
-          context.notesError = 'Could not read notes state';
-        }
-
-        try {
-          // Add current scene information
-          if (game.scenes?.active) {
-            const scene = game.scenes.active;
-            context.sceneId = scene.id;
-            context.sceneName = scene.name;
-          }
-        } catch {
-          context.sceneError = 'Could not read scene data';
-        }
-
-        try {
-          // Add system information
-          context.gameSystem = game.system?.id || 'unknown';
-          context.systemVersion = game.system?.version || 'unknown';
-          context.foundryVersion = game.version || 'unknown';
-        } catch {
-          context.systemInfoError = 'Could not read system information';
-        }
-
-        try {
-          // Add key module settings that might affect behavior
-          context.showTimeWidget =
-            game.settings?.get('seasons-and-stars', 'showTimeWidget') || false;
-          context.debugMode = game.settings?.get('seasons-and-stars', 'debugMode') || false;
-          context.showNotifications =
-            game.settings?.get('seasons-and-stars', 'showNotifications') || false;
-          context.defaultWidget =
-            game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
-        } catch {
-          // Settings might not be registered yet
-          context.settingsError = 'Could not read module settings';
-        }
+        // Add system information - basic property access
+        context.gameSystem = game.system?.id || 'unknown';
+        context.foundryVersion = game.version || 'unknown';
+        context.smallTimeDetected = !!document.querySelector('#smalltime-app');
 
         return context;
       },
@@ -346,9 +287,6 @@ Hooks.once('ready', async () => {
     manager: calendarManager,
     api: game.seasonsStars?.api,
   });
-
-  // TEMPORARY: Setup test error reporting function for E&E verification
-  setupTestErrorReporting();
 
   Logger.info('Module ready');
 });
@@ -718,71 +656,27 @@ function setupAPI(): void {
     },
 
     advanceMinutes: async (minutes: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceMinutes', { minutes, calendarId });
-
-        // Input validation
-        if (typeof minutes !== 'number' || !isFinite(minutes)) {
-          const error = new Error('Minutes must be a finite number');
-          Logger.error('Invalid minutes parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceMinutes(minutes);
-        Logger.api('advanceMinutes', { minutes, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance minutes',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceMinutes',
+        { minutes, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.minutes, 'Minutes');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceMinutes(minutes)
+      );
     },
 
     advanceWeeks: async (weeks: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceWeeks', { weeks, calendarId });
-
-        // Input validation
-        if (typeof weeks !== 'number' || !isFinite(weeks)) {
-          const error = new Error('Weeks must be a finite number');
-          Logger.error('Invalid weeks parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceWeeks(weeks);
-        Logger.api('advanceWeeks', { weeks, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance weeks',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceWeeks',
+        { weeks, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.weeks, 'Weeks');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceWeeks(weeks)
+      );
     },
 
     advanceMonths: async (months: number, calendarId?: string): Promise<void> => {
@@ -1442,83 +1336,4 @@ function registerNotesCleanupHooks(): void {
   );
 
   Logger.debug('Notes cleanup hooks registered');
-}
-
-/**
- * TEMPORARY: Test function for E&E integration verification
- * Call from console: game.seasonsStars.testErrorReporting()
- * Remove after E&E integration is verified working
- */
-function setupTestErrorReporting(): void {
-  if (game.seasonsStars) {
-    (game.seasonsStars as { testErrorReporting?: () => void }).testErrorReporting = (): void => {
-      Logger.info('Testing E&E integration - triggering test error');
-
-      // Check if E&E is available first (try multiple patterns)
-      const errorReporterAPI =
-        (window as { ErrorsAndEchoesAPI?: unknown }).ErrorsAndEchoesAPI ||
-        (window as { ErrorsAndEchoes?: { API?: unknown } }).ErrorsAndEchoes?.API ||
-        game.modules?.get('errors-and-echoes')?.api;
-
-      if (!errorReporterAPI) {
-        console.error('E&E API not available - make sure Errors and Echoes module is enabled');
-        return;
-      }
-
-      // Create a controlled test error that should be caught by E&E
-      // Use an error that will definitely be attributed to our module
-      const testError = new Error(
-        'S&S Test Error: E&E integration verification - this is intentional for testing'
-      );
-      testError.stack = `Error: S&S Test Error: E&E integration verification - this is intentional for testing
-    at CalendarManager.testMethod (/modules/seasons-and-stars/dist/module.js:1234:15)
-    at game.seasonsStars.testErrorReporting (/modules/seasons-and-stars/dist/module.js:5678:20)`;
-
-      // Try manual reporting first
-      try {
-        (errorReporterAPI as any).report?.(testError, {
-          module: 'seasons-and-stars',
-          context: {
-            testType: 'manual-integration-test',
-            timestamp: Date.now(),
-          },
-        });
-        console.log('✅ Manual E&E report triggered');
-      } catch (reportError) {
-        console.error('❌ Manual E&E report failed:', reportError);
-      }
-
-      // Also try global error handler approach
-      setTimeout(() => {
-        console.log('🔄 Triggering global error handler...');
-        throw testError;
-      }, 500);
-    };
-
-    // Also add a function to check E&E status
-    (game.seasonsStars as { checkErrorReporting?: () => void }).checkErrorReporting = (): void => {
-      const errorReporterAPI =
-        (window as { ErrorsAndEchoesAPI?: unknown }).ErrorsAndEchoesAPI ||
-        (window as { ErrorsAndEchoes?: { API?: unknown } }).ErrorsAndEchoes?.API ||
-        game.modules?.get('errors-and-echoes')?.api;
-
-      const hasAPI = !!errorReporterAPI;
-      const hasConsent = hasAPI ? (errorReporterAPI as any).hasConsent?.() : false;
-      const privacyLevel = hasAPI ? (errorReporterAPI as any).getPrivacyLevel?.() : 'unknown';
-      const stats = hasAPI ? (errorReporterAPI as any).getStats?.() : null;
-
-      console.log('🔍 E&E Integration Status:');
-      console.log('  API Available:', hasAPI);
-      console.log('  User Consent:', hasConsent);
-      console.log('  Privacy Level:', privacyLevel);
-      console.log('  Stats:', stats);
-
-      Logger.debug('Error reporting test completed');
-      return undefined;
-    };
-
-    Logger.debug(
-      'Test functions exposed: game.seasonsStars.testErrorReporting() and game.seasonsStars.checkErrorReporting()'
-    );
-  }
 }
