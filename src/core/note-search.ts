@@ -2,8 +2,13 @@
  * Search and filtering system for calendar notes
  */
 
-import type { CalendarDate as ICalendarDate } from '../types/calendar';
-import type { NoteCategory } from './note-categories';
+import type {
+  CalendarDate as ICalendarDate,
+  CalendarDateData,
+  SeasonsStarsCalendar,
+} from '../types/calendar';
+import { CalendarDate } from './calendar-date';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export interface NoteSearchCriteria {
   // Text search
@@ -273,31 +278,35 @@ export class NoteSearch {
           comparison = (a.name || '').localeCompare(b.name || '');
           break;
 
-        case 'category':
+        case 'category': {
           const catA = a.flags?.['seasons-and-stars']?.category || 'general';
           const catB = b.flags?.['seasons-and-stars']?.category || 'general';
           comparison = catA.localeCompare(catB);
           break;
+        }
 
-        case 'date':
+        case 'date': {
           const dateA = a.flags?.['seasons-and-stars']?.startDate;
           const dateB = b.flags?.['seasons-and-stars']?.startDate;
           if (dateA && dateB) {
             comparison = this.compareDates(dateA, dateB);
           }
           break;
+        }
 
-        case 'created':
+        case 'created': {
           const createdA = a.flags?.['seasons-and-stars']?.created || 0;
           const createdB = b.flags?.['seasons-and-stars']?.created || 0;
           comparison = createdA - createdB;
           break;
+        }
 
-        case 'modified':
+        case 'modified': {
           const modifiedA = a.flags?.['seasons-and-stars']?.modified || 0;
           const modifiedB = b.flags?.['seasons-and-stars']?.modified || 0;
           comparison = modifiedA - modifiedB;
           break;
+        }
       }
 
       return comparison * multiplier;
@@ -404,18 +413,28 @@ export class NoteSearch {
    * Get current date from calendar manager
    */
   private static getCurrentDate(): ICalendarDate {
-    const currentDate = game.seasonsStars?.manager?.getCurrentDate();
+    const currentDate = (game.seasonsStars?.manager as CalendarManagerInterface)?.getCurrentDate();
     if (currentDate) {
-      return currentDate.toObject();
+      return currentDate;
     }
 
     // Fallback to a reasonable default
-    return {
+    const fallbackData: CalendarDateData = {
       year: 2024,
       month: 1,
       day: 1,
       weekday: 0,
       time: { hour: 0, minute: 0, second: 0 },
     };
+
+    // Create a CalendarDate instance - need calendar for this
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+    const calendar = manager?.getActiveCalendar();
+    if (calendar) {
+      return new CalendarDate(fallbackData, calendar);
+    }
+
+    // If no calendar available, this shouldn't happen but return the data
+    return fallbackData as ICalendarDate;
   }
 }

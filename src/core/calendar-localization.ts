@@ -148,12 +148,19 @@ export class CalendarLocalization {
   /**
    * Create a localized calendar object for UI display
    */
-  static getLocalizedCalendarInfo(calendar: SeasonsStarsCalendar) {
+  static getLocalizedCalendarInfo(calendar: SeasonsStarsCalendar): {
+    id: string;
+    label: string;
+    description: string;
+    setting: string;
+    availableLanguages: string[];
+    currentLanguage: string;
+  } {
     return {
       id: calendar.id,
       label: this.getCalendarLabel(calendar),
-      description: this.getCalendarDescription(calendar),
-      setting: this.getCalendarSetting(calendar),
+      description: this.getCalendarDescription(calendar) || '',
+      setting: this.getCalendarSetting(calendar) || '',
       availableLanguages: this.getAvailableLanguages(calendar),
       currentLanguage: this.getCurrentLanguage(),
     };

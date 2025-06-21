@@ -2,14 +2,12 @@
  * Calendar Mini Widget - Compact date display that pairs with SmallTime
  */
 
-import { CalendarLocalization } from '../core/calendar-localization';
-import { CalendarWidget } from './calendar-widget';
-import { CalendarGridWidget } from './calendar-grid-widget';
+import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
-import type { CalendarDate as ICalendarDate } from '../types/calendar';
 import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -54,7 +52,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   async _prepareContext(options: WidgetRenderOptions = {}): Promise<MiniWidgetContext> {
     const context = (await super._prepareContext(options)) as Record<string, unknown>;
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
 
     if (!manager) {
       return Object.assign(context, {
@@ -538,7 +536,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const amount = parseInt(target.dataset.amount || '0');
     const unit = target.dataset.unit || 'hours';
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     if (!manager) return;
 
     Logger.info(`Mini widget advancing time: ${amount} ${unit}`);
@@ -564,10 +562,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Handle opening calendar selection dialog
    */
-  async _onOpenCalendarSelection(event: Event, target: HTMLElement): Promise<void> {
+  async _onOpenCalendarSelection(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     if (!manager) return;
 
     try {
@@ -1043,7 +1041,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Open larger calendar view (default widget or grid based on setting)
    */
-  async _onOpenLargerView(event: Event, target: HTMLElement): Promise<void> {
+  async _onOpenLargerView(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
     Logger.info('Opening larger view from mini widget');
 
@@ -1054,11 +1052,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Open either the default widget or grid widget (both are larger than mini)
       if (defaultWidget === 'grid') {
         Logger.info('Opening grid widget');
-        CalendarGridWidget.show();
+        CalendarWidgetManager.showWidget('grid');
       } else {
         // For 'main' or anything else, show the main widget
         Logger.info('Opening main calendar widget');
-        CalendarWidget.show();
+        CalendarWidgetManager.showWidget('main');
       }
     } catch (error) {
       Logger.error(
@@ -1067,7 +1065,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       );
       // Fallback to main widget
       Logger.info('Fallback: Opening main calendar widget');
-      CalendarWidget.show();
+      CalendarWidgetManager.showWidget('main');
     }
   }
 }

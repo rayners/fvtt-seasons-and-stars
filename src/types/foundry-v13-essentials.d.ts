@@ -46,21 +46,74 @@ declare global {
   const Folder: typeof FoundryFolder;
   const Dialog: typeof FoundryDialog;
   const Application: typeof FoundryApplication;
+  const Scene: typeof FoundryScene;
 
   type Folder = FoundryFolder;
-
   type JournalEntry = FoundryJournalEntry;
   type User = FoundryUser;
   type Calendar = FoundryCalendar;
+  type JournalSheet = FoundryJournalSheet;
 
   // Global Node.js compatibility
-  interface NodeGlobal {
-    gc?: () => void;
+  namespace NodeJS {
+    interface Global {
+      gc?: () => void;
+      game?: Game;
+      ui?: UI;
+      Hooks?: HooksManager;
+    }
   }
 
-  const global: NodeGlobal;
-
   // jQuery globals provided by @types/jquery
+
+  // Make ApplicationV2 namespace available globally
+  namespace ApplicationV2 {
+    interface Configuration {
+      id?: string;
+      classes?: string[];
+      tag?: string;
+      window?: {
+        title?: string;
+        icon?: string;
+        positioned?: boolean;
+        minimizable?: boolean;
+        resizable?: boolean;
+      };
+      position?: Partial<Position>;
+      actions?: Record<string, any>;
+    }
+
+    interface Position {
+      top?: number;
+      left?: number;
+      width?: number | 'auto';
+      height?: number | 'auto';
+      scale?: number;
+    }
+
+    interface RenderOptions {
+      force?: boolean;
+      position?: Partial<Position>;
+      window?: Partial<ApplicationWindow>;
+      parts?: string[];
+    }
+
+    interface CloseOptions {
+      animate?: boolean;
+    }
+
+    interface ApplicationWindow {
+      title: string;
+      icon: string;
+      controls: ApplicationHeaderButton[];
+    }
+
+    interface ApplicationHeaderButton {
+      icon: string;
+      label: string;
+      action: string;
+    }
+  }
 }
 
 // =============================================================================
@@ -78,13 +131,27 @@ interface Game {
   folders?: FoundryCollection<FoundryFolder>;
   keybindings?: FoundryKeybindings;
 
+  // Additional Foundry properties
+  scenes?: FoundryCollection<FoundryScene> & {
+    active?: FoundryScene;
+  };
+  system?: {
+    id: string;
+    version: string;
+    title?: string;
+  };
+  version?: string;
+
+  // Module integration points
+  memoryMage?: unknown;
+
   // Season & Stars specific integration point
   seasonsStars?: {
-    manager?: any;
-    notes?: any;
-    integration?: any;
-    api?: any;
-    categories?: any;
+    manager?: unknown;
+    notes?: unknown;
+    integration?: unknown;
+    api?: unknown;
+    categories?: unknown;
   };
 }
 
@@ -111,14 +178,22 @@ interface FoundryUser {
   isGM: boolean;
 }
 
+declare class FoundryScene {
+  id: string;
+  name: string;
+  active?: boolean;
+}
+
 declare class FoundryJournalEntry {
   id: string;
   name: string;
+  title?: string; // Alternative name property
   pages: FoundryCollection<JournalEntryPage>;
   ownership: Record<string, number>;
   flags: Record<string, any>;
   author?: FoundryUser;
   folder?: string;
+  sheet?: FoundryJournalSheet;
 
   static create(data: any): Promise<FoundryJournalEntry>;
   update(data: any): Promise<FoundryJournalEntry>;
@@ -137,6 +212,17 @@ interface JournalEntryPage {
     content: string;
   };
   update?(data: any): Promise<JournalEntryPage>;
+}
+
+interface JournalSheet {
+  document?: FoundryJournalEntry;
+  [key: string]: unknown;
+}
+
+declare class FoundryJournalSheet {
+  document: FoundryJournalEntry;
+  close(): Promise<void>;
+  [key: string]: unknown;
 }
 
 declare class FoundryFolder {
@@ -165,7 +251,7 @@ interface Module {
   title: string;
   active: boolean;
   version?: string;
-  api?: any; // For modules that expose APIs
+  api?: unknown; // For modules that expose APIs
 }
 
 interface UI {
@@ -200,6 +286,12 @@ declare class HooksManager {
   static call(hook: string, ...args: any[]): boolean;
   static callAll(hook: string, ...args: any[]): void;
 }
+
+// =============================================================================
+// APPLICATION V2 NAMESPACE
+// =============================================================================
+
+// ApplicationV2 namespace moved to later in file to avoid conflicts
 
 // =============================================================================
 // DIALOG SYSTEM
@@ -239,6 +331,7 @@ declare class FoundryCollection<T> extends Map<string, T> {
   find(predicate: (value: T) => boolean): T | undefined;
   filter(predicate: (value: T) => boolean): T[];
   map<U>(transform: (value: T) => U): U[];
+  contents: T[];
 }
 
 // =============================================================================

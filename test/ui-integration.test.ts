@@ -266,20 +266,14 @@ describe('Scene Controls Integration', () => {
       expect(mockHooks.on).toHaveBeenCalledWith('getSceneControlButtons', expect.any(Function));
     });
 
-    it('should register renderApplication hook for button state updates', () => {
+    it('should register seasons-stars:widgetStateChanged hook for button state updates', () => {
       SeasonsStarsSceneControls.registerControls();
 
-      const renderCall = mockHooks.on.mock.calls.find(call => call[0] === 'renderApplication');
-      expect(renderCall).toBeDefined();
-      expect(renderCall[1]).toBeTypeOf('function');
-    });
-
-    it('should register closeApplication hook for button state updates', () => {
-      SeasonsStarsSceneControls.registerControls();
-
-      const closeCall = mockHooks.on.mock.calls.find(call => call[0] === 'closeApplication');
-      expect(closeCall).toBeDefined();
-      expect(closeCall[1]).toBeTypeOf('function');
+      const widgetStateCall = mockHooks.on.mock.calls.find(
+        call => call[0] === 'seasons-stars:widgetStateChanged'
+      );
+      expect(widgetStateCall).toBeDefined();
+      expect(widgetStateCall[1]).toBeTypeOf('function');
     });
   });
 

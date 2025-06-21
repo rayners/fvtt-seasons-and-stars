@@ -2,7 +2,13 @@
  * Recurring events system for calendar notes
  */
 
-import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type {
+  CalendarDate as ICalendarDate,
+  CalendarDateData,
+  SeasonsStarsCalendar,
+} from '../types/calendar';
+import { CalendarDate } from './calendar-date';
+import type { CalendarEngineInterface } from '../types/external-integrations';
 import { CalendarTimeUtils } from './calendar-time-utils';
 
 export type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
@@ -55,7 +61,7 @@ export class NoteRecurrence {
     pattern: RecurringPattern,
     rangeStart: ICalendarDate,
     rangeEnd: ICalendarDate,
-    engine: any // Calendar engine for date calculations
+    engine: CalendarEngineInterface // Calendar engine for date calculations
   ): RecurrenceOccurrence[] {
     const occurrences: RecurrenceOccurrence[] = [];
     let currentDate = { ...startDate };
@@ -107,7 +113,7 @@ export class NoteRecurrence {
   private static getNextOccurrenceDate(
     currentDate: ICalendarDate,
     pattern: RecurringPattern,
-    engine: any
+    engine: CalendarEngineInterface
   ): ICalendarDate {
     switch (pattern.frequency) {
       case 'daily':
@@ -118,7 +124,7 @@ export class NoteRecurrence {
           return this.getNextWeekdayOccurrence(currentDate, pattern, engine);
         } else {
           // Use calendar-specific week length instead of hardcoded 7
-          const calendar = engine.getCalendar();
+          const calendar = engine.getCalendar() as SeasonsStarsCalendar;
           const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
           return this.addDays(currentDate, weekLength * pattern.interval, engine);
         }
@@ -140,11 +146,11 @@ export class NoteRecurrence {
   private static getNextWeekdayOccurrence(
     currentDate: ICalendarDate,
     pattern: RecurringPattern,
-    engine: any
+    engine: CalendarEngineInterface
   ): ICalendarDate {
     if (!pattern.weekdays || pattern.weekdays.length === 0) {
       // Use calendar-specific week length instead of hardcoded 7
-      const calendar = engine.getCalendar();
+      const calendar = engine.getCalendar() as SeasonsStarsCalendar;
       const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
       return this.addDays(currentDate, weekLength * pattern.interval, engine);
     }
@@ -163,7 +169,7 @@ export class NoteRecurrence {
       return this.addDays(currentDate, daysToAdd, engine);
     } else {
       // Move to next interval week and use first weekday
-      const calendar = engine.getCalendar();
+      const calendar = engine.getCalendar() as SeasonsStarsCalendar;
       const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
       const daysToNextWeek = weekLength - currentWeekday + weekdayNumbers[0];
       const daysToAdd = daysToNextWeek + (pattern.interval - 1) * weekLength;
@@ -177,7 +183,7 @@ export class NoteRecurrence {
   private static getNextMonthlyOccurrence(
     currentDate: ICalendarDate,
     pattern: RecurringPattern,
-    engine: any
+    engine: CalendarEngineInterface
   ): ICalendarDate {
     if (pattern.monthDay) {
       // Specific day of month (e.g., 15th of every month)
@@ -213,7 +219,7 @@ export class NoteRecurrence {
   private static getNextMonthlyWeekdayOccurrence(
     currentDate: ICalendarDate,
     pattern: RecurringPattern,
-    engine: any
+    engine: CalendarEngineInterface
   ): ICalendarDate {
     if (!pattern.monthWeek || !pattern.monthWeekday) {
       return this.addMonths(currentDate, pattern.interval, engine);
@@ -253,7 +259,7 @@ export class NoteRecurrence {
   private static getNextYearlyOccurrence(
     currentDate: ICalendarDate,
     pattern: RecurringPattern,
-    engine: any
+    engine: CalendarEngineInterface
   ): ICalendarDate {
     const targetMonth = pattern.yearMonth || currentDate.month;
     const targetDay = pattern.yearDay || currentDate.day;
@@ -263,13 +269,16 @@ export class NoteRecurrence {
       currentDate.month < targetMonth ||
       (currentDate.month === targetMonth && currentDate.day < targetDay)
     ) {
-      const thisYearDate: ICalendarDate = {
+      const thisYearDateData: CalendarDateData = {
         year: currentDate.year,
         month: targetMonth,
         day: targetDay,
         weekday: engine.calculateWeekday(currentDate.year, targetMonth, targetDay),
         time: currentDate.time,
       };
+
+      const calendar = engine.getCalendar() as SeasonsStarsCalendar;
+      const thisYearDate = new CalendarDate(thisYearDateData, calendar);
 
       if (this.isValidDate(thisYearDate, engine)) {
         return thisYearDate;
@@ -280,37 +289,57 @@ export class NoteRecurrence {
     const nextYear = currentDate.year + pattern.interval;
     const maxDay = engine.getMonthLength(targetMonth, nextYear);
 
-    return {
+    const nextYearDay = Math.min(targetDay, maxDay);
+    const nextYearDateData: CalendarDateData = {
       year: nextYear,
       month: targetMonth,
-      day: Math.min(targetDay, maxDay),
-      weekday: engine.calculateWeekday(nextYear, targetMonth, Math.min(targetDay, maxDay)),
+      day: nextYearDay,
+      weekday: engine.calculateWeekday(nextYear, targetMonth, nextYearDay),
       time: currentDate.time,
     };
+
+    const calendar = engine.getCalendar() as SeasonsStarsCalendar;
+    return new CalendarDate(nextYearDateData, calendar);
   }
 
   /**
    * Add days to a date using the calendar engine
    */
-  private static addDays(date: ICalendarDate, days: number, engine: any): ICalendarDate {
+  private static addDays(
+    date: ICalendarDate,
+    days: number,
+    engine: CalendarEngineInterface
+  ): CalendarDate {
     // Convert to world time, add days, convert back
     const worldTime = engine.dateToWorldTime(date);
     // Use calendar-specific day length instead of hardcoded 24 * 60 * 60
-    const calendar = engine.getCalendar();
+    const calendar = engine.getCalendar() as SeasonsStarsCalendar;
     const dayInSeconds = CalendarTimeUtils.getSecondsPerDay(calendar);
     const newWorldTime = worldTime + days * dayInSeconds;
-    return engine.worldTimeToDate(newWorldTime);
+    const result = engine.worldTimeToDate(newWorldTime);
+
+    // Ensure we return a proper CalendarDate instance
+    if (result instanceof CalendarDate) {
+      return result;
+    } else {
+      // Convert plain object to CalendarDate instance
+      return new CalendarDate(result as CalendarDateData, calendar);
+    }
   }
 
   /**
    * Add months to a date using the calendar engine
    */
-  private static addMonths(date: ICalendarDate, months: number, engine: any): ICalendarDate {
+  private static addMonths(
+    date: ICalendarDate,
+    months: number,
+    engine: CalendarEngineInterface
+  ): ICalendarDate {
     let newYear = date.year;
     let newMonth = date.month + months;
 
     // Handle year overflow/underflow using calendar-specific month count
-    const calendar = engine.getCalendar();
+    const calendar = engine.getCalendar() as SeasonsStarsCalendar;
     const monthsPerYear = CalendarTimeUtils.getMonthsPerYear(calendar);
     while (newMonth > monthsPerYear) {
       newMonth -= monthsPerYear;
@@ -325,13 +354,15 @@ export class NoteRecurrence {
     const maxDay = engine.getMonthLength(newMonth, newYear);
     const newDay = Math.min(date.day, maxDay);
 
-    return {
+    const newDateData: CalendarDateData = {
       year: newYear,
       month: newMonth,
       day: newDay,
       weekday: engine.calculateWeekday(newYear, newMonth, newDay),
       time: date.time,
     };
+
+    return new CalendarDate(newDateData, calendar);
   }
 
   /**
@@ -342,13 +373,13 @@ export class NoteRecurrence {
     month: number,
     week: number,
     weekday: number,
-    engine: any
+    engine: CalendarEngineInterface
   ): ICalendarDate | null {
     // Find first occurrence of weekday in month
     let day = 1;
     let foundWeekday = engine.calculateWeekday(year, month, day);
 
-    const calendar = engine.getCalendar();
+    const calendar = engine.getCalendar() as SeasonsStarsCalendar;
     const weekLength = CalendarTimeUtils.getDaysPerWeek(calendar);
 
     while (foundWeekday !== weekday && day <= weekLength) {
@@ -367,13 +398,15 @@ export class NoteRecurrence {
       return null; // Nth occurrence doesn't exist
     }
 
-    return {
+    const dateData: CalendarDateData = {
       year,
       month,
       day: targetDay,
       weekday: engine.calculateWeekday(year, month, targetDay),
       time: { hour: 0, minute: 0, second: 0 },
     };
+
+    return new CalendarDate(dateData, calendar);
   }
 
   /**
@@ -429,7 +462,7 @@ export class NoteRecurrence {
   /**
    * Validate that a date is valid for the calendar
    */
-  private static isValidDate(date: ICalendarDate, engine: any): boolean {
+  private static isValidDate(date: ICalendarDate, engine: CalendarEngineInterface): boolean {
     try {
       const monthLength = engine.getMonthLength(date.month, date.year);
       return date.day >= 1 && date.day <= monthLength;

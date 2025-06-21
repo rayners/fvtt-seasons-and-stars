@@ -4,10 +4,10 @@
 
 import type {
   CalendarDate as ICalendarDate,
+  CalendarDateData,
   SeasonsStarsCalendar,
   DateFormatOptions,
 } from '../types/calendar';
-import { CalendarLocalization } from './calendar-localization';
 import { CalendarTimeUtils } from './calendar-time-utils';
 
 export class CalendarDate implements ICalendarDate {
@@ -24,7 +24,7 @@ export class CalendarDate implements ICalendarDate {
 
   private calendar: SeasonsStarsCalendar;
 
-  constructor(data: ICalendarDate, calendar: SeasonsStarsCalendar) {
+  constructor(data: CalendarDateData, calendar: SeasonsStarsCalendar) {
     this.year = data.year;
     this.month = data.month;
     this.day = data.day;
@@ -204,7 +204,7 @@ export class CalendarDate implements ICalendarDate {
   /**
    * Clone this date with optional modifications
    */
-  clone(modifications: Partial<ICalendarDate> = {}): CalendarDate {
+  clone(modifications: Partial<CalendarDateData> = {}): CalendarDate {
     return new CalendarDate(
       {
         year: modifications.year ?? this.year,
@@ -221,7 +221,7 @@ export class CalendarDate implements ICalendarDate {
   /**
    * Compare this date with another date
    */
-  compareTo(other: ICalendarDate): number {
+  compareTo(other: CalendarDateData): number {
     if (this.year !== other.year) return this.year - other.year;
     if (this.month !== other.month) return this.month - other.month;
     if (this.day !== other.day) return this.day - other.day;
@@ -239,28 +239,28 @@ export class CalendarDate implements ICalendarDate {
   /**
    * Check if this date is equal to another date
    */
-  equals(other: ICalendarDate): boolean {
+  equals(other: CalendarDateData): boolean {
     return this.compareTo(other) === 0;
   }
 
   /**
    * Check if this date is before another date
    */
-  isBefore(other: ICalendarDate): boolean {
+  isBefore(other: CalendarDateData): boolean {
     return this.compareTo(other) < 0;
   }
 
   /**
    * Check if this date is after another date
    */
-  isAfter(other: ICalendarDate): boolean {
+  isAfter(other: CalendarDateData): boolean {
     return this.compareTo(other) > 0;
   }
 
   /**
    * Get a plain object representation
    */
-  toObject(): ICalendarDate {
+  toObject(): CalendarDateData {
     return {
       year: this.year,
       month: this.month,
@@ -274,7 +274,7 @@ export class CalendarDate implements ICalendarDate {
   /**
    * Create a CalendarDate from a plain object
    */
-  static fromObject(data: ICalendarDate, calendar: SeasonsStarsCalendar): CalendarDate {
+  static fromObject(data: CalendarDateData, calendar: SeasonsStarsCalendar): CalendarDate {
     return new CalendarDate(data, calendar);
   }
 }

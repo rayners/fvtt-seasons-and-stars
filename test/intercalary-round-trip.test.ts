@@ -82,15 +82,13 @@ describe('Intercalary Date Round-Trip Conversion', () => {
       // Convert back to date
       const convertedBack = engine.worldTimeToDate(worldTime);
 
-      // Should match exactly
-      expect(convertedBack).toEqual({
-        year: 2523,
-        month: 2,
-        day: 1,
-        weekday: 0,
-        intercalary: 'Mitterfruhl',
-        time: { hour: 0, minute: 0, second: 0 },
-      });
+      // Should match exactly - convertedBack is a CalendarDate instance
+      expect(convertedBack.year).toBe(2523);
+      expect(convertedBack.month).toBe(2);
+      expect(convertedBack.day).toBe(1);
+      expect(convertedBack.weekday).toBe(0);
+      expect(convertedBack.intercalary).toBe('Mitterfruhl');
+      expect(convertedBack.time).toEqual({ hour: 0, minute: 0, second: 0 });
     });
 
     it('should not convert intercalary date to regular day 2', () => {
@@ -140,14 +138,13 @@ describe('Intercalary Date Round-Trip Conversion', () => {
       const worldTime1 = multiEngine.dateToWorldTime(day1);
       const converted1 = multiEngine.worldTimeToDate(worldTime1);
 
-      expect(converted1).toEqual({
-        year: 2523,
-        month: 2,
-        day: 1,
-        weekday: 0,
-        intercalary: 'Mitterfruhl',
-        time: { hour: 0, minute: 0, second: 0 },
-      });
+      // converted1 is a CalendarDate instance
+      expect(converted1.year).toBe(2523);
+      expect(converted1.month).toBe(2);
+      expect(converted1.day).toBe(1);
+      expect(converted1.weekday).toBe(0);
+      expect(converted1.intercalary).toBe('Mitterfruhl');
+      expect(converted1.time).toEqual({ hour: 0, minute: 0, second: 0 });
 
       // Test day 3 of intercalary period
       const day3 = {
@@ -161,14 +158,13 @@ describe('Intercalary Date Round-Trip Conversion', () => {
       const worldTime3 = multiEngine.dateToWorldTime(day3);
       const converted3 = multiEngine.worldTimeToDate(worldTime3);
 
-      expect(converted3).toEqual({
-        year: 2523,
-        month: 2,
-        day: 3,
-        weekday: 0,
-        intercalary: 'Mitterfruhl',
-        time: { hour: 0, minute: 0, second: 0 },
-      });
+      // converted3 is a CalendarDate instance
+      expect(converted3.year).toBe(2523);
+      expect(converted3.month).toBe(2);
+      expect(converted3.day).toBe(3);
+      expect(converted3.weekday).toBe(0);
+      expect(converted3.intercalary).toBe('Mitterfruhl');
+      expect(converted3.time).toEqual({ hour: 0, minute: 0, second: 0 });
     });
   });
 
@@ -184,13 +180,12 @@ describe('Intercalary Date Round-Trip Conversion', () => {
       const worldTime = engine.dateToWorldTime(regularDate);
       const convertedBack = engine.worldTimeToDate(worldTime);
 
-      expect(convertedBack).toEqual({
-        year: 2523,
-        month: 2,
-        day: 15,
-        weekday: 0,
-        time: { hour: 0, minute: 0, second: 0 },
-      });
+      // convertedBack is a CalendarDate instance
+      expect(convertedBack.year).toBe(2523);
+      expect(convertedBack.month).toBe(2);
+      expect(convertedBack.day).toBe(15);
+      expect(convertedBack.weekday).toBe(0);
+      expect(convertedBack.time).toEqual({ hour: 0, minute: 0, second: 0 });
     });
 
     it('should handle last day of month before intercalary correctly', () => {
@@ -244,14 +239,13 @@ describe('Intercalary Date Round-Trip Conversion', () => {
       const worldTime = engine.dateToWorldTime(intercalaryWithTime);
       const convertedBack = engine.worldTimeToDate(worldTime);
 
-      expect(convertedBack).toEqual({
-        year: 2523,
-        month: 2,
-        day: 1,
-        weekday: 0,
-        intercalary: 'Mitterfruhl',
-        time: { hour: 12, minute: 30, second: 45 },
-      });
+      // convertedBack is a CalendarDate instance
+      expect(convertedBack.year).toBe(2523);
+      expect(convertedBack.month).toBe(2);
+      expect(convertedBack.day).toBe(1);
+      expect(convertedBack.weekday).toBe(0);
+      expect(convertedBack.intercalary).toBe('Mitterfruhl');
+      expect(convertedBack.time).toEqual({ hour: 12, minute: 30, second: 45 });
     });
   });
 });

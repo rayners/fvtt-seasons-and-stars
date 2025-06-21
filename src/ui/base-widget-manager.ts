@@ -10,12 +10,12 @@ import type { SidebarButton } from '../types/widget-types';
  * Base widget instance management (without generics for static compatibility)
  */
 export class WidgetInstanceManager {
-  protected static activeInstance: any = null;
+  protected static activeInstance: unknown = null;
 
   /**
    * Get the active instance of this widget
    */
-  static getInstance(): any {
+  static getInstance(): unknown {
     return this.activeInstance;
   }
 
@@ -24,13 +24,14 @@ export class WidgetInstanceManager {
    */
   static show(): void {
     if (this.activeInstance) {
-      if (!this.activeInstance.rendered) {
-        this.activeInstance.render(true);
+      if (!(this.activeInstance as any).rendered) {
+        (this.activeInstance as any).render(true);
       } else {
-        this.activeInstance.bringToTop();
+        (this.activeInstance as any).bringToTop();
       }
     } else {
-      this.activeInstance = new (this as any)().render(true);
+      this.activeInstance = new (this as any)();
+      (this.activeInstance as any).render(true);
     }
   }
 
@@ -38,8 +39,8 @@ export class WidgetInstanceManager {
    * Hide the widget
    */
   static hide(): void {
-    if (this.activeInstance?.rendered) {
-      this.activeInstance.close();
+    if ((this.activeInstance as any)?.rendered) {
+      (this.activeInstance as any).close();
     }
   }
 
@@ -47,7 +48,7 @@ export class WidgetInstanceManager {
    * Toggle the widget visibility
    */
   static toggle(): void {
-    if (this.activeInstance?.rendered) {
+    if ((this.activeInstance as any)?.rendered) {
       this.hide();
     } else {
       this.show();
@@ -60,14 +61,16 @@ export class WidgetInstanceManager {
   static registerHooks(): void {
     // Use arrow function to maintain proper 'this' context
     Hooks.on('seasons-stars:dateChanged', () => {
-      if (this.activeInstance?.rendered) {
-        this.activeInstance.render();
+      const instance = this.activeInstance as unknown;
+      if (instance && (instance as any)?.rendered) {
+        (instance as any).render();
       }
     });
 
     Hooks.on('seasons-stars:calendarChanged', () => {
-      if (this.activeInstance?.rendered) {
-        this.activeInstance.render();
+      const instance = this.activeInstance as unknown;
+      if (instance && (instance as any)?.rendered) {
+        (instance as any).render();
       }
     });
   }
@@ -95,8 +98,8 @@ export class SidebarButtonManager {
     Logger.debug(`Added sidebar button "${name}"`);
 
     // Trigger re-render if widget is already rendered
-    if ((this as any).rendered) {
-      (this as any).render();
+    if ((this as unknown as { rendered: boolean }).rendered) {
+      (this as unknown as { render: () => void }).render();
     }
   }
 
@@ -110,8 +113,8 @@ export class SidebarButtonManager {
       Logger.debug(`Removed sidebar button "${name}"`);
 
       // Trigger re-render if widget is already rendered
-      if ((this as any).rendered) {
-        (this as any).render();
+      if ((this as unknown as { rendered: boolean }).rendered) {
+        (this as unknown as { render: () => void }).render();
       }
     }
   }
@@ -137,8 +140,8 @@ export class SidebarButtonManager {
     this.sidebarButtons = [];
     Logger.debug('Cleared all sidebar buttons');
 
-    if ((this as any).rendered) {
-      (this as any).render();
+    if ((this as unknown as { rendered: boolean }).rendered) {
+      (this as unknown as { render: () => void }).render();
     }
   }
 }

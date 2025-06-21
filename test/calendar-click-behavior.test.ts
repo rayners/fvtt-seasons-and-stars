@@ -80,13 +80,16 @@ describe('Calendar Click Behavior Feature', () => {
 
       await widget._onSelectDate(mockEvent, mockTarget);
 
-      expect(setCurrentDateSpy).toHaveBeenCalledWith({
-        year: 2024,
-        month: 1,
-        day: 15,
-        weekday: expect.any(Number),
-        time: { hour: 0, minute: 0, second: 0 },
-      });
+      // Should be called with a CalendarDate instance with the right properties
+      expect(setCurrentDateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          year: 2024,
+          month: 1,
+          day: 15,
+          weekday: expect.any(Number),
+          time: { hour: 0, minute: 0, second: 0 },
+        })
+      );
       expect(mockNotifications.info).toHaveBeenCalledWith('Date set to 15th of January, 2024');
       expect(renderSpy).toHaveBeenCalled();
     });
@@ -223,14 +226,16 @@ describe('Calendar Click Behavior Feature', () => {
 
       await widget._onSelectDate(mockEvent, mockTarget);
 
-      expect(setCurrentDateSpy).toHaveBeenCalledWith({
-        year: 2024,
-        month: 1,
-        day: 1,
-        weekday: 0,
-        time: { hour: 0, minute: 0, second: 0 },
-        intercalary: 'Festival Day',
-      });
+      expect(setCurrentDateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          year: 2024,
+          month: 1,
+          day: 1,
+          weekday: 0,
+          time: { hour: 0, minute: 0, second: 0 },
+          intercalary: 'Festival Day',
+        })
+      );
       expect(mockNotifications.info).toHaveBeenCalledWith(
         'Date set to Festival Day (intercalary day after January 2024)'
       );
@@ -387,13 +392,15 @@ describe('Calendar Click Behavior Feature', () => {
 
       await widget._onSelectDate(mockEvent, mockTarget);
 
-      expect(setCurrentDateSpy).toHaveBeenCalledWith({
-        year: 2024,
-        month: 1,
-        day: 15,
-        weekday: expect.any(Number),
-        time: { hour: 0, minute: 0, second: 0 }, // Should default to zeros
-      });
+      expect(setCurrentDateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          year: 2024,
+          month: 1,
+          day: 15,
+          weekday: expect.any(Number),
+          time: { hour: 0, minute: 0, second: 0 }, // Should default to zeros
+        })
+      );
     });
   });
 
