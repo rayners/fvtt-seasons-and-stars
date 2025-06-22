@@ -27,9 +27,24 @@ export class ManagerAccessUtils {
    * Get manager state with null safety
    */
   static getManagerState(): ManagerState {
-    const manager = game.seasonsStars?.manager as CalendarManagerInterface | null;
-    const activeCalendar = manager?.getActiveCalendar() || null;
-    const currentDate = manager?.getCurrentDate() || null;
+    const manager = (game?.seasonsStars?.manager as CalendarManagerInterface) || null;
+
+    let activeCalendar: SeasonsStarsCalendar | null = null;
+    let currentDate: CalendarDate | null = null;
+
+    if (manager) {
+      try {
+        activeCalendar = manager.getActiveCalendar() || null;
+      } catch {
+        activeCalendar = null;
+      }
+
+      try {
+        currentDate = manager.getCurrentDate() || null;
+      } catch {
+        currentDate = null;
+      }
+    }
 
     return { manager, activeCalendar, currentDate };
   }
@@ -65,7 +80,21 @@ export class ManagerAccessUtils {
     }
 
     try {
-      return `${currentDate.day} ${activeCalendar.months[currentDate.month - 1]?.name || 'Unknown'} ${currentDate.year}`;
+      // Validate that we have valid numeric values
+      if (
+        typeof currentDate.day !== 'number' ||
+        typeof currentDate.month !== 'number' ||
+        typeof currentDate.year !== 'number'
+      ) {
+        return 'Format Error';
+      }
+
+      const monthIndex = currentDate.month - 1;
+      if (monthIndex < 0 || !Number.isFinite(monthIndex)) {
+        return 'Format Error';
+      }
+
+      return `${currentDate.day} ${activeCalendar.months[monthIndex]?.name || 'Unknown'} ${currentDate.year}`;
     } catch {
       return 'Format Error';
     }

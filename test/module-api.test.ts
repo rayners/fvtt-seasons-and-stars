@@ -9,7 +9,7 @@ describe('Module API Methods', () => {
   let mockCalendar: any;
   let seasonsStarsAPI: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
 
     // Mock calendar engine
