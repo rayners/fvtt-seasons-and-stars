@@ -77,4 +77,21 @@ export class APIWrapper {
       }
     }
   }
+
+  /**
+   * Validate calendar date object
+   */
+  static validateCalendarDate(date: any, name: string = 'Date'): void {
+    if (!date || typeof date !== 'object') {
+      throw new Error(`${name} must be a valid calendar date object`);
+    }
+
+    if (
+      typeof date.year !== 'number' ||
+      typeof date.month !== 'number' ||
+      typeof date.day !== 'number'
+    ) {
+      throw new Error(`${name} must have valid year, month, and day numbers`);
+    }
+  }
 }

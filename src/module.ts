@@ -373,7 +373,7 @@ function registerSettings(): void {
           Hooks.callAll('seasons-stars:settingsChanged', 'quickTimeButtons');
         }
       } catch (error) {
-        console.warn('Failed to trigger quick time buttons settings refresh:', error);
+        Logger.warn('Failed to trigger quick time buttons settings refresh:', error);
       }
     },
   });
@@ -588,71 +588,27 @@ function setupAPI(): void {
     },
 
     advanceDays: async (days: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceDays', { days, calendarId });
-
-        // Input validation
-        if (typeof days !== 'number' || !isFinite(days)) {
-          const error = new Error('Days must be a finite number');
-          Logger.error('Invalid days parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceDays(days);
-        Logger.api('advanceDays', { days, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance days',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceDays',
+        { days, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.days, 'Days');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceDays(days)
+      );
     },
 
     advanceHours: async (hours: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceHours', { hours, calendarId });
-
-        // Input validation
-        if (typeof hours !== 'number' || !isFinite(hours)) {
-          const error = new Error('Hours must be a finite number');
-          Logger.error('Invalid hours parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceHours(hours);
-        Logger.api('advanceHours', { hours, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance hours',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceHours',
+        { hours, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.hours, 'Hours');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceHours(hours)
+      );
     },
 
     advanceMinutes: async (minutes: number, calendarId?: string): Promise<void> => {
@@ -680,100 +636,39 @@ function setupAPI(): void {
     },
 
     advanceMonths: async (months: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceMonths', { months, calendarId });
-
-        // Input validation
-        if (typeof months !== 'number' || !isFinite(months)) {
-          const error = new Error('Months must be a finite number');
-          Logger.error('Invalid months parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceMonths(months);
-        Logger.api('advanceMonths', { months, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance months',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceMonths',
+        { months, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.months, 'Months');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceMonths(months)
+      );
     },
 
     advanceYears: async (years: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceYears', { years, calendarId });
-
-        // Input validation
-        if (typeof years !== 'number' || !isFinite(years)) {
-          const error = new Error('Years must be a finite number');
-          Logger.error('Invalid years parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceYears(years);
-        Logger.api('advanceYears', { years, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance years',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceYears',
+        { years, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.years, 'Years');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceYears(years)
+      );
     },
 
     formatDate: (date: ICalendarDate, options?: DateFormatOptions): string => {
       try {
         Logger.api('formatDate', { date, options });
 
-        // Input validation
-        if (!date || typeof date !== 'object') {
-          const error = new Error('Date must be a valid ICalendarDate object');
-          Logger.error('Invalid date parameter', error);
-          throw error;
-        }
-
-        if (
-          typeof date.year !== 'number' ||
-          typeof date.month !== 'number' ||
-          typeof date.day !== 'number'
-        ) {
-          const error = new Error('Date must have valid year, month, and day numbers');
-          Logger.error('Invalid date structure', error);
-          throw error;
-        }
+        // Input validation using APIWrapper helpers
+        APIWrapper.validateCalendarDate(date, 'Date');
 
         const activeCalendar = calendarManager.getActiveCalendar();
-
         if (!activeCalendar) {
-          const error = new Error('No active calendar set');
-          Logger.error('No active calendar for date formatting', error);
-          throw error;
+          throw new Error('No active calendar set');
         }
 
         const calendarDate = new CalendarDate(date, activeCalendar);
@@ -793,37 +688,16 @@ function setupAPI(): void {
       try {
         Logger.api('dateToWorldTime', { date, calendarId });
 
-        // Input validation
-        if (!date || typeof date !== 'object') {
-          const error = new Error('Date must be a valid ICalendarDate object');
-          Logger.error('Invalid date parameter', error);
-          throw error;
-        }
-
-        if (
-          typeof date.year !== 'number' ||
-          typeof date.month !== 'number' ||
-          typeof date.day !== 'number'
-        ) {
-          const error = new Error('Date must have valid year, month, and day numbers');
-          Logger.error('Invalid date structure', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
+        // Input validation using APIWrapper helpers
+        APIWrapper.validateCalendarDate(date, 'Date');
+        APIWrapper.validateOptionalString(calendarId, 'Calendar ID');
 
         const engine = calendarId
           ? calendarManager.engines?.get(calendarId)
           : calendarManager.getActiveEngine();
 
         if (!engine) {
-          const error = new Error(`No engine available for calendar: ${calendarId || 'active'}`);
-          Logger.error('No engine available for date to world time conversion', error);
-          throw error;
+          throw new Error(`No engine available for calendar: ${calendarId || 'active'}`);
         }
 
         const result = engine.dateToWorldTime(date);
@@ -846,27 +720,16 @@ function setupAPI(): void {
       try {
         Logger.api('worldTimeToDate', { timestamp, calendarId });
 
-        // Input validation
-        if (typeof timestamp !== 'number' || !isFinite(timestamp)) {
-          const error = new Error('Timestamp must be a finite number');
-          Logger.error('Invalid timestamp parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
+        // Input validation using APIWrapper helpers
+        APIWrapper.validateNumber(timestamp, 'Timestamp');
+        APIWrapper.validateOptionalString(calendarId, 'Calendar ID');
 
         const engine = calendarId
           ? calendarManager.engines?.get(calendarId)
           : calendarManager.getActiveEngine();
 
         if (!engine) {
-          const error = new Error(`No engine available for calendar: ${calendarId || 'active'}`);
-          Logger.error('No engine available for world time to date conversion', error);
-          throw error;
+          throw new Error(`No engine available for calendar: ${calendarId || 'active'}`);
         }
 
         const result = engine.worldTimeToDate(timestamp);
