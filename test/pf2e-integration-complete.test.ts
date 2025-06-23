@@ -133,9 +133,6 @@ describe('PF2e Integration Complete Solution', () => {
   test('🔧 SOLUTION COMPONENT 2: PF2e system detection', () => {
     console.log('\n=== SOLUTION COMPONENT 2: SYSTEM DETECTION ===');
 
-    // Create calendar manager to test detection
-    const manager = new CalendarManager();
-
     // Test PF2e detection
     (global as any).game = mockPF2eGame;
     const timeConverter1 = new TimeConverter(new CalendarEngine(golarionCalendar));

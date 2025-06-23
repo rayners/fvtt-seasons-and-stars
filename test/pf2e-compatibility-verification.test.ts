@@ -5,7 +5,7 @@
  * adjusts weekday calculations to match PF2e World Clock expectations.
  */
 
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
 import * as fs from 'fs';

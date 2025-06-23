@@ -9,7 +9,6 @@ import './styles/seasons-and-stars.scss';
 import { Logger } from './core/logger';
 import { CalendarManager } from './core/calendar-manager';
 import { NotesManager } from './core/notes-manager';
-import { compatibilityManager } from './core/compatibility-manager';
 import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
 import { CalendarLocalization } from './core/calendar-localization';

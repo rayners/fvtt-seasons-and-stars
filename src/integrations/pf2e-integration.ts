@@ -142,49 +142,6 @@ export class PF2eIntegration {
       },
     ];
 
-    // Create a combined function that tries all PF2e time sources
-    const pf2eTimeSourceFunction = (): number | null => {
-      // Try all PF2e time sources in order
-      for (const source of this.timeSources) {
-        const timeValue = source.getValue();
-        if (timeValue !== null) {
-          return timeValue;
-        }
-      }
-
-      // Also check PF2e settings for time values
-      const pf2eTimeSettings = [
-        'pf2e.worldClock.currentTime',
-        'pf2e.time.worldTime',
-        'pf2e.calendar.currentTime',
-        'world-clock.currentTime',
-      ];
-
-      for (const settingKey of pf2eTimeSettings) {
-        try {
-          const timeValue = game.settings?.get('pf2e', settingKey.split('.')[1]);
-          if (typeof timeValue === 'number') {
-            Logger.debug(`Found PF2e time in setting ${settingKey}: ${timeValue}`);
-            return timeValue;
-          }
-        } catch (error) {
-          // Setting doesn't exist, continue to next
-        }
-      }
-
-      // Check for any PF2e time data in game object
-      if ((game as any).pf2e) {
-        const pf2eData = (game as any).pf2e;
-        if (pf2eData.time || pf2eData.worldTime || pf2eData.currentTime) {
-          const timeValue = pf2eData.time || pf2eData.worldTime || pf2eData.currentTime;
-          Logger.debug(`Found PF2e time in game.pf2e: ${timeValue}`);
-          return timeValue;
-        }
-      }
-
-      return null;
-    };
-
     // Note: Registration now happens via direct method call when system is detected
   }
 
