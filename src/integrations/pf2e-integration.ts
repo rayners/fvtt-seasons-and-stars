@@ -450,16 +450,13 @@ Hooks.on('ready', () => {
   (integration as any).syncMonitorInterval = syncInterval;
 });
 
-// Register independent init hook for PF2e integration
-Hooks.once('init', () => {
-  // Initialize PF2e integration (called only when PF2e is detected)
-  PF2eIntegration.initialize();
-});
-
 // Register PF2e-specific hooks when system is detected
 // Core S&S passes the compatibility manager instance for direct registration
 Hooks.on('seasons-stars:pf2e:systemDetected', (compatibilityManager: any) => {
   Logger.debug('PF2e system detected - registering directly with compatibility manager');
+
+  // Initialize PF2e integration
+  PF2eIntegration.initialize();
 
   // Register PF2e time source directly with the compatibility manager
   const pf2eTimeSourceFunction = (): number | null => {
