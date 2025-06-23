@@ -34,31 +34,17 @@ export class PF2eIntegration {
   }
 
   /**
-   * Initialize PF2e integration if PF2e system is present
+   * Initialize PF2e integration (called only when PF2e system is detected)
    */
-  static initialize(): PF2eIntegration | null {
+  static initialize(): PF2eIntegration {
     if (PF2eIntegration.instance) {
       return PF2eIntegration.instance;
     }
 
-    // Only create if PF2e system is detected
-    if (PF2eIntegration.detectPF2eSystem()) {
-      PF2eIntegration.instance = new PF2eIntegration();
-      PF2eIntegration.instance.activate();
-      return PF2eIntegration.instance;
-    }
-
-    return null;
-  }
-
-  /**
-   * Detect if PF2e system is present
-   */
-  private static detectPF2eSystem(): boolean {
-    const pf2eSystem = game.system?.id === 'pf2e';
-    const pf2eModule = game.modules?.get('pf2e');
-
-    return pf2eSystem || pf2eModule?.active === true;
+    // Create instance since we know PF2e is present
+    PF2eIntegration.instance = new PF2eIntegration();
+    PF2eIntegration.instance.activate();
+    return PF2eIntegration.instance;
   }
 
   /**
@@ -405,11 +391,10 @@ export class PF2eIntegration {
 }
 
 // Register independent hooks for PF2e integration
-// These operate completely independently of core S&S module and are no-ops in non-PF2e games
+// These only run when PF2e system is present
 
-// Listen for PF2e-specific time updates (no-op if PF2e not present)
+// Listen for PF2e-specific time updates
 Hooks.on('renderApplication', (app: any, html: any) => {
-  // Only log if PF2e integration is active
   const integration = PF2eIntegration.getInstance();
   if (!integration?.isIntegrationActive()) return;
 
@@ -427,7 +412,7 @@ Hooks.on('renderApplication', (app: any, html: any) => {
   }
 });
 
-// Listen for any time-related hooks (harmless in non-PF2e games)
+// Listen for any time-related hooks
 Hooks.on('updateWorldTime', (newTime: number, delta: number) => {
   const integration = PF2eIntegration.getInstance();
   if (!integration?.isIntegrationActive()) return;
@@ -435,7 +420,7 @@ Hooks.on('updateWorldTime', (newTime: number, delta: number) => {
   Logger.debug('PF2e updateWorldTime hook:', { newTime, delta, source: 'PF2e' });
 });
 
-// Listen for PF2e-specific time update hooks (no-op if not PF2e)
+// Listen for PF2e-specific time update hooks
 Hooks.on('pf2e:timeChanged', (data: any) => {
   const integration = PF2eIntegration.getInstance();
   if (!integration?.isIntegrationActive()) return;
@@ -443,7 +428,7 @@ Hooks.on('pf2e:timeChanged', (data: any) => {
   Logger.debug('PF2e time changed hook:', data);
 });
 
-// Listen for World Clock updates (no-op if World Clock not present)
+// Listen for World Clock updates
 Hooks.on('worldClockUpdate', (data: any) => {
   const integration = PF2eIntegration.getInstance();
   if (!integration?.isIntegrationActive()) return;
@@ -451,7 +436,7 @@ Hooks.on('worldClockUpdate', (data: any) => {
   Logger.debug('World Clock update hook:', data);
 });
 
-// Start time monitoring when ready (only if PF2e integration is active)
+// Start time monitoring when ready
 Hooks.on('ready', () => {
   const integration = PF2eIntegration.getInstance();
   if (!integration?.isIntegrationActive()) return;
@@ -467,7 +452,7 @@ Hooks.on('ready', () => {
 
 // Register independent init hook for PF2e integration
 Hooks.once('init', () => {
-  // Initialize PF2e integration when game.system is available
+  // Initialize PF2e integration (called only when PF2e is detected)
   PF2eIntegration.initialize();
 });
 
