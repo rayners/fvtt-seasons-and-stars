@@ -69,11 +69,24 @@ export class CalendarManager {
       Logger.debug('  World Clock found:', (game as any).worldClock);
     }
 
-    // Look for PF2e time-related settings
-    const pf2eSettings = game.settings?.settings || new Map();
-    for (const [key, setting] of pf2eSettings) {
-      if (key.includes('time') || key.includes('clock') || key.includes('calendar')) {
-        Logger.debug(`  PF2e setting found: ${key}`, setting);
+    // Check for common PF2e time-related settings using proper settings API
+    const commonPF2eTimeSettings = [
+      'pf2e.worldClock',
+      'pf2e.timeZone',
+      'pf2e.calendar',
+      'pf2e.worldTime',
+      'pf2e.timeManagement',
+    ];
+
+    for (const settingKey of commonPF2eTimeSettings) {
+      try {
+        const [module, setting] = settingKey.split('.');
+        const value = game.settings?.get(module, setting);
+        if (value !== undefined) {
+          Logger.debug(`  PF2e setting found: ${settingKey}`, value);
+        }
+      } catch (error) {
+        // Setting doesn't exist or not accessible, which is normal
       }
     }
   }
