@@ -16,18 +16,9 @@ Hooks.on('seasons-stars:pf2e:systemDetected', compatibilityManager => {
 });
 ```
 
-## Supported Systems
+## System Support
 
-S&S automatically detects these systems and provides integration hooks:
-
-- **Pathfinder 2e** (`pf2e`) - Enhanced calendar compatibility and time sources
-- **D&D 5th Edition** (`dnd5e`) - Standard time integration
-- **Forbidden Lands** (`forbidden-lands`) - System-specific time handling
-- **Dragonbane** (`dragonbane`) - Compatible time sources
-
-## System Detection Hooks
-
-When S&S detects a supported system, it emits a system-specific hook:
+S&S automatically detects **any Foundry VTT system** and provides integration hooks. The hook pattern is:
 
 ```typescript
 Hooks.on('seasons-stars:{systemId}:systemDetected', compatibilityManager => {
@@ -35,12 +26,36 @@ Hooks.on('seasons-stars:{systemId}:systemDetected', compatibilityManager => {
 });
 ```
 
-**Available hooks:**
+Where `{systemId}` is the ID of any system (e.g., `pf2e`, `dnd5e`, `swade`, `coc7`, etc.).
 
-- `seasons-stars:pf2e:systemDetected`
-- `seasons-stars:dnd5e:systemDetected`
-- `seasons-stars:forbidden-lands:systemDetected`
-- `seasons-stars:dragonbane:systemDetected`
+## System Detection Hooks
+
+**Universal pattern** - works with any system:
+
+```typescript
+// For Pathfinder 2e
+Hooks.on('seasons-stars:pf2e:systemDetected', (compatibilityManager) => { ... });
+
+// For D&D 5th Edition
+Hooks.on('seasons-stars:dnd5e:systemDetected', (compatibilityManager) => { ... });
+
+// For Call of Cthulhu 7th Edition
+Hooks.on('seasons-stars:coc7:systemDetected', (compatibilityManager) => { ... });
+
+// For any other system
+Hooks.on('seasons-stars:YOUR_SYSTEM_ID:systemDetected', (compatibilityManager) => { ... });
+```
+
+### Systems with Enhanced Integration
+
+Some systems have built-in enhanced features:
+
+- **Pathfinder 2e** (`pf2e`) - Calendar compatibility fixes and advanced time sources
+- **D&D 5th Edition** (`dnd5e`) - Ready for enhanced time integration
+- **Forbidden Lands** (`forbidden-lands`) - Prepared for system-specific features
+- **Dragonbane** (`dragonbane`) - Ready for time source integration
+
+**Note**: Any system can be integrated - these just have additional built-in features.
 
 ## Time Source Registration
 
