@@ -38,6 +38,9 @@ import type {
   SeasonsStarsCalendar,
 } from './types/calendar';
 
+// Import integrations (they auto-initialize based on system detection)
+import './integrations/pf2e-integration';
+
 // Module instances
 let calendarManager: CalendarManager;
 let notesManager: NotesManager;

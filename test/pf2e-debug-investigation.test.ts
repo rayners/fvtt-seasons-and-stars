@@ -10,6 +10,7 @@
 
 import { describe, test, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
+import { PF2eIntegration } from '../src/integrations/pf2e-integration';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -17,6 +18,7 @@ import * as path from 'path';
 describe('PF2e Debug Investigation', () => {
   let golarionEngine: CalendarEngine;
   let golarionCalendar: SeasonsStarsCalendar;
+  let pf2eIntegration: PF2eIntegration | null;
 
   beforeEach(() => {
     // Load the actual Golarion calendar
@@ -24,12 +26,31 @@ describe('PF2e Debug Investigation', () => {
     const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
     golarionCalendar = calendarData;
     golarionEngine = new CalendarEngine(calendarData);
+
+    // Mock PF2e system for testing
+    if (!global.game) global.game = {};
+    if (!global.game.system) global.game.system = {};
+    global.game.system.id = 'pf2e'; // Force PF2e system detection
+
+    // Reset singleton instance to ensure clean state
+    (PF2eIntegration as any).instance = null;
+
+    // Force PF2e integration to initialize for testing
+    pf2eIntegration = PF2eIntegration.initialize();
+
+    // Ensure we have a valid integration for these tests
+    if (!pf2eIntegration) {
+      throw new Error('PF2e integration failed to initialize in test environment');
+    }
   });
 
   test('🔍 Debug worldTime=0 calculation (fresh world)', () => {
     console.log('\n=== DEBUGGING WORLDTIME=0 CALCULATION ===');
 
-    const debugInfo = golarionEngine.debugWorldTimeInterpretation(0);
+    // PF2e integration should be available since it's auto-imported
+    expect(pf2eIntegration).toBeDefined();
+
+    const debugInfo = pf2eIntegration!.getDebugWorldTimeInterpretation(golarionEngine, 0);
 
     console.log('Calendar Configuration:');
     console.log(`  ID: ${debugInfo.input.calendarId}`);
@@ -79,7 +100,8 @@ describe('PF2e Debug Investigation', () => {
   test('🔍 Compare S&S vs approximate PF2e calculation', () => {
     console.log('\n=== COMPARING S&S VS PF2E CALCULATION ===');
 
-    const comparison = golarionEngine.compareWithPF2eCalculation(0);
+    expect(pf2eIntegration).toBeDefined();
+    const comparison = pf2eIntegration!.getCompareWithPF2eCalculation(golarionEngine, 0);
 
     console.log('Input worldTime:', comparison.worldTime);
 
@@ -116,9 +138,11 @@ describe('PF2e Debug Investigation', () => {
       63072000, // ~2 years
     ];
 
+    expect(pf2eIntegration).toBeDefined();
+
     testValues.forEach(worldTime => {
       const result = golarionEngine.worldTimeToDate(worldTime);
-      const debugInfo = golarionEngine.debugWorldTimeInterpretation(worldTime);
+      const debugInfo = pf2eIntegration!.getDebugWorldTimeInterpretation(golarionEngine, worldTime);
 
       console.log(`\nworldTime=${worldTime} (${worldTime / 86400} days):`);
       console.log(
@@ -163,7 +187,7 @@ describe('PF2e Debug Investigation', () => {
     );
 
     // Debug the conversion
-    const debugInfo = golarionEngine.debugWorldTimeInterpretation(worldTime);
+    const debugInfo = pf2eIntegration!.getDebugWorldTimeInterpretation(golarionEngine, worldTime);
     console.log(`Adjustment delta during conversion: ${debugInfo.calculations.adjustmentDelta}`);
 
     // Test round-trip accuracy
@@ -180,7 +204,7 @@ describe('PF2e Debug Investigation', () => {
   test('🔍 Analyze epoch offset calculation in detail', () => {
     console.log('\n=== ANALYZING EPOCH OFFSET CALCULATION ===');
 
-    const debugInfo = golarionEngine.debugWorldTimeInterpretation(0);
+    const debugInfo = pf2eIntegration!.getDebugWorldTimeInterpretation(golarionEngine, 0);
 
     if (debugInfo.calculations.epochCalculation) {
       const epochCalc = debugInfo.calculations.epochCalculation;
