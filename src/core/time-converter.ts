@@ -126,6 +126,7 @@ export class TimeConverter {
    */
   getCurrentDate(): CalendarDate {
     let worldTime = game.time?.worldTime || 0;
+    let timeSource = 'foundry';
 
     // Check for external time sources via compatibility manager
     const currentSystem = game.system?.id;
@@ -136,10 +137,27 @@ export class TimeConverter {
           `Using external time source for ${currentSystem}: ${externalTime} (Foundry: ${worldTime})`
         );
         worldTime = externalTime;
+        timeSource = `external-${currentSystem}`;
       }
     }
 
     const result = this.engine.worldTimeToDate(worldTime);
+
+    // Enhanced logging for PF2e debugging
+    if (currentSystem === 'pf2e') {
+      const calendarConfig = this.engine.getCalendar();
+      Logger.debug('PF2e Time Conversion Debug:', {
+        timeSource,
+        inputWorldTime: worldTime,
+        calendarInterpretation: calendarConfig.worldTime?.interpretation,
+        externalTimeSourceActive: timeSource.startsWith('external'),
+        resultYear: result.year,
+        resultMonth: result.month,
+        resultDay: result.day,
+        resultWeekday: result.weekday,
+      });
+    }
+
     // If the engine returns a CalendarDate instance, use it directly
     if (result instanceof CalendarDate) {
       return result;

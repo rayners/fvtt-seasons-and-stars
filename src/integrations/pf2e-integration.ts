@@ -42,6 +42,30 @@ export class PF2eIntegration {
 
     Logger.info('PF2e system detected - enabling enhanced compatibility mode');
     this.isActive = true;
+
+    // Register time source if hooks are available (runtime only)
+    if (typeof Hooks !== 'undefined' && Hooks.call) {
+      this.registerTimeSource();
+    }
+  }
+
+  /**
+   * Register PF2e time source directly with compatibility manager
+   */
+  private registerTimeSource(): void {
+    // Use a hook-based approach to avoid circular dependencies
+    Hooks.call('seasons-stars:registerTimeSource', {
+      systemId: 'pf2e',
+      sourceFunction: (): number | null => {
+        const time = this.getPF2eWorldTime();
+        if (time !== null) {
+          Logger.debug(`PF2e time source providing: ${time}`);
+        }
+        return time;
+      },
+    });
+
+    Logger.debug('PF2e time source registration hook called');
   }
 
   /**
