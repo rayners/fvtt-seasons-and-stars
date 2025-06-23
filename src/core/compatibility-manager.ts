@@ -8,6 +8,8 @@
  * registration for external modules.
  */
 
+import { Logger } from './logger';
+
 export interface SystemCompatibilityAdjustment {
   /** Weekday offset to apply (e.g., +5 to shift weekday calculation) */
   weekdayOffset?: number;
@@ -55,6 +57,8 @@ export class CompatibilityManager {
   constructor() {
     this.initializeHookSystem();
     this.initializeGenericHooks();
+    this.initializeSystemSpecificHooks();
+    this.initializeSystemDetection();
   }
 
   /**
@@ -134,6 +138,63 @@ export class CompatibilityManager {
           this.engineExtensions.set(methodName, implementation);
           console.log(`[S&S] Registered engine extension: ${methodName}`);
         };
+      }
+    });
+  }
+
+  /**
+   * Initialize system-specific hooks (e.g., seasons-stars:pf2e:registerTimeSource)
+   */
+  private initializeSystemSpecificHooks(): void {
+    // Register hooks for known systems - more efficient than generic hooks
+    const knownSystems = ['pf2e', 'dnd5e', 'forbidden-lands', 'dragonbane'];
+
+    for (const systemId of knownSystems) {
+      // System-specific time source registration
+      Hooks.on(`seasons-stars:${systemId}:registerTimeSource`, (data: any) => {
+        if (data.sourceFunction) {
+          this.timeSourceRegistry.set(systemId, data.sourceFunction);
+          console.log(`[S&S] Registered ${systemId}-specific time source via system hook`);
+        }
+      });
+
+      // System-specific engine extension registration
+      Hooks.on(`seasons-stars:${systemId}:extendCalendarEngine`, (data: any) => {
+        if (data.methodName && data.implementation) {
+          // Prefix method name with system ID to avoid conflicts
+          const prefixedMethodName = `${systemId}:${data.methodName}`;
+          this.engineExtensions.set(prefixedMethodName, data.implementation);
+          console.log(`[S&S] Registered ${systemId}-specific engine extension: ${data.methodName}`);
+        }
+      });
+
+      // System-specific compatibility registration
+      Hooks.on(`seasons-stars:${systemId}:registerCompatibility`, (data: any) => {
+        if (data.calendarId && data.adjustment) {
+          const key = `${systemId}:${data.calendarId}`;
+          this.hookRegistry.set(key, data.adjustment);
+          console.log(
+            `[S&S] Registered ${systemId}-specific compatibility: ${data.calendarId}`,
+            data.adjustment
+          );
+        }
+      });
+    }
+  }
+
+  /**
+   * Initialize system detection to emit appropriate system-specific hooks
+   */
+  private initializeSystemDetection(): void {
+    // Wait for Foundry to be ready so game.system is available
+    Hooks.once('ready', () => {
+      const currentSystem = game.system?.id;
+      if (currentSystem) {
+        Logger.debug(`Detected system: ${currentSystem}, triggering system-specific hooks`);
+
+        // Trigger system-specific hook initialization for detected system
+        // This allows integrations to register using the detected system's hooks
+        Hooks.callAll(`seasons-stars:${currentSystem}:systemDetected`);
       }
     });
   }
@@ -257,7 +318,16 @@ export class CompatibilityManager {
   /**
    * Get engine extension method by name
    */
-  getEngineExtension(methodName: string): Function | null {
+  getEngineExtension(methodName: string, systemId?: string): Function | null {
+    // Try system-specific version first if systemId provided
+    if (systemId) {
+      const systemSpecificMethod = this.engineExtensions.get(`${systemId}:${methodName}`);
+      if (systemSpecificMethod) {
+        return systemSpecificMethod;
+      }
+    }
+
+    // Fallback to generic method
     return this.engineExtensions.get(methodName) || null;
   }
 

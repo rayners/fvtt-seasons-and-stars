@@ -188,9 +188,14 @@ export class PF2eIntegration {
       return null;
     };
 
-    // Register with S&S core via generic hook
+    // Register with S&S core via both generic and system-specific hooks
     Hooks.callAll('seasons-stars:registerTimeSource', {
       systemId: 'pf2e',
+      sourceFunction: pf2eTimeSourceFunction,
+    });
+
+    // Also register via system-specific hook (more efficient)
+    Hooks.callAll('seasons-stars:pf2e:registerTimeSource', {
       sourceFunction: pf2eTimeSourceFunction,
     });
   }
@@ -209,61 +214,39 @@ export class PF2eIntegration {
       methodName: 'compareWithPF2eCalculation',
       implementation: this.compareWithPF2eCalculation.bind(this),
     });
+
+    // Also register via system-specific hooks (more efficient)
+    Hooks.callAll('seasons-stars:pf2e:extendCalendarEngine', {
+      methodName: 'debugWorldTimeInterpretation',
+      implementation: this.debugWorldTimeInterpretation.bind(this),
+    });
+
+    Hooks.callAll('seasons-stars:pf2e:extendCalendarEngine', {
+      methodName: 'compareWithPF2eCalculation',
+      implementation: this.compareWithPF2eCalculation.bind(this),
+    });
   }
 
   /**
-   * Set up PF2e-specific hooks
+   * Set up PF2e-specific hooks (only called when PF2e is detected)
    */
   private setupPF2eHooks(): void {
-    // Listen for PF2e-specific time updates if they exist
-    Hooks.on('renderApplication', (app: any, html: any) => {
-      // Check if this is a PF2e World Clock or time-related application
-      if (
-        app.constructor.name?.includes('WorldClock') ||
-        app.constructor.name?.includes('Time') ||
-        app.title?.includes('World Clock')
-      ) {
-        Logger.debug('PF2e time application detected:', {
-          name: app.constructor.name,
-          title: app.title,
-          data: app.data,
-        });
-      }
-    });
-
-    // Listen for any time-related hooks from PF2e
-    Hooks.on('updateWorldTime', (newTime: number, delta: number) => {
-      Logger.debug('PF2e updateWorldTime hook:', { newTime, delta, source: 'PF2e' });
-    });
-
-    // Listen for PF2e-specific time update hooks
-    Hooks.on('pf2e:timeChanged', (data: any) => {
-      Logger.debug('PF2e time changed hook:', data);
-    });
-
-    Hooks.on('worldClockUpdate', (data: any) => {
-      Logger.debug('World Clock update hook:', data);
-    });
+    // PF2e-specific setup complete - monitoring hooks are registered at module level
+    Logger.debug('PF2e-specific hook setup complete');
   }
 
   /**
    * Start time monitoring for PF2e synchronization
    */
   private startTimeMonitoring(): void {
-    // Only start if not already running
-    if (this.syncMonitorInterval) return;
-
-    Hooks.on('ready', () => {
-      this.syncMonitorInterval = setInterval(() => {
-        this.checkPF2eTimeSync();
-      }, 5000); // Check every 5 seconds
-    });
+    // Time monitoring is handled at module level for better independence
+    Logger.debug('PF2e time monitoring enabled');
   }
 
   /**
    * Check and log PF2e time synchronization status
    */
-  private checkPF2eTimeSync(): void {
+  checkPF2eTimeSync(): void {
     const foundryTime = game.time?.worldTime || 0;
     let pf2eTime: number | null = null;
 
@@ -485,6 +468,13 @@ export class PF2eIntegration {
   }
 
   /**
+   * Check if PF2e integration is active
+   */
+  isIntegrationActive(): boolean {
+    return this.isActive;
+  }
+
+  /**
    * Cleanup integration when module is disabled
    */
   destroy(): void {
@@ -496,6 +486,165 @@ export class PF2eIntegration {
   }
 }
 
-// Auto-initialize when this module is loaded
-// This will be a no-op if PF2e system is not present
-PF2eIntegration.initialize();
+// Register independent hooks for PF2e integration
+// These operate completely independently of core S&S module and are no-ops in non-PF2e games
+
+// Listen for PF2e-specific time updates (no-op if PF2e not present)
+Hooks.on('renderApplication', (app: any, html: any) => {
+  // Only log if PF2e integration is active
+  const integration = PF2eIntegration.getInstance();
+  if (!integration?.isIntegrationActive()) return;
+
+  // Check if this is a PF2e World Clock or time-related application
+  if (
+    app.constructor.name?.includes('WorldClock') ||
+    app.constructor.name?.includes('Time') ||
+    app.title?.includes('World Clock')
+  ) {
+    Logger.debug('PF2e time application detected:', {
+      name: app.constructor.name,
+      title: app.title,
+      data: app.data,
+    });
+  }
+});
+
+// Listen for any time-related hooks (harmless in non-PF2e games)
+Hooks.on('updateWorldTime', (newTime: number, delta: number) => {
+  const integration = PF2eIntegration.getInstance();
+  if (!integration?.isIntegrationActive()) return;
+
+  Logger.debug('PF2e updateWorldTime hook:', { newTime, delta, source: 'PF2e' });
+});
+
+// Listen for PF2e-specific time update hooks (no-op if not PF2e)
+Hooks.on('pf2e:timeChanged', (data: any) => {
+  const integration = PF2eIntegration.getInstance();
+  if (!integration?.isIntegrationActive()) return;
+
+  Logger.debug('PF2e time changed hook:', data);
+});
+
+// Listen for World Clock updates (no-op if World Clock not present)
+Hooks.on('worldClockUpdate', (data: any) => {
+  const integration = PF2eIntegration.getInstance();
+  if (!integration?.isIntegrationActive()) return;
+
+  Logger.debug('World Clock update hook:', data);
+});
+
+// Start time monitoring when ready (only if PF2e integration is active)
+Hooks.on('ready', () => {
+  const integration = PF2eIntegration.getInstance();
+  if (!integration?.isIntegrationActive()) return;
+
+  // Start periodic time sync checking
+  const syncInterval = setInterval(() => {
+    integration.checkPF2eTimeSync();
+  }, 5000); // Check every 5 seconds
+
+  // Store interval for cleanup
+  (integration as any).syncMonitorInterval = syncInterval;
+});
+
+// Register independent init hook for PF2e integration
+Hooks.once('init', () => {
+  // Initialize PF2e integration when game.system is available
+  PF2eIntegration.initialize();
+});
+
+// Register PF2e-specific hooks when system is detected
+// This eliminates the need for runtime system detection
+Hooks.on('seasons-stars:pf2e:systemDetected', () => {
+  Logger.debug('PF2e system detected - registering PF2e-specific integrations');
+
+  // Register PF2e time source (only called when PF2e is detected)
+  Hooks.callAll('seasons-stars:pf2e:registerTimeSource', {
+    sourceFunction: () => {
+      // Try all PF2e time sources in order
+      const timeSources = [
+        () => (game as any).pf2e?.worldClock?.currentTime || null,
+        () => (game as any).worldClock?.currentTime || null,
+      ];
+
+      for (const source of timeSources) {
+        const timeValue = source();
+        if (timeValue !== null) {
+          return timeValue;
+        }
+      }
+
+      // Check PF2e settings for time values
+      const pf2eTimeSettings = [
+        'pf2e.worldClock.currentTime',
+        'pf2e.time.worldTime',
+        'pf2e.calendar.currentTime',
+        'world-clock.currentTime',
+      ];
+
+      for (const settingKey of pf2eTimeSettings) {
+        try {
+          const timeValue = game.settings?.get('pf2e', settingKey.split('.')[1]);
+          if (typeof timeValue === 'number') {
+            return timeValue;
+          }
+        } catch (error) {
+          // Setting doesn't exist, continue to next
+        }
+      }
+
+      return null;
+    },
+  });
+
+  // Register PF2e debug methods (only called when PF2e is detected)
+  Hooks.callAll('seasons-stars:pf2e:extendCalendarEngine', {
+    methodName: 'debugWorldTimeInterpretation',
+    implementation: function (engine: any, worldTime: number): any {
+      // PF2e-specific debug implementation here
+      const calendar = engine.getCalendar();
+      const worldTimeConfig = calendar.worldTime;
+
+      const debugInfo = {
+        input: {
+          worldTime,
+          calendarId: calendar.id,
+          interpretation: worldTimeConfig?.interpretation || 'epoch-based',
+          epochYear: worldTimeConfig?.epochYear || calendar.year.epoch,
+          currentYear: worldTimeConfig?.currentYear || calendar.year.currentYear,
+        },
+        calculations: {} as any,
+        result: {} as any,
+      };
+
+      // Step 1: Show worldTime adjustment calculation
+      const adjustedWorldTime = engine.adjustWorldTimeForInterpretation(worldTime);
+      debugInfo.calculations.adjustedWorldTime = adjustedWorldTime;
+      debugInfo.calculations.adjustmentDelta = adjustedWorldTime - worldTime;
+
+      // Step 2: Convert to total seconds and calculate days
+      const totalSeconds = Math.abs(adjustedWorldTime);
+      const secondsPerDay =
+        calendar.time.hoursInDay * calendar.time.minutesInHour * calendar.time.secondsInMinute;
+      const totalDays = Math.floor(totalSeconds / secondsPerDay);
+      const secondsInDay = totalSeconds % secondsPerDay;
+
+      debugInfo.calculations.totalSeconds = totalSeconds;
+      debugInfo.calculations.secondsPerDay = secondsPerDay;
+      debugInfo.calculations.totalDays = totalDays;
+      debugInfo.calculations.secondsInDay = secondsInDay;
+
+      // Step 3: Convert to date and get final result
+      const result = engine.worldTimeToDate(worldTime);
+      debugInfo.result = {
+        year: result.year,
+        month: result.month,
+        day: result.day,
+        weekday: result.weekday,
+        formattedDate: `${result.day} ${calendar.months[result.month - 1]?.name}, ${result.year}`,
+      };
+
+      return debugInfo;
+    },
+  });
+});

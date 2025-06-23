@@ -38,7 +38,7 @@ import type {
   SeasonsStarsCalendar,
 } from './types/calendar';
 
-// Import integrations (they auto-initialize based on system detection)
+// Import integrations (they register their own hooks independently)
 import './integrations/pf2e-integration';
 
 // Module instances
