@@ -138,6 +138,13 @@ export class TimeConverter {
         );
         worldTime = externalTime;
         timeSource = `external-${currentSystem}`;
+      } else if (currentSystem === 'pf2e') {
+        // Enhanced debugging for PF2e when no external source is found
+        Logger.debug(`No external PF2e time source found - using Foundry time: ${worldTime}`);
+        Logger.debug('External time source registry state:', {
+          registeredSystems: Object.keys((compatibilityManager as any).timeSourceRegistry || {}),
+          timeSourceRegistrySize: (compatibilityManager as any).timeSourceRegistry?.size || 0,
+        });
       }
     }
 

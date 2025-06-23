@@ -44,7 +44,7 @@ export class PF2eIntegration {
     this.isActive = true;
 
     // Register time source if hooks are available (runtime only)
-    if (typeof Hooks !== 'undefined' && Hooks.call) {
+    if (typeof Hooks !== 'undefined' && typeof Hooks.call === 'function') {
       this.registerTimeSource();
     }
   }
@@ -72,15 +72,26 @@ export class PF2eIntegration {
    * Get PF2e-specific world time if available
    */
   getPF2eWorldTime(): number | null {
+    // Debug: Log what time sources are available
+    const pf2eWorldClock = (game as any).pf2e?.worldClock?.currentTime;
+    const worldClock = (game as any).worldClock?.currentTime;
+    const foundryTime = (game as any).time?.worldTime;
+
+    Logger.debug('PF2e Time Source Detection:', {
+      'game.pf2e.worldClock.currentTime': pf2eWorldClock,
+      'game.worldClock.currentTime': worldClock,
+      'game.time.worldTime (Foundry)': foundryTime,
+      'pf2e object available': !!(game as any).pf2e,
+      'worldClock available': !!(game as any).worldClock,
+    });
+
     // Try common PF2e time sources
-    const timeSources = [
-      () => (game as any).pf2e?.worldClock?.currentTime || null,
-      () => (game as any).worldClock?.currentTime || null,
-    ];
+    const timeSources = [() => pf2eWorldClock || null, () => worldClock || null];
 
     for (const source of timeSources) {
       const timeValue = source();
       if (timeValue !== null) {
+        Logger.debug(`PF2e time source found: ${timeValue} (vs Foundry: ${foundryTime})`);
         return timeValue;
       }
     }
