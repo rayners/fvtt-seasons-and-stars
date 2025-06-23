@@ -69,42 +69,58 @@ export class PF2eIntegration {
   }
 
   /**
-   * Get PF2e-specific world time if available
+   * Get PF2e-specific world time using exact PF2e World Clock calculation
+   *
+   * PF2e calculates time as: worldCreatedOn + game.time.worldTime
+   * This matches their World Clock app calculation exactly.
    */
   getPF2eWorldTime(): number | null {
-    // Debug: Log what time sources are available
-    const pf2eWorldClock = (game as any).pf2e?.worldClock?.currentTime;
-    const worldClock = (game as any).worldClock?.currentTime;
-    const foundryTime = (game as any).time?.worldTime;
+    const foundryTime = (game as any).time?.worldTime || 0;
 
-    Logger.debug('PF2e Time Source Detection:', {
-      'game.pf2e.worldClock.currentTime': pf2eWorldClock,
-      'game.worldClock.currentTime': worldClock,
-      'game.time.worldTime (Foundry)': foundryTime,
-      'pf2e object available': !!(game as any).pf2e,
-      'worldClock available': !!(game as any).worldClock,
-    });
-
-    // Try common PF2e time sources
-    const timeSources = [() => pf2eWorldClock || null, () => worldClock || null];
-
-    for (const source of timeSources) {
-      const timeValue = source();
-      if (timeValue !== null) {
-        Logger.debug(`PF2e time source found: ${timeValue} (vs Foundry: ${foundryTime})`);
-        return timeValue;
-      }
+    // Check if PF2e system and settings are available
+    const pf2eSettings = (game as any).pf2e?.settings?.worldClock;
+    if (!pf2eSettings) {
+      Logger.debug('PF2e settings not available for time calculation');
+      return null;
     }
 
-    // Check for any PF2e time data in game object
-    if ((game as any).pf2e) {
-      const pf2eData = (game as any).pf2e;
-      if (pf2eData.time || pf2eData.worldTime || pf2eData.currentTime) {
-        return pf2eData.time || pf2eData.worldTime || pf2eData.currentTime;
-      }
+    // Get PF2e world creation date (ISO string)
+    const worldCreatedOn = pf2eSettings.worldCreatedOn;
+    if (!worldCreatedOn) {
+      Logger.debug('PF2e worldCreatedOn not set - cannot calculate PF2e time');
+      return null;
     }
 
-    return null;
+    try {
+      // Calculate PF2e time using their exact method:
+      // worldCreatedOn (DateTime) + game.time.worldTime (seconds)
+      const creationDate = new Date(worldCreatedOn);
+
+      // Check if date is valid
+      if (isNaN(creationDate.getTime())) {
+        Logger.error('Invalid worldCreatedOn date format in PF2e settings');
+        return null;
+      }
+
+      const creationTimeSeconds = Math.floor(creationDate.getTime() / 1000);
+      const pf2eWorldTime = creationTimeSeconds + foundryTime;
+
+      Logger.debug('PF2e Time Calculation:', {
+        worldCreatedOn,
+        creationTimeSeconds,
+        foundryWorldTime: foundryTime,
+        calculatedPF2eTime: pf2eWorldTime,
+        dateTheme: pf2eSettings.dateTheme || 'AR',
+      });
+
+      return pf2eWorldTime;
+    } catch (error) {
+      Logger.error(
+        'Failed to calculate PF2e world time:',
+        error instanceof Error ? error : undefined
+      );
+      return null;
+    }
   }
 
   /**
