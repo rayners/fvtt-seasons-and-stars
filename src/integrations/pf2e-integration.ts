@@ -75,9 +75,6 @@ export class PF2eIntegration {
     // Register PF2e time sources with S&S core
     this.registerTimeSources();
 
-    // Register PF2e debug extensions
-    this.registerDebugExtensions();
-
     // Set up PF2e-specific hooks
     this.setupPF2eHooks();
 
@@ -188,42 +185,9 @@ export class PF2eIntegration {
       return null;
     };
 
-    // Register with S&S core via both generic and system-specific hooks
-    Hooks.callAll('seasons-stars:registerTimeSource', {
-      systemId: 'pf2e',
-      sourceFunction: pf2eTimeSourceFunction,
-    });
-
-    // Also register via system-specific hook (more efficient)
+    // Register with S&S core via system-specific hook
     Hooks.callAll('seasons-stars:pf2e:registerTimeSource', {
       sourceFunction: pf2eTimeSourceFunction,
-    });
-  }
-
-  /**
-   * Register PF2e debug extensions with calendar engine
-   */
-  private registerDebugExtensions(): void {
-    // Register debug methods via generic hook
-    Hooks.callAll('seasons-stars:extendCalendarEngine', {
-      methodName: 'debugWorldTimeInterpretation',
-      implementation: this.debugWorldTimeInterpretation.bind(this),
-    });
-
-    Hooks.callAll('seasons-stars:extendCalendarEngine', {
-      methodName: 'compareWithPF2eCalculation',
-      implementation: this.compareWithPF2eCalculation.bind(this),
-    });
-
-    // Also register via system-specific hooks (more efficient)
-    Hooks.callAll('seasons-stars:pf2e:extendCalendarEngine', {
-      methodName: 'debugWorldTimeInterpretation',
-      implementation: this.debugWorldTimeInterpretation.bind(this),
-    });
-
-    Hooks.callAll('seasons-stars:pf2e:extendCalendarEngine', {
-      methodName: 'compareWithPF2eCalculation',
-      implementation: this.compareWithPF2eCalculation.bind(this),
     });
   }
 
@@ -551,100 +515,4 @@ Hooks.on('ready', () => {
 Hooks.once('init', () => {
   // Initialize PF2e integration when game.system is available
   PF2eIntegration.initialize();
-});
-
-// Register PF2e-specific hooks when system is detected
-// This eliminates the need for runtime system detection
-Hooks.on('seasons-stars:pf2e:systemDetected', () => {
-  Logger.debug('PF2e system detected - registering PF2e-specific integrations');
-
-  // Register PF2e time source (only called when PF2e is detected)
-  Hooks.callAll('seasons-stars:pf2e:registerTimeSource', {
-    sourceFunction: () => {
-      // Try all PF2e time sources in order
-      const timeSources = [
-        () => (game as any).pf2e?.worldClock?.currentTime || null,
-        () => (game as any).worldClock?.currentTime || null,
-      ];
-
-      for (const source of timeSources) {
-        const timeValue = source();
-        if (timeValue !== null) {
-          return timeValue;
-        }
-      }
-
-      // Check PF2e settings for time values
-      const pf2eTimeSettings = [
-        'pf2e.worldClock.currentTime',
-        'pf2e.time.worldTime',
-        'pf2e.calendar.currentTime',
-        'world-clock.currentTime',
-      ];
-
-      for (const settingKey of pf2eTimeSettings) {
-        try {
-          const timeValue = game.settings?.get('pf2e', settingKey.split('.')[1]);
-          if (typeof timeValue === 'number') {
-            return timeValue;
-          }
-        } catch (error) {
-          // Setting doesn't exist, continue to next
-        }
-      }
-
-      return null;
-    },
-  });
-
-  // Register PF2e debug methods (only called when PF2e is detected)
-  Hooks.callAll('seasons-stars:pf2e:extendCalendarEngine', {
-    methodName: 'debugWorldTimeInterpretation',
-    implementation: function (engine: any, worldTime: number): any {
-      // PF2e-specific debug implementation here
-      const calendar = engine.getCalendar();
-      const worldTimeConfig = calendar.worldTime;
-
-      const debugInfo = {
-        input: {
-          worldTime,
-          calendarId: calendar.id,
-          interpretation: worldTimeConfig?.interpretation || 'epoch-based',
-          epochYear: worldTimeConfig?.epochYear || calendar.year.epoch,
-          currentYear: worldTimeConfig?.currentYear || calendar.year.currentYear,
-        },
-        calculations: {} as any,
-        result: {} as any,
-      };
-
-      // Step 1: Show worldTime adjustment calculation
-      const adjustedWorldTime = engine.adjustWorldTimeForInterpretation(worldTime);
-      debugInfo.calculations.adjustedWorldTime = adjustedWorldTime;
-      debugInfo.calculations.adjustmentDelta = adjustedWorldTime - worldTime;
-
-      // Step 2: Convert to total seconds and calculate days
-      const totalSeconds = Math.abs(adjustedWorldTime);
-      const secondsPerDay =
-        calendar.time.hoursInDay * calendar.time.minutesInHour * calendar.time.secondsInMinute;
-      const totalDays = Math.floor(totalSeconds / secondsPerDay);
-      const secondsInDay = totalSeconds % secondsPerDay;
-
-      debugInfo.calculations.totalSeconds = totalSeconds;
-      debugInfo.calculations.secondsPerDay = secondsPerDay;
-      debugInfo.calculations.totalDays = totalDays;
-      debugInfo.calculations.secondsInDay = secondsInDay;
-
-      // Step 3: Convert to date and get final result
-      const result = engine.worldTimeToDate(worldTime);
-      debugInfo.result = {
-        year: result.year,
-        month: result.month,
-        day: result.day,
-        weekday: result.weekday,
-        formattedDate: `${result.day} ${calendar.months[result.month - 1]?.name}, ${result.year}`,
-      };
-
-      return debugInfo;
-    },
-  });
 });

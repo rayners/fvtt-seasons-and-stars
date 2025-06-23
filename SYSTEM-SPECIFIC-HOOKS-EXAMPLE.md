@@ -6,7 +6,7 @@ This document demonstrates the new system-specific hook architecture that elimin
 
 The system now supports both generic and system-specific hooks:
 
-- **Generic hooks**: `seasons-stars:registerTimeSource`, `seasons-stars:extendCalendarEngine`
+- **Generic hooks**: `seasons-stars:registerTimeSource` (backward compatibility)
 - **System-specific hooks**: `seasons-stars:pf2e:registerTimeSource`, `seasons-stars:dnd5e:registerTimeSource`, etc.
 
 ## How It Works
@@ -34,14 +34,7 @@ Hooks.on('seasons-stars:dnd5e:systemDetected', () => {
     },
   });
 
-  // Register D&D 5e calendar compatibility
-  Hooks.callAll('seasons-stars:dnd5e:registerCompatibility', {
-    calendarId: 'forgotten-realms',
-    adjustment: {
-      weekdayOffset: 1, // Adjust weekdays for D&D 5e compatibility
-      description: 'D&D 5e Forgotten Realms calendar compatibility',
-    },
-  });
+  // Note: Calendar compatibility would be registered via separate hooks if needed
 });
 ```
 

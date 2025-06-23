@@ -52,7 +52,6 @@ export class CompatibilityManager {
   private hookRegistry: Map<string, SystemCompatibilityAdjustment> = new Map();
 
   private timeSourceRegistry: Map<string, () => number | null> = new Map();
-  private engineExtensions: Map<string, Function> = new Map();
 
   constructor() {
     this.initializeHookSystem();
@@ -106,38 +105,14 @@ export class CompatibilityManager {
   }
 
   /**
-   * Initialize generic hooks for time sources and engine extensions
+   * Initialize generic hooks for backward compatibility
    */
   private initializeGenericHooks(): void {
-    // Hook for registering external time sources
+    // Generic hook for registering external time sources (backward compatibility)
     Hooks.on('seasons-stars:registerTimeSource', (data: any) => {
       if (data.systemId && data.sourceFunction) {
         this.timeSourceRegistry.set(data.systemId, data.sourceFunction);
-        console.log(`[S&S] Registered time source for system: ${data.systemId}`);
-      }
-
-      if (data.register && typeof data.register === 'function') {
-        // Provide the registration function for external use
-        data.register = (sourceId: string, sourceFunction: () => number | null) => {
-          this.timeSourceRegistry.set(sourceId, sourceFunction);
-          console.log(`[S&S] Registered time source: ${sourceId}`);
-        };
-      }
-    });
-
-    // Hook for extending calendar engine with additional methods
-    Hooks.on('seasons-stars:extendCalendarEngine', (data: any) => {
-      if (data.methodName && data.implementation) {
-        this.engineExtensions.set(data.methodName, data.implementation);
-        console.log(`[S&S] Registered engine extension: ${data.methodName}`);
-      }
-
-      if (data.addMethod && typeof data.addMethod === 'function') {
-        // Provide the registration function for external use
-        data.addMethod = (methodName: string, implementation: Function) => {
-          this.engineExtensions.set(methodName, implementation);
-          console.log(`[S&S] Registered engine extension: ${methodName}`);
-        };
+        console.log(`[S&S] Registered time source for system: ${data.systemId} (generic hook)`);
       }
     });
   }
@@ -155,16 +130,6 @@ export class CompatibilityManager {
         if (data.sourceFunction) {
           this.timeSourceRegistry.set(systemId, data.sourceFunction);
           console.log(`[S&S] Registered ${systemId}-specific time source via system hook`);
-        }
-      });
-
-      // System-specific engine extension registration
-      Hooks.on(`seasons-stars:${systemId}:extendCalendarEngine`, (data: any) => {
-        if (data.methodName && data.implementation) {
-          // Prefix method name with system ID to avoid conflicts
-          const prefixedMethodName = `${systemId}:${data.methodName}`;
-          this.engineExtensions.set(prefixedMethodName, data.implementation);
-          console.log(`[S&S] Registered ${systemId}-specific engine extension: ${data.methodName}`);
         }
       });
 
@@ -316,29 +281,6 @@ export class CompatibilityManager {
   }
 
   /**
-   * Get engine extension method by name
-   */
-  getEngineExtension(methodName: string, systemId?: string): Function | null {
-    // Try system-specific version first if systemId provided
-    if (systemId) {
-      const systemSpecificMethod = this.engineExtensions.get(`${systemId}:${methodName}`);
-      if (systemSpecificMethod) {
-        return systemSpecificMethod;
-      }
-    }
-
-    // Fallback to generic method
-    return this.engineExtensions.get(methodName) || null;
-  }
-
-  /**
-   * Get all available engine extensions
-   */
-  getAvailableEngineExtensions(): string[] {
-    return Array.from(this.engineExtensions.keys());
-  }
-
-  /**
    * List all available compatibility adjustments for debugging
    */
   debugListAll(): void {
@@ -353,12 +295,6 @@ export class CompatibilityManager {
     console.log('[S&S] Registered time sources:');
     for (const sourceId of this.timeSourceRegistry.keys()) {
       console.log(`  Time source: ${sourceId}`);
-    }
-
-    // Registered engine extensions
-    console.log('[S&S] Registered engine extensions:');
-    for (const methodName of this.engineExtensions.keys()) {
-      console.log(`  Engine method: ${methodName}`);
     }
 
     // Note: Calendar-defined compatibility is checked dynamically per calendar
