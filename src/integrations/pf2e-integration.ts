@@ -459,7 +459,7 @@ Hooks.on('ready', () => {
   // Start periodic time sync checking
   const syncInterval = setInterval(() => {
     integration.checkPF2eTimeSync();
-  }, 5000); // Check every 5 seconds
+  }, 30000); // Check every 30 seconds
 
   // Store interval for cleanup
   (integration as any).syncMonitorInterval = syncInterval;
