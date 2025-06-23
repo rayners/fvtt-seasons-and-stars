@@ -2,7 +2,11 @@
  * Time conversion and Foundry VTT integration for Seasons & Stars
  */
 
-import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type {
+  CalendarDate as ICalendarDate,
+  CalendarDateData,
+  SeasonsStarsCalendar,
+} from '../types/calendar';
 import type { DebugInfo } from '../types/widget-types';
 import { CalendarEngine } from './calendar-engine';
 import { CalendarDate } from './calendar-date';
@@ -12,7 +16,7 @@ import { TIME_CONSTANTS } from './constants';
 export class TimeConverter {
   private engine: CalendarEngine;
   private lastKnownTime: number = 0;
-  private lastKnownDate: ICalendarDate | null = null;
+  private lastKnownDate: CalendarDate | null = null;
 
   constructor(engine: CalendarEngine) {
     this.engine = engine;
@@ -43,7 +47,11 @@ export class TimeConverter {
         // Set to current real-world date for Gregorian calendar
         this.initializeWithRealWorldDate();
       } else {
-        this.lastKnownDate = this.engine.worldTimeToDate(this.lastKnownTime);
+        const dateResult = this.engine.worldTimeToDate(this.lastKnownTime);
+        this.lastKnownDate =
+          dateResult instanceof CalendarDate
+            ? dateResult
+            : new CalendarDate(dateResult, this.engine.getCalendar());
       }
     }
   }
@@ -53,7 +61,7 @@ export class TimeConverter {
    */
   private async initializeWithRealWorldDate(): Promise<void> {
     const now = new Date();
-    const realWorldDate = {
+    const realWorldDateData: CalendarDateData = {
       year: now.getFullYear(),
       month: now.getMonth() + 1, // JavaScript months are 0-indexed
       day: now.getDate(),
@@ -65,6 +73,8 @@ export class TimeConverter {
       },
     };
 
+    const realWorldDate = new CalendarDate(realWorldDateData, this.engine.getCalendar());
+
     Logger.debug('Initializing Gregorian calendar with current date:', realWorldDate);
 
     // Only set if user is GM (GMs control world time)
@@ -74,11 +84,19 @@ export class TimeConverter {
       } catch (error) {
         Logger.warn('Could not initialize with real-world date:', error);
         // Fallback to default behavior
-        this.lastKnownDate = this.engine.worldTimeToDate(this.lastKnownTime);
+        const dateResult = this.engine.worldTimeToDate(this.lastKnownTime);
+        this.lastKnownDate =
+          dateResult instanceof CalendarDate
+            ? dateResult
+            : new CalendarDate(dateResult, this.engine.getCalendar());
       }
     } else {
       // For players, just use the default conversion
-      this.lastKnownDate = this.engine.worldTimeToDate(this.lastKnownTime);
+      const dateResult = this.engine.worldTimeToDate(this.lastKnownTime);
+      this.lastKnownDate =
+        dateResult instanceof CalendarDate
+          ? dateResult
+          : new CalendarDate(dateResult, this.engine.getCalendar());
     }
   }
 
@@ -87,7 +105,11 @@ export class TimeConverter {
    */
   private onWorldTimeUpdate(newTime: number, delta: number): void {
     this.lastKnownTime = newTime;
-    this.lastKnownDate = this.engine.worldTimeToDate(newTime);
+    const dateResult = this.engine.worldTimeToDate(newTime);
+    this.lastKnownDate =
+      dateResult instanceof CalendarDate
+        ? dateResult
+        : new CalendarDate(dateResult, this.engine.getCalendar());
 
     // Emit custom hook for other modules
     Hooks.callAll('seasons-stars:dateChanged', {
@@ -103,14 +125,19 @@ export class TimeConverter {
    */
   getCurrentDate(): CalendarDate {
     const worldTime = game.time?.worldTime || 0;
-    const dateData = this.engine.worldTimeToDate(worldTime);
-    return new CalendarDate(dateData, this.engine.getCalendar());
+    const result = this.engine.worldTimeToDate(worldTime);
+    // If the engine returns a CalendarDate instance, use it directly
+    if (result instanceof CalendarDate) {
+      return result;
+    }
+    // Otherwise, create a new instance from the data
+    return new CalendarDate(result, this.engine.getCalendar());
   }
 
   /**
    * Set the current date by updating Foundry world time
    */
-  async setCurrentDate(date: ICalendarDate): Promise<void> {
+  async setCurrentDate(date: CalendarDate): Promise<void> {
     const worldTime = this.engine.dateToWorldTime(date);
 
     if (game.user?.isGM) {
@@ -125,7 +152,7 @@ export class TimeConverter {
    */
   async advanceDays(days: number): Promise<void> {
     const currentDate = this.getCurrentDate();
-    const newDate = this.engine.addDays(currentDate.toObject(), days);
+    const newDate = this.engine.addDays(currentDate, days);
     await this.setCurrentDate(newDate);
   }
 
@@ -164,7 +191,7 @@ export class TimeConverter {
     const currentDate = this.getCurrentDate();
     const weekLength = this.engine.getCalendar().weekdays.length;
     const days = weeks * weekLength; // Convert weeks to days using dynamic week length
-    const newDate = this.engine.addDays(currentDate.toObject(), days);
+    const newDate = this.engine.addDays(currentDate, days);
     await this.setCurrentDate(newDate);
   }
 
@@ -173,7 +200,7 @@ export class TimeConverter {
    */
   async advanceMonths(months: number): Promise<void> {
     const currentDate = this.getCurrentDate();
-    const newDate = this.engine.addMonths(currentDate.toObject(), months);
+    const newDate = this.engine.addMonths(currentDate, months);
     await this.setCurrentDate(newDate);
   }
 
@@ -182,7 +209,7 @@ export class TimeConverter {
    */
   async advanceYears(years: number): Promise<void> {
     const currentDate = this.getCurrentDate();
-    const newDate = this.engine.addYears(currentDate.toObject(), years);
+    const newDate = this.engine.addYears(currentDate, years);
     await this.setCurrentDate(newDate);
   }
 
@@ -190,12 +217,16 @@ export class TimeConverter {
    * Set a specific time of day while keeping the date
    */
   async setTimeOfDay(hour: number, minute: number = 0, second: number = 0): Promise<void> {
-    const currentDate = this.getCurrentDate().toObject();
+    const currentDate = this.getCurrentDate();
+    const currentDateData = currentDate.toObject();
 
     // Update the time component
-    currentDate.time = { hour, minute, second };
+    currentDateData.time = { hour, minute, second };
 
-    await this.setCurrentDate(currentDate);
+    // Create new CalendarDate instance
+    const calendar = this.engine.getCalendar();
+    const newDate = new CalendarDate(currentDateData, calendar);
+    await this.setCurrentDate(newDate);
   }
 
   /**
@@ -252,7 +283,7 @@ export class TimeConverter {
   /**
    * Calculate the difference between two dates in days
    */
-  daysBetween(date1: ICalendarDate, date2: ICalendarDate): number {
+  daysBetween(date1: CalendarDate, date2: CalendarDate): number {
     const time1 = this.engine.dateToWorldTime(date1);
     const time2 = this.engine.dateToWorldTime(date2);
 
@@ -281,7 +312,7 @@ export class TimeConverter {
   /**
    * Schedule a callback for a specific calendar date
    */
-  scheduleCallback(targetDate: ICalendarDate, callback: () => void): void {
+  scheduleCallback(targetDate: CalendarDate, callback: () => void): void {
     const targetTime = this.engine.dateToWorldTime(targetDate);
     const currentTime = game.time?.worldTime || 0;
 
@@ -309,7 +340,11 @@ export class TimeConverter {
     // Recalculate current date with new calendar
     if (game.time?.worldTime !== undefined) {
       this.lastKnownTime = game.time.worldTime;
-      this.lastKnownDate = this.engine.worldTimeToDate(this.lastKnownTime);
+      const dateResult = this.engine.worldTimeToDate(this.lastKnownTime);
+      this.lastKnownDate =
+        dateResult instanceof CalendarDate
+          ? dateResult
+          : new CalendarDate(dateResult, this.engine.getCalendar());
     }
   }
 
@@ -322,7 +357,7 @@ export class TimeConverter {
 
     return {
       worldTime,
-      calendarDate: currentDate.toObject(),
+      calendarDate: currentDate,
       formattedDate: currentDate.toLongString(),
       dayProgress: this.getDayProgress(),
       isDaytime: this.isDaytime(),

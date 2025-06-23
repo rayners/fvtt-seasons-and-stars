@@ -4,7 +4,6 @@
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
-import { CalendarDate } from '../core/calendar-date';
 import { Logger } from '../core/logger';
 import type { UpdateNoteData } from '../core/notes-manager';
 
@@ -61,14 +60,14 @@ export class NoteEditingDialog {
    * Generate the dialog content HTML
    */
   private generateContent(): string {
-    const categories = game.seasonsStars?.categories;
+    const categories = game.seasonsStars?.categories as any;
     if (!categories) {
       return '<p style="color: red;">Note categories system not available</p>';
     }
 
     // Format date display
-    const manager = game.seasonsStars?.manager;
-    const activeCalendar = manager?.getActiveCalendar();
+    const manager = game.seasonsStars?.manager as any;
+    const activeCalendar = manager?.getActiveCalendar?.();
     let dateDisplayStr = `${this.originalData.startDate.year}-${this.originalData.startDate.month.toString().padStart(2, '0')}-${this.originalData.startDate.day.toString().padStart(2, '0')}`;
     let calendarInfo = '';
 
@@ -95,12 +94,12 @@ export class NoteEditingDialog {
     const predefinedTags = categories.getPredefinedTags();
 
     // Get existing tags from all notes for autocompletion
-    const notesManager = game.seasonsStars?.notes;
+    const notesManager = game.seasonsStars?.notes as any as any;
     const existingTags = new Set<string>();
-    if (notesManager && notesManager.storage) {
+    if (notesManager && (notesManager as any)?.storage) {
       try {
-        if (typeof notesManager.storage.getAllNotes === 'function') {
-          const allNotes = notesManager.storage.getAllNotes() || [];
+        if (typeof (notesManager as any).storage.getAllNotes === 'function') {
+          const allNotes = (notesManager as any).storage.getAllNotes() || [];
           allNotes.forEach(note => {
             const noteTags = note.flags?.['seasons-and-stars']?.tags || [];
             noteTags.forEach((tag: string) => existingTags.add(tag));
@@ -339,7 +338,7 @@ export class NoteEditingDialog {
    * Setup tag autocompletion functionality
    */
   private setupTagAutocompletion(html: JQuery): void {
-    const categories = game.seasonsStars?.categories;
+    const categories = game.seasonsStars?.categories as any;
     if (!categories) return;
 
     const tagsInput = html.find('input[name="tags"]');
@@ -348,7 +347,7 @@ export class NoteEditingDialog {
 
     // Get all available tags for autocompletion
     const predefinedTags = categories.getPredefinedTags();
-    const notesManager = game.seasonsStars?.notes;
+    const notesManager = game.seasonsStars?.notes as any;
     const existingTags = new Set<string>();
 
     if (notesManager && notesManager.storage) {
@@ -566,7 +565,7 @@ export class NoteEditingDialog {
       }
 
       // Parse and validate tags
-      const categories = game.seasonsStars?.categories;
+      const categories = game.seasonsStars?.categories as any;
       if (!categories) {
         ui.notifications?.error('Note categories system not available');
         return;
@@ -590,7 +589,7 @@ export class NoteEditingDialog {
       };
 
       // Update the note
-      const notesManager = game.seasonsStars?.notes;
+      const notesManager = game.seasonsStars?.notes as any;
       if (!notesManager) {
         ui.notifications?.error('Notes manager not available');
         return;
@@ -662,7 +661,7 @@ export class NoteEditingDialog {
 
           // Update category select styling based on selection
           $html.find('.category-select').on('change', event => {
-            const categories = game.seasonsStars?.categories;
+            const categories = game.seasonsStars?.categories as any;
             if (!categories) return;
 
             const selectedCat = categories.getCategory($(event.currentTarget).val() as string);
@@ -673,7 +672,7 @@ export class NoteEditingDialog {
 
           // Initialize category border
           const categorySelect = $html.find('.category-select');
-          const categories = game.seasonsStars?.categories;
+          const categories = game.seasonsStars?.categories as any;
           if (categories) {
             const selectedCat = categories.getCategory(categorySelect.val() as string);
             if (selectedCat) {

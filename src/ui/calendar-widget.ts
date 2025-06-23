@@ -4,10 +4,9 @@
 
 import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarSelectionDialog } from './calendar-selection-dialog';
-import { CalendarGridWidget } from './calendar-grid-widget';
-import { CalendarMiniWidget } from './calendar-mini-widget';
+import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
-import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -61,7 +60,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   async _prepareContext(options = {}): Promise<any> {
     const context = await super._prepareContext(options);
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
 
     if (!manager) {
       return Object.assign(context, {
@@ -119,7 +118,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Instance action handler for opening calendar selection dialog
    */
-  async _onOpenCalendarSelection(event: Event, target: HTMLElement): Promise<void> {
+  async _onOpenCalendarSelection(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
     CalendarSelectionDialog.show();
   }
@@ -127,10 +126,10 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Instance action handler for opening detailed view dialog
    */
-  async _onOpenDetailedView(event: Event, target: HTMLElement): Promise<void> {
+  async _onOpenDetailedView(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     if (!manager) {
       ui.notifications?.error('Calendar manager not available');
       return;
@@ -138,7 +137,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
 
     // Open the calendar grid widget with the current date
     const currentDate = manager.getCurrentDate();
-    CalendarGridWidget.show(currentDate);
+    CalendarWidgetManager.showWidget('grid');
   }
 
   /**
@@ -150,7 +149,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     const amount = parseInt(target.dataset.amount || '0');
     const unit = target.dataset.unit || 'days';
 
-    const manager = game.seasonsStars?.manager;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     if (!manager) return;
 
     Logger.info(`Advancing date: ${amount} ${unit}`);
@@ -197,7 +196,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Instance action handler for opening bulk advance dialog
    */
-  async _onOpenBulkAdvance(event: Event, target: HTMLElement): Promise<void> {
+  async _onOpenBulkAdvance(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
 
     // Show placeholder for now - will implement proper dialog later
@@ -232,7 +231,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Switch to mini widget
    */
-  async _onSwitchToMini(event: Event, target: HTMLElement): Promise<void> {
+  async _onSwitchToMini(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
     Logger.debug('Switching from main widget to mini widget');
 
@@ -240,7 +239,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       // Close current widget
       this.close();
       // Open mini widget
-      CalendarMiniWidget.show();
+      CalendarWidgetManager.showWidget('mini');
     } catch (error) {
       Logger.error(
         'Failed to switch to mini widget',
@@ -252,7 +251,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Switch to grid widget
    */
-  async _onSwitchToGrid(event: Event, target: HTMLElement): Promise<void> {
+  async _onSwitchToGrid(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
     Logger.debug('Switching from main widget to grid widget');
 
@@ -260,7 +259,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       // Close current widget
       this.close();
       // Open grid widget
-      CalendarGridWidget.show();
+      CalendarWidgetManager.showWidget('grid');
     } catch (error) {
       Logger.error(
         'Failed to switch to grid widget',
@@ -294,7 +293,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         if (document.querySelector(selector)) {
           return true;
         }
-      } catch (e) {
+      } catch (_error) {
         // Skip invalid selectors
         continue;
       }

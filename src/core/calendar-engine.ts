@@ -4,10 +4,12 @@
 
 import type {
   SeasonsStarsCalendar,
-  CalendarDate,
+  CalendarDate as ICalendarDate,
+  CalendarDateData,
   CalendarCalculation,
   CalendarIntercalary,
 } from '../types/calendar';
+import { CalendarDate } from './calendar-date';
 import { CalendarTimeUtils } from './calendar-time-utils';
 
 export class CalendarEngine {
@@ -46,7 +48,7 @@ export class CalendarEngine {
     // Convert days to calendar date
     const dateInfo = this.daysToDate(totalDays);
 
-    return {
+    const dateData: CalendarDateData = {
       year: dateInfo.year,
       month: dateInfo.month,
       day: dateInfo.day,
@@ -54,6 +56,8 @@ export class CalendarEngine {
       intercalary: dateInfo.intercalary,
       time: { hour, minute, second },
     };
+
+    return new CalendarDate(dateData, this.calendar);
   }
 
   /**
@@ -106,13 +110,15 @@ export class CalendarEngine {
     const targetMonthDays = this.getMonthLength(targetMonth, targetYear);
     const targetDay = Math.min(date.day, targetMonthDays);
 
-    return {
+    const dateData: CalendarDateData = {
       year: targetYear,
       month: targetMonth,
       day: targetDay,
       weekday: this.calculateWeekday(targetYear, targetMonth, targetDay),
       time: date.time ? { ...date.time } : undefined,
     };
+
+    return new CalendarDate(dateData, this.calendar);
   }
 
   /**
@@ -125,13 +131,15 @@ export class CalendarEngine {
     const targetMonthDays = this.getMonthLength(date.month, targetYear);
     const targetDay = Math.min(date.day, targetMonthDays);
 
-    return {
+    const dateData: CalendarDateData = {
       year: targetYear,
       month: date.month,
       day: targetDay,
       weekday: this.calculateWeekday(targetYear, date.month, targetDay),
       time: date.time ? { ...date.time } : undefined,
     };
+
+    return new CalendarDate(dateData, this.calendar);
   }
 
   /**
@@ -151,14 +159,20 @@ export class CalendarEngine {
       extraDays -= 1;
     }
 
-    let result: CalendarDate = {
-      ...date,
+    const baseData: CalendarDateData = {
+      year: date.year,
+      month: date.month,
+      day: date.day,
+      weekday: date.weekday,
+      intercalary: date.intercalary,
       time: {
         hour: newHour,
         minute: currentTime.minute,
         second: currentTime.second,
       },
     };
+
+    let result = new CalendarDate(baseData, this.calendar);
 
     // Add extra days if needed
     if (extraDays !== 0) {
@@ -185,14 +199,20 @@ export class CalendarEngine {
       extraHours -= 1;
     }
 
-    let result: CalendarDate = {
-      ...date,
+    const baseData: CalendarDateData = {
+      year: date.year,
+      month: date.month,
+      day: date.day,
+      weekday: date.weekday,
+      intercalary: date.intercalary,
       time: {
         hour: currentTime.hour,
         minute: newMinute,
         second: currentTime.second,
       },
     };
+
+    let result = new CalendarDate(baseData, this.calendar);
 
     // Add extra hours if needed
     if (extraHours !== 0) {
@@ -327,13 +347,15 @@ export class CalendarEngine {
 
         if (remainingDays < intercalaryDayCount) {
           // We're within this intercalary period - return intercalary date with no weekday calculation
-          return {
+          const dateData: CalendarDateData = {
             year,
             month,
             day: remainingDays + 1, // Intercalary day index (1-based)
             weekday: 0, // Placeholder - intercalary days don't have weekdays
             intercalary: intercalary.name,
           };
+
+          return new CalendarDate(dateData, this.calendar);
         }
 
         remainingDays -= intercalaryDayCount;
@@ -342,12 +364,14 @@ export class CalendarEngine {
 
     const day = remainingDays + 1;
 
-    return {
+    const dateData: CalendarDateData = {
       year,
       month,
       day,
       weekday: this.calculateWeekday(year, month, day),
     };
+
+    return new CalendarDate(dateData, this.calendar);
   }
 
   /**
@@ -403,7 +427,9 @@ export class CalendarEngine {
    * Calculate weekday for a given date
    */
   calculateWeekday(year: number, month: number, day: number): number {
-    const weekdayContributingDays = this.dateToWeekdayDays({ year, month, day, weekday: 0 });
+    const tempDateData: CalendarDateData = { year, month, day, weekday: 0 };
+    const tempDate = new CalendarDate(tempDateData, this.calendar);
+    const weekdayContributingDays = this.dateToWeekdayDays(tempDate);
     const weekdayCount = this.calendar.weekdays.length;
     const epochWeekday = this.calendar.year.startDay;
 

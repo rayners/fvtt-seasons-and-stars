@@ -116,7 +116,11 @@ export class CalendarManager {
     this.activeCalendarId = calendarId;
 
     // Update time converter with new engine
-    const engine = this.engines.get(calendarId)!;
+    const engine = this.engines.get(calendarId);
+    if (!engine) {
+      Logger.error(`Engine not found for calendar: ${calendarId}`);
+      return false;
+    }
 
     if (this.timeConverter) {
       this.timeConverter.updateEngine(engine);

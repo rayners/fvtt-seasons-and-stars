@@ -2,6 +2,7 @@
  * Centralized logging system for Seasons & Stars module
  * Provides debug mode toggle and user-friendly error notifications
  */
+/* eslint-disable no-console */
 export class Logger {
   private static readonly MODULE_ID = 'seasons-and-stars';
 

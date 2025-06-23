@@ -3,6 +3,7 @@
  */
 
 import type { CalendarDate as ICalendarDate } from '../types/calendar';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import { CalendarDate } from './calendar-date';
 
 /**
@@ -138,7 +139,9 @@ export class CalendarNote {
     const startDate = this.startDate;
     if (!startDate) return 'Unknown Date';
 
-    const activeCalendar = game.seasonsStars?.manager?.getActiveCalendar();
+    const activeCalendar = (
+      game.seasonsStars?.manager as CalendarManagerInterface
+    )?.getActiveCalendar();
     if (!activeCalendar) return this.dateKey;
 
     const calendarDate = new CalendarDate(startDate, activeCalendar);
@@ -434,7 +437,7 @@ export class CalendarNote {
   static fromJournalEntry(journal: JournalEntry): CalendarNote | null {
     try {
       return new CalendarNote(journal);
-    } catch (error) {
+    } catch {
       // Not a valid calendar note
       return null;
     }

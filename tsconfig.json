@@ -13,7 +13,7 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "types": ["jquery"],
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": ["./node_modules/@types", "./src/types", "./test"]
   },
   "include": ["src/**/*", "src/types/**/*.d.ts"],
   "exclude": ["node_modules"]

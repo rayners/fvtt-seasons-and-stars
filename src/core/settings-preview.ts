@@ -4,6 +4,7 @@
 
 import { Logger } from './logger';
 import { parseQuickTimeButtons, formatTimeButton, getQuickTimeButtons } from './quick-time-buttons';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 // Module-level state (replaces static class properties)
 let previewContainer: HTMLElement | null = null;
@@ -105,7 +106,7 @@ function updatePreview(value: string): void {
   try {
     // Get current calendar for parsing
     const manager = game.seasonsStars?.manager;
-    const calendar = manager?.getActiveCalendar();
+    const calendar = (manager as CalendarManagerInterface)?.getActiveCalendar();
 
     if (!value || typeof value !== 'string') {
       showErrorPreview('Invalid input');

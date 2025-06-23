@@ -21,10 +21,16 @@ import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
-import { TIME_CONSTANTS } from './core/constants';
+import { APIWrapper } from './core/api-wrapper';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
+import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
+import type {
+  ErrorsAndEchoesAPI,
+  ExtendedNotesManager,
+  ExtendedCalendarManager,
+} from './types/external-integrations';
 import type {
   CalendarDate as ICalendarDate,
   DateFormatOptions,
@@ -39,7 +45,7 @@ let notesManager: NotesManager;
 SeasonsStarsSceneControls.registerControls();
 
 // Register Errors and Echoes hook at top level (RECOMMENDED - eliminates timing issues)
-Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
+Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
   // E&E is guaranteed to be ready when this hook is called
   try {
     Logger.debug('Registering with Errors and Echoes via hook');
@@ -49,91 +55,31 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: any) => {
 
       // Context provider - adds useful debugging information
       contextProvider: () => {
-        // Use defensive programming to prevent context provider errors
-        const context: Record<string, any> = {};
+        const context: Record<string, unknown> = {};
 
-        try {
-          // Add current calendar information
-          if (calendarManager) {
-            const currentDate = calendarManager.getCurrentDate();
-            const activeCalendar = calendarManager.getActiveCalendar();
+        // Add current calendar information - safe property access
+        if (calendarManager) {
+          const currentDate = calendarManager.getCurrentDate();
+          const activeCalendar = calendarManager.getActiveCalendar();
 
-            context.currentDate = currentDate
-              ? `${currentDate.year}-${currentDate.month}-${currentDate.day}`
-              : 'unknown';
-            context.activeCalendarId = activeCalendar?.id || 'unknown';
-            context.activeCalendarLabel = activeCalendar?.translations?.en?.label || 'unknown';
-            context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
-          }
-        } catch (error) {
-          context.calendarDataError = 'Failed to access calendar data';
+          context.currentDate = currentDate
+            ? `${currentDate.year}-${currentDate.month}-${currentDate.day}`
+            : 'unknown';
+          context.activeCalendarId = activeCalendar?.id || 'unknown';
+          context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
         }
 
-        try {
-          // Add widget state information
-          const activeWidgets: string[] = [];
-          if (CalendarWidget.getInstance?.()?.rendered) activeWidgets.push('main');
-          if (CalendarMiniWidget.getInstance?.()?.rendered) activeWidgets.push('mini');
-          if (CalendarGridWidget.getInstance?.()?.rendered) activeWidgets.push('grid');
+        // Add widget state - simple property checks don't need try-catch
+        const activeWidgets: string[] = [];
+        if (CalendarWidget.getInstance?.()?.rendered) activeWidgets.push('main');
+        if (CalendarMiniWidget.getInstance?.()?.rendered) activeWidgets.push('mini');
+        if (CalendarGridWidget.getInstance?.()?.rendered) activeWidgets.push('grid');
+        context.activeWidgets = activeWidgets;
 
-          context.activeWidgets = activeWidgets;
-          context.widgetCount = activeWidgets.length;
-        } catch (error) {
-          context.widgetDataError = 'Failed to access widget data';
-        }
-
-        try {
-          // Add system integration status
-          context.smallTimeDetected = !!document.querySelector('#smalltime-app');
-          context.simpleCalendarActive =
-            game.modules?.get('foundryvtt-simple-calendar')?.active || false;
-        } catch (error) {
-          context.integrationDataError = 'Failed to check integrations';
-        }
-
-        try {
-          // Add notes information
-          if (notesManager) {
-            context.notesSystemInitialized = notesManager.isInitialized();
-            // Don't expose note count as it might be sensitive
-          }
-        } catch (error) {
-          context.notesError = 'Could not read notes state';
-        }
-
-        try {
-          // Add current scene information
-          if ((game as any).scenes?.active) {
-            const scene = (game as any).scenes.active;
-            context.sceneId = scene.id;
-            context.sceneName = scene.name;
-          }
-        } catch (error) {
-          context.sceneError = 'Could not read scene data';
-        }
-
-        try {
-          // Add system information
-          context.gameSystem = (game as any).system?.id || 'unknown';
-          context.systemVersion = (game as any).system?.version || 'unknown';
-          context.foundryVersion = (game as any).version || 'unknown';
-        } catch (error) {
-          context.systemInfoError = 'Could not read system information';
-        }
-
-        try {
-          // Add key module settings that might affect behavior
-          context.showTimeWidget =
-            game.settings?.get('seasons-and-stars', 'showTimeWidget') || false;
-          context.debugMode = game.settings?.get('seasons-and-stars', 'debugMode') || false;
-          context.showNotifications =
-            game.settings?.get('seasons-and-stars', 'showNotifications') || false;
-          context.defaultWidget =
-            game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
-        } catch (error) {
-          // Settings might not be registered yet
-          context.settingsError = 'Could not read module settings';
-        }
+        // Add system information - basic property access
+        context.gameSystem = game.system?.id || 'unknown';
+        context.foundryVersion = game.version || 'unknown';
+        context.smallTimeDetected = !!document.querySelector('#smalltime-app');
 
         return context;
       },
@@ -342,9 +288,6 @@ Hooks.once('ready', async () => {
     api: game.seasonsStars?.api,
   });
 
-  // TEMPORARY: Setup test error reporting function for E&E verification
-  setupTestErrorReporting();
-
   Logger.info('Module ready');
 });
 
@@ -430,7 +373,7 @@ function registerSettings(): void {
           Hooks.callAll('seasons-stars:settingsChanged', 'quickTimeButtons');
         }
       } catch (error) {
-        console.warn('Failed to trigger quick time buttons settings refresh:', error);
+        Logger.warn('Failed to trigger quick time buttons settings refresh:', error);
       }
     },
   });
@@ -549,8 +492,8 @@ function setupAPI(): void {
           return null;
         }
 
-        const result = currentDate.toObject();
-        Logger.api('getCurrentDate', undefined, result);
+        const result = currentDate;
+        Logger.api('getCurrentDate', undefined, result.toObject());
         return result;
       } catch (error) {
         Logger.error(
@@ -645,236 +588,87 @@ function setupAPI(): void {
     },
 
     advanceDays: async (days: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceDays', { days, calendarId });
-
-        // Input validation
-        if (typeof days !== 'number' || !isFinite(days)) {
-          const error = new Error('Days must be a finite number');
-          Logger.error('Invalid days parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceDays(days);
-        Logger.api('advanceDays', { days, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance days',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceDays',
+        { days, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.days, 'Days');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceDays(days)
+      );
     },
 
     advanceHours: async (hours: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceHours', { hours, calendarId });
-
-        // Input validation
-        if (typeof hours !== 'number' || !isFinite(hours)) {
-          const error = new Error('Hours must be a finite number');
-          Logger.error('Invalid hours parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceHours(hours);
-        Logger.api('advanceHours', { hours, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance hours',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceHours',
+        { hours, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.hours, 'Hours');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceHours(hours)
+      );
     },
 
     advanceMinutes: async (minutes: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceMinutes', { minutes, calendarId });
-
-        // Input validation
-        if (typeof minutes !== 'number' || !isFinite(minutes)) {
-          const error = new Error('Minutes must be a finite number');
-          Logger.error('Invalid minutes parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceMinutes(minutes);
-        Logger.api('advanceMinutes', { minutes, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance minutes',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceMinutes',
+        { minutes, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.minutes, 'Minutes');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceMinutes(minutes)
+      );
     },
 
     advanceWeeks: async (weeks: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceWeeks', { weeks, calendarId });
-
-        // Input validation
-        if (typeof weeks !== 'number' || !isFinite(weeks)) {
-          const error = new Error('Weeks must be a finite number');
-          Logger.error('Invalid weeks parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceWeeks(weeks);
-        Logger.api('advanceWeeks', { weeks, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance weeks',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceWeeks',
+        { weeks, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.weeks, 'Weeks');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceWeeks(weeks)
+      );
     },
 
     advanceMonths: async (months: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceMonths', { months, calendarId });
-
-        // Input validation
-        if (typeof months !== 'number' || !isFinite(months)) {
-          const error = new Error('Months must be a finite number');
-          Logger.error('Invalid months parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceMonths(months);
-        Logger.api('advanceMonths', { months, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance months',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceMonths',
+        { months, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.months, 'Months');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceMonths(months)
+      );
     },
 
     advanceYears: async (years: number, calendarId?: string): Promise<void> => {
-      try {
-        Logger.api('advanceYears', { years, calendarId });
-
-        // Input validation
-        if (typeof years !== 'number' || !isFinite(years)) {
-          const error = new Error('Years must be a finite number');
-          Logger.error('Invalid years parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
-
-        if (calendarId) {
-          const error = new Error('Advancing specific calendar time not yet implemented');
-          Logger.error('Feature not implemented', error);
-          throw error;
-        }
-
-        await calendarManager.advanceYears(years);
-        Logger.api('advanceYears', { years, calendarId }, 'success');
-      } catch (error) {
-        Logger.error(
-          'Failed to advance years',
-          error instanceof Error ? error : new Error(String(error))
-        );
-        throw error;
-      }
+      return APIWrapper.wrapAPIMethod(
+        'advanceYears',
+        { years, calendarId },
+        params => {
+          APIWrapper.validateNumber(params.years, 'Years');
+          APIWrapper.validateCalendarId(params.calendarId);
+        },
+        () => calendarManager.advanceYears(years)
+      );
     },
 
     formatDate: (date: ICalendarDate, options?: DateFormatOptions): string => {
       try {
         Logger.api('formatDate', { date, options });
 
-        // Input validation
-        if (!date || typeof date !== 'object') {
-          const error = new Error('Date must be a valid ICalendarDate object');
-          Logger.error('Invalid date parameter', error);
-          throw error;
-        }
-
-        if (
-          typeof date.year !== 'number' ||
-          typeof date.month !== 'number' ||
-          typeof date.day !== 'number'
-        ) {
-          const error = new Error('Date must have valid year, month, and day numbers');
-          Logger.error('Invalid date structure', error);
-          throw error;
-        }
+        // Input validation using APIWrapper helpers
+        APIWrapper.validateCalendarDate(date, 'Date');
 
         const activeCalendar = calendarManager.getActiveCalendar();
-
         if (!activeCalendar) {
-          const error = new Error('No active calendar set');
-          Logger.error('No active calendar for date formatting', error);
-          throw error;
+          throw new Error('No active calendar set');
         }
 
         const calendarDate = new CalendarDate(date, activeCalendar);
@@ -890,45 +684,28 @@ function setupAPI(): void {
       }
     },
 
-    dateToWorldTime: (date: ICalendarDate, calendarId?: string): number => {
+    dateToWorldTime: (date: CalendarDate, calendarId?: string): number => {
       try {
         Logger.api('dateToWorldTime', { date, calendarId });
 
-        // Input validation
-        if (!date || typeof date !== 'object') {
-          const error = new Error('Date must be a valid ICalendarDate object');
-          Logger.error('Invalid date parameter', error);
-          throw error;
-        }
-
-        if (
-          typeof date.year !== 'number' ||
-          typeof date.month !== 'number' ||
-          typeof date.day !== 'number'
-        ) {
-          const error = new Error('Date must have valid year, month, and day numbers');
-          Logger.error('Invalid date structure', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
+        // Input validation using APIWrapper helpers
+        APIWrapper.validateCalendarDate(date, 'Date');
+        APIWrapper.validateOptionalString(calendarId, 'Calendar ID');
 
         const engine = calendarId
           ? calendarManager.engines?.get(calendarId)
           : calendarManager.getActiveEngine();
 
         if (!engine) {
-          const error = new Error(`No engine available for calendar: ${calendarId || 'active'}`);
-          Logger.error('No engine available for date to world time conversion', error);
-          throw error;
+          throw new Error(`No engine available for calendar: ${calendarId || 'active'}`);
         }
 
         const result = engine.dateToWorldTime(date);
-        Logger.api('dateToWorldTime', { date, calendarId }, result);
+        Logger.api(
+          'dateToWorldTime',
+          { date: (date as any).toObject?.() || date, calendarId },
+          result
+        );
         return result;
       } catch (error) {
         Logger.error(
@@ -939,31 +716,20 @@ function setupAPI(): void {
       }
     },
 
-    worldTimeToDate: (timestamp: number, calendarId?: string): ICalendarDate => {
+    worldTimeToDate: (timestamp: number, calendarId?: string): CalendarDate => {
       try {
         Logger.api('worldTimeToDate', { timestamp, calendarId });
 
-        // Input validation
-        if (typeof timestamp !== 'number' || !isFinite(timestamp)) {
-          const error = new Error('Timestamp must be a finite number');
-          Logger.error('Invalid timestamp parameter', error);
-          throw error;
-        }
-
-        if (calendarId !== undefined && typeof calendarId !== 'string') {
-          const error = new Error('Calendar ID must be a string');
-          Logger.error('Invalid calendar ID parameter', error);
-          throw error;
-        }
+        // Input validation using APIWrapper helpers
+        APIWrapper.validateNumber(timestamp, 'Timestamp');
+        APIWrapper.validateOptionalString(calendarId, 'Calendar ID');
 
         const engine = calendarId
           ? calendarManager.engines?.get(calendarId)
           : calendarManager.getActiveEngine();
 
         if (!engine) {
-          const error = new Error(`No engine available for calendar: ${calendarId || 'active'}`);
-          Logger.error('No engine available for world time to date conversion', error);
-          throw error;
+          throw new Error(`No engine available for calendar: ${calendarId || 'active'}`);
         }
 
         const result = engine.worldTimeToDate(timestamp);
@@ -1030,7 +796,7 @@ function setupAPI(): void {
       }
     },
 
-    loadCalendar: (data: any): void => {
+    loadCalendar: (data: SeasonsStarsCalendar): void => {
       try {
         Logger.api('loadCalendar', { calendarId: data?.id || 'unknown' });
 
@@ -1250,11 +1016,11 @@ function setupAPI(): void {
   }
 
   // Expose API to window for debugging
-  (window as any).SeasonsStars = {
+  window.SeasonsStars = {
     api,
     manager: calendarManager,
     notes: notesManager,
-    integration: SeasonsStarsIntegration,
+    integration: SeasonsStarsIntegration.detect() || null,
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,
@@ -1264,82 +1030,6 @@ function setupAPI(): void {
   Logger.debug('API and bridge integration exposed');
 
   Logger.debug('Module initialization complete');
-}
-
-/**
- * Register hooks for custom note editing dialog
- */
-function registerNoteEditingHooks(): void {
-  // Hook into journal sheet rendering to intercept calendar notes
-  Hooks.on('renderJournalSheet', (sheet: any, html: JQuery, data: any) => {
-    Logger.debug('renderJournalSheet hook fired', {
-      journalName: sheet.document?.name,
-      isCalendarNote: !!sheet.document?.flags?.['seasons-and-stars']?.calendarNote,
-    });
-
-    try {
-      const journal = sheet.document;
-
-      // Check if this is a calendar note
-      const flags = journal.flags?.['seasons-and-stars'];
-      if (!flags?.calendarNote) {
-        Logger.debug('Not a calendar note, allowing default sheet');
-        return; // Not a calendar note, let default sheet handle it
-      }
-
-      Logger.debug('Calendar note detected, intercepting sheet');
-
-      // Close the default sheet immediately
-      sheet.close();
-
-      // Show our custom editing dialog instead
-      NoteEditingDialog.showEditDialog(journal);
-    } catch (error) {
-      Logger.error(
-        'Failed to intercept journal sheet for calendar note',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      // Let the default sheet continue if our custom dialog fails
-    }
-  });
-
-  // Also try intercepting at the preRender stage (before sheet opens)
-  Hooks.on('preRenderJournalSheet', (sheet: any) => {
-    Logger.debug('preRenderJournalSheet hook fired', {
-      journalName: sheet.document?.name,
-      isCalendarNote: !!sheet.document?.flags?.['seasons-and-stars']?.calendarNote,
-    });
-
-    try {
-      const journal = sheet.document;
-
-      // Check if this is a calendar note
-      const flags = journal.flags?.['seasons-and-stars'];
-      if (!flags?.calendarNote) {
-        return; // Not a calendar note, let default sheet handle it
-      }
-
-      Logger.debug('Calendar note detected in preRender, preventing default sheet');
-
-      // Prevent the default sheet from opening at all
-      setTimeout(() => {
-        // Show our custom editing dialog instead
-        NoteEditingDialog.showEditDialog(journal);
-      }, 10);
-
-      // Return false to prevent the default sheet from rendering
-      return false;
-    } catch (error) {
-      Logger.error(
-        'Failed to intercept journal sheet in preRender',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      // Let the default sheet continue if our custom dialog fails
-      return true;
-    }
-  });
-
-  Logger.debug('Note editing hooks registered');
 }
 
 /**
@@ -1353,8 +1043,8 @@ Hooks.once('destroy', () => {
     delete game.seasonsStars;
   }
 
-  if ((window as any).SeasonsStars) {
-    delete (window as any).SeasonsStars;
+  if (window.SeasonsStars) {
+    delete window.SeasonsStars;
   }
 });
 
@@ -1364,7 +1054,7 @@ Hooks.once('destroy', () => {
 function registerMemoryMageIntegration(): void {
   try {
     // Check if Memory Mage is available (standard Foundry module pattern)
-    const memoryMage = (game as any).memoryMage || (game.modules?.get('memory-mage') as any)?.api;
+    const memoryMage = game.memoryMage || game.modules?.get('memory-mage')?.api;
     if (!memoryMage) {
       Logger.debug('Memory Mage not available - skipping memory monitoring integration');
       return;
@@ -1372,8 +1062,8 @@ function registerMemoryMageIntegration(): void {
 
     Logger.debug('Registering with Memory Mage for memory monitoring');
     // Register self-reporting memory usage
-    memoryMage.registerModule('seasons-and-stars', () => {
-      const optimizer = (notesManager as any)?.getPerformanceOptimizer?.();
+    (memoryMage as MemoryMageAPI).registerModule('seasons-and-stars', () => {
+      const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
       const widgetMemory = calculateWidgetMemory();
       const calendarMemory = calculateCalendarMemory();
 
@@ -1382,40 +1072,31 @@ function registerMemoryMageIntegration(): void {
         details: {
           notesCache: optimizer?.getMetrics()?.totalNotes || 0,
           activeWidgets: getActiveWidgetCount(),
-          loadedCalendars: (calendarManager as any)?.getLoadedCalendars?.()?.length || 0,
+          loadedCalendars:
+            (calendarManager as ExtendedCalendarManager)?.getLoadedCalendars?.()?.length || 0,
           cacheSize: optimizer?.getMetrics()?.cacheHitRate || 0,
         },
       };
     });
 
     // Register cleanup handler for memory pressure
-    memoryMage.registerCleanupHandler('seasons-and-stars', (level: 'warning' | 'critical') => {
-      Logger.info(`Memory Mage triggered cleanup: ${level} pressure detected`);
+    (memoryMage as MemoryMageAPI).registerCleanupHandler?.(() => {
+      Logger.info('Memory Mage triggered cleanup: memory pressure detected');
 
-      if (level === 'warning') {
-        // Light cleanup
-        const optimizer = (notesManager as any)?.getPerformanceOptimizer?.();
-        if (optimizer) {
-          optimizer.relieveMemoryPressure();
-        }
-      } else if (level === 'critical') {
-        // Aggressive cleanup
-        const optimizer = (notesManager as any)?.getPerformanceOptimizer?.();
-        if (optimizer) {
-          optimizer.relieveMemoryPressure();
-        }
-
-        // Clear other caches if available
-        if ((calendarManager as any)?.clearCaches) {
-          (calendarManager as any).clearCaches();
-        }
-
-        // Force close widgets if memory is critically low
-        if (level === 'critical') {
-          (CalendarWidget as any).closeAll?.();
-          (CalendarGridWidget as any).closeAll?.();
-        }
+      // Perform memory cleanup
+      const optimizer = (notesManager as ExtendedNotesManager)?.getPerformanceOptimizer?.();
+      if (optimizer) {
+        optimizer.relieveMemoryPressure?.();
       }
+
+      // Clear other caches if available
+      if ((calendarManager as ExtendedCalendarManager)?.clearCaches) {
+        (calendarManager as ExtendedCalendarManager).clearCaches?.();
+      }
+
+      // Force close widgets if memory is critically low
+      (CalendarWidget as unknown as { closeAll?: () => void }).closeAll?.();
+      (CalendarGridWidget as unknown as { closeAll?: () => void }).closeAll?.();
     });
 
     Logger.debug('Memory Mage integration registered successfully');
@@ -1444,7 +1125,8 @@ function calculateWidgetMemory(): number {
  * Calculate estimated memory usage of loaded calendars
  */
 function calculateCalendarMemory(): number {
-  const loadedCalendars = (calendarManager as any)?.getLoadedCalendars?.()?.length || 0;
+  const loadedCalendars =
+    (calendarManager as ExtendedCalendarManager)?.getLoadedCalendars?.()?.length || 0;
   return loadedCalendars * 0.02; // 20KB per calendar
 }
 
@@ -1466,130 +1148,55 @@ function getActiveWidgetCount(): number {
  */
 function registerNotesCleanupHooks(): void {
   // Hook into journal deletion to clean up our notes storage
-  Hooks.on('deleteJournalEntry', async (journal: any, options: any, userId: string) => {
-    Logger.debug('Journal deletion detected', {
-      journalId: journal.id,
-      journalName: journal.name,
-      isCalendarNote: !!journal.flags?.['seasons-and-stars']?.calendarNote,
-    });
+  Hooks.on(
+    'deleteJournalEntry',
+    async (journal: JournalEntry, _options: Record<string, unknown>, _userId: string) => {
+      Logger.debug('Journal deletion detected', {
+        journalId: journal.id,
+        journalName: journal.name,
+        isCalendarNote: !!journal.flags?.['seasons-and-stars']?.calendarNote,
+      });
 
-    try {
-      // Check if this was a calendar note
-      const flags = journal.flags?.['seasons-and-stars'];
-      if (flags?.calendarNote) {
-        Logger.info('Calendar note deleted externally, cleaning up storage', {
-          noteId: journal.id,
-          noteName: journal.name,
-        });
+      try {
+        // Check if this was a calendar note
+        const flags = journal.flags?.['seasons-and-stars'];
+        if (flags?.calendarNote) {
+          Logger.info('Calendar note deleted externally, cleaning up storage', {
+            noteId: journal.id,
+            noteName: journal.name,
+          });
 
-        // Remove from our storage system
-        if (notesManager?.storage) {
-          await notesManager.storage.removeNote(journal.id);
-          Logger.debug('Note removed from storage');
-        }
+          // Remove from our storage system
+          if (notesManager?.storage) {
+            await notesManager.storage.removeNote(journal.id);
+            Logger.debug('Note removed from storage');
+          }
 
-        // Emit our own deletion hook for UI updates
-        Hooks.callAll('seasons-stars:noteDeleted', journal.id);
+          // Emit our own deletion hook for UI updates
+          Hooks.callAll('seasons-stars:noteDeleted', journal.id);
 
-        // Refresh calendar widgets to remove the note from display
-        const calendarWidget = CalendarWidget.getInstance?.();
-        if (calendarWidget?.rendered) {
-          calendarWidget.render();
+          // Refresh calendar widgets to remove the note from display
+          const calendarWidget = CalendarWidget.getInstance?.();
+          if (calendarWidget?.rendered) {
+            calendarWidget.render();
+          }
+          const miniWidget = CalendarMiniWidget.getInstance?.();
+          if (miniWidget?.rendered) {
+            miniWidget.render();
+          }
+          const gridWidget = CalendarGridWidget.getInstance?.();
+          if (gridWidget?.rendered) {
+            gridWidget.render();
+          }
         }
-        const miniWidget = CalendarMiniWidget.getInstance?.();
-        if (miniWidget?.rendered) {
-          miniWidget.render();
-        }
-        const gridWidget = CalendarGridWidget.getInstance?.();
-        if (gridWidget?.rendered) {
-          gridWidget.render();
-        }
+      } catch (error) {
+        Logger.error(
+          'Failed to clean up deleted calendar note',
+          error instanceof Error ? error : new Error(String(error))
+        );
       }
-    } catch (error) {
-      Logger.error(
-        'Failed to clean up deleted calendar note',
-        error instanceof Error ? error : new Error(String(error))
-      );
     }
-  });
+  );
 
   Logger.debug('Notes cleanup hooks registered');
-}
-
-/**
- * TEMPORARY: Test function for E&E integration verification
- * Call from console: game.seasonsStars.testErrorReporting()
- * Remove after E&E integration is verified working
- */
-function setupTestErrorReporting(): void {
-  if (game.seasonsStars) {
-    (game.seasonsStars as any).testErrorReporting = () => {
-      Logger.info('Testing E&E integration - triggering test error');
-
-      // Check if E&E is available first (try multiple patterns)
-      const errorReporterAPI =
-        (window as any).ErrorsAndEchoesAPI ||
-        (window as any).ErrorsAndEchoes?.API ||
-        game.modules?.get('errors-and-echoes')?.api;
-
-      if (!errorReporterAPI) {
-        console.error('E&E API not available - make sure Errors and Echoes module is enabled');
-        return;
-      }
-
-      // Create a controlled test error that should be caught by E&E
-      // Use an error that will definitely be attributed to our module
-      const testError = new Error(
-        'S&S Test Error: E&E integration verification - this is intentional for testing'
-      );
-      testError.stack = `Error: S&S Test Error: E&E integration verification - this is intentional for testing
-    at CalendarManager.testMethod (/modules/seasons-and-stars/dist/module.js:1234:15)
-    at game.seasonsStars.testErrorReporting (/modules/seasons-and-stars/dist/module.js:5678:20)`;
-
-      // Try manual reporting first
-      try {
-        errorReporterAPI.report(testError, {
-          module: 'seasons-and-stars',
-          context: {
-            testType: 'manual-integration-test',
-            timestamp: Date.now(),
-          },
-        });
-        console.log('✅ Manual E&E report triggered');
-      } catch (reportError) {
-        console.error('❌ Manual E&E report failed:', reportError);
-      }
-
-      // Also try global error handler approach
-      setTimeout(() => {
-        console.log('🔄 Triggering global error handler...');
-        throw testError;
-      }, 500);
-    };
-
-    // Also add a function to check E&E status
-    (game.seasonsStars as any).checkErrorReporting = () => {
-      const errorReporterAPI =
-        (window as any).ErrorsAndEchoesAPI ||
-        (window as any).ErrorsAndEchoes?.API ||
-        game.modules?.get('errors-and-echoes')?.api;
-
-      const hasAPI = !!errorReporterAPI;
-      const hasConsent = hasAPI ? errorReporterAPI.hasConsent() : false;
-      const privacyLevel = hasAPI ? errorReporterAPI.getPrivacyLevel() : 'unknown';
-      const stats = hasAPI ? errorReporterAPI.getStats() : null;
-
-      console.log('🔍 E&E Integration Status:');
-      console.log('  API Available:', hasAPI);
-      console.log('  User Consent:', hasConsent);
-      console.log('  Privacy Level:', privacyLevel);
-      console.log('  Stats:', stats);
-
-      return { hasAPI, hasConsent, privacyLevel, stats };
-    };
-
-    Logger.debug(
-      'Test functions exposed: game.seasonsStars.testErrorReporting() and game.seasonsStars.checkErrorReporting()'
-    );
-  }
 }

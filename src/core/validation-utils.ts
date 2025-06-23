@@ -2,6 +2,8 @@
  * Validation utilities for API parameter checking
  */
 
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
+
 export class ValidationUtils {
   /**
    * Validate calendar ID parameter
@@ -48,36 +50,6 @@ export class ValidationUtils {
 
     if (!allowEmpty && value.trim() === '') {
       throw new Error(`${paramName} cannot be empty`);
-    }
-  }
-
-  /**
-   * Validate boolean parameter
-   */
-  static validateBoolean(value: any, paramName: string): void {
-    if (typeof value !== 'boolean') {
-      throw new Error(`${paramName} must be a boolean`);
-    }
-  }
-
-  /**
-   * Validate that calendar manager is available
-   */
-  static validateManagerAvailable(): void {
-    const manager = game.seasonsStars?.manager;
-    if (!manager) {
-      throw new Error('Calendar manager not available');
-    }
-  }
-
-  /**
-   * Validate that calendar engine is available
-   */
-  static validateEngineAvailable(): void {
-    const manager = game.seasonsStars?.manager;
-    const engine = manager?.getActiveEngine();
-    if (!engine) {
-      throw new Error('Calendar engine not available');
     }
   }
 }

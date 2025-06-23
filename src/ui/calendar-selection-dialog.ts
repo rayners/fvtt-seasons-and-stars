@@ -390,7 +390,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       return;
     }
 
-    const calendars = game.seasonsStars.manager.getAllCalendars();
+    const calendars = (game.seasonsStars.manager as any).getAllCalendars();
     Logger.debug('CalendarSelectionDialog.show() - calendars from manager', {
       type: typeof calendars,
       isMap: calendars instanceof Map,
