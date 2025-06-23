@@ -17,10 +17,26 @@ export class TimeConverter {
   private engine: CalendarEngine;
   private lastKnownTime: number = 0;
   private lastKnownDate: CalendarDate | null = null;
+  private pf2eCompatibilityMode: boolean = false;
 
   constructor(engine: CalendarEngine) {
     this.engine = engine;
+    this.detectPF2eCompatibility();
     this.registerFoundryHooks();
+  }
+
+  /**
+   * Detect if PF2e compatibility mode should be enabled
+   */
+  private detectPF2eCompatibility(): void {
+    const isPF2eSystem = game.system?.id === 'pf2e';
+    const hasPF2eModule = game.modules?.get('pf2e')?.active;
+    const isGolarionCalendar = this.engine.getCalendar().id === 'golarion-pf2e';
+
+    if ((isPF2eSystem || hasPF2eModule) && isGolarionCalendar) {
+      this.pf2eCompatibilityMode = true;
+      Logger.info('PF2e compatibility mode enabled for Golarion calendar');
+    }
   }
 
   /**
@@ -124,7 +140,17 @@ export class TimeConverter {
    * Get the current calendar date based on Foundry world time
    */
   getCurrentDate(): CalendarDate {
-    const worldTime = game.time?.worldTime || 0;
+    let worldTime = game.time?.worldTime || 0;
+
+    // Check for PF2e-specific time source if in compatibility mode
+    if (this.pf2eCompatibilityMode) {
+      const pf2eWorldTime = this.getPF2eWorldTime();
+      if (pf2eWorldTime !== null) {
+        Logger.debug(`Using PF2e world time: ${pf2eWorldTime} (Foundry: ${worldTime})`);
+        worldTime = pf2eWorldTime;
+      }
+    }
+
     const result = this.engine.worldTimeToDate(worldTime);
     // If the engine returns a CalendarDate instance, use it directly
     if (result instanceof CalendarDate) {
@@ -132,6 +158,56 @@ export class TimeConverter {
     }
     // Otherwise, create a new instance from the data
     return new CalendarDate(result, this.engine.getCalendar());
+  }
+
+  /**
+   * Get PF2e-specific world time if available
+   */
+  private getPF2eWorldTime(): number | null {
+    // Try various possible PF2e time sources
+
+    // Check if PF2e system has its own time management
+    if ((game as any).pf2e?.worldClock?.currentTime) {
+      return (game as any).pf2e.worldClock.currentTime;
+    }
+
+    // Check for PF2e World Clock module time
+    if ((game as any).worldClock?.currentTime) {
+      return (game as any).worldClock.currentTime;
+    }
+
+    // Check PF2e settings for time values
+    const pf2eTimeSettings = [
+      'pf2e.worldClock.currentTime',
+      'pf2e.time.worldTime',
+      'pf2e.calendar.currentTime',
+      'world-clock.currentTime',
+    ];
+
+    for (const settingKey of pf2eTimeSettings) {
+      try {
+        const timeValue = game.settings?.get('pf2e', settingKey.split('.')[1]);
+        if (typeof timeValue === 'number') {
+          Logger.debug(`Found PF2e time in setting ${settingKey}: ${timeValue}`);
+          return timeValue;
+        }
+      } catch (error) {
+        // Setting doesn't exist, continue to next
+      }
+    }
+
+    // Check for any PF2e time data in game object
+    if ((game as any).pf2e) {
+      const pf2eData = (game as any).pf2e;
+      if (pf2eData.time || pf2eData.worldTime || pf2eData.currentTime) {
+        const timeValue = pf2eData.time || pf2eData.worldTime || pf2eData.currentTime;
+        Logger.debug(`Found PF2e time in game.pf2e: ${timeValue}`);
+        return timeValue;
+      }
+    }
+
+    // If no PF2e-specific time found, return null to use default
+    return null;
   }
 
   /**

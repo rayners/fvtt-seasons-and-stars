@@ -11,6 +11,7 @@ import type {
 } from '../types/calendar';
 import { CalendarDate } from './calendar-date';
 import { CalendarTimeUtils } from './calendar-time-utils';
+import { compatibilityManager } from './compatibility-manager';
 
 export class CalendarEngine {
   private calendar: SeasonsStarsCalendar;
@@ -440,6 +441,9 @@ export class CalendarEngine {
       weekday += weekdayCount;
     }
 
+    // Apply system compatibility adjustments
+    weekday = compatibilityManager.applyWeekdayAdjustment(weekday, this.calendar);
+
     return weekday;
   }
 
@@ -640,5 +644,164 @@ export class CalendarEngine {
    */
   getCalendar(): SeasonsStarsCalendar {
     return { ...this.calendar };
+  }
+
+  /**
+   * Debug worldTime interpretation - comprehensive diagnostics
+   */
+  debugWorldTimeInterpretation(worldTime: number): any {
+    const worldTimeConfig = this.calendar.worldTime;
+
+    const debugInfo = {
+      input: {
+        worldTime,
+        calendarId: this.calendar.id,
+        interpretation: worldTimeConfig?.interpretation || 'epoch-based',
+        epochYear: worldTimeConfig?.epochYear || this.calendar.year.epoch,
+        currentYear: worldTimeConfig?.currentYear || this.calendar.year.currentYear,
+      },
+      calculations: {} as any,
+      result: {} as any,
+    };
+
+    // Step 1: Show worldTime adjustment calculation
+    const adjustedWorldTime = this.adjustWorldTimeForInterpretation(worldTime);
+    debugInfo.calculations.adjustedWorldTime = adjustedWorldTime;
+    debugInfo.calculations.adjustmentDelta = adjustedWorldTime - worldTime;
+
+    // Step 2: Show basic time calculations
+    const totalSeconds = Math.floor(adjustedWorldTime);
+    const secondsPerDay = CalendarTimeUtils.getSecondsPerDay(this.calendar);
+    const totalDays = Math.floor(totalSeconds / secondsPerDay);
+    let secondsInDay = totalSeconds % secondsPerDay;
+
+    if (secondsInDay < 0) {
+      secondsInDay += secondsPerDay;
+    }
+
+    debugInfo.calculations.totalSeconds = totalSeconds;
+    debugInfo.calculations.secondsPerDay = secondsPerDay;
+    debugInfo.calculations.totalDays = totalDays;
+    debugInfo.calculations.secondsInDay = secondsInDay;
+
+    // Step 3: Show time of day calculation
+    const secondsPerHour = CalendarTimeUtils.getSecondsPerHour(this.calendar);
+    const hour = Math.floor(secondsInDay / secondsPerHour);
+    const minute = Math.floor((secondsInDay % secondsPerHour) / this.calendar.time.secondsInMinute);
+    const second = secondsInDay % this.calendar.time.secondsInMinute;
+
+    debugInfo.calculations.timeOfDay = { hour, minute, second };
+
+    // Step 4: Show date calculation
+    const dateInfo = this.daysToDate(totalDays);
+    debugInfo.result = {
+      year: dateInfo.year,
+      month: dateInfo.month,
+      day: dateInfo.day,
+      weekday: dateInfo.weekday,
+      intercalary: dateInfo.intercalary,
+      time: { hour, minute, second },
+      formattedDate: `${dateInfo.year}/${dateInfo.month}/${dateInfo.day} ${hour}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}`,
+    };
+
+    // Step 5: Show epoch offset calculation details (if real-time-based)
+    if (worldTimeConfig?.interpretation === 'real-time-based') {
+      const yearDifference = worldTimeConfig.currentYear - worldTimeConfig.epochYear;
+      let epochOffset = 0;
+      const secondsPerDayCalc =
+        this.calendar.time.hoursInDay *
+        this.calendar.time.minutesInHour *
+        this.calendar.time.secondsInMinute;
+
+      const epochCalculation = {
+        yearDifference,
+        yearLengths: [] as any[],
+        totalEpochOffsetSeconds: 0,
+      };
+
+      if (yearDifference > 0) {
+        for (let year = worldTimeConfig.epochYear; year < worldTimeConfig.currentYear; year++) {
+          const yearLength = this.getYearLength(year);
+          const yearSeconds = yearLength * secondsPerDayCalc;
+          epochCalculation.yearLengths.push({ year, days: yearLength, seconds: yearSeconds });
+          epochOffset += yearSeconds;
+        }
+      } else if (yearDifference < 0) {
+        for (let year = worldTimeConfig.currentYear; year < worldTimeConfig.epochYear; year++) {
+          const yearLength = this.getYearLength(year);
+          const yearSeconds = yearLength * secondsPerDayCalc;
+          epochCalculation.yearLengths.push({ year, days: -yearLength, seconds: -yearSeconds });
+          epochOffset -= yearSeconds;
+        }
+      }
+
+      epochCalculation.totalEpochOffsetSeconds = epochOffset;
+      debugInfo.calculations.epochCalculation = epochCalculation;
+    }
+
+    return debugInfo;
+  }
+
+  /**
+   * Compare S&S calculation with expected PF2e calculation
+   */
+  compareWithPF2eCalculation(worldTime: number): any {
+    const ssResult = this.debugWorldTimeInterpretation(worldTime);
+
+    // Simplified PF2e calculation (based on typical Golarion setup)
+    // This is an approximation - actual PF2e might use different logic
+    const currentRealYear = new Date().getFullYear();
+    const pf2eYear = currentRealYear + 2700; // Common PF2e offset
+
+    // Basic PF2e-style calculation (simplified)
+    const pf2eSecondsPerDay = 24 * 60 * 60;
+    const pf2eTotalDays = Math.floor(worldTime / pf2eSecondsPerDay);
+    const pf2eSecondsInDay = worldTime % pf2eSecondsPerDay;
+
+    // Start at beginning of current year and add days
+    let pf2eResultYear = pf2eYear;
+    let pf2eRemainingDays = pf2eTotalDays;
+    let pf2eMonth = 1;
+    let pf2eDay = 1;
+
+    // Very simplified month advancement (assumes 30-day months for approximation)
+    while (pf2eRemainingDays >= 365) {
+      pf2eResultYear++;
+      pf2eRemainingDays -= 365;
+    }
+
+    while (pf2eRemainingDays >= 30) {
+      pf2eMonth++;
+      pf2eRemainingDays -= 30;
+      if (pf2eMonth > 12) {
+        pf2eMonth = 1;
+        pf2eResultYear++;
+      }
+    }
+
+    pf2eDay += pf2eRemainingDays;
+
+    const pf2eHour = Math.floor(pf2eSecondsInDay / 3600);
+    const pf2eMinute = Math.floor((pf2eSecondsInDay % 3600) / 60);
+    const pf2eSecond = pf2eSecondsInDay % 60;
+
+    return {
+      worldTime,
+      seasonsStars: ssResult.result,
+      approximatePF2e: {
+        year: pf2eResultYear,
+        month: pf2eMonth,
+        day: pf2eDay,
+        time: { hour: pf2eHour, minute: pf2eMinute, second: pf2eSecond },
+        formattedDate: `${pf2eResultYear}/${pf2eMonth}/${pf2eDay} ${pf2eHour}:${pf2eMinute.toString().padStart(2, '0')}:${pf2eSecond.toString().padStart(2, '0')}`,
+      },
+      differences: {
+        yearDiff: Math.abs(ssResult.result.year - pf2eResultYear),
+        monthDiff: Math.abs(ssResult.result.month - pf2eMonth),
+        dayDiff: Math.abs(ssResult.result.day - pf2eDay),
+        hourDiff: Math.abs(ssResult.result.time.hour - pf2eHour),
+      },
+      ssDebugInfo: ssResult,
+    };
   }
 }
