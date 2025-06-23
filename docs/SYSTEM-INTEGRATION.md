@@ -18,59 +18,63 @@ Hooks.on('seasons-stars:pf2e:systemDetected', compatibilityManager => {
 
 ## System Support
 
-S&S automatically detects **any Foundry VTT system** and provides integration hooks. The hook pattern is:
+S&S works with **any Foundry VTT system** through two approaches:
+
+1. **Calendar Definitions**: Most systems work perfectly with custom calendar JSON files
+2. **System Integration**: Advanced integration for systems requiring special compatibility
+
+## Current System Status
+
+### Pathfinder 2e - Full Integration
+
+**PF2e is the only system with dedicated integration code**:
 
 ```typescript
+// PF2e has special hooks for advanced time source integration
+Hooks.on('seasons-stars:pf2e:systemDetected', compatibilityManager => {
+  // Registers PF2e world clock time sources
+  // Handles weekday calculation compatibility
+  // Provides time sync monitoring
+});
+```
+
+**Features**:
+
+- Time source integration (`game.pf2e.worldClock.currentTime`)
+- Weekday calculation compatibility fixes
+- Time synchronization monitoring
+- Calendar-specific compatibility settings
+
+### All Other Systems - Calendar Definitions
+
+**Systems supported through calendar JSON files**:
+
+- D&D 5th Edition, Forbidden Lands, Dragonbane, Dark Sun, Eberron, etc.
+- Work automatically with S&S core functionality
+- No special integration code needed
+- Custom calendars available in the `calendars/` directory
+
+```typescript
+// Universal pattern for adding system integration
 Hooks.on('seasons-stars:{systemId}:systemDetected', compatibilityManager => {
   // Your integration code here
 });
 ```
 
-Where `{systemId}` is the ID of any system (e.g., `pf2e`, `dnd5e`, `swade`, `coc7`, etc.).
-
-## System Detection Hooks
-
-**Universal pattern** - works with any system:
-
-```typescript
-// For Pathfinder 2e
-Hooks.on('seasons-stars:pf2e:systemDetected', (compatibilityManager) => { ... });
-
-// For D&D 5th Edition
-Hooks.on('seasons-stars:dnd5e:systemDetected', (compatibilityManager) => { ... });
-
-// For Call of Cthulhu 7th Edition
-Hooks.on('seasons-stars:coc7:systemDetected', (compatibilityManager) => { ... });
-
-// For any other system
-Hooks.on('seasons-stars:YOUR_SYSTEM_ID:systemDetected', (compatibilityManager) => { ... });
-```
-
-### Systems with Enhanced Integration
-
-Some systems have built-in enhanced features:
-
-- **Pathfinder 2e** (`pf2e`) - Calendar compatibility fixes and advanced time sources
-- **D&D 5th Edition** (`dnd5e`) - Ready for enhanced time integration
-- **Forbidden Lands** (`forbidden-lands`) - Prepared for system-specific features
-- **Dragonbane** (`dragonbane`) - Ready for time source integration
-
-**Note**: Any system can be integrated - these just have additional built-in features.
-
 ## Time Source Registration
 
-Time sources allow S&S to read time from your system or module:
+For systems that need custom time sources:
 
 ```typescript
-// Example: Register a custom time source
-Hooks.on('seasons-stars:dnd5e:systemDetected', compatibilityManager => {
-  const dnd5eTimeSource = () => {
+// Example: Custom time source integration
+Hooks.on('seasons-stars:your-system:systemDetected', compatibilityManager => {
+  const customTimeSource = () => {
     // Return time in seconds, or null if unavailable
-    const customTime = game.dnd5e?.time?.worldTime;
-    return typeof customTime === 'number' ? customTime : null;
+    const systemTime = game.yourSystem?.customTime?.worldTime;
+    return typeof systemTime === 'number' ? systemTime : null;
   };
 
-  compatibilityManager.registerTimeSource('dnd5e', dnd5eTimeSource);
+  compatibilityManager.registerTimeSource('your-system', customTimeSource);
 });
 ```
 
@@ -85,46 +89,16 @@ Hooks.on('seasons-stars:dnd5e:systemDetected', compatibilityManager => {
 ### Custom Module Integration
 
 ```typescript
-// integrations/my-module-integration.ts
-Hooks.on('seasons-stars:dnd5e:systemDetected', compatibilityManager => {
-  console.log('Integrating My Module with S&S');
+// Example: Module providing time sources
+Hooks.on('seasons-stars:any-system:systemDetected', compatibilityManager => {
+  console.log('Integrating My Time Module with S&S');
 
   // Register time source from your module
   const myModuleTimeSource = () => {
-    return game.modules.get('my-module')?.api?.getCurrentTime() || null;
+    return game.modules.get('my-time-module')?.api?.getCurrentTime() || null;
   };
 
-  compatibilityManager.registerTimeSource('my-module', myModuleTimeSource);
-});
-```
-
-### System-Specific Enhancements
-
-```typescript
-// Add PF2e-specific calendar features
-Hooks.on('seasons-stars:pf2e:systemDetected', compatibilityManager => {
-  // Register enhanced PF2e time source
-  const pf2eTimeSource = () => {
-    // Try multiple PF2e time sources
-    const sources = [
-      () => game.pf2e?.worldClock?.currentTime,
-      () => game.worldClock?.currentTime,
-      () => game.settings.get('pf2e', 'worldTime'),
-    ];
-
-    for (const source of sources) {
-      try {
-        const time = source();
-        if (typeof time === 'number') return time;
-      } catch (error) {
-        // Continue to next source
-      }
-    }
-
-    return null;
-  };
-
-  compatibilityManager.registerTimeSource('pf2e', pf2eTimeSource);
+  compatibilityManager.registerTimeSource('my-time-module', myModuleTimeSource);
 });
 ```
 
