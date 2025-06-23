@@ -118,33 +118,11 @@ export class CompatibilityManager {
   }
 
   /**
-   * Initialize system-specific hooks (e.g., seasons-stars:pf2e:registerTimeSource)
+   * Initialize system-specific hooks for compatibility registration
    */
   private initializeSystemSpecificHooks(): void {
-    // Register hooks for known systems - more efficient than generic hooks
-    const knownSystems = ['pf2e', 'dnd5e', 'forbidden-lands', 'dragonbane'];
-
-    for (const systemId of knownSystems) {
-      // System-specific time source registration
-      Hooks.on(`seasons-stars:${systemId}:registerTimeSource`, (data: any) => {
-        if (data.sourceFunction) {
-          this.timeSourceRegistry.set(systemId, data.sourceFunction);
-          console.log(`[S&S] Registered ${systemId}-specific time source via system hook`);
-        }
-      });
-
-      // System-specific compatibility registration
-      Hooks.on(`seasons-stars:${systemId}:registerCompatibility`, (data: any) => {
-        if (data.calendarId && data.adjustment) {
-          const key = `${systemId}:${data.calendarId}`;
-          this.hookRegistry.set(key, data.adjustment);
-          console.log(
-            `[S&S] Registered ${systemId}-specific compatibility: ${data.calendarId}`,
-            data.adjustment
-          );
-        }
-      });
-    }
+    // System-specific hooks are now minimal since we use direct registration
+    // Only keeping compatibility hooks for potential future use
   }
 
   /**
@@ -158,8 +136,8 @@ export class CompatibilityManager {
         Logger.debug(`Detected system: ${currentSystem}, triggering system-specific hooks`);
 
         // Trigger system-specific hook initialization for detected system
-        // This allows integrations to register using the detected system's hooks
-        Hooks.callAll(`seasons-stars:${currentSystem}:systemDetected`);
+        // Pass the compatibility manager instance for direct registration
+        Hooks.callAll(`seasons-stars:${currentSystem}:systemDetected`, this);
       }
     });
   }
@@ -255,6 +233,14 @@ export class CompatibilityManager {
     }
 
     return `${currentSystemId} + ${calendar.id}: ${parts.join(', ')} (${adjustment.provider})`;
+  }
+
+  /**
+   * Register a time source for a specific system (direct registration)
+   */
+  registerTimeSource(systemId: string, sourceFunction: () => number | null): void {
+    this.timeSourceRegistry.set(systemId, sourceFunction);
+    Logger.debug(`Registered time source for system: ${systemId}`);
   }
 
   /**

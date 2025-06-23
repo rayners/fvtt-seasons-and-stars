@@ -185,10 +185,7 @@ export class PF2eIntegration {
       return null;
     };
 
-    // Register with S&S core via system-specific hook
-    Hooks.callAll('seasons-stars:pf2e:registerTimeSource', {
-      sourceFunction: pf2eTimeSourceFunction,
-    });
+    // Note: Registration now happens via direct method call when system is detected
   }
 
   /**
@@ -515,4 +512,50 @@ Hooks.on('ready', () => {
 Hooks.once('init', () => {
   // Initialize PF2e integration when game.system is available
   PF2eIntegration.initialize();
+});
+
+// Register PF2e-specific hooks when system is detected
+// Core S&S passes the compatibility manager instance for direct registration
+Hooks.on('seasons-stars:pf2e:systemDetected', (compatibilityManager: any) => {
+  Logger.debug('PF2e system detected - registering directly with compatibility manager');
+
+  // Register PF2e time source directly with the compatibility manager
+  const pf2eTimeSourceFunction = (): number | null => {
+    // Try all PF2e time sources in order
+    const timeSources = [
+      () => (game as any).pf2e?.worldClock?.currentTime || null,
+      () => (game as any).worldClock?.currentTime || null,
+    ];
+
+    for (const source of timeSources) {
+      const timeValue = source();
+      if (timeValue !== null) {
+        return timeValue;
+      }
+    }
+
+    // Check PF2e settings for time values
+    const pf2eTimeSettings = [
+      'pf2e.worldClock.currentTime',
+      'pf2e.time.worldTime',
+      'pf2e.calendar.currentTime',
+      'world-clock.currentTime',
+    ];
+
+    for (const settingKey of pf2eTimeSettings) {
+      try {
+        const timeValue = game.settings?.get('pf2e', settingKey.split('.')[1]);
+        if (typeof timeValue === 'number') {
+          return timeValue;
+        }
+      } catch (error) {
+        // Setting doesn't exist, continue to next
+      }
+    }
+
+    return null;
+  };
+
+  // Register directly with the compatibility manager (no hooks needed)
+  compatibilityManager.registerTimeSource('pf2e', pf2eTimeSourceFunction);
 });

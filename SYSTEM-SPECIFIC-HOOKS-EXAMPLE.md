@@ -12,9 +12,9 @@ The system now supports both generic and system-specific hooks:
 ## How It Works
 
 1. **Core S&S** detects the current system on `ready` hook
-2. **Core S&S** emits `seasons-stars:{systemId}:systemDetected` hook
+2. **Core S&S** emits `seasons-stars:{systemId}:systemDetected` hook with compatibility manager instance
 3. **Integration modules** listen for their specific system detection hook
-4. **Integration modules** register using system-specific hooks (no runtime detection needed)
+4. **Integration modules** register directly with the compatibility manager (no intermediate hooks needed)
 
 ## Example: D&D 5e Integration
 
@@ -22,19 +22,18 @@ The system now supports both generic and system-specific hooks:
 // integrations/dnd5e-integration.ts
 
 // Listen for D&D 5e system detection
-Hooks.on('seasons-stars:dnd5e:systemDetected', () => {
-  console.log('D&D 5e system detected - registering D&D 5e-specific integrations');
+Hooks.on('seasons-stars:dnd5e:systemDetected', compatibilityManager => {
+  console.log('D&D 5e system detected - registering directly with compatibility manager');
 
-  // Register D&D 5e time source (only called when D&D 5e is detected)
-  Hooks.callAll('seasons-stars:dnd5e:registerTimeSource', {
-    sourceFunction: () => {
-      // D&D 5e specific time logic
-      const dndTime = (game as any).dnd5e?.time?.worldTime;
-      return dndTime || null;
-    },
-  });
+  // Register D&D 5e time source directly (no hooks needed)
+  const dnd5eTimeSourceFunction = () => {
+    // D&D 5e specific time logic
+    const dndTime = (game as any).dnd5e?.time?.worldTime;
+    return dndTime || null;
+  };
 
-  // Note: Calendar compatibility would be registered via separate hooks if needed
+  // Direct registration with compatibility manager
+  compatibilityManager.registerTimeSource('dnd5e', dnd5eTimeSourceFunction);
 });
 ```
 
@@ -93,14 +92,12 @@ Hooks.callAll('seasons-stars:registerTimeSource', {
 });
 ```
 
-### After (System-Specific Hooks)
+### After (Direct Registration)
 
 ```typescript
-// Core detects system and calls appropriate hook
-Hooks.on('seasons-stars:pf2e:systemDetected', () => {
-  Hooks.callAll('seasons-stars:pf2e:registerTimeSource', {
-    sourceFunction: pf2eTimeFunction, // No systemId needed
-  });
+// Core detects system and passes compatibility manager
+Hooks.on('seasons-stars:pf2e:systemDetected', compatibilityManager => {
+  compatibilityManager.registerTimeSource('pf2e', pf2eTimeFunction);
 });
 ```
 
