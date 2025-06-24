@@ -73,7 +73,7 @@ export class CompatibilityManager {
       ) => {
         const key = `${systemId}:${calendarId}`;
         this.hookRegistry.set(key, adjustment);
-        console.log(`[S&S] Registered compatibility: ${systemId} + ${calendarId}`, adjustment);
+        Logger.debug(`Registered compatibility: ${systemId} + ${calendarId}`, adjustment);
       },
 
       get: (systemId: string, calendarId: string) => {
@@ -246,7 +246,7 @@ export class CompatibilityManager {
       try {
         return timeSourceFunction();
       } catch (error) {
-        console.warn(`[S&S] Error getting time from source ${systemId}:`, error);
+        Logger.warn(`Error getting time from source ${systemId}:`, error);
         return null;
       }
     }
@@ -264,21 +264,21 @@ export class CompatibilityManager {
    * List all available compatibility adjustments for debugging
    */
   debugListAll(): void {
-    console.log('[S&S] All registered compatibility adjustments:');
+    Logger.debug('All registered compatibility adjustments:');
 
     // Hook-registered compatibility
     for (const [key, adjustment] of this.hookRegistry.entries()) {
-      console.log(`  Hook: ${key}`, adjustment);
+      Logger.debug(`  Hook: ${key}`, adjustment);
     }
 
     // Registered time sources
-    console.log('[S&S] Registered time sources:');
+    Logger.debug('Registered time sources:');
     for (const sourceId of this.timeSourceRegistry.keys()) {
-      console.log(`  Time source: ${sourceId}`);
+      Logger.debug(`  Time source: ${sourceId}`);
     }
 
     // Note: Calendar-defined compatibility is checked dynamically per calendar
-    console.log('  Calendar-defined compatibility is checked per calendar load');
+    Logger.debug('  Calendar-defined compatibility is checked per calendar load');
   }
 }
 

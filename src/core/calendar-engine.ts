@@ -225,7 +225,6 @@ export class CalendarEngine {
 
   /**
    * Adjust worldTime based on calendar's interpretation mode
-   * NOTE: Real-time interpretation is disabled when external time sources are active
    */
   private adjustWorldTimeForInterpretation(worldTime: number): number {
     const worldTimeConfig = this.calendar.worldTime;
@@ -236,14 +235,6 @@ export class CalendarEngine {
     }
 
     if (worldTimeConfig.interpretation === 'real-time-based') {
-      // Check if an external time source is active for the current system
-      const currentSystem = game.system?.id;
-      if (currentSystem && compatibilityManager.getExternalTimeSource(currentSystem) !== null) {
-        // External time source is active - disable real-time interpretation
-        // to prevent double-adjustment of the time
-        return worldTime;
-      }
-
       // Real-time mode: worldTime=0 should map to currentYear, not epochYear
       const yearDifference = worldTimeConfig.currentYear - worldTimeConfig.epochYear;
 
@@ -276,7 +267,6 @@ export class CalendarEngine {
 
   /**
    * Convert internal seconds back to worldTime based on interpretation mode
-   * NOTE: Real-time interpretation is disabled when external time sources are active
    */
   private adjustWorldTimeFromInterpretation(internalSeconds: number): number {
     const worldTimeConfig = this.calendar.worldTime;
@@ -286,14 +276,6 @@ export class CalendarEngine {
     }
 
     if (worldTimeConfig.interpretation === 'real-time-based') {
-      // Check if an external time source is active for the current system
-      const currentSystem = game.system?.id;
-      if (currentSystem && compatibilityManager.getExternalTimeSource(currentSystem) !== null) {
-        // External time source is active - disable real-time interpretation
-        // to prevent double-adjustment of the time
-        return internalSeconds;
-      }
-
       const yearDifference = worldTimeConfig.currentYear - worldTimeConfig.epochYear;
 
       // Use accurate year lengths instead of 365.25 average

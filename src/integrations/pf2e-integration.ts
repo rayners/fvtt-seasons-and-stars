@@ -14,7 +14,7 @@ import { Logger } from '../core/logger';
  */
 export class PF2eIntegration {
   private static instance: PF2eIntegration | null = null;
-  private syncMonitorInterval: number | null = null;
+  public syncMonitorInterval: number | null = null;
   private isActive: boolean = false;
 
   private constructor() {
@@ -137,68 +137,6 @@ export class PF2eIntegration {
   }
 
   /**
-   * Simple debug method for worldTime interpretation (for testing)
-   */
-  getDebugWorldTimeInterpretation(engine: any, worldTime: number): any {
-    const result = engine.worldTimeToDate(worldTime);
-    const calendar = engine.getCalendar();
-    const worldTimeConfig = calendar.worldTime;
-
-    // Basic calculations for compatibility with tests
-    const adjustedWorldTime = engine.adjustWorldTimeForInterpretation
-      ? engine.adjustWorldTimeForInterpretation(worldTime)
-      : worldTime;
-
-    return {
-      input: {
-        worldTime,
-        calendarId: calendar.id,
-        interpretation: worldTimeConfig?.interpretation || 'epoch-based',
-        epochYear: worldTimeConfig?.epochYear || calendar.year.epoch,
-        currentYear: worldTimeConfig?.currentYear || calendar.year.currentYear,
-      },
-      calculations: {
-        adjustedWorldTime,
-        adjustmentDelta: adjustedWorldTime - worldTime,
-        // Add minimal epoch calculation if needed
-        epochCalculation:
-          worldTimeConfig?.interpretation === 'year-offset'
-            ? {
-                yearDifference:
-                  (worldTimeConfig.currentYear || calendar.year.currentYear) -
-                  (worldTimeConfig.epochYear || calendar.year.epoch),
-              }
-            : undefined,
-      },
-      result: {
-        year: result.year,
-        month: result.month,
-        day: result.day,
-        weekday: result.weekday,
-        formattedDate: `${result.day} ${calendar.months[result.month - 1]?.name}, ${result.year}`,
-      },
-    };
-  }
-
-  /**
-   * Simple comparison method for PF2e calculation (for testing)
-   */
-  getCompareWithPF2eCalculation(engine: any, worldTime: number): any {
-    const ssResult = this.getDebugWorldTimeInterpretation(engine, worldTime);
-
-    // Very simplified PF2e approximation for testing
-    const currentRealYear = new Date().getFullYear();
-    const approximateYear = currentRealYear + 2700;
-
-    return {
-      worldTime,
-      seasonsStars: ssResult.result,
-      approximatePF2e: { year: approximateYear },
-      differences: { yearDiff: Math.abs(ssResult.result.year - approximateYear) },
-    };
-  }
-
-  /**
    * Cleanup integration when module is disabled
    */
   destroy(): void {
@@ -219,7 +157,8 @@ Hooks.on('ready', () => {
     integration.checkPF2eTimeSync();
   }, 30000); // Check every 30 seconds
 
-  (integration as any).syncMonitorInterval = syncInterval;
+  // Store interval for cleanup
+  integration.syncMonitorInterval = syncInterval;
 });
 
 // Main integration entry point - register time source with S&S core

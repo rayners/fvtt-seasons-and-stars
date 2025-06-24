@@ -138,32 +138,10 @@ export class TimeConverter {
         );
         worldTime = externalTime;
         timeSource = `external-${currentSystem}`;
-      } else if (currentSystem === 'pf2e') {
-        // Enhanced debugging for PF2e when no external source is found
-        Logger.debug(`No external PF2e time source found - using Foundry time: ${worldTime}`);
-        Logger.debug('External time source registry state:', {
-          registeredSystems: Object.keys((compatibilityManager as any).timeSourceRegistry || {}),
-          timeSourceRegistrySize: (compatibilityManager as any).timeSourceRegistry?.size || 0,
-        });
       }
     }
 
     const result = this.engine.worldTimeToDate(worldTime);
-
-    // Enhanced logging for PF2e debugging
-    if (currentSystem === 'pf2e') {
-      const calendarConfig = this.engine.getCalendar();
-      Logger.debug('PF2e Time Conversion Debug:', {
-        timeSource,
-        inputWorldTime: worldTime,
-        calendarInterpretation: calendarConfig.worldTime?.interpretation,
-        externalTimeSourceActive: timeSource.startsWith('external'),
-        resultYear: result.year,
-        resultMonth: result.month,
-        resultDay: result.day,
-        resultWeekday: result.weekday,
-      });
-    }
 
     // If the engine returns a CalendarDate instance, use it directly
     if (result instanceof CalendarDate) {
