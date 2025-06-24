@@ -116,20 +116,30 @@ describe('PF2e Time Source Investigation', () => {
         name: 'PF2e worldClock available',
         setup: () => {
           (global as any).game.pf2e = {
-            worldClock: { currentTime: 50000000 }, // Some test time
+            settings: {
+              worldClock: {
+                worldCreatedOn: '2020-01-01T00:00:00.000Z', // Test creation date
+                dateTheme: 'AR',
+              },
+            },
           };
+          (global as any).game.time = { worldTime: 50000000 }; // Test elapsed time
         },
-        expectedTime: 50000000,
+        expectedTime: 1627836800, // Unix timestamp (1577836800) + elapsed time (50000000)
       },
       {
-        name: 'Generic worldClock available',
+        name: 'PF2e worldClock without worldCreatedOn',
         setup: () => {
-          delete (global as any).game.pf2e;
-          (global as any).game.worldClock = {
-            currentTime: 75000000,
+          (global as any).game.pf2e = {
+            settings: {
+              worldClock: {
+                dateTheme: 'AR',
+                // worldCreatedOn is missing
+              },
+            },
           };
         },
-        expectedTime: 75000000,
+        expectedTime: null, // Should return null when worldCreatedOn is missing
       },
     ];
 
