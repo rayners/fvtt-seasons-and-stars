@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.4.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.0...v0.4.1) (2025-06-24)
+
+
+### Bug Fixes
+
+* register widget factories to resolve 'No factory registered' error ([89b121a](https://github.com/rayners/fvtt-seasons-and-stars/commit/89b121a19b6121000ec8e0ce38af3b45a38d0738))
+
 ## [0.4.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.4...v0.4.0) (2025-06-24)
 
 
