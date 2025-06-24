@@ -9,7 +9,7 @@
   },
 
   "worldTime": {
-    "interpretation": "real-time-based",
+    "interpretation": "epoch-based",
     "epochYear": 2700,
     "currentYear": 4725
   },
