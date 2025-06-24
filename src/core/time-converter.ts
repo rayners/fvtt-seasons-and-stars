@@ -126,7 +126,6 @@ export class TimeConverter {
    */
   getCurrentDate(): CalendarDate {
     let worldTime = game.time?.worldTime || 0;
-    let timeSource = 'foundry';
 
     // Check for external time sources via compatibility manager
     const currentSystem = game.system?.id;
@@ -137,7 +136,6 @@ export class TimeConverter {
           `Using external time source for ${currentSystem}: ${externalTime} (Foundry: ${worldTime})`
         );
         worldTime = externalTime;
-        timeSource = `external-${currentSystem}`;
       }
     }
 
