@@ -19,6 +19,7 @@ import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
 import { NoteEditingDialog } from './ui/note-editing-dialog';
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
+import { CalendarWidgetManager, WidgetWrapper } from './ui/widget-manager';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
@@ -262,6 +263,21 @@ Hooks.once('ready', async () => {
   CalendarMiniWidget.registerHooks();
   CalendarGridWidget.registerHooks();
   CalendarMiniWidget.registerSmallTimeIntegration();
+
+  // Register widget factories for CalendarWidgetManager
+  Logger.debug('Registering widget factories');
+  CalendarWidgetManager.registerWidget(
+    'main',
+    () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+  );
+  CalendarWidgetManager.registerWidget(
+    'mini',
+    () => new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+  );
+  CalendarWidgetManager.registerWidget(
+    'grid',
+    () => new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+  );
 
   // Scene controls registered at top level for timing requirements
   Logger.debug('Registering macros');
