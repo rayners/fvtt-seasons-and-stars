@@ -108,13 +108,7 @@ export class CompatibilityManager {
    * Initialize generic hooks for backward compatibility
    */
   private initializeGenericHooks(): void {
-    // Generic hook for registering external time sources (backward compatibility)
-    Hooks.on('seasons-stars:registerTimeSource', (data: any) => {
-      if (data.systemId && data.sourceFunction) {
-        this.timeSourceRegistry.set(data.systemId, data.sourceFunction);
-        console.log(`[S&S] Registered time source for system: ${data.systemId} (generic hook)`);
-      }
-    });
+    // Reserved for future generic hooks if needed
   }
 
   /**
