@@ -28,7 +28,7 @@ export class Logger {
   static warn(message: string, data?: any): void {
     console.warn(`[S&S WARNING] ${message}`, data || '');
     if (this.shouldShowUserNotifications()) {
-      ui.notifications?.warn(`Seasons & Stars: ${message}`);
+      ui?.notifications?.warn(`Seasons & Stars: ${message}`);
     }
   }
 
@@ -38,7 +38,7 @@ export class Logger {
   static error(message: string, error?: Error): void {
     console.error(`[S&S ERROR] ${message}`, error || '');
     if (this.shouldShowUserNotifications()) {
-      ui.notifications?.error(`Seasons & Stars: ${message}`);
+      ui?.notifications?.error(`Seasons & Stars: ${message}`);
     }
   }
 
@@ -48,7 +48,7 @@ export class Logger {
   static critical(message: string, error?: Error): void {
     console.error(`[S&S CRITICAL] ${message}`, error || '');
     // Always show critical errors regardless of settings
-    ui.notifications?.error(`Seasons & Stars: ${message}`);
+    ui?.notifications?.error(`Seasons & Stars: ${message}`);
   }
 
   /**
