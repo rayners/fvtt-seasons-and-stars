@@ -12,6 +12,7 @@ import { CalendarEngine } from './calendar-engine';
 import { CalendarDate } from './calendar-date';
 import { Logger } from './logger';
 import { TIME_CONSTANTS } from './constants';
+import { compatibilityManager } from './compatibility-manager';
 
 export class TimeConverter {
   private engine: CalendarEngine;
@@ -124,8 +125,22 @@ export class TimeConverter {
    * Get the current calendar date based on Foundry world time
    */
   getCurrentDate(): CalendarDate {
-    const worldTime = game.time?.worldTime || 0;
+    let worldTime = game.time?.worldTime || 0;
+
+    // Check for external time sources via compatibility manager
+    const currentSystem = game.system?.id;
+    if (currentSystem) {
+      const externalTime = compatibilityManager.getExternalTimeSource(currentSystem);
+      if (externalTime !== null) {
+        Logger.debug(
+          `Using external time source for ${currentSystem}: ${externalTime} (Foundry: ${worldTime})`
+        );
+        worldTime = externalTime;
+      }
+    }
+
     const result = this.engine.worldTimeToDate(worldTime);
+
     // If the engine returns a CalendarDate instance, use it directly
     if (result instanceof CalendarDate) {
       return result;

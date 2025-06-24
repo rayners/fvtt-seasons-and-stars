@@ -9,11 +9,18 @@
   },
 
   "worldTime": {
-    "interpretation": "real-time-based",
+    "interpretation": "epoch-based",
     "epochYear": 2700,
     "currentYear": 4725
   },
-  
+
+  "compatibility": {
+    "pf2e": {
+      "weekdayOffset": 5,
+      "description": "Adjusts weekday calculation to match PF2e World Clock expectations. PF2e uses real-world calendar math while S&S uses fantasy calendar math, creating a 5-position weekday difference."
+    }
+  },
+
   "year": {
     "epoch": 2700,
     "currentYear": 4725,
@@ -21,14 +28,14 @@
     "suffix": " AR",
     "startDay": 6
   },
-  
+
   "leapYear": {
     "rule": "custom",
     "interval": 4,
     "month": "Calistril",
     "extraDays": 1
   },
-  
+
   "months": [
     {
       "name": "Abadius",
@@ -103,7 +110,7 @@
       "description": "The third month of autumn and start of winter, named after Zon-Kuthon. The year's darkest month begins."
     }
   ],
-  
+
   "weekdays": [
     {
       "name": "Moonday",
@@ -141,9 +148,9 @@
       "description": "A day of rest, worship, and renewal under the sun's blessing"
     }
   ],
-  
+
   "intercalary": [],
-  
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,

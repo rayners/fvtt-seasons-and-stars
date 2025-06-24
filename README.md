@@ -62,6 +62,7 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 
 - **[User Guide](./docs/USER-GUIDE.md)** - Complete usage instructions and calendar sources
 - **[Developer Guide](./docs/DEVELOPER-GUIDE.md)** - API reference and integration guide
+- **[System Integration Guide](./docs/SYSTEM-INTEGRATION.md)** - Game system compatibility and time source integration
 - **[Migration Guide](./docs/MIGRATION-GUIDE.md)** - Moving from Simple Calendar
 - **[Roadmap](./docs/ROADMAP.md)** - Development timeline and planned features
 - **[Known Issues](./KNOWN-ISSUES.md)** - Current limitations and workarounds

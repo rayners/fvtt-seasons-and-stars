@@ -11,6 +11,7 @@ import type {
 } from '../types/calendar';
 import { CalendarDate } from './calendar-date';
 import { CalendarTimeUtils } from './calendar-time-utils';
+import { compatibilityManager } from './compatibility-manager';
 
 export class CalendarEngine {
   private calendar: SeasonsStarsCalendar;
@@ -439,6 +440,9 @@ export class CalendarEngine {
     if (weekday < 0) {
       weekday += weekdayCount;
     }
+
+    // Apply system compatibility adjustments
+    weekday = compatibilityManager.applyWeekdayAdjustment(weekday, this.calendar);
 
     return weekday;
   }

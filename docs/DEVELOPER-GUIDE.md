@@ -8,6 +8,7 @@ Complete API reference and integration guide for module developers working with 
 - [Core API](#core-api)
 - [Bridge Integration](#bridge-integration)
 - [Hook System](#hook-system)
+- [System Integration](#system-integration)
 - [Calendar Data Structures](#calendar-data-structures)
 - [Integration Examples](#integration-examples)
 - [Migration Guide](#migration-guide)
@@ -16,6 +17,7 @@ Complete API reference and integration guide for module developers working with 
 ## 🚀 Getting Started
 
 ### API Access
+
 Seasons & Stars exposes its API through the global `game` object:
 
 ```javascript
@@ -27,6 +29,7 @@ if (game.seasonsStars) {
 ```
 
 ### Detecting Seasons & Stars
+
 ```javascript
 // Method 1: Direct check
 const hasSeasonsStars = !!game.seasonsStars;
@@ -43,6 +46,7 @@ const version = game.seasonsStars?.VERSION;
 ### Date Retrieval
 
 #### `getCurrentDate(calendarId?: string)`
+
 Get the current date from the active calendar.
 
 ```javascript
@@ -59,6 +63,7 @@ const gregorianDate = game.seasonsStars.api.getCurrentDate('gregorian');
 ### Time Manipulation
 
 #### `advanceDays(days: number)`
+
 Advance world time by specified number of days.
 
 ```javascript
@@ -70,6 +75,7 @@ await game.seasonsStars.api.advanceDays(-3);
 ```
 
 #### `advanceHours(hours: number)`
+
 Advance world time by specified number of hours.
 
 ```javascript
@@ -81,6 +87,7 @@ await game.seasonsStars.api.advanceMinutes(30);
 ```
 
 #### Other Time Functions
+
 ```javascript
 // Time advancement functions
 await game.seasonsStars.api.advanceMinutes(minutes);
@@ -92,6 +99,7 @@ await game.seasonsStars.api.advanceYears(years);
 ### Date Conversion
 
 #### `dateToWorldTime(date: CalendarDate)`
+
 Convert a calendar date to Foundry world time.
 
 ```javascript
@@ -100,7 +108,7 @@ const date = {
   month: 12,
   day: 25,
   weekday: 3,
-  time: { hour: 12, minute: 0, second: 0 }
+  time: { hour: 12, minute: 0, second: 0 },
 };
 
 const worldTime = game.seasonsStars.api.dateToWorldTime(date);
@@ -108,6 +116,7 @@ console.log('World time:', worldTime); // Returns timestamp in seconds
 ```
 
 #### `worldTimeToDate(timestamp: number)`
+
 Convert Foundry world time to calendar date.
 
 ```javascript
@@ -119,6 +128,7 @@ console.log('Calendar date:', date);
 ### Date Formatting
 
 #### `formatDate(date: CalendarDate, options?: DateFormatOptions)`
+
 Format a date according to calendar conventions.
 
 ```javascript
@@ -132,12 +142,13 @@ const formatted = game.seasonsStars.api.formatDate(date);
 const custom = game.seasonsStars.api.formatDate(date, {
   includeTime: true,
   includeWeekday: true,
-  format: 'long'
+  format: 'long',
 });
 // Returns: "Wednesday, December 25th, 2024 CE at 2:30 PM"
 ```
 
 **Options:**
+
 ```typescript
 interface DateFormatOptions {
   includeTime?: boolean;
@@ -150,15 +161,20 @@ interface DateFormatOptions {
 ### Calendar Management
 
 #### `getActiveCalendar()`
+
 Get the currently active calendar definition.
 
 ```javascript
 const calendar = game.seasonsStars.api.getActiveCalendar();
 console.log('Active calendar:', calendar.id);
-console.log('Months:', calendar.months.map(m => m.name));
+console.log(
+  'Months:',
+  calendar.months.map(m => m.name)
+);
 ```
 
 #### `setActiveCalendar(calendarId: string)`
+
 Switch to a different calendar system.
 
 ```javascript
@@ -170,6 +186,7 @@ await game.seasonsStars.api.setActiveCalendar('gregorian');
 ```
 
 #### `getAvailableCalendars()`
+
 Get list of all available calendar IDs.
 
 ```javascript
@@ -190,7 +207,7 @@ Seasons & Stars exposes its integration interface via `game.seasonsStars.integra
 // Check for integration interface availability
 if (game.seasonsStars?.integration?.isAvailable) {
   const integration = game.seasonsStars.integration;
-  
+
   console.log('S&S Integration available:', integration.version);
   console.log('API methods:', Object.keys(integration.api));
   console.log('Available widgets:', Object.keys(integration.widgets));
@@ -215,7 +232,7 @@ integration.widgets.main?.addSidebarButton('weather', 'fas fa-cloud', 'Weather',
 });
 
 // Hook system
-integration.hooks.onDateChanged((event) => {
+integration.hooks.onDateChanged(event => {
   console.log('Date changed:', event.newDate);
 });
 ```
@@ -237,7 +254,9 @@ const dateInfo = SimpleCalendar.api.timestampToDate(game.time.worldTime);
 await SimpleCalendar.api.changeDate(newDate);
 
 // Access formatted display data for weather modules
-console.log(`Today is ${dateInfo.display.monthName} ${dateInfo.display.day}${dateInfo.display.daySuffix}`);
+console.log(
+  `Today is ${dateInfo.display.monthName} ${dateInfo.display.day}${dateInfo.display.daySuffix}`
+);
 ```
 
 ### Why Use the Bridge Pattern?
@@ -253,14 +272,15 @@ console.log(`Today is ${dateInfo.display.monthName} ${dateInfo.display.day}${dat
 ### Seasons & Stars Hooks
 
 #### `seasons-stars:dateChanged`
+
 Fired when the world time changes.
 
 ```javascript
-Hooks.on('seasons-stars:dateChanged', (data) => {
+Hooks.on('seasons-stars:dateChanged', data => {
   console.log('Date changed from', data.oldTime, 'to', data.newTime);
   console.log('New date:', data.newDate);
   console.log('Time delta:', data.delta, 'seconds');
-  
+
   // Update your module's time-sensitive features
   updateWeatherForNewDate(data.newDate);
   refreshTimedAbilities();
@@ -268,6 +288,7 @@ Hooks.on('seasons-stars:dateChanged', (data) => {
 ```
 
 **Data Structure:**
+
 ```typescript
 interface DateChangeData {
   newDate: CalendarDate;
@@ -278,27 +299,29 @@ interface DateChangeData {
 ```
 
 #### `seasons-stars:calendarChanged`
+
 Fired when the active calendar system changes.
 
 ```javascript
-Hooks.on('seasons-stars:calendarChanged', (data) => {
+Hooks.on('seasons-stars:calendarChanged', data => {
   console.log('Calendar changed to:', data.newCalendarId);
   console.log('New calendar data:', data.calendar);
-  
+
   // Recalculate seasonal effects, holidays, etc.
   recalculateSeasonalEffects(data.calendar);
 });
 ```
 
 #### `seasons-stars:ready`
+
 Fired when Seasons & Stars is fully initialized.
 
 ```javascript
-Hooks.on('seasons-stars:ready', (data) => {
+Hooks.on('seasons-stars:ready', data => {
   console.log('Seasons & Stars ready');
   console.log('Manager:', data.manager);
   console.log('API:', data.api);
-  
+
   // Safe to use Seasons & Stars API
   initializeCalendarIntegration();
 });
@@ -310,42 +333,95 @@ Hooks.on('seasons-stars:ready', (data) => {
 
 ```javascript
 // With the bridge installed, these work automatically:
-Hooks.on(SimpleCalendar.Hooks.DateTimeChange, (data) => {
+Hooks.on(SimpleCalendar.Hooks.DateTimeChange, data => {
   // Bridge translates from 'seasons-stars:dateChanged'
   console.log('SC-compatible date change:', data);
 });
 
-Hooks.on(SimpleCalendar.Hooks.Ready, (data) => {
+Hooks.on(SimpleCalendar.Hooks.Ready, data => {
   // Bridge translates from 'seasons-stars:ready'
   console.log('SC-compatible ready event:', data);
 });
 
 // Direct S&S hooks (recommended for new integrations):
-Hooks.on('seasons-stars:dateChanged', (data) => {
+Hooks.on('seasons-stars:dateChanged', data => {
   // Native S&S hook with clean data structure
   console.log('Native S&S date change:', data);
 });
 ```
 
+## 🎮 System Integration
+
+Seasons & Stars provides an extensible system compatibility framework that allows different game systems to integrate custom time sources and calendar adjustments.
+
+**For complete system integration documentation, see: [System Integration Guide](SYSTEM-INTEGRATION.md)**
+
+### Quick System Integration
+
+```typescript
+// Register compatibility for your game system
+Hooks.on('seasons-stars:your-system:systemDetected', compatibilityManager => {
+  // Register custom time source
+  const timeSourceFunction = () => {
+    return game.yourSystem?.customTime?.worldTime || null;
+  };
+
+  compatibilityManager.registerTimeSource('your-system', timeSourceFunction);
+});
+```
+
+### System-Specific Hooks
+
+S&S automatically detects the current game system and triggers system-specific hooks:
+
+```typescript
+// Pathfinder 2e integration (built-in)
+Hooks.on('seasons-stars:pf2e:systemDetected', compatibilityManager => {
+  // PF2e-specific integration code
+});
+
+// D&D 5e integration (example)
+Hooks.on('seasons-stars:dnd5e:systemDetected', compatibilityManager => {
+  // D&D 5e-specific integration code
+});
+```
+
+### Calendar-Based Compatibility
+
+Add compatibility blocks to calendar JSON files:
+
+```json
+{
+  "compatibility": {
+    "pf2e": {
+      "weekdayOffset": 5,
+      "description": "Adjusts weekday calculation to match PF2e World Clock"
+    }
+  }
+}
+```
+
 ## 📊 Calendar Data Structures
 
 ### CalendarDate Interface
+
 ```typescript
 interface CalendarDate {
   year: number;
-  month: number;        // 1-based (1 = first month)
-  day: number;          // 1-based (1 = first day)
-  weekday: number;      // 0-based (0 = first weekday)
+  month: number; // 1-based (1 = first month)
+  day: number; // 1-based (1 = first day)
+  weekday: number; // 0-based (0 = first weekday)
   intercalary?: string; // Special day name (optional)
   time?: {
-    hour: number;       // 0-23
-    minute: number;     // 0-59
-    second: number;     // 0-59
+    hour: number; // 0-23
+    minute: number; // 0-59
+    second: number; // 0-59
   };
 }
 ```
 
 ### Calendar Structure
+
 ```typescript
 interface SeasonsStarsCalendar {
   id: string;
@@ -356,28 +432,28 @@ interface SeasonsStarsCalendar {
       setting?: string;
     };
   };
-  
+
   year: {
-    epoch: number;      // Starting year for calculations
+    epoch: number; // Starting year for calculations
     currentYear: number; // Default current year
-    prefix: string;     // Text before year (e.g., "")
-    suffix: string;     // Text after year (e.g., " CE")
-    startDay: number;   // Which weekday the epoch starts on
+    prefix: string; // Text before year (e.g., "")
+    suffix: string; // Text after year (e.g., " CE")
+    startDay: number; // Which weekday the epoch starts on
   };
-  
+
   months: CalendarMonth[];
   weekdays: CalendarWeekday[];
   intercalary: CalendarIntercalary[]; // Special days
-  
+
   leapYear: {
     rule: 'none' | 'gregorian' | 'custom';
-    interval?: number;  // For custom rules
-    month?: string;     // Which month gets extra days
+    interval?: number; // For custom rules
+    month?: string; // Which month gets extra days
     extraDays?: number; // How many extra days
   };
-  
+
   time: {
-    hoursInDay: number;    // Usually 24
+    hoursInDay: number; // Usually 24
     minutesInHour: number; // Usually 60
     secondsInMinute: number; // Usually 60
   };
@@ -387,42 +463,43 @@ interface SeasonsStarsCalendar {
 ## 🔧 Integration Examples
 
 ### Weather Module Integration
+
 ```javascript
 class WeatherManager {
   constructor() {
     this.setupCalendarIntegration();
   }
-  
+
   setupCalendarIntegration() {
     // Support both Simple Calendar and Seasons & Stars
     if (window.SimpleCalendar) {
       Hooks.on(SimpleCalendar.Hooks.DateTimeChange, this.onDateChange.bind(this));
       this.calendarAPI = SimpleCalendar.api;
     }
-    
+
     // Direct Seasons & Stars integration (preferred)
     if (game.seasonsStars) {
       Hooks.on('seasons-stars:dateChanged', this.onDateChange.bind(this));
       this.calendarAPI = game.seasonsStars.api;
     }
   }
-  
+
   onDateChange(data) {
     const currentDate = this.calendarAPI.getCurrentDate();
     const season = this.calculateSeason(currentDate);
     const weather = this.generateWeather(season, currentDate);
-    
+
     this.updateWeatherDisplay(weather);
     this.saveWeatherToNotes(currentDate, weather);
   }
-  
+
   calculateSeason(date) {
     // Use calendar months to determine season
     const calendar = this.calendarAPI.getActiveCalendar();
     const monthsPerSeason = calendar.months.length / 4;
     return Math.floor((date.month - 1) / monthsPerSeason);
   }
-  
+
   async saveWeatherToNotes(date, weather) {
     // Phase 1: Use Simple Calendar compatibility
     if (this.calendarAPI.addNote) {
@@ -430,7 +507,7 @@ class WeatherManager {
         date: date,
         title: 'Weather',
         content: weather.description,
-        category: 'weather'
+        category: 'weather',
       });
     }
   }
@@ -438,33 +515,34 @@ class WeatherManager {
 ```
 
 ### Time-Sensitive Spell Effects
+
 ```javascript
 class SpellEffectManager {
   constructor() {
     Hooks.on('seasons-stars:dateChanged', this.checkExpiringEffects.bind(this));
   }
-  
+
   async addTimedEffect(actorId, effectData, duration) {
     const currentDate = game.seasonsStars.api.getCurrentDate();
     const expirationTime = game.time.worldTime + duration;
-    
+
     // Store expiration time with effect
     const effect = {
       ...effectData,
       expirationTime: expirationTime,
-      startDate: currentDate
+      startDate: currentDate,
     };
-    
+
     await this.storeEffect(actorId, effect);
   }
-  
+
   checkExpiringEffects(data) {
     const currentTime = data.newTime;
-    
+
     // Check all active effects
     for (const [actorId, effects] of this.activeEffects) {
       const expired = effects.filter(e => e.expirationTime <= currentTime);
-      
+
       expired.forEach(effect => {
         this.removeEffect(actorId, effect);
         ui.notifications.info(`${effect.name} effect has expired on ${actorId}`);
@@ -475,18 +553,19 @@ class SpellEffectManager {
 ```
 
 ### Calendar Event System
+
 ```javascript
 class EventManager {
   constructor() {
     this.events = new Map();
     this.setupEventHandling();
   }
-  
+
   setupEventHandling() {
     Hooks.on('seasons-stars:dateChanged', this.checkEvents.bind(this));
     Hooks.on('seasons-stars:calendarChanged', this.convertEventDates.bind(this));
   }
-  
+
   addRecurringEvent(eventData) {
     const event = {
       id: foundry.utils.randomID(),
@@ -494,22 +573,22 @@ class EventManager {
       description: eventData.description,
       recurrence: eventData.recurrence, // 'daily', 'weekly', 'monthly', 'yearly'
       startDate: eventData.startDate,
-      endDate: eventData.endDate
+      endDate: eventData.endDate,
     };
-    
+
     this.events.set(event.id, event);
   }
-  
+
   checkEvents(data) {
     const currentDate = data.newDate;
-    
+
     for (const event of this.events.values()) {
       if (this.shouldTriggerEvent(event, currentDate)) {
         this.triggerEvent(event, currentDate);
       }
     }
   }
-  
+
   shouldTriggerEvent(event, currentDate) {
     // Check if event should trigger on current date
     switch (event.recurrence) {
@@ -520,8 +599,9 @@ class EventManager {
       case 'monthly':
         return currentDate.day === event.startDate.day;
       case 'yearly':
-        return currentDate.month === event.startDate.month && 
-               currentDate.day === event.startDate.day;
+        return (
+          currentDate.month === event.startDate.month && currentDate.day === event.startDate.day
+        );
       default:
         return false;
     }
@@ -534,6 +614,7 @@ class EventManager {
 ### From Simple Calendar
 
 #### Phase 1: Basic Compatibility
+
 Your existing Simple Calendar integration should work immediately:
 
 ```javascript
@@ -541,12 +622,13 @@ Your existing Simple Calendar integration should work immediately:
 const currentDate = SimpleCalendar.api.currentDateTime();
 const formatted = SimpleCalendar.api.timestampToDate(game.time.worldTime);
 
-Hooks.on(SimpleCalendar.Hooks.DateTimeChange, (data) => {
+Hooks.on(SimpleCalendar.Hooks.DateTimeChange, data => {
   // Your existing hook handler
 });
 ```
 
 #### Phase 2: Enhanced Integration
+
 Migrate to native Seasons & Stars API for better features:
 
 ```javascript
@@ -560,6 +642,7 @@ const newDate = game.seasonsStars.api.getCurrentDate();
 ```
 
 #### Phase 3: Notes System Migration
+
 When Phase 2 releases, migrate note handling:
 
 ```javascript
@@ -573,10 +656,11 @@ const notes = game.seasonsStars.api.getNotes(date);
 ### From Custom Time Systems
 
 #### Step 1: Replace Time Calculations
+
 ```javascript
 // Old custom time code:
 function advanceGameTime(hours) {
-  const newTime = game.time.worldTime + (hours * 3600);
+  const newTime = game.time.worldTime + hours * 3600;
   game.time.advance(newTime - game.time.worldTime);
 }
 
@@ -587,6 +671,7 @@ async function advanceGameTime(hours) {
 ```
 
 #### Step 2: Use Calendar-Aware Functions
+
 ```javascript
 // Old date calculation:
 function addDaysToDate(date, days) {
@@ -612,6 +697,7 @@ Your support helps fund new features, bug fixes, and comprehensive documentation
 ## 🎯 Best Practices
 
 ### Error Handling
+
 ```javascript
 // Always check if Seasons & Stars is available
 function safeGetCurrentDate() {
@@ -619,7 +705,7 @@ function safeGetCurrentDate() {
     console.warn('Seasons & Stars not available');
     return null;
   }
-  
+
   try {
     return game.seasonsStars.api.getCurrentDate();
   } catch (error) {
@@ -630,18 +716,19 @@ function safeGetCurrentDate() {
 ```
 
 ### Performance Considerations
+
 ```javascript
 // Cache calendar data instead of repeated API calls
 class CalendarCache {
   constructor() {
     this.calendarData = null;
     this.lastUpdate = 0;
-    
+
     Hooks.on('seasons-stars:calendarChanged', () => {
       this.invalidateCache();
     });
   }
-  
+
   getCalendar() {
     const now = Date.now();
     if (!this.calendarData || now - this.lastUpdate > 60000) {
@@ -650,7 +737,7 @@ class CalendarCache {
     }
     return this.calendarData;
   }
-  
+
   invalidateCache() {
     this.calendarData = null;
     this.lastUpdate = 0;
@@ -659,13 +746,14 @@ class CalendarCache {
 ```
 
 ### Graceful Degradation
+
 ```javascript
 // Support multiple calendar systems
 class UniversalCalendarAdapter {
   constructor() {
     this.adapter = this.detectCalendarSystem();
   }
-  
+
   detectCalendarSystem() {
     if (game.seasonsStars) {
       return new SeasonsStarsAdapter();
@@ -675,11 +763,11 @@ class UniversalCalendarAdapter {
       return new FallbackAdapter();
     }
   }
-  
+
   getCurrentDate() {
     return this.adapter.getCurrentDate();
   }
-  
+
   onDateChange(callback) {
     this.adapter.onDateChange(callback);
   }
@@ -687,6 +775,7 @@ class UniversalCalendarAdapter {
 ```
 
 ### Module Dependencies
+
 ```javascript
 // In your module.json
 {
