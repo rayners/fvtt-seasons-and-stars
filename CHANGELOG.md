@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.4.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.4...v0.4.0) (2025-06-24)
+
+
+### Features
+
+* implement extensible system compatibility architecture with PF2e integration ([47654e5](https://github.com/rayners/fvtt-seasons-and-stars/commit/47654e533eb73c4073d3619436910fb03bf13c2c))
+
+
+### Documentation
+
+* accuracy review and roadmap alignment with GitHub milestones ([4c7c2cc](https://github.com/rayners/fvtt-seasons-and-stars/commit/4c7c2cce88dba221832a642f6445a8b1060df461))
+
 ## [0.3.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.3...v0.3.4) (2025-06-20)
 
 
