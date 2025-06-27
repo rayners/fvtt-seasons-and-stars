@@ -37,14 +37,16 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 
 ## 🚀 Planned Development
 
-### **v0.5.0 - Performance and Moon Tracking** (Next Release)
+### **v0.5.0 - Calendar Validation and Quality Assurance** (Next Release - **PRIORITY BUMPED**)
 
-**Focus**: Performance optimization and lunar cycle features
+**Focus**: Preventing calendar definition bugs that cause runtime errors
 
+- **JSON Schema Validation Tool**: Comprehensive calendar format validation to prevent bugs like Issue #83 ([#81](https://github.com/rayners/fvtt-seasons-and-stars/issues/81)) - **HIGH PRIORITY**
+- **Build-time Calendar Validation**: Catch incomplete calendar definitions before release
+- **Calendar Format Documentation**: Complete schema specification for calendar creators
 - **Lazy Calendar Loading**: Only load required calendars to improve startup performance and reduce errors ([#25](https://github.com/rayners/fvtt-seasons-and-stars/issues/25))
 - **Moon Phase Tracking**: Basic lunar cycle tracking for lycantropy, curses, and celestial events ([#17](https://github.com/rayners/fvtt-seasons-and-stars/issues/17))
 - **Performance Optimization**: Reduced memory usage and faster module initialization
-- **Calendar System Enhancement**: Better error handling and validation for calendar definitions
 
 ### **v0.6.0 - Notes System Enhancement** (High Priority)
 
