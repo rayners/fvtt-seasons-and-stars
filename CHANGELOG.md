@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.4.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.2...v0.4.3) (2025-06-28)
+
+
+### Bug Fixes
+
+* Resolve date alignment issues and worldTime edge cases (Issue [#66](https://github.com/rayners/fvtt-seasons-and-stars/issues/66)) ([#86](https://github.com/rayners/fvtt-seasons-and-stars/issues/86)) ([f06f0b9](https://github.com/rayners/fvtt-seasons-and-stars/commit/f06f0b9e8f737826c452d401bfb15697af34882e))
+
 ## [0.4.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.1...v0.4.2) (2025-06-28)
 
 
