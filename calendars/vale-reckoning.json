@@ -7,7 +7,7 @@
       "setting": "Fantasy"
     }
   },
-  
+
   "year": {
     "epoch": 0,
     "currentYear": 1542,
@@ -15,11 +15,11 @@
     "suffix": " VR",
     "startDay": 0
   },
-  
+
   "leapYear": {
     "rule": "none"
   },
-  
+
   "months": [
     {
       "name": "Frostwane",
@@ -70,40 +70,40 @@
       "description": "The world stills again. Fires dim, and breath clouds in the chill."
     }
   ],
-  
+
   "weekdays": [
-    { 
-      "name": "Brightday", 
+    {
+      "name": "Brightday",
       "abbreviation": "Bri",
-      "description": "Auspicious. New journeys, clear skies, and clean starts." 
+      "description": "Auspicious. New journeys, clear skies, and clean starts."
     },
-    { 
-      "name": "Graftday", 
+    {
+      "name": "Graftday",
       "abbreviation": "Gra",
-      "description": "Work and toil. Markets bustle, and fields are plowed." 
+      "description": "Work and toil. Markets bustle, and fields are plowed."
     },
-    { 
-      "name": "Stoneday", 
+    {
+      "name": "Stoneday",
       "abbreviation": "Sto",
-      "description": "Hearth and holdfast. A day for home, rest, and repairs." 
+      "description": "Hearth and holdfast. A day for home, rest, and repairs."
     },
-    { 
-      "name": "Bitterday", 
+    {
+      "name": "Bitterday",
       "abbreviation": "Bit",
-      "description": "Ill omens and arguments. Avoid risk and stay wary." 
+      "description": "Ill omens and arguments. Avoid risk and stay wary."
     },
-    { 
-      "name": "Wyrdday", 
+    {
+      "name": "Wyrdday",
       "abbreviation": "Wyr",
-      "description": "Mystic alignments. Tales are told, stars watched, and truths divined." 
+      "description": "Mystic alignments. Tales are told, stars watched, and truths divined."
     },
-    { 
-      "name": "Graveday", 
+    {
+      "name": "Graveday",
       "abbreviation": "Grv",
-      "description": "Remembrance and endings. The dead are honored, the past weighed." 
+      "description": "Remembrance and endings. The dead are honored, the past weighed."
     }
   ],
-  
+
   "intercalary": [
     {
       "name": "Hearthmoor",
@@ -134,7 +134,52 @@
       "description": "Ashes of the year are buried or scattered. Old names are sung, and debts burned."
     }
   ],
-  
+
+  "moons": [
+    {
+      "name": "Máni",
+      "cycleLength": 29,
+      "firstNewMoon": { "year": 1542, "month": 1, "day": 8 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 7, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 6, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 6, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#b0c4de",
+      "translations": {
+        "en": {
+          "description": "The main moon, personification of the moon in Norse mythology, brother to Sól"
+        }
+      }
+    },
+    {
+      "name": "Nótt",
+      "cycleLength": 37,
+      "firstNewMoon": { "year": 1542, "month": 2, "day": 15 },
+      "phases": [
+        { "name": "New Moon", "length": 2, "singleDay": false, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 8, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 2, "singleDay": false, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 7, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 2, "singleDay": false, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 7, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 2, "singleDay": false, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 7, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#483d8b",
+      "translations": {
+        "en": {
+          "description": "The night moon, Norse goddess of night who rides her horse across the sky"
+        }
+      }
+    }
+  ],
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
