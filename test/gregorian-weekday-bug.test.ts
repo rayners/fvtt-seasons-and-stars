@@ -81,6 +81,252 @@ describe('Gregorian Calendar Weekday Calculation Bug Fix', () => {
     });
   });
 
+  describe('Extended Real-World Date Testing', () => {
+    // Test cases based on known dates that users are likely to encounter
+    const realWorldTestCases = [
+      // Recent past dates
+      {
+        year: 2023,
+        month: 1,
+        day: 1,
+        expectedWeekday: 'Sunday',
+        description: 'New Years Day 2023',
+      },
+      {
+        year: 2023,
+        month: 7,
+        day: 4,
+        expectedWeekday: 'Tuesday',
+        description: 'Independence Day 2023',
+      },
+      { year: 2023, month: 12, day: 25, expectedWeekday: 'Monday', description: 'Christmas 2023' },
+      {
+        year: 2023,
+        month: 12,
+        day: 31,
+        expectedWeekday: 'Sunday',
+        description: 'New Years Eve 2023',
+      },
+
+      // Current year dates (2024)
+      {
+        year: 2024,
+        month: 3,
+        day: 17,
+        expectedWeekday: 'Sunday',
+        description: 'St. Patricks Day 2024',
+      },
+      { year: 2024, month: 4, day: 1, expectedWeekday: 'Monday', description: 'April Fools 2024' },
+      {
+        year: 2024,
+        month: 7,
+        day: 4,
+        expectedWeekday: 'Thursday',
+        description: 'Independence Day 2024',
+      },
+      {
+        year: 2024,
+        month: 10,
+        day: 31,
+        expectedWeekday: 'Thursday',
+        description: 'Halloween 2024',
+      },
+      {
+        year: 2024,
+        month: 11,
+        day: 28,
+        expectedWeekday: 'Thursday',
+        description: 'Thanksgiving 2024',
+      },
+
+      // Future dates (2025-2026)
+      {
+        year: 2025,
+        month: 1,
+        day: 1,
+        expectedWeekday: 'Wednesday',
+        description: 'New Years Day 2025',
+      },
+      {
+        year: 2025,
+        month: 7,
+        day: 4,
+        expectedWeekday: 'Friday',
+        description: 'Independence Day 2025',
+      },
+      {
+        year: 2025,
+        month: 12,
+        day: 25,
+        expectedWeekday: 'Thursday',
+        description: 'Christmas 2025',
+      },
+      {
+        year: 2026,
+        month: 1,
+        day: 1,
+        expectedWeekday: 'Thursday',
+        description: 'New Years Day 2026',
+      },
+
+      // Historical dates
+      {
+        year: 1969,
+        month: 7,
+        day: 20,
+        expectedWeekday: 'Sunday',
+        description: 'Moon Landing 1969',
+      },
+      {
+        year: 1989,
+        month: 11,
+        day: 9,
+        expectedWeekday: 'Thursday',
+        description: 'Berlin Wall Falls 1989',
+      },
+      {
+        year: 2001,
+        month: 9,
+        day: 11,
+        expectedWeekday: 'Tuesday',
+        description: 'September 11, 2001',
+      },
+
+      // Leap year edge cases
+      { year: 2020, month: 2, day: 29, expectedWeekday: 'Saturday', description: 'Leap Day 2020' },
+      { year: 2028, month: 2, day: 29, expectedWeekday: 'Tuesday', description: 'Leap Day 2028' },
+
+      // Century boundary tests
+      {
+        year: 1800,
+        month: 1,
+        day: 1,
+        expectedWeekday: 'Wednesday',
+        description: 'Start of 19th Century',
+      },
+      {
+        year: 2100,
+        month: 1,
+        day: 1,
+        expectedWeekday: 'Friday',
+        description: 'Start of 22nd Century (not leap year)',
+      },
+    ];
+
+    realWorldTestCases.forEach(testCase => {
+      it(`should correctly calculate weekday for ${testCase.description}`, () => {
+        const weekdayIndex = engine.calculateWeekday(testCase.year, testCase.month, testCase.day);
+        const weekdayName = gregorianCalendar.weekdays[weekdayIndex].name;
+        const expectedIndex = gregorianCalendar.weekdays.findIndex(
+          w => w.name === testCase.expectedWeekday
+        );
+
+        console.log(`\nTesting: ${testCase.description}`);
+        console.log(`Date: ${testCase.year}/${testCase.month}/${testCase.day}`);
+        console.log(`Expected: ${testCase.expectedWeekday} (index ${expectedIndex})`);
+        console.log(`Calculated: ${weekdayName} (index ${weekdayIndex})`);
+
+        if (weekdayIndex !== expectedIndex) {
+          const offset = expectedIndex - weekdayIndex;
+          console.log(`❌ MISMATCH: Off by ${offset} positions`);
+        } else {
+          console.log(`✅ CORRECT: Weekday matches expected value`);
+        }
+
+        expect(weekdayIndex).toBe(expectedIndex);
+        expect(weekdayName).toBe(testCase.expectedWeekday);
+      });
+    });
+  });
+
+  describe('Edge Case Testing', () => {
+    it('should handle month boundaries correctly', () => {
+      console.log('\n=== MONTH BOUNDARY TESTING ===');
+
+      // Test end of February in leap year vs non-leap year
+      const feb28_2023 = engine.calculateWeekday(2023, 2, 28); // Tuesday
+      const mar1_2023 = engine.calculateWeekday(2023, 3, 1); // Wednesday (next day)
+
+      const feb28_2024 = engine.calculateWeekday(2024, 2, 28); // Wednesday
+      const feb29_2024 = engine.calculateWeekday(2024, 2, 29); // Thursday (leap day)
+      const mar1_2024 = engine.calculateWeekday(2024, 3, 1); // Friday (day after leap day)
+
+      console.log(`2023 (non-leap): Feb 28 = ${feb28_2023}, Mar 1 = ${mar1_2023}`);
+      console.log(
+        `2024 (leap): Feb 28 = ${feb28_2024}, Feb 29 = ${feb29_2024}, Mar 1 = ${mar1_2024}`
+      );
+
+      // Verify weekday progression
+      expect((feb28_2023 + 1) % 7).toBe(mar1_2023); // Non-leap year: direct progression
+      expect((feb29_2024 + 1) % 7).toBe(mar1_2024); // Leap year: progression after leap day
+
+      console.log('✅ MONTH BOUNDARIES: Correctly handled leap year differences');
+    });
+
+    it('should handle year boundaries correctly', () => {
+      console.log('\n=== YEAR BOUNDARY TESTING ===');
+
+      // Test Dec 31 -> Jan 1 transitions for multiple years
+      const yearTransitions = [
+        { year: 2023, dec31: 0, jan1: 1 }, // Sunday -> Monday
+        { year: 2024, dec31: 2, jan1: 3 }, // Tuesday -> Wednesday
+        { year: 2025, dec31: 3, jan1: 4 }, // Wednesday -> Thursday
+      ];
+
+      yearTransitions.forEach(transition => {
+        const dec31 = engine.calculateWeekday(transition.year, 12, 31);
+        const jan1 = engine.calculateWeekday(transition.year + 1, 1, 1);
+
+        console.log(`${transition.year}/12/31 -> ${transition.year + 1}/1/1: ${dec31} -> ${jan1}`);
+
+        expect(dec31).toBe(transition.dec31);
+        expect(jan1).toBe(transition.jan1);
+        expect((dec31 + 1) % 7).toBe(jan1); // Should be consecutive weekdays
+      });
+
+      console.log('✅ YEAR BOUNDARIES: Correctly handled year transitions');
+    });
+
+    it('should handle century leap year rules correctly', () => {
+      console.log('\n=== CENTURY LEAP YEAR TESTING ===');
+
+      // Test century years: divisible by 100 but not 400 are NOT leap years
+      const centuryTests = [
+        { year: 1700, isLeap: false, description: 'Not divisible by 400' },
+        { year: 1800, isLeap: false, description: 'Not divisible by 400' },
+        { year: 1900, isLeap: false, description: 'Not divisible by 400' },
+        { year: 2000, isLeap: true, description: 'Divisible by 400' },
+        { year: 2100, isLeap: false, description: 'Not divisible by 400' },
+        { year: 2400, isLeap: true, description: 'Divisible by 400' },
+      ];
+
+      centuryTests.forEach(test => {
+        const isLeap = engine.isLeapYear(test.year);
+        const yearLength = engine.getYearLength(test.year);
+        const expectedLength = test.isLeap ? 366 : 365;
+
+        console.log(`${test.year}: isLeap=${isLeap}, length=${yearLength} (${test.description})`);
+
+        expect(isLeap).toBe(test.isLeap);
+        expect(yearLength).toBe(expectedLength);
+
+        // Test Feb 28 -> Mar 1 transition for century years
+        const feb28 = engine.calculateWeekday(test.year, 2, 28);
+        const mar1 = engine.calculateWeekday(test.year, 3, 1);
+
+        if (test.isLeap) {
+          // Leap year: Feb 28 -> Feb 29 -> Mar 1 (should skip by 2)
+          expect((feb28 + 2) % 7).toBe(mar1);
+        } else {
+          // Non-leap year: Feb 28 -> Mar 1 (should skip by 1)
+          expect((feb28 + 1) % 7).toBe(mar1);
+        }
+      });
+
+      console.log('✅ CENTURY LEAP YEARS: Correctly handled special leap year rules');
+    });
+  });
+
   describe('Calendar Integration', () => {
     it('should return consistent weekday through worldTimeToDate conversion', () => {
       // Test that weekday calculation is consistent when going through world time conversion
