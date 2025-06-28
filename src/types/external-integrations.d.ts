@@ -262,6 +262,11 @@ export interface CalendarEngineInterface {
     weekday: number;
     time?: { hour: number; minute: number; second: number };
   };
+  // Moon phase methods
+  getAllMoons?(): unknown[];
+  getMoonPhaseInfo?(date: unknown, moonName?: string): unknown[];
+  getCurrentMoonPhases?(worldTime?: number): unknown[];
+  getMoonPhaseAtWorldTime?(worldTime: number): unknown[];
 }
 
 // Calendar grid day object for UI widgets
@@ -278,4 +283,17 @@ export interface CalendarDayData {
   hasNotes: boolean;
   isEmpty?: boolean;
   notes?: unknown[];
+  // Moon phase properties
+  moonPhases?: Array<{
+    moonName: string;
+    phaseName: string;
+    phaseIcon: string;
+    moonColor?: string;
+    dayInPhase: number;
+    daysUntilNext: number;
+  }>;
+  primaryMoonPhase?: string; // Icon for the primary/first moon
+  primaryMoonColor?: string; // Color for the primary/first moon
+  moonTooltip?: string; // Tooltip text for moon phases
+  hasMultipleMoons?: boolean; // True if more than one moon
 }

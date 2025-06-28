@@ -88,8 +88,16 @@
                      data-day="{{day}}"
                      data-date="{{fullDate}}"
                      data-category="{{primaryCategory}}"
-                     title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteTooltip}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
+                     title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteTooltip}}{{/if}}{{#if moonTooltip}} - {{moonTooltip}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
                   <span class="day-number">{{day}}</span>
+                  {{#if primaryMoonPhase}}
+                    <div class="moon-indicator" {{#if primaryMoonColor}}style="color: {{primaryMoonColor}}"{{/if}} title="{{moonTooltip}}">
+                      <i class="fas fa-circle moon-phase-{{primaryMoonPhase}}"></i>
+                      {{#if hasMultipleMoons}}
+                        <span class="multiple-moons-indicator">+</span>
+                      {{/if}}
+                    </div>
+                  {{/if}}
                 </div>
               </div>
             {{/if}}
@@ -106,8 +114,16 @@
                      data-day="{{day}}"
                      data-date="{{fullDate}}"
                      data-category="{{primaryCategory}}"
-                     title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteTooltip}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
+                     title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteTooltip}}{{/if}}{{#if moonTooltip}} - {{moonTooltip}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
                   <span class="day-number">{{day}}</span>
+                  {{#if primaryMoonPhase}}
+                    <div class="moon-indicator" {{#if primaryMoonColor}}style="color: {{primaryMoonColor}}"{{/if}} title="{{moonTooltip}}">
+                      <i class="fas fa-circle moon-phase-{{primaryMoonPhase}}"></i>
+                      {{#if hasMultipleMoons}}
+                        <span class="multiple-moons-indicator">+</span>
+                      {{/if}}
+                    </div>
+                  {{/if}}
                   {{#if hasNotes}}
                     <button type="button" class="note-indicator" data-action="viewNotes" data-day="{{day}}" title="{{noteTooltip}} - Click to view/edit" data-note-count="{{noteCount}}">
                       {{#if noteMultiple}}
