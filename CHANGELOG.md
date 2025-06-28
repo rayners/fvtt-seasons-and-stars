@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.4.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.1...v0.4.2) (2025-06-28)
+
+
+### Bug Fixes
+
+* Add missing seasons to WFRP calendar to resolve infinite loop ([#84](https://github.com/rayners/fvtt-seasons-and-stars/issues/84)) ([d0faffe](https://github.com/rayners/fvtt-seasons-and-stars/commit/d0faffe76c5697bf225bde894e726fb76be15ebf))
+
 ## [0.4.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.0...v0.4.1) (2025-06-24)
 
 
