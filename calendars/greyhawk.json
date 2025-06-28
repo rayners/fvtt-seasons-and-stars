@@ -189,6 +189,27 @@
           "description": "The classic moon of Oerth, steadfast companion through countless adventures"
         }
       }
+    },
+    {
+      "name": "Celene",
+      "cycleLength": 91,
+      "firstNewMoon": { "year": 591, "month": 1, "day": 15 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 22, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 22, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 22, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 21, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#7fffd4",
+      "translations": {
+        "en": {
+          "description": "The aquamarine moon, Celene the handmaiden, with her long and stately dance"
+        }
+      }
     }
   ],
 
