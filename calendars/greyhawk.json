@@ -7,7 +7,7 @@
       "setting": "D&D Greyhawk"
     }
   },
-  
+
   "year": {
     "epoch": 0,
     "currentYear": 591,
@@ -15,11 +15,11 @@
     "suffix": " cy",
     "startDay": 0
   },
-  
+
   "leapYear": {
     "rule": "none"
   },
-  
+
   "months": [
     {
       "name": "Fireseek",
@@ -94,7 +94,7 @@
       "description": "The third month of autumn. The sun's power ebbs and weakens as the year draws toward its close."
     }
   ],
-  
+
   "weekdays": [
     {
       "name": "Starday",
@@ -132,7 +132,7 @@
       "description": "Seventh day of the week, a day of freedom, rest, and personal pursuits"
     }
   ],
-  
+
   "intercalary": [
     {
       "name": "Needfest",
@@ -167,7 +167,31 @@
       "description": "A week-long festival celebrating the autumn equinox and the completed harvest. Communities brew ale and celebrate the year's bounty with feasting and drinking."
     }
   ],
-  
+
+  "moons": [
+    {
+      "name": "Luna",
+      "cycleLength": 28,
+      "firstNewMoon": { "year": 591, "month": 1, "day": 1 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 6, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 6, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 7, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#e6e6fa",
+      "translations": {
+        "en": {
+          "description": "The classic moon of Oerth, steadfast companion through countless adventures"
+        }
+      }
+    }
+  ],
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
