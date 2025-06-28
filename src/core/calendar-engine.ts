@@ -46,6 +46,11 @@ export class CalendarEngine {
     const minute = Math.floor((secondsInDay % secondsPerHour) / this.calendar.time.secondsInMinute);
     const second = secondsInDay % this.calendar.time.secondsInMinute;
 
+    // Normalize -0 to +0 for JavaScript precision issues
+    const normalizedHour = hour === 0 ? 0 : hour;
+    const normalizedMinute = minute === 0 ? 0 : minute;
+    const normalizedSecond = second === 0 ? 0 : second;
+
     // Convert days to calendar date
     const dateInfo = this.daysToDate(totalDays);
 
@@ -55,7 +60,7 @@ export class CalendarEngine {
       day: dateInfo.day,
       weekday: dateInfo.weekday,
       intercalary: dateInfo.intercalary,
-      time: { hour, minute, second },
+      time: { hour: normalizedHour, minute: normalizedMinute, second: normalizedSecond },
     };
 
     return new CalendarDate(dateData, this.calendar);
@@ -339,9 +344,10 @@ export class CalendarEngine {
       remainingDays -= monthLength;
 
       // Check for intercalary days after this month
-      const intercalaryAfterMonth = intercalaryDays.filter(
-        i => i.after === this.calendar.months[month - 1].name
-      );
+      const currentMonthName = this.calendar.months[month - 1]?.name;
+      const intercalaryAfterMonth = currentMonthName
+        ? intercalaryDays.filter(i => i.after === currentMonthName)
+        : [];
 
       for (const intercalary of intercalaryAfterMonth) {
         const intercalaryDayCount = intercalary.days || 1;
@@ -402,9 +408,10 @@ export class CalendarEngine {
       totalDays += monthLengths[month - 1];
 
       // Add intercalary days after this month
-      const intercalaryAfterMonth = intercalaryDays.filter(
-        i => i.after === this.calendar.months[month - 1].name
-      );
+      const currentMonthName = this.calendar.months[month - 1]?.name;
+      const intercalaryAfterMonth = currentMonthName
+        ? intercalaryDays.filter(i => i.after === currentMonthName)
+        : [];
       // Sum up all days from intercalary periods (using days field, defaulting to 1)
       totalDays += intercalaryAfterMonth.reduce((sum, intercalary) => {
         return sum + (intercalary.days || 1);
@@ -474,9 +481,10 @@ export class CalendarEngine {
       totalDays += monthLengths[month - 1];
 
       // Add only weekday-contributing intercalary days after this month
-      const intercalaryAfterMonth = intercalaryDays.filter(
-        i => i.after === this.calendar.months[month - 1].name
-      );
+      const currentMonthName = this.calendar.months[month - 1]?.name;
+      const intercalaryAfterMonth = currentMonthName
+        ? intercalaryDays.filter(i => i.after === currentMonthName)
+        : [];
 
       intercalaryAfterMonth.forEach(intercalary => {
         const countsForWeekdays = intercalary.countsForWeekdays ?? true;

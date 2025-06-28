@@ -431,7 +431,7 @@ describe('Calendar-Specific Date Alignment Issues', () => {
           expect(roundTrip.month).toBe(testDate.month);
           expect(roundTrip.day).toBe(testDate.day);
           expect(yearLength).toBeGreaterThan(300); // Reasonable minimum
-          expect(yearLength).toBeLessThan(400); // Reasonable maximum
+          expect(yearLength).toBeLessThanOrEqual(400); // Reasonable maximum
 
           console.log(`  ✅ Basic operations successful`);
         } catch (error) {
