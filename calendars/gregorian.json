@@ -7,7 +7,7 @@
       "setting": "Earth"
     }
   },
-  
+
   "year": {
     "epoch": 0,
     "currentYear": 2024,
@@ -15,131 +15,175 @@
     "suffix": " CE",
     "startDay": 6
   },
-  
+
   "leapYear": {
     "rule": "gregorian",
     "month": "February",
     "extraDays": 1
   },
-  
+
   "months": [
     {
-      "name": "January", 
-      "abbreviation": "Jan", 
-      "days": 31, 
+      "name": "January",
+      "abbreviation": "Jan",
+      "days": 31,
       "description": "The coldest month of winter in the northern hemisphere"
     },
     {
-      "name": "February", 
-      "abbreviation": "Feb", 
-      "days": 28, 
+      "name": "February",
+      "abbreviation": "Feb",
+      "days": 28,
       "description": "The shortest month, known for love and renewal"
     },
     {
-      "name": "March", 
-      "abbreviation": "Mar", 
-      "days": 31, 
+      "name": "March",
+      "abbreviation": "Mar",
+      "days": 31,
       "description": "Spring begins, named after Mars, god of war"
     },
     {
-      "name": "April", 
-      "abbreviation": "Apr", 
-      "days": 30, 
+      "name": "April",
+      "abbreviation": "Apr",
+      "days": 30,
       "description": "Month of opening buds and fresh growth"
     },
     {
-      "name": "May", 
-      "abbreviation": "May", 
-      "days": 31, 
+      "name": "May",
+      "abbreviation": "May",
+      "days": 31,
       "description": "Month of flowers, named after Maia, goddess of growth"
     },
     {
-      "name": "June", 
-      "abbreviation": "Jun", 
-      "days": 30, 
+      "name": "June",
+      "abbreviation": "Jun",
+      "days": 30,
       "description": "Beginning of summer, named after Juno, goddess of marriage"
     },
     {
-      "name": "July", 
-      "abbreviation": "Jul", 
-      "days": 31, 
+      "name": "July",
+      "abbreviation": "Jul",
+      "days": 31,
       "description": "Named after Julius Caesar, peak of summer"
     },
     {
-      "name": "August", 
-      "abbreviation": "Aug", 
-      "days": 31, 
+      "name": "August",
+      "abbreviation": "Aug",
+      "days": 31,
       "description": "Named after Augustus Caesar, late summer heat"
     },
     {
-      "name": "September", 
-      "abbreviation": "Sep", 
-      "days": 30, 
+      "name": "September",
+      "abbreviation": "Sep",
+      "days": 30,
       "description": "The seventh month of the old Roman calendar"
     },
     {
-      "name": "October", 
-      "abbreviation": "Oct", 
-      "days": 31, 
+      "name": "October",
+      "abbreviation": "Oct",
+      "days": 31,
       "description": "The eighth month of the old Roman calendar, autumn arrives"
     },
     {
-      "name": "November", 
-      "abbreviation": "Nov", 
-      "days": 30, 
+      "name": "November",
+      "abbreviation": "Nov",
+      "days": 30,
       "description": "The ninth month of the old Roman calendar, late autumn"
     },
     {
-      "name": "December", 
-      "abbreviation": "Dec", 
-      "days": 31, 
+      "name": "December",
+      "abbreviation": "Dec",
+      "days": 31,
       "description": "The tenth month of the old Roman calendar, winter solstice"
     }
   ],
-  
+
   "weekdays": [
     {
-      "name": "Sunday", 
-      "abbreviation": "Sun", 
+      "name": "Sunday",
+      "abbreviation": "Sun",
       "description": "Day of rest and worship in many cultures"
     },
     {
-      "name": "Monday", 
-      "abbreviation": "Mon", 
+      "name": "Monday",
+      "abbreviation": "Mon",
       "description": "Beginning of the work week"
     },
     {
-      "name": "Tuesday", 
-      "abbreviation": "Tue", 
+      "name": "Tuesday",
+      "abbreviation": "Tue",
       "description": "Named after Tyr, Norse god of war"
     },
     {
-      "name": "Wednesday", 
-      "abbreviation": "Wed", 
+      "name": "Wednesday",
+      "abbreviation": "Wed",
       "description": "Named after Woden (Odin), chief Norse god"
     },
     {
-      "name": "Thursday", 
-      "abbreviation": "Thu", 
+      "name": "Thursday",
+      "abbreviation": "Thu",
       "description": "Named after Thor, Norse god of thunder"
     },
     {
-      "name": "Friday", 
-      "abbreviation": "Fri", 
+      "name": "Friday",
+      "abbreviation": "Fri",
       "description": "Named after Frigg, Norse goddess of love"
     },
     {
-      "name": "Saturday", 
-      "abbreviation": "Sat", 
+      "name": "Saturday",
+      "abbreviation": "Sat",
       "description": "Named after Saturn, Roman god of agriculture"
     }
   ],
-  
+
   "intercalary": [],
-  
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
-  }
+  },
+
+  "moons": [
+    {
+      "name": "Luna",
+      "cycleLength": 29.53059,
+      "firstNewMoon": { "year": 2024, "month": 1, "day": 11 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        {
+          "name": "Waxing Crescent",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waxing-crescent"
+        },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        {
+          "name": "Waxing Gibbous",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waxing-gibbous"
+        },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        {
+          "name": "Waning Gibbous",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waning-gibbous"
+        },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        {
+          "name": "Waning Crescent",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waning-crescent"
+        }
+      ],
+      "color": "#f0f0f0",
+      "translations": {
+        "en": {
+          "description": "Earth's moon, following a 29.5-day synodic cycle with eight traditional phases"
+        }
+      }
+    }
+  ]
 }

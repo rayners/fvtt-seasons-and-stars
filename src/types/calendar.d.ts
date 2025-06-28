@@ -41,6 +41,7 @@ export interface SeasonsStarsCalendar {
   weekdays: CalendarWeekday[];
   intercalary: CalendarIntercalary[];
   seasons?: CalendarSeason[];
+  moons?: CalendarMoon[];
 
   time: {
     hoursInDay: number;
@@ -101,6 +102,45 @@ export interface CalendarSeason {
       description?: string;
     };
   };
+}
+
+export interface CalendarMoon {
+  name: string;
+  cycleLength: number;
+  firstNewMoon: MoonReferenceDate;
+  phases: MoonPhase[];
+  color?: string;
+  translations?: {
+    [languageCode: string]: {
+      description?: string;
+    };
+  };
+}
+
+export interface MoonReferenceDate {
+  year: number;
+  month: number;
+  day: number;
+}
+
+export interface MoonPhase {
+  name: string;
+  length: number;
+  singleDay: boolean;
+  icon: string;
+  translations?: {
+    [languageCode: string]: {
+      name?: string;
+    };
+  };
+}
+
+export interface MoonPhaseInfo {
+  moon: CalendarMoon;
+  phase: MoonPhase;
+  phaseIndex: number;
+  dayInPhase: number;
+  daysUntilNext: number;
 }
 
 // Data structure for calendar dates (plain objects)
