@@ -515,9 +515,6 @@
         filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.7));
         pointer-events: none;
 
-        i {
-          font-size: 8px;
-        }
 
         .multiple-moons-indicator {
           margin-left: 1px;
@@ -526,30 +523,51 @@
           color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Moon phase specific styling */
+        /* Moon phase specific styling with better differentiation */
         .moon-phase-new {
-          color: #2c2c2c;
-          filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.3));
+          color: #333333 !important;
+          text-shadow: 0 0 2px rgba(255, 255, 255, 0.4);
+          opacity: 0.6;
         }
 
-        .moon-phase-waxing-crescent,
-        .moon-phase-waning-crescent {
-          color: #d4d4aa;
+        .moon-phase-waxing-crescent {
+          color: #ffd700 !important;
+          filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.6));
         }
 
-        .moon-phase-first-quarter,
-        .moon-phase-last-quarter {
-          color: #f0f0f0;
+        .moon-phase-first-quarter {
+          color: #f0f0f0 !important;
+          filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.4));
         }
 
-        .moon-phase-waxing-gibbous,
-        .moon-phase-waning-gibbous {
-          color: #fafafa;
+        .moon-phase-waxing-gibbous {
+          color: #f8f8f8 !important;
+          filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.5));
+          text-shadow: -1px 0 0 #777;
         }
 
         .moon-phase-full {
-          color: #ffffff;
-          filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.5));
+          color: #ffffff !important;
+          filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.9));
+          text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
+        }
+
+        .moon-phase-waning-gibbous {
+          color: #f8f8f8 !important;
+          filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.5));
+          text-shadow: 1px 0 0 #777;
+        }
+
+        .moon-phase-last-quarter {
+          color: #f0f0f0 !important;
+          transform: scaleX(-1);
+          filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.4));
+        }
+
+        .moon-phase-waning-crescent {
+          color: #ffd700 !important;
+          transform: scaleX(-1);
+          filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.6));
         }
       }
     }

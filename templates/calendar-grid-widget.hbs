@@ -92,7 +92,14 @@
                   <span class="day-number">{{day}}</span>
                   {{#if primaryMoonPhase}}
                     <div class="moon-indicator" {{#if primaryMoonColor}}style="color: {{primaryMoonColor}}"{{/if}} title="{{moonTooltip}}">
-                      <i class="fas fa-circle moon-phase-{{primaryMoonPhase}}"></i>
+                      {{#if (eq primaryMoonPhase "new")}}<i class="fas fa-circle moon-phase-new"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "waxing-crescent")}}<i class="fas fa-moon moon-phase-waxing-crescent"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "first-quarter")}}<i class="fas fa-adjust moon-phase-first-quarter"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "waxing-gibbous")}}<i class="fas fa-circle moon-phase-waxing-gibbous"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "full")}}<i class="fas fa-circle moon-phase-full"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "waning-gibbous")}}<i class="fas fa-circle moon-phase-waning-gibbous"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "last-quarter")}}<i class="fas fa-adjust moon-phase-last-quarter"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "waning-crescent")}}<i class="fas fa-moon moon-phase-waning-crescent"></i>{{/if}}
                       {{#if hasMultipleMoons}}
                         <span class="multiple-moons-indicator">+</span>
                       {{/if}}
@@ -118,7 +125,14 @@
                   <span class="day-number">{{day}}</span>
                   {{#if primaryMoonPhase}}
                     <div class="moon-indicator" {{#if primaryMoonColor}}style="color: {{primaryMoonColor}}"{{/if}} title="{{moonTooltip}}">
-                      <i class="fas fa-circle moon-phase-{{primaryMoonPhase}}"></i>
+                      {{#if (eq primaryMoonPhase "new")}}<i class="fas fa-circle moon-phase-new"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "waxing-crescent")}}<i class="fas fa-moon moon-phase-waxing-crescent"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "first-quarter")}}<i class="fas fa-adjust moon-phase-first-quarter"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "waxing-gibbous")}}<i class="fas fa-circle moon-phase-waxing-gibbous"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "full")}}<i class="fas fa-circle moon-phase-full"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "waning-gibbous")}}<i class="fas fa-circle moon-phase-waning-gibbous"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "last-quarter")}}<i class="fas fa-adjust moon-phase-last-quarter"></i>{{/if}}
+                      {{#if (eq primaryMoonPhase "waning-crescent")}}<i class="fas fa-moon moon-phase-waning-crescent"></i>{{/if}}
                       {{#if hasMultipleMoons}}
                         <span class="multiple-moons-indicator">+</span>
                       {{/if}}
