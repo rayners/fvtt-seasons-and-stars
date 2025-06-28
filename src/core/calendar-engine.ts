@@ -4,12 +4,10 @@
 
 import type {
   SeasonsStarsCalendar,
-  CalendarDate as ICalendarDate,
   CalendarDateData,
   CalendarCalculation,
   CalendarIntercalary,
   CalendarMoon,
-  MoonPhase,
   MoonPhaseInfo,
 } from '../types/calendar';
 import { CalendarDate } from './calendar-date';
@@ -717,7 +715,6 @@ export class CalendarEngine {
     }
 
     const currentPhase = moon.phases[currentPhaseIndex];
-    const nextPhaseIndex = (currentPhaseIndex + 1) % moon.phases.length;
     const daysUntilNext = currentPhase.length - daysIntoPhase;
 
     return {
