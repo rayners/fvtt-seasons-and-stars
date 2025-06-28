@@ -214,10 +214,7 @@ interface JournalEntryPage {
   update?(data: any): Promise<JournalEntryPage>;
 }
 
-interface JournalSheet {
-  document?: FoundryJournalEntry;
-  [key: string]: unknown;
-}
+// JournalSheet interface (unused)
 
 declare class FoundryJournalSheet {
   document: FoundryJournalEntry;
@@ -234,17 +231,7 @@ declare class FoundryFolder {
   getFlag(scope: string, key: string): any;
 }
 
-declare class FoundryDialog {
-  constructor(data: any, options?: any);
-  render(force?: boolean): this;
-  close(): Promise<void>;
-}
-
-declare class FoundryApplication {
-  constructor(options?: any);
-  render(force?: boolean): this;
-  close(): Promise<void>;
-}
+// FoundryDialog and FoundryApplication classes (unused)
 
 interface Module {
   id: string;
@@ -303,6 +290,8 @@ interface DialogButton {
   callback?: (html: JQuery) => void;
 }
 
+// DialogOptions interface (unused)
+/*
 interface DialogOptions {
   title: string;
   content: string;
@@ -311,18 +300,9 @@ interface DialogOptions {
   render?: (html: JQuery) => void;
   close?: (html: JQuery) => void;
 }
+*/
 
-declare class Dialog {
-  constructor(data: DialogOptions, options?: any);
-  render(force?: boolean): this;
-}
-
-// Legacy Application class for scene controls
-declare class Application {
-  constructor(options?: any);
-  render(force?: boolean): this;
-  close(): Promise<void>;
-}
+// Dialog and Application classes (unused but kept for reference)
 
 // Updated Collection with proper iteration methods
 declare class FoundryCollection<T> extends Map<string, T> {

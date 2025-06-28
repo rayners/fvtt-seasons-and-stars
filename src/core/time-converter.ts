@@ -3,9 +3,7 @@
  */
 
 import type {
-  CalendarDate as ICalendarDate,
   CalendarDateData,
-  SeasonsStarsCalendar,
 } from '../types/calendar';
 import type { DebugInfo } from '../types/widget-types';
 import { CalendarEngine } from './calendar-engine';
