@@ -183,6 +183,51 @@
     }
   ],
 
+  "moons": [
+    {
+      "name": "Mannslieb",
+      "cycleLength": 25,
+      "firstNewMoon": { "year": 2522, "month": 1, "day": 12 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 5, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 5, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 5, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 6, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#d3d3d3",
+      "translations": {
+        "en": {
+          "description": "The larger moon of the Old World, associated with order and the natural cycle"
+        }
+      }
+    },
+    {
+      "name": "Morrslieb",
+      "cycleLength": 33,
+      "firstNewMoon": { "year": 2522, "month": 2, "day": 8 },
+      "phases": [
+        { "name": "Dark Moon", "length": 3, "singleDay": false, "icon": "new" },
+        { "name": "Sickly Waxing", "length": 7, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "Chaos Rising", "length": 2, "singleDay": false, "icon": "first-quarter" },
+        { "name": "Malignant Waxing", "length": 6, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Chaotic Full", "length": 3, "singleDay": false, "icon": "full" },
+        { "name": "Malignant Waning", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Chaos Fading", "length": 2, "singleDay": false, "icon": "last-quarter" },
+        { "name": "Sickly Waning", "length": 4, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#228b22",
+      "translations": {
+        "en": {
+          "description": "The smaller Chaos Moon, green and malevolent, source of warpstone and dark magic"
+        }
+      }
+    }
+  ],
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,

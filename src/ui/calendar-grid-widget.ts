@@ -329,6 +329,56 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         noteTooltip = `${noteCount} note(s) (${noteData.primaryCategory}):\n${notesList}`;
       }
 
+      // Calculate moon phases for this day
+      let moonPhases: Array<{
+        moonName: string;
+        phaseName: string;
+        phaseIcon: string;
+        moonColor?: string;
+        dayInPhase: number;
+        daysUntilNext: number;
+      }> = [];
+      let primaryMoonPhase: string | undefined;
+      let primaryMoonColor: string | undefined;
+      let moonTooltip = '';
+      let hasMultipleMoons = false;
+
+      try {
+        const moonPhaseInfo = (engine as any).getMoonPhaseInfo?.(dayDate);
+        if (moonPhaseInfo && moonPhaseInfo.length > 0) {
+          moonPhases = moonPhaseInfo.map(info => ({
+            moonName: info.moon.name,
+            phaseName: info.phase.name,
+            phaseIcon: info.phase.icon,
+            moonColor: info.moon.color,
+            dayInPhase: info.dayInPhase,
+            daysUntilNext: info.daysUntilNext,
+          }));
+
+          // Set primary moon (first moon) for simple display
+          const primaryMoon = moonPhaseInfo[0];
+          primaryMoonPhase = primaryMoon.phase.icon;
+          primaryMoonColor = primaryMoon.moon.color;
+          hasMultipleMoons = moonPhaseInfo.length > 1;
+
+          // Create moon tooltip
+          if (moonPhaseInfo.length === 1) {
+            const moon = moonPhaseInfo[0];
+            moonTooltip = `${moon.moon.name}: ${moon.phase.name}`;
+            if (moon.daysUntilNext > 0) {
+              moonTooltip += ` (${moon.daysUntilNext} days until next phase)`;
+            }
+          } else {
+            moonTooltip = moonPhaseInfo
+              .map(info => `${info.moon.name}: ${info.phase.name}`)
+              .join('\n');
+          }
+        }
+      } catch (error) {
+        // Silently handle moon calculation errors to avoid breaking calendar display
+        console.warn('Error calculating moon phases for date:', dayDate, error);
+      }
+
       currentWeek.push({
         day: day,
         date: {
@@ -340,6 +390,12 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         isCurrentMonth: true,
         isToday: isToday,
         hasNotes: hasNotes,
+        // Moon phase properties
+        moonPhases: moonPhases,
+        primaryMoonPhase: primaryMoonPhase,
+        primaryMoonColor: primaryMoonColor,
+        moonTooltip: moonTooltip,
+        hasMultipleMoons: hasMultipleMoons,
         // Additional properties for template
         isSelected: isViewDate,
         isClickable: game.user?.isGM || false,

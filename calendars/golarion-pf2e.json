@@ -151,6 +151,30 @@
 
   "intercalary": [],
 
+  "moons": [
+    {
+      "name": "Somal",
+      "cycleLength": 28,
+      "firstNewMoon": { "year": 4725, "month": 1, "day": 7 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 6, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 6, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 7, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#d0d0d0",
+      "translations": {
+        "en": {
+          "description": "Golarion's pale moon, witness to the struggles of mortals and gods alike"
+        }
+      }
+    }
+  ],
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,

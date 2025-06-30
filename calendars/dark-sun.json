@@ -7,7 +7,7 @@
       "setting": "D&D Dark Sun"
     }
   },
-  
+
   "year": {
     "epoch": -101,
     "currentYear": 1,
@@ -15,38 +15,99 @@
     "suffix": "",
     "startDay": 0
   },
-  
+
   "extensions": {
     "seasons-and-stars": {
       "namedYears": {
         "rule": "repeat",
         "startYear": -101,
         "names": [
-          "Ral's Fury", "Friend's Contemplation", "Desert's Vengeance", "Priest's Slumber", "Wind's Defiance", 
-          "Dragon's Reverance", "Mountain's Agitation", "King's Fury", "Silt's Contemplation", "Enemy's Vengeance", 
-          "Guthay's Slumber", "Ral's Defiance", "Friend's Reverance", "Desert's Agitation", "Priest's Fury", 
-          "Wind's Contemplation", "Dragon's Vengeance", "Mountain's Slumber", "King's Defiance", "Silt's Reverance", 
-          "Enemy's Agitation", "Guthay's Fury", "Ral's Contemplation", "Friend's Vengeance", "Desert's Slumber", 
-          "Priest's Defiance", "Wind's Reverance", "Dragon's Agitation", "Mountain's Fury", "King's Contemplation", 
-          "Silt's Vengeance", "Enemy's Slumber", "Guthay's Defiance", "Ral's Reverance", "Friend's Agitation", 
-          "Desert's Fury", "Priest's Contemplation", "Wind's Vengeance", "Dragon's Slumber", "Mountain's Defiance", 
-          "King's Reverance", "Silt's Agitation", "Enemy's Fury", "Guthay's Contemplation", "Ral's Vengeance", 
-          "Friend's Slumber", "Desert's Defiance", "Priest's Reverance", "Wind's Agitation", "Dragon's Fury", 
-          "Mountain's Contemplation", "King's Vengeance", "Silt's Slumber", "Enemy's Defiance", "Guthay's Reverance", 
-          "Ral's Agitation", "Friend's Fury", "Desert's Contemplation", "Priest's Vengeance", "Wind's Slumber", 
-          "Dragon's Defiance", "Mountain's Reverance", "King's Agitation", "Silt's Fury", "Enemy's Contemplation", 
-          "Guthay's Vengeance", "Ral's Slumber", "Friend's Defiance", "Desert's Reverance", "Priest's Agitation", 
-          "Wind's Fury", "Dragon's Contemplation", "Mountain's Vengeance", "King's Slumber", "Silt's Defiance", 
-          "Enemy's Reverance", "Guthay's Agitation"
+          "Ral's Fury",
+          "Friend's Contemplation",
+          "Desert's Vengeance",
+          "Priest's Slumber",
+          "Wind's Defiance",
+          "Dragon's Reverance",
+          "Mountain's Agitation",
+          "King's Fury",
+          "Silt's Contemplation",
+          "Enemy's Vengeance",
+          "Guthay's Slumber",
+          "Ral's Defiance",
+          "Friend's Reverance",
+          "Desert's Agitation",
+          "Priest's Fury",
+          "Wind's Contemplation",
+          "Dragon's Vengeance",
+          "Mountain's Slumber",
+          "King's Defiance",
+          "Silt's Reverance",
+          "Enemy's Agitation",
+          "Guthay's Fury",
+          "Ral's Contemplation",
+          "Friend's Vengeance",
+          "Desert's Slumber",
+          "Priest's Defiance",
+          "Wind's Reverance",
+          "Dragon's Agitation",
+          "Mountain's Fury",
+          "King's Contemplation",
+          "Silt's Vengeance",
+          "Enemy's Slumber",
+          "Guthay's Defiance",
+          "Ral's Reverance",
+          "Friend's Agitation",
+          "Desert's Fury",
+          "Priest's Contemplation",
+          "Wind's Vengeance",
+          "Dragon's Slumber",
+          "Mountain's Defiance",
+          "King's Reverance",
+          "Silt's Agitation",
+          "Enemy's Fury",
+          "Guthay's Contemplation",
+          "Ral's Vengeance",
+          "Friend's Slumber",
+          "Desert's Defiance",
+          "Priest's Reverance",
+          "Wind's Agitation",
+          "Dragon's Fury",
+          "Mountain's Contemplation",
+          "King's Vengeance",
+          "Silt's Slumber",
+          "Enemy's Defiance",
+          "Guthay's Reverance",
+          "Ral's Agitation",
+          "Friend's Fury",
+          "Desert's Contemplation",
+          "Priest's Vengeance",
+          "Wind's Slumber",
+          "Dragon's Defiance",
+          "Mountain's Reverance",
+          "King's Agitation",
+          "Silt's Fury",
+          "Enemy's Contemplation",
+          "Guthay's Vengeance",
+          "Ral's Slumber",
+          "Friend's Defiance",
+          "Desert's Reverance",
+          "Priest's Agitation",
+          "Wind's Fury",
+          "Dragon's Contemplation",
+          "Mountain's Vengeance",
+          "King's Slumber",
+          "Silt's Defiance",
+          "Enemy's Reverance",
+          "Guthay's Agitation"
         ]
       }
     }
   },
-  
+
   "leapYear": {
     "rule": "none"
   },
-  
+
   "months": [
     {
       "name": "Scorch",
@@ -121,7 +182,7 @@
       "description": "The final month before the sun's peak fury, when the very air seems to burn and the world smolders in anticipation."
     }
   ],
-  
+
   "weekdays": [
     {
       "name": "1 Day",
@@ -154,7 +215,7 @@
       "description": "Sixth and final day of the Athasian week, offering no true rest, only preparation for the next cycle"
     }
   ],
-  
+
   "intercalary": [
     {
       "name": "Cooling Sun",
@@ -165,7 +226,7 @@
       "description": "A five-day period when the sun's killing heat allegedly lessens. Even this 'cooling' would be deadly on any other world, but on Athas it represents a brief chance for survival and preparation."
     },
     {
-      "name": "Soaring Sun", 
+      "name": "Soaring Sun",
       "days": 5,
       "after": "Haze",
       "leapYearOnly": false,
@@ -175,13 +236,58 @@
     {
       "name": "Highest Sun",
       "days": 5,
-      "after": "Smolder", 
+      "after": "Smolder",
       "leapYearOnly": false,
       "countsForWeekdays": false,
       "description": "The most dreaded five days of the Athasian year when the sun reaches its absolute peak of killing power. Even the strongest creatures seek shelter from this ultimate test of survival."
     }
   ],
-  
+
+  "moons": [
+    {
+      "name": "Ral",
+      "cycleLength": 30,
+      "firstNewMoon": { "year": 1, "month": 1, "day": 5 },
+      "phases": [
+        { "name": "New Moon", "length": 2, "singleDay": false, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 6, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 2, "singleDay": false, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 5, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 2, "singleDay": false, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 5, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 2, "singleDay": false, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 6, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#d4af37",
+      "translations": {
+        "en": {
+          "description": "The golden moon of dying Athas, scorched by the crimson sun"
+        }
+      }
+    },
+    {
+      "name": "Guthay",
+      "cycleLength": 40,
+      "firstNewMoon": { "year": 1, "month": 1, "day": 20 },
+      "phases": [
+        { "name": "New Moon", "length": 3, "singleDay": false, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 8, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 2, "singleDay": false, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 7, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 3, "singleDay": false, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 7, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 2, "singleDay": false, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 8, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#cd853f",
+      "translations": {
+        "en": {
+          "description": "The smaller, burnt-orange moon of Athas, companion to Ral in the hostile sky"
+        }
+      }
+    }
+  ],
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,

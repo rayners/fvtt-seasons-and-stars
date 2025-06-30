@@ -7,7 +7,7 @@
       "setting": "Symbaroum RPG"
     }
   },
-  
+
   "year": {
     "epoch": 0,
     "currentYear": 22,
@@ -15,11 +15,11 @@
     "suffix": "",
     "startDay": 0
   },
-  
+
   "leapYear": {
     "rule": "none"
   },
-  
+
   "months": [
     {
       "name": "Ynedar",
@@ -94,7 +94,7 @@
       "description": "Luscious Month. Early summer brings lush growth and verdant beauty as nature displays its full, fertile power."
     }
   ],
-  
+
   "weekdays": [
     {
       "name": "Earth day",
@@ -132,9 +132,33 @@
       "description": "The day of the sun and feast, a time for celebration, rest, joy, and honoring the light that sustains all life"
     }
   ],
-  
+
   "intercalary": [],
-  
+
+  "moons": [
+    {
+      "name": "Moon",
+      "cycleLength": 28,
+      "firstNewMoon": { "year": 22, "month": 1, "day": 1 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 6, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 6, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 6, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#f5f5f5",
+      "translations": {
+        "en": {
+          "description": "The pale moon watching over the dark world of Symbaroum, witness to corruption and hope alike"
+        }
+      }
+    }
+  ],
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,

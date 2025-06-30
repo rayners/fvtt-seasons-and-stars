@@ -13,7 +13,7 @@
     "epochYear": 1,
     "currentYear": 1492
   },
-  
+
   "year": {
     "epoch": 1,
     "currentYear": 1492,
@@ -21,12 +21,12 @@
     "suffix": " DR",
     "startDay": 2
   },
-  
+
   "leapYear": {
     "rule": "gregorian",
     "interval": 4
   },
-  
+
   "months": [
     {
       "name": "Hammer",
@@ -101,7 +101,7 @@
       "description": "The Drawing Down - Early winter, when folk prepare for the cold months."
     }
   ],
-  
+
   "weekdays": [
     {
       "name": "Sulday",
@@ -154,7 +154,7 @@
       "description": "Tenth and final day of the tenday, often for rest and reflection"
     }
   ],
-  
+
   "intercalary": [
     {
       "name": "Midwinter",
@@ -193,7 +193,31 @@
       "description": "An autumn festival between Marpenoth and Uktar, celebrating the harvest"
     }
   ],
-  
+
+  "moons": [
+    {
+      "name": "Selûne",
+      "cycleLength": 30,
+      "firstNewMoon": { "year": 1489, "month": 1, "day": 1 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 7, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 6, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 7, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#c0c0c0",
+      "translations": {
+        "en": {
+          "description": "The Moonmaiden's silver orb, goddess of good lycanthropes and navigation"
+        }
+      }
+    }
+  ],
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
