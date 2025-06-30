@@ -134,6 +134,26 @@ npm install
 npm run build
 ```
 
+## 🤖 Development Transparency
+
+### AI-Assisted Development
+
+This module is developed with the help of AI tools, particularly Claude (Anthropic's large language model). As a solo developer juggling planning, coding, documentation, and testing, AI helps me:
+
+- **Move faster**: Generate boilerplate code and tests so I can focus on design decisions
+- **Debug efficiently**: Work through edge cases without getting stuck for hours
+- **Write better docs**: Create clear user guides and API documentation
+- **Test thoroughly**: Generate regression tests to prevent bugs from creeping back
+- **Respond quicker**: Faster turnarounds on updates and community feedback
+
+**What this means for you**: More frequent updates, better documentation, and faster responses to issues and feature requests.
+
+**What it doesn't mean**: I don't just ship whatever AI generates. Every line of code is reviewed, tested, and refined. Think of AI as a very helpful assistant, not an autopilot - I'm often correcting and redirecting it throughout the development process.
+
+You'll see Claude credited as a co-author in commits because it genuinely contributes to the development process. Transparency matters, and I want to be open about the tools that help make this module possible.
+
+**Learn more**: [How and Why I Use AI in Development](https://www.patreon.com/posts/how-and-why-i-ai-132316710)
+
 ## 🗺️ Roadmap
 
 ### **Phase 1: Core Foundation** ✅ _Complete_

@@ -16,7 +16,7 @@ import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
 import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
-import { NoteEditingDialog } from './ui/note-editing-dialog';
+// Note editing dialog imported when needed
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
 import { CalendarWidgetManager, WidgetWrapper } from './ui/widget-manager';

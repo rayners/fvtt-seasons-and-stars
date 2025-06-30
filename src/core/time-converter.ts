@@ -2,11 +2,7 @@
  * Time conversion and Foundry VTT integration for Seasons & Stars
  */
 
-import type {
-  CalendarDate as ICalendarDate,
-  CalendarDateData,
-  SeasonsStarsCalendar,
-} from '../types/calendar';
+import type { CalendarDateData } from '../types/calendar';
 import type { DebugInfo } from '../types/widget-types';
 import { CalendarEngine } from './calendar-engine';
 import { CalendarDate } from './calendar-date';

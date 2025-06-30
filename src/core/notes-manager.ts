@@ -2,11 +2,7 @@
  * Notes management system for Seasons & Stars calendar integration
  */
 
-import type {
-  CalendarDate as ICalendarDate,
-  CalendarDateData,
-  SeasonsStarsCalendar,
-} from '../types/calendar';
+import type { CalendarDate as ICalendarDate, CalendarDateData } from '../types/calendar';
 import { CalendarDate } from './calendar-date';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import { NoteStorage } from './note-storage';

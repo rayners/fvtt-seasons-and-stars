@@ -2,7 +2,7 @@
  * Validation utilities for API parameter checking
  */
 
-import type { CalendarManagerInterface } from '../types/foundry-extensions';
+// Validation utilities for API parameter checking
 
 export class ValidationUtils {
   /**

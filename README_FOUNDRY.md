@@ -88,6 +88,14 @@ Provides API for other module developers to integrate calendar functionality.
 
 **Alpha Release**: This module is in active development. Features and APIs may change. Please report issues and provide feedback through GitHub.
 
+## Development Notes
+
+This module is developed with AI assistance (Claude/Anthropic) to help with coding, testing, and documentation. This allows faster development cycles and quicker responses to community feedback. All code is reviewed and tested before release.
+
+**Transparency**: You may see AI credited as co-author in development commits. This reflects the collaborative development process while maintaining human oversight and quality control.
+
+**Learn more**: [Development Process Details](https://www.patreon.com/posts/how-and-why-i-ai-132316710)
+
 ## Support Development
 
 Love this module? Consider supporting continued development on **[Patreon](https://patreon.com/rayners)**. Your support helps fund new features, bug fixes, and comprehensive documentation.
