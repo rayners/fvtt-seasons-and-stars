@@ -102,7 +102,17 @@ export class TimeConverter {
    */
   private onWorldTimeUpdate(newTime: number, delta: number): void {
     this.lastKnownTime = newTime;
-    const dateResult = this.engine.worldTimeToDate(newTime);
+
+    // Allow system-specific integrations to provide world creation timestamp
+    let worldCreationTimestamp: number | undefined;
+    const currentSystem = game.system?.id;
+    if (currentSystem) {
+      const timestampData = { worldCreationTimestamp: undefined };
+      Hooks.callAll(`seasons-stars:${currentSystem}:getWorldCreationTimestamp`, timestampData);
+      worldCreationTimestamp = timestampData.worldCreationTimestamp;
+    }
+
+    const dateResult = this.engine.worldTimeToDate(newTime, worldCreationTimestamp);
     this.lastKnownDate =
       dateResult instanceof CalendarDate
         ? dateResult

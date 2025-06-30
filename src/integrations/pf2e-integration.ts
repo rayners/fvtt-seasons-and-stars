@@ -183,6 +183,25 @@ export class PF2eIntegration {
   }
 }
 
+// Hook to provide world creation timestamp to core S&S when requested
+Hooks.on(
+  'seasons-stars:pf2e:getWorldCreationTimestamp',
+  (timestampData: { worldCreationTimestamp: number | undefined }) => {
+    try {
+      const worldCreatedOn = (game as any).pf2e?.settings?.worldClock?.worldCreatedOn;
+      if (worldCreatedOn) {
+        const timestamp = new Date(worldCreatedOn).getTime() / 1000;
+        if (isFinite(timestamp) && timestamp > 0) {
+          timestampData.worldCreationTimestamp = timestamp;
+          Logger.debug('PF2e integration provided world creation timestamp:', timestamp);
+        }
+      }
+    } catch (error) {
+      Logger.error('PF2e integration failed to provide world creation timestamp:', error);
+    }
+  }
+);
+
 // Time monitoring - start periodic sync checking when ready
 Hooks.on('ready', () => {
   const integration = PF2eIntegration.getInstance();
