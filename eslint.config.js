@@ -14,7 +14,7 @@ export default [
     files: ['src/**/*.{js,ts}'],
     rules: {
       // Temporarily relax some rules for migration
-      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-unused-vars': 'error', // Match GitHub CodeQL strictness
       '@typescript-eslint/no-unsafe-function-type': 'warn',
       'no-case-declarations': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'warn',
