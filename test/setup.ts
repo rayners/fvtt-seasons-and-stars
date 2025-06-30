@@ -2,6 +2,8 @@
  * Test setup for Seasons & Stars
  */
 
+import { vi, beforeEach } from 'vitest';
+
 // Mock Foundry globals
 (globalThis as any).game = {
   settings: undefined,
@@ -14,13 +16,6 @@
 
 (globalThis as any).ui = {
   notifications: undefined,
-};
-
-(globalThis as any).Hooks = {
-  once: () => {},
-  on: () => 1,
-  off: () => {},
-  callAll: () => {},
 };
 
 // Mock Foundry application framework
@@ -53,3 +48,133 @@
 
 // Mock ApplicationV2 directly for imports
 (globalThis as any).ApplicationV2 = (globalThis as any).foundry.applications.api.ApplicationV2;
+
+// Enhanced Hook system mock that actually registers and executes callbacks
+class MockHooks {
+  private static hooks: Map<string, Function[]> = new Map();
+
+  static once(event: string, callback: Function): number {
+    const callbacks = this.hooks.get(event) || [];
+    const wrappedCallback = (...args: any[]) => {
+      const result = callback(...args);
+      this.off(event, wrappedCallback);
+      return result;
+    };
+    callbacks.push(wrappedCallback);
+    this.hooks.set(event, callbacks);
+    return callbacks.length;
+  }
+
+  static on(event: string, callback: Function): number {
+    const callbacks = this.hooks.get(event) || [];
+    callbacks.push(callback);
+    this.hooks.set(event, callbacks);
+    return callbacks.length;
+  }
+
+  static off(event: string, callback?: Function): void {
+    if (!callback) {
+      this.hooks.delete(event);
+      return;
+    }
+    const callbacks = this.hooks.get(event) || [];
+    const index = callbacks.indexOf(callback);
+    if (index !== -1) {
+      callbacks.splice(index, 1);
+    }
+  }
+
+  static callAll(event: string, ...args: any[]): boolean {
+    const callbacks = this.hooks.get(event) || [];
+    let result = true;
+    for (const callback of callbacks) {
+      try {
+        const callbackResult = callback(...args);
+        if (callbackResult === false) {
+          result = false;
+        }
+      } catch (error) {
+        console.warn(`Hook callback error for ${event}:`, error);
+      }
+    }
+    return result;
+  }
+
+  static clear(): void {
+    this.hooks.clear();
+  }
+}
+
+// Override the Hooks system from foundry-test-utils with our enhanced version
+(globalThis as any).Hooks = MockHooks;
+
+// Mock Logger for integration modules
+class MockLogger {
+  static debug(...args: any[]): void {
+    // Silent in tests
+  }
+  static info(...args: any[]): void {
+    // Silent in tests
+  }
+  static warn(...args: any[]): void {
+    console.warn(...args);
+  }
+  static error(...args: any[]): void {
+    console.error(...args);
+  }
+}
+
+// Make Logger available for imports
+(globalThis as any).__mockLogger = MockLogger;
+
+// PF2e Environment Setup Utility
+export function setupPF2eEnvironment(
+  options: {
+    worldCreationTimestamp?: number;
+    currentWorldTime?: number;
+    expectedWorldCreationYear?: number;
+  } = {}
+) {
+  const {
+    worldCreationTimestamp = 1609459200, // 2021-01-01 00:00:00 UTC
+    currentWorldTime = 0,
+    expectedWorldCreationYear = 2025,
+  } = options;
+
+  // Mock PF2e-specific game object extensions
+  if (!(globalThis as any).game) {
+    (globalThis as any).game = {};
+  }
+
+  // Add PF2e world clock settings
+  (globalThis as any).game.pf2e = {
+    settings: {
+      worldClock: {
+        worldCreatedOn: worldCreationTimestamp,
+      },
+    },
+  };
+
+  // Set current world time
+  if (!(globalThis as any).game.time) {
+    (globalThis as any).game.time = {};
+  }
+  (globalThis as any).game.time.worldTime = currentWorldTime;
+
+  // Set system ID
+  if (!(globalThis as any).game.system) {
+    (globalThis as any).game.system = {};
+  }
+  (globalThis as any).game.system.id = 'pf2e';
+
+  return {
+    worldCreationTimestamp,
+    currentWorldTime,
+    expectedWorldCreationYear,
+    verifyPF2eYear: (actualYear: number) => {
+      const expectedYear =
+        expectedWorldCreationYear + Math.floor(currentWorldTime / (365 * 24 * 60 * 60));
+      return actualYear === expectedYear;
+    },
+  };
+}
