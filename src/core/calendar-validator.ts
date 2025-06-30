@@ -146,6 +146,11 @@ export class CalendarValidator {
     if (calendar.time) {
       this.validateTimeConfig(calendar.time, result);
     }
+
+    // Validate moons configuration
+    if (calendar.moons) {
+      this.validateMoonsConfig(calendar.moons, result);
+    }
   }
 
   /**
@@ -225,6 +230,100 @@ export class CalendarValidator {
     if (time.secondsInMinute !== undefined && typeof time.secondsInMinute !== 'number') {
       result.errors.push('Time secondsInMinute must be a number');
     }
+  }
+
+  /**
+   * Validate moons configuration
+   */
+  private static validateMoonsConfig(moons: any, result: ValidationResult): void {
+    if (!Array.isArray(moons)) {
+      result.errors.push('Moons configuration must be an array');
+      return;
+    }
+
+    moons.forEach((moon: any, index: number) => {
+      const moonIndex = index + 1;
+
+      // Validate required fields
+      if (!moon.name || typeof moon.name !== 'string') {
+        result.errors.push(`Moon ${moonIndex} missing required field: name`);
+      }
+
+      if (typeof moon.cycleLength !== 'number') {
+        result.errors.push(`Moon ${moonIndex} missing required field: cycleLength`);
+      } else if (moon.cycleLength <= 0) {
+        result.errors.push(`Moon ${moonIndex} cycleLength must be positive`);
+      }
+
+      if (!moon.firstNewMoon || typeof moon.firstNewMoon !== 'object') {
+        result.errors.push(`Moon ${moonIndex} missing required field: firstNewMoon`);
+      } else {
+        // Validate firstNewMoon structure
+        const firstNewMoon = moon.firstNewMoon;
+        if (typeof firstNewMoon.year !== 'number') {
+          result.errors.push(`Moon ${moonIndex} firstNewMoon.year must be a number`);
+        }
+        if (typeof firstNewMoon.month !== 'number') {
+          result.errors.push(`Moon ${moonIndex} firstNewMoon.month must be a number`);
+        }
+        if (typeof firstNewMoon.day !== 'number') {
+          result.errors.push(`Moon ${moonIndex} firstNewMoon.day must be a number`);
+        }
+      }
+
+      if (!Array.isArray(moon.phases)) {
+        result.errors.push(`Moon ${moonIndex} missing required field: phases`);
+      } else {
+        // Validate phases array
+        if (moon.phases.length === 0) {
+          result.errors.push(`Moon ${moonIndex} must have at least one phase`);
+        }
+
+        let totalPhaseLength = 0;
+        moon.phases.forEach((phase: any, phaseIndex: number) => {
+          const phaseRef = `Moon ${moonIndex} phase ${phaseIndex + 1}`;
+
+          if (!phase.name || typeof phase.name !== 'string') {
+            result.errors.push(`${phaseRef} missing required field: name`);
+          }
+
+          if (typeof phase.length !== 'number') {
+            result.errors.push(`${phaseRef} missing required field: length`);
+          } else if (phase.length <= 0) {
+            result.errors.push(`${phaseRef} length must be positive`);
+          } else {
+            totalPhaseLength += phase.length;
+          }
+
+          if (typeof phase.singleDay !== 'boolean') {
+            result.errors.push(`${phaseRef} missing required field: singleDay`);
+          }
+
+          if (!phase.icon || typeof phase.icon !== 'string') {
+            result.errors.push(`${phaseRef} missing required field: icon`);
+          }
+        });
+
+        // Validate that phase lengths sum to cycle length
+        if (
+          typeof moon.cycleLength === 'number' &&
+          Math.abs(totalPhaseLength - moon.cycleLength) > 0.001
+        ) {
+          result.errors.push(
+            `Moon ${moonIndex} phase lengths (${totalPhaseLength}) don't equal cycle length (${moon.cycleLength})`
+          );
+        }
+      }
+
+      // Validate optional color field (hex format)
+      if (moon.color !== undefined) {
+        if (typeof moon.color !== 'string') {
+          result.errors.push(`Moon ${moonIndex} color must be a string`);
+        } else if (!/^#[0-9A-Fa-f]{6}$/.test(moon.color)) {
+          result.errors.push(`Moon ${moonIndex} color must be a valid hex color (e.g., "#ffffff")`);
+        }
+      }
+    });
   }
 
   /**

@@ -263,7 +263,7 @@ export interface CalendarEngineInterface {
     time?: { hour: number; minute: number; second: number };
   };
   // Moon phase methods
-  getAllMoons?(): unknown[];
+  getAllMoons?(date?: unknown): unknown[];
   getMoonPhaseInfo?(date: unknown, moonName?: string): unknown[];
   getCurrentMoonPhases?(worldTime?: number): unknown[];
   getMoonPhaseAtWorldTime?(worldTime: number): unknown[];

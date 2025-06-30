@@ -658,8 +658,16 @@ export class CalendarEngine {
   /**
    * Get all moons for Simple Calendar bridge compatibility
    */
-  getAllMoons(): CalendarMoon[] {
-    return this.calendar.moons || [];
+  getAllMoons(date?: CalendarDate): CalendarMoon[] | MoonPhaseInfo[] {
+    const moons = this.calendar.moons || [];
+
+    if (!date) {
+      // Return raw moon definitions if no date provided (legacy behavior)
+      return moons;
+    }
+
+    // Return calculated moon phases for the specified date
+    return moons.map(moon => this.calculateMoonPhaseForDate(moon, date));
   }
 
   /**
