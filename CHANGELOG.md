@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.4.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.3...v0.4.4) (2025-06-30)
+
+
+### Documentation
+
+* add AI usage transparency to README files ([#90](https://github.com/rayners/fvtt-seasons-and-stars/issues/90)) ([5887d07](https://github.com/rayners/fvtt-seasons-and-stars/commit/5887d076593dff35f6a259913b50f20b419a881d))
+
 ## [0.4.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.2...v0.4.3) (2025-06-28)
 
 
