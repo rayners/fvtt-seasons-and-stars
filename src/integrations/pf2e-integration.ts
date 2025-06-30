@@ -197,7 +197,10 @@ Hooks.on(
         }
       }
     } catch (error) {
-      Logger.error('PF2e integration failed to provide world creation timestamp:', error);
+      Logger.error(
+        'PF2e integration failed to provide world creation timestamp:',
+        error instanceof Error ? error : undefined
+      );
     }
   }
 );

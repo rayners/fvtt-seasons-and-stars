@@ -145,7 +145,15 @@ export class TimeConverter {
       }
     }
 
-    const result = this.engine.worldTimeToDate(worldTime);
+    // Allow system-specific integrations to provide world creation timestamp
+    let worldCreationTimestamp: number | undefined;
+    if (currentSystem) {
+      const timestampData = { worldCreationTimestamp: undefined };
+      Hooks.callAll(`seasons-stars:${currentSystem}:getWorldCreationTimestamp`, timestampData);
+      worldCreationTimestamp = timestampData.worldCreationTimestamp;
+    }
+
+    const result = this.engine.worldTimeToDate(worldTime, worldCreationTimestamp);
 
     // If the engine returns a CalendarDate instance, use it directly
     if (result instanceof CalendarDate) {
