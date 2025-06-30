@@ -181,7 +181,7 @@
         { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
         { "name": "Waning Gibbous", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
         { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
-        { "name": "Waning Crescent", "length": 7, "singleDay": false, "icon": "waning-crescent" }
+        { "name": "Waning Crescent", "length": 6, "singleDay": false, "icon": "waning-crescent" }
       ],
       "color": "#e6e6fa",
       "translations": {
