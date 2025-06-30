@@ -231,7 +231,19 @@ declare class FoundryFolder {
   getFlag(scope: string, key: string): any;
 }
 
-// FoundryDialog and FoundryApplication classes (unused)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+declare class FoundryDialog {
+  constructor(data: any, options?: any);
+  render(force?: boolean): this;
+  close(): Promise<void>;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+declare class FoundryApplication {
+  constructor(options?: any);
+  render(force?: boolean): this;
+  close(): Promise<void>;
+}
 
 interface Module {
   id: string;
@@ -665,15 +677,14 @@ declare global {
   };
 }
 
-// Ownership level type definition (unused)
-// type OwnershipLevel = 0 | 1 | 2 | 3;
+// Ownership level type definition
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type OwnershipLevel = 0 | 1 | 2 | 3;
 
-// Export OwnershipLevel globally (unused)
-/*
+// Export OwnershipLevel globally
 declare global {
   type OwnershipLevel = 0 | 1 | 2 | 3;
 }
-*/
 
 // =============================================================================
 // FOUNDRY NAMESPACE
