@@ -64,6 +64,14 @@ export default [
 
   // Ignore build artifacts and dependencies
   {
-    ignores: ['dist/', 'node_modules/', 'coverage/', '*.js', '*.mjs', '!scripts/**/*.js'],
+    ignores: [
+      'dist/',
+      'node_modules/',
+      'coverage/',
+      '*.js',
+      '*.mjs',
+      '!scripts/**/*.js',
+      '*.config.ts',
+    ],
   },
 ];

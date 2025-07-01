@@ -5,6 +5,11 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./test/setup.ts'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/test/fixtures/**', // Exclude downloaded game system test files
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -19,16 +24,16 @@ export default defineConfig({
         'styles/',
         'calendars/',
         'languages/',
-        'scripts/'
+        'scripts/',
       ],
       thresholds: {
         global: {
           branches: 80,
           functions: 80,
           lines: 80,
-          statements: 80
-        }
-      }
-    }
-  }
+          statements: 80,
+        },
+      },
+    },
+  },
 });
