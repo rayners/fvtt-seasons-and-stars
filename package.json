@@ -17,6 +17,7 @@
     "pretest:run": "npm run setup-pf2e-system",
     "pretest:coverage": "npm run setup-pf2e-system",
     "pretest:coverage:junit": "npm run setup-pf2e-system",
+    "pretest:junit": "npm run setup-pf2e-system",
     "setup-pf2e-system": "node scripts/setup-pf2e-system.js",
     "test": "vitest",
     "test:ui": "vitest --ui",
