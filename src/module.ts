@@ -48,6 +48,30 @@ let notesManager: NotesManager;
 // Track if we've already warned about missing seasons for the current active calendar
 let hasWarnedAboutMissingSeasons = false;
 
+/**
+ * Reset the seasons warning state - exposed for testing and external calendar changes
+ * This is called automatically when the seasons-stars:calendarChanged hook fires
+ */
+export function resetSeasonsWarningState(): void {
+  hasWarnedAboutMissingSeasons = false;
+}
+
+/**
+ * Get the current seasons warning state - exposed for testing
+ * @returns true if we've already warned about missing seasons for the active calendar
+ */
+export function getSeasonsWarningState(): boolean {
+  return hasWarnedAboutMissingSeasons;
+}
+
+/**
+ * Set the seasons warning state - exposed for testing
+ * @param warned true if we should consider the warning as having been shown
+ */
+export function setSeasonsWarningState(warned: boolean): void {
+  hasWarnedAboutMissingSeasons = warned;
+}
+
 // Register scene controls at top level (critical timing requirement)
 SeasonsStarsSceneControls.registerControls();
 
@@ -249,7 +273,7 @@ Hooks.once('ready', async () => {
 
   // Reset seasons warning flag when calendar changes
   Hooks.on('seasons-stars:calendarChanged', () => {
-    hasWarnedAboutMissingSeasons = false;
+    resetSeasonsWarningState();
   });
 
   // Initialize notes manager
