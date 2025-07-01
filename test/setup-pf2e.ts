@@ -1,14 +1,44 @@
 /**
- * PF2e-Compatible Environment Setup for Testing
+ * PF2e Environment Setup for Testing
  *
- * This utility sets up an environment that mimics a real PF2e world
- * by replicating PF2e world clock logic and calendar calculations.
+ * This utility sets up an environment for PF2e integration testing.
+ * Currently uses PF2e-compatible implementation with real PF2e system code
+ * available in test/fixtures/pf2e-system/ for reference and future enhancement.
  *
- * Implementation is based on PF2e system code analysis from test/fixtures/pf2e-system/
- * but simplified for testing without full PF2e system dependencies.
+ * Future: Will integrate directly with real PF2e WorldClock class for
+ * fully authentic testing once dependency challenges are resolved.
  */
 
 import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
+import { existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const pf2eWorldClockPath = join(
+  __dirname,
+  'fixtures',
+  'pf2e-system',
+  'src',
+  'module',
+  'apps',
+  'world-clock',
+  'app.ts'
+);
+
+/**
+ * Check if real PF2e system code is available for reference
+ */
+function checkPF2eSystemAvailable(): boolean {
+  const available = existsSync(pf2eWorldClockPath);
+  if (available) {
+    console.log('✅ Real PF2e system code available for reference validation');
+  } else {
+    console.log('ℹ️  PF2e system code not available - run `npm run setup-pf2e-system` to download');
+  }
+  return available;
+}
 
 interface PF2eEnvironmentConfig {
   /** World creation timestamp (Date.getTime() / 1000) */
@@ -54,6 +84,9 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
     dateTheme = 'AR',
     timeConvention = 24,
   } = config;
+
+  // Check if real PF2e system code is available for reference
+  checkPF2eSystemAvailable();
 
   // Set up PF2e system ID
   (global as any).game = (global as any).game || {};
