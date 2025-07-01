@@ -486,7 +486,7 @@ function registerCalendarSettings(): void {
 /**
  * Setup the main Seasons & Stars API
  */
-function setupAPI(): void {
+export function setupAPI(): void {
   const api: SeasonsStarsAPI = {
     getCurrentDate: (calendarId?: string): ICalendarDate | null => {
       try {
