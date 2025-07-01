@@ -102,7 +102,24 @@ export class TimeConverter {
    */
   private onWorldTimeUpdate(newTime: number, delta: number): void {
     this.lastKnownTime = newTime;
-    const dateResult = this.engine.worldTimeToDate(newTime);
+
+    // Allow system-specific integrations to provide world creation timestamp
+    let worldCreationTimestamp: number | undefined;
+    const currentSystem = game.system?.id;
+    if (currentSystem) {
+      try {
+        const timestamp = compatibilityManager.getSystemData<number>(
+          currentSystem,
+          'worldCreationTimestamp'
+        );
+        worldCreationTimestamp = timestamp ?? undefined;
+      } catch (error) {
+        Logger.warn(`Error getting world creation timestamp for ${currentSystem}:`, error);
+        // Continue with undefined worldCreationTimestamp
+      }
+    }
+
+    const dateResult = this.engine.worldTimeToDate(newTime, worldCreationTimestamp);
     this.lastKnownDate =
       dateResult instanceof CalendarDate
         ? dateResult
@@ -135,7 +152,22 @@ export class TimeConverter {
       }
     }
 
-    const result = this.engine.worldTimeToDate(worldTime);
+    // Allow system-specific integrations to provide world creation timestamp
+    let worldCreationTimestamp: number | undefined;
+    if (currentSystem) {
+      try {
+        const timestamp = compatibilityManager.getSystemData<number>(
+          currentSystem,
+          'worldCreationTimestamp'
+        );
+        worldCreationTimestamp = timestamp ?? undefined;
+      } catch (error) {
+        Logger.warn(`Error getting world creation timestamp for ${currentSystem}:`, error);
+        // Continue with undefined worldCreationTimestamp
+      }
+    }
+
+    const result = this.engine.worldTimeToDate(worldTime, worldCreationTimestamp);
 
     // If the engine returns a CalendarDate instance, use it directly
     if (result instanceof CalendarDate) {

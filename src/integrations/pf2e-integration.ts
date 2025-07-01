@@ -46,6 +46,23 @@ export class PF2eIntegration {
   }
 
   /**
+   * Get PF2e world creation timestamp
+   * Consolidated helper to avoid duplication of worldCreatedOn access
+   */
+  getWorldCreatedOn(): string | null {
+    try {
+      const worldCreatedOn = (game as any).pf2e?.settings?.worldClock?.worldCreatedOn;
+      return worldCreatedOn || null;
+    } catch (error) {
+      Logger.error(
+        'Error accessing PF2e worldCreatedOn:',
+        error instanceof Error ? error : undefined
+      );
+      return null;
+    }
+  }
+
+  /**
    * Get PF2e-specific world time
    *
    * DIAGNOSTIC: Understanding worldCreatedOn vs S&S epoch difference
@@ -53,7 +70,7 @@ export class PF2eIntegration {
   getPF2eWorldTime(): number | null {
     try {
       const foundryWorldTime = (game as any).time?.worldTime || 0;
-      const worldCreatedOn = (game as any).pf2e?.settings?.worldClock?.worldCreatedOn;
+      const worldCreatedOn = this.getWorldCreatedOn();
 
       if (!worldCreatedOn) {
         Logger.debug('No PF2e worldCreatedOn found - using standard worldTime');
@@ -63,7 +80,10 @@ export class PF2eIntegration {
       // Calculate PF2e's current real-world date (same as PF2e World Clock)
       const pf2eCreationDate = new Date(worldCreatedOn);
       if (isNaN(pf2eCreationDate.getTime())) {
-        Logger.error('Invalid PF2e worldCreatedOn format:', worldCreatedOn);
+        Logger.error(
+          'Invalid PF2e worldCreatedOn format:',
+          new Error(`Invalid date format: ${worldCreatedOn}`)
+        );
         return null;
       }
 
@@ -196,9 +216,11 @@ Hooks.on('ready', () => {
   integration.syncMonitorInterval = syncInterval as unknown as number;
 });
 
-// Main integration entry point - register time source with S&S core
+// Main integration entry point - register time source and data providers with S&S core
 Hooks.on('seasons-stars:pf2e:systemDetected', (compatibilityManager: any) => {
-  Logger.debug('PF2e system detected - registering time source with compatibility manager');
+  Logger.debug(
+    'PF2e system detected - registering time source and data providers with compatibility manager'
+  );
 
   // Initialize PF2e integration
   const integration = PF2eIntegration.initialize();
@@ -208,6 +230,18 @@ Hooks.on('seasons-stars:pf2e:systemDetected', (compatibilityManager: any) => {
     return integration.getPF2eWorldTime();
   };
 
-  // Register with the compatibility manager
+  // Register time source with the compatibility manager
   compatibilityManager.registerTimeSource('pf2e', pf2eTimeSourceFunction);
+
+  // Register world creation timestamp data provider
+  compatibilityManager.registerDataProvider('pf2e', 'worldCreationTimestamp', () => {
+    const worldCreatedOn = integration.getWorldCreatedOn();
+    if (worldCreatedOn) {
+      const timestamp = new Date(worldCreatedOn).getTime() / 1000;
+      if (isFinite(timestamp) && timestamp > 0) {
+        return timestamp;
+      }
+    }
+    return null;
+  });
 });

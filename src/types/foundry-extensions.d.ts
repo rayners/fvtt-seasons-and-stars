@@ -90,8 +90,8 @@ export interface CalendarEngineInterface {
   getCalendar(): SeasonsStarsCalendar;
   calculateWeekday(year: number, month: number, day: number): number;
   getMonthLength(month: number, year: number): number;
-  dateToWorldTime(date: CalendarDate): number;
-  worldTimeToDate(timestamp: number): CalendarDate;
+  dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number;
+  worldTimeToDate(timestamp: number, worldCreationTimestamp?: number): CalendarDate;
   getIntercalaryDaysAfterMonth(month: number, year: number): any[];
   addMonths(date: CalendarDate, months: number): CalendarDate;
   addYears(date: CalendarDate, years: number): CalendarDate;

@@ -14,9 +14,15 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import golarionCalendarData from '../calendars/golarion-pf2e.json';
 
+// Use the actual Golarion calendar JSON file as base instead of duplicating definitions
+const baseGolarionCalendar: SeasonsStarsCalendar = golarionCalendarData as SeasonsStarsCalendar;
+
+// Create test calendar variants based on the imported Golarion calendar
 // Test calendar with epoch-based interpretation (traditional fantasy)
 const epochBasedCalendar: SeasonsStarsCalendar = {
+  ...baseGolarionCalendar,
   id: 'test-epoch-based',
   worldTime: {
     interpretation: 'epoch-based',
@@ -24,49 +30,14 @@ const epochBasedCalendar: SeasonsStarsCalendar = {
     currentYear: 4710,
   },
   year: {
-    epoch: 2700,
+    ...baseGolarionCalendar.year,
     currentYear: 4710,
-    startDay: 6,
-  },
-  leapYear: {
-    rule: 'custom',
-    interval: 4,
-    month: 'Calistril',
-    extraDays: 1,
-  },
-  months: [
-    { name: 'Abadius', abbreviation: 'Aba', days: 31 },
-    { name: 'Calistril', abbreviation: 'Cal', days: 28 },
-    { name: 'Pharast', abbreviation: 'Pha', days: 31 },
-    { name: 'Gozran', abbreviation: 'Goz', days: 30 },
-    { name: 'Desnus', abbreviation: 'Des', days: 31 },
-    { name: 'Sarenith', abbreviation: 'Sar', days: 30 },
-    { name: 'Erastus', abbreviation: 'Era', days: 31 },
-    { name: 'Arodus', abbreviation: 'Aro', days: 31 },
-    { name: 'Rova', abbreviation: 'Rov', days: 30 },
-    { name: 'Lamashan', abbreviation: 'Lam', days: 31 },
-    { name: 'Neth', abbreviation: 'Net', days: 30 },
-    { name: 'Kuthona', abbreviation: 'Kut', days: 31 },
-  ],
-  weekdays: [
-    { name: 'Moonday' },
-    { name: 'Toilday' },
-    { name: 'Wealday' },
-    { name: 'Oathday' },
-    { name: 'Fireday' },
-    { name: 'Starday' },
-    { name: 'Sunday' },
-  ],
-  intercalary: [],
-  time: {
-    hoursInDay: 24,
-    minutesInHour: 60,
-    secondsInMinute: 60,
   },
 };
 
 // Test calendar with real-time-based interpretation (PF2e compatible)
 const realTimeBasedCalendar: SeasonsStarsCalendar = {
+  ...baseGolarionCalendar,
   id: 'test-real-time-based',
   worldTime: {
     interpretation: 'real-time-based',
@@ -74,89 +45,19 @@ const realTimeBasedCalendar: SeasonsStarsCalendar = {
     currentYear: 4725,
   },
   year: {
-    epoch: 2700,
+    ...baseGolarionCalendar.year,
     currentYear: 4725,
-    startDay: 6,
-  },
-  leapYear: {
-    rule: 'custom',
-    interval: 4,
-    month: 'Calistril',
-    extraDays: 1,
-  },
-  months: [
-    { name: 'Abadius', abbreviation: 'Aba', days: 31 },
-    { name: 'Calistril', abbreviation: 'Cal', days: 28 },
-    { name: 'Pharast', abbreviation: 'Pha', days: 31 },
-    { name: 'Gozran', abbreviation: 'Goz', days: 30 },
-    { name: 'Desnus', abbreviation: 'Des', days: 31 },
-    { name: 'Sarenith', abbreviation: 'Sar', days: 30 },
-    { name: 'Erastus', abbreviation: 'Era', days: 31 },
-    { name: 'Arodus', abbreviation: 'Aro', days: 31 },
-    { name: 'Rova', abbreviation: 'Rov', days: 30 },
-    { name: 'Lamashan', abbreviation: 'Lam', days: 31 },
-    { name: 'Neth', abbreviation: 'Net', days: 30 },
-    { name: 'Kuthona', abbreviation: 'Kut', days: 31 },
-  ],
-  weekdays: [
-    { name: 'Moonday' },
-    { name: 'Toilday' },
-    { name: 'Wealday' },
-    { name: 'Oathday' },
-    { name: 'Fireday' },
-    { name: 'Starday' },
-    { name: 'Sunday' },
-  ],
-  intercalary: [],
-  time: {
-    hoursInDay: 24,
-    minutesInHour: 60,
-    secondsInMinute: 60,
   },
 };
 
 // Calendar without worldTime configuration (backward compatibility)
 const legacyCalendar: SeasonsStarsCalendar = {
+  ...baseGolarionCalendar,
   id: 'test-legacy',
+  worldTime: undefined, // Remove worldTime to test legacy behavior
   year: {
-    epoch: 2700,
+    ...baseGolarionCalendar.year,
     currentYear: 4710,
-    startDay: 6,
-  },
-  leapYear: {
-    rule: 'custom',
-    interval: 4,
-    month: 'Calistril',
-    extraDays: 1,
-  },
-  months: [
-    { name: 'Abadius', abbreviation: 'Aba', days: 31 },
-    { name: 'Calistril', abbreviation: 'Cal', days: 28 },
-    { name: 'Pharast', abbreviation: 'Pha', days: 31 },
-    { name: 'Gozran', abbreviation: 'Goz', days: 30 },
-    { name: 'Desnus', abbreviation: 'Des', days: 31 },
-    { name: 'Sarenith', abbreviation: 'Sar', days: 30 },
-    { name: 'Erastus', abbreviation: 'Era', days: 31 },
-    { name: 'Arodus', abbreviation: 'Aro', days: 31 },
-    { name: 'Rova', abbreviation: 'Rov', days: 30 },
-    { name: 'Lamashan', abbreviation: 'Lam', days: 31 },
-    { name: 'Neth', abbreviation: 'Net', days: 30 },
-    { name: 'Kuthona', abbreviation: 'Kut', days: 31 },
-  ],
-  weekdays: [
-    { name: 'Moonday' },
-    { name: 'Toilday' },
-    { name: 'Wealday' },
-    { name: 'Oathday' },
-    { name: 'Fireday' },
-    { name: 'Starday' },
-    { name: 'Sunday' },
-  ],
-  intercalary: [],
-  time: {
-    hoursInDay: 24,
-    minutesInHour: 60,
-    secondsInMinute: 60,
   },
 };
 
