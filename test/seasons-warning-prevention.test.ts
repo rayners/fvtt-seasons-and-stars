@@ -190,13 +190,7 @@ describe('Seasons Warning Prevention Logic', () => {
   });
 
   describe('Warning Prevention for Missing Seasons', () => {
-    it('should warn only once when calendar has no seasons', () => {
-      // Skip if API not available (module may not initialize fully in test environment)
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should warn only once when calendar has no seasons', () => {
       const testDate = { year: 2024, month: 1, day: 15 };
       mockCalendarManager.getActiveCalendar.mockReturnValue(calendarWithoutSeasons);
 
@@ -211,12 +205,7 @@ describe('Seasons Warning Prevention Logic', () => {
       expect(loggerDebugSpy).toHaveBeenCalledWith('No seasons found for calendar: test-no-seasons');
     });
 
-    it('should not warn when calendar has valid seasons', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should not warn when calendar has valid seasons', () => {
       const testDate = { year: 2024, month: 1, day: 15 };
       mockCalendarManager.getActiveCalendar.mockReturnValue(calendarWithSeasons);
 
@@ -229,71 +218,64 @@ describe('Seasons Warning Prevention Logic', () => {
       expect(loggerDebugSpy).not.toHaveBeenCalled();
     });
 
-    it('should reset warning state when calendar changes', () => {
-      if (!getSeasonInfo || !resetWarningStateForTesting) {
-        console.warn('Skipping test - API not available');
-        return;
+    it.skipIf(!getSeasonInfo || !resetWarningStateForTesting)(
+      'should reset warning state when calendar changes',
+      () => {
+        const testDate = { year: 2024, month: 1, day: 15 };
+
+        // First calendar without seasons
+        mockCalendarManager.getActiveCalendar.mockReturnValue(calendarWithoutSeasons);
+        getSeasonInfo(testDate);
+        expect(loggerDebugSpy).toHaveBeenCalledTimes(1);
+
+        // Simulate calendar change by resetting warning state
+        resetWarningStateForTesting();
+
+        // Switch to another calendar without seasons
+        const anotherCalendarWithoutSeasons = {
+          ...calendarWithoutSeasons,
+          id: 'another-no-seasons',
+        };
+        mockCalendarManager.getActiveCalendar.mockReturnValue(anotherCalendarWithoutSeasons);
+
+        // Should warn again after calendar change
+        getSeasonInfo(testDate);
+        expect(loggerDebugSpy).toHaveBeenCalledTimes(2);
+        expect(loggerDebugSpy).toHaveBeenNthCalledWith(
+          2,
+          'No seasons found for calendar: another-no-seasons'
+        );
       }
+    );
 
-      const testDate = { year: 2024, month: 1, day: 15 };
+    it.skipIf(!getSeasonInfo)(
+      'should not affect warning state for specific calendar queries',
+      () => {
+        const testDate = { year: 2024, month: 1, day: 15 };
 
-      // First calendar without seasons
-      mockCalendarManager.getActiveCalendar.mockReturnValue(calendarWithoutSeasons);
-      getSeasonInfo(testDate);
-      expect(loggerDebugSpy).toHaveBeenCalledTimes(1);
+        // Setup mocks for specific calendar queries
+        mockCalendarManager.getCalendar.mockReturnValue(calendarWithSeasons);
+        mockCalendarManager.getActiveCalendar.mockReturnValue(calendarWithoutSeasons);
 
-      // Simulate calendar change by resetting warning state
-      resetWarningStateForTesting();
+        // Call with specific calendar ID (should not trigger warning)
+        getSeasonInfo(testDate, 'test-with-seasons');
+        getSeasonInfo(testDate, 'test-with-seasons');
 
-      // Switch to another calendar without seasons
-      const anotherCalendarWithoutSeasons = {
-        ...calendarWithoutSeasons,
-        id: 'another-no-seasons',
-      };
-      mockCalendarManager.getActiveCalendar.mockReturnValue(anotherCalendarWithoutSeasons);
+        // Should not warn for specific calendar queries
+        expect(loggerDebugSpy).not.toHaveBeenCalled();
 
-      // Should warn again after calendar change
-      getSeasonInfo(testDate);
-      expect(loggerDebugSpy).toHaveBeenCalledTimes(2);
-      expect(loggerDebugSpy).toHaveBeenNthCalledWith(
-        2,
-        'No seasons found for calendar: another-no-seasons'
-      );
-    });
+        // Now call without calendar ID (active calendar)
+        getSeasonInfo(testDate);
 
-    it('should not affect warning state for specific calendar queries', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
+        // Should warn once for active calendar
+        expect(loggerDebugSpy).toHaveBeenCalledTimes(1);
+        expect(loggerDebugSpy).toHaveBeenCalledWith(
+          'No seasons found for calendar: test-no-seasons'
+        );
       }
+    );
 
-      const testDate = { year: 2024, month: 1, day: 15 };
-
-      // Setup mocks for specific calendar queries
-      mockCalendarManager.getCalendar.mockReturnValue(calendarWithSeasons);
-      mockCalendarManager.getActiveCalendar.mockReturnValue(calendarWithoutSeasons);
-
-      // Call with specific calendar ID (should not trigger warning)
-      getSeasonInfo(testDate, 'test-with-seasons');
-      getSeasonInfo(testDate, 'test-with-seasons');
-
-      // Should not warn for specific calendar queries
-      expect(loggerDebugSpy).not.toHaveBeenCalled();
-
-      // Now call without calendar ID (active calendar)
-      getSeasonInfo(testDate);
-
-      // Should warn once for active calendar
-      expect(loggerDebugSpy).toHaveBeenCalledTimes(1);
-      expect(loggerDebugSpy).toHaveBeenCalledWith('No seasons found for calendar: test-no-seasons');
-    });
-
-    it('should use debug level logging (console-only)', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should use debug level logging (console-only)', () => {
       // Spy on other log levels to ensure they're not used
       const loggerWarnSpy = vi.spyOn(Logger, 'warn').mockImplementation(() => {});
       const loggerErrorSpy = vi.spyOn(Logger, 'error').mockImplementation(() => {});
@@ -309,12 +291,7 @@ describe('Seasons Warning Prevention Logic', () => {
       expect(loggerErrorSpy).not.toHaveBeenCalled();
     });
 
-    it('should handle calendar with empty seasons array', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should handle calendar with empty seasons array', () => {
       const testDate = { year: 2024, month: 1, day: 15 };
       mockCalendarManager.getActiveCalendar.mockReturnValue(calendarWithEmptySeasons);
 
@@ -328,12 +305,7 @@ describe('Seasons Warning Prevention Logic', () => {
       expect(loggerDebugSpy).toHaveBeenCalledWith('No seasons found for calendar: empty-seasons');
     });
 
-    it('should handle rapid repeated calls gracefully', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should handle rapid repeated calls gracefully', () => {
       const testDate = { year: 2024, month: 1, day: 15 };
       mockCalendarManager.getActiveCalendar.mockReturnValue(calendarWithoutSeasons);
 
@@ -346,12 +318,7 @@ describe('Seasons Warning Prevention Logic', () => {
       expect(loggerDebugSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle null or undefined calendar', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should handle null or undefined calendar', () => {
       const testDate = { year: 2024, month: 1, day: 15 };
 
       // Test null calendar
@@ -375,12 +342,7 @@ describe('Seasons Warning Prevention Logic', () => {
   });
 
   describe('Return Value Validation', () => {
-    it('should return proper season info for calendars with seasons', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should return proper season info for calendars with seasons', () => {
       const testDate = { year: 2024, month: 1, day: 15 };
       mockCalendarManager.getActiveCalendar.mockReturnValue(calendarWithSeasons);
 
@@ -392,12 +354,7 @@ describe('Seasons Warning Prevention Logic', () => {
       });
     });
 
-    it('should return Unknown for calendars without seasons', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should return Unknown for calendars without seasons', () => {
       const testDate = { year: 2024, month: 1, day: 15 };
       mockCalendarManager.getActiveCalendar.mockReturnValue(calendarWithoutSeasons);
 
@@ -409,12 +366,7 @@ describe('Seasons Warning Prevention Logic', () => {
       });
     });
 
-    it('should return fallback season when no matching season found', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should return fallback season when no matching season found', () => {
       // Create calendar with season that doesn't match test date
       const calendarWithNonMatchingSeason = {
         ...calendarWithSeasons,
@@ -440,12 +392,7 @@ describe('Seasons Warning Prevention Logic', () => {
       });
     });
 
-    it('should handle season without icon', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should handle season without icon', () => {
       const calendarWithSeasonNoIcon = {
         ...calendarWithSeasons,
         seasons: [
@@ -471,12 +418,7 @@ describe('Seasons Warning Prevention Logic', () => {
   });
 
   describe('Edge Cases and Error Handling', () => {
-    it('should handle invalid date objects gracefully', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should handle invalid date objects gracefully', () => {
       // Test with missing month property
       const invalidDate = { year: 2024, day: 15 };
       mockCalendarManager.getActiveCalendar.mockReturnValue(calendarWithSeasons);
@@ -487,12 +429,7 @@ describe('Seasons Warning Prevention Logic', () => {
       }).toThrow('Date must have valid year, month, and day numbers');
     });
 
-    it('should handle calendar with malformed seasons', () => {
-      if (!getSeasonInfo) {
-        console.warn('Skipping test - getSeasonInfo API not available');
-        return;
-      }
-
+    it.skipIf(!getSeasonInfo)('should handle calendar with malformed seasons', () => {
       const calendarWithMalformedSeasons = {
         ...calendarWithSeasons,
         seasons: [
