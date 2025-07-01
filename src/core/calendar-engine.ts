@@ -329,6 +329,7 @@ export class CalendarEngine {
       return worldTime + epochOffset;
     }
 
+    // Unknown interpretation mode: return worldTime unchanged (fallback behavior)
     return worldTime;
   }
 
