@@ -107,12 +107,14 @@ export class TimeConverter {
     let worldCreationTimestamp: number | undefined;
     const currentSystem = game.system?.id;
     if (currentSystem) {
-      const timestampData = { worldCreationTimestamp: undefined };
       try {
-        Hooks.callAll(`seasons-stars:${currentSystem}:getWorldCreationTimestamp`, timestampData);
-        worldCreationTimestamp = timestampData.worldCreationTimestamp;
+        const timestamp = compatibilityManager.getSystemData<number>(
+          currentSystem,
+          'worldCreationTimestamp'
+        );
+        worldCreationTimestamp = timestamp ?? undefined;
       } catch (error) {
-        console.warn(`Hook callback error for ${currentSystem}:`, error);
+        Logger.warn(`Error getting world creation timestamp for ${currentSystem}:`, error);
         // Continue with undefined worldCreationTimestamp
       }
     }
@@ -153,12 +155,14 @@ export class TimeConverter {
     // Allow system-specific integrations to provide world creation timestamp
     let worldCreationTimestamp: number | undefined;
     if (currentSystem) {
-      const timestampData = { worldCreationTimestamp: undefined };
       try {
-        Hooks.callAll(`seasons-stars:${currentSystem}:getWorldCreationTimestamp`, timestampData);
-        worldCreationTimestamp = timestampData.worldCreationTimestamp;
+        const timestamp = compatibilityManager.getSystemData<number>(
+          currentSystem,
+          'worldCreationTimestamp'
+        );
+        worldCreationTimestamp = timestamp ?? undefined;
       } catch (error) {
-        console.warn(`Hook callback error for ${currentSystem}:`, error);
+        Logger.warn(`Error getting world creation timestamp for ${currentSystem}:`, error);
         // Continue with undefined worldCreationTimestamp
       }
     }

@@ -13,56 +13,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import type { SeasonsStarsCalendar, ICalendarDate } from '../src/types/calendar-types';
+import golarionCalendarData from '../calendars/golarion-pf2e.json';
 
 describe('Year Calculation Behavior', () => {
   let golarionCalendar: SeasonsStarsCalendar;
   let engine: CalendarEngine;
 
   beforeEach(() => {
-    // Golarion calendar definition (matches calendars/golarion-pf2e.json)
-    golarionCalendar = {
-      id: 'golarion-pf2e',
-      name: 'Golarion Calendar System',
-      months: [
-        { name: 'Abadius', days: 31, description: '' },
-        { name: 'Calistril', days: 28, description: '' },
-        { name: 'Pharast', days: 31, description: '' },
-        { name: 'Gozran', days: 30, description: '' },
-        { name: 'Desnus', days: 31, description: '' },
-        { name: 'Sarenith', days: 30, description: '' },
-        { name: 'Erastus', days: 31, description: '' },
-        { name: 'Arodus', days: 31, description: '' },
-        { name: 'Rova', days: 30, description: '' },
-        { name: 'Lamashan', days: 31, description: '' },
-        { name: 'Neth', days: 30, description: '' },
-        { name: 'Kuthona', days: 31, description: '' },
-      ],
-      weekdays: [
-        { name: 'Moonday', abbreviation: 'Mo' },
-        { name: 'Toilday', abbreviation: 'To' },
-        { name: 'Wealday', abbreviation: 'We' },
-        { name: 'Oathday', abbreviation: 'Oa' },
-        { name: 'Fireday', abbreviation: 'Fi' },
-        { name: 'Starday', abbreviation: 'St' },
-        { name: 'Sunday', abbreviation: 'Su' },
-      ],
-      year: {
-        epoch: 2700, // This should result in same year as PF2e with AR theme
-        suffix: ' AR',
-      },
-      leapYear: {
-        rule: 'custom',
-        interval: 4,
-        month: 'Calistril',
-        extraDays: 1,
-      },
-      time: {
-        hoursInDay: 24,
-        minutesInHour: 60,
-        secondsInMinute: 60,
-      },
-      intercalary: [],
-    };
+    // Use the actual Golarion calendar JSON file instead of duplicating definitions
+    golarionCalendar = golarionCalendarData as SeasonsStarsCalendar;
 
     engine = new CalendarEngine(golarionCalendar);
   });
@@ -203,49 +162,8 @@ describe('Current Implementation Issues (Failing Tests)', () => {
   let engine: CalendarEngine;
 
   beforeEach(() => {
-    golarionCalendar = {
-      id: 'golarion-pf2e',
-      name: 'Golarion Calendar System',
-      months: [
-        { name: 'Abadius', days: 31, description: '' },
-        { name: 'Calistril', days: 28, description: '' },
-        { name: 'Pharast', days: 31, description: '' },
-        { name: 'Gozran', days: 30, description: '' },
-        { name: 'Desnus', days: 31, description: '' },
-        { name: 'Sarenith', days: 30, description: '' },
-        { name: 'Erastus', days: 31, description: '' },
-        { name: 'Arodus', days: 31, description: '' },
-        { name: 'Rova', days: 30, description: '' },
-        { name: 'Lamashan', days: 31, description: '' },
-        { name: 'Neth', days: 30, description: '' },
-        { name: 'Kuthona', days: 31, description: '' },
-      ],
-      weekdays: [
-        { name: 'Moonday', abbreviation: 'Mo' },
-        { name: 'Toilday', abbreviation: 'To' },
-        { name: 'Wealday', abbreviation: 'We' },
-        { name: 'Oathday', abbreviation: 'Oa' },
-        { name: 'Fireday', abbreviation: 'Fi' },
-        { name: 'Starday', abbreviation: 'St' },
-        { name: 'Sunday', abbreviation: 'Su' },
-      ],
-      year: {
-        epoch: 2700,
-        suffix: ' AR',
-      },
-      leapYear: {
-        rule: 'custom',
-        interval: 4,
-        month: 'Calistril',
-        extraDays: 1,
-      },
-      time: {
-        hoursInDay: 24,
-        minutesInHour: 60,
-        secondsInMinute: 60,
-      },
-      intercalary: [],
-    };
+    // Use the actual Golarion calendar JSON file instead of duplicating definitions
+    golarionCalendar = golarionCalendarData as SeasonsStarsCalendar;
 
     engine = new CalendarEngine(golarionCalendar);
   });
