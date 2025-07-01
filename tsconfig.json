@@ -15,6 +15,6 @@
     "types": ["jquery"],
     "typeRoots": ["./node_modules/@types", "./src/types", "./test"]
   },
-  "include": ["src/**/*", "src/types/**/*.d.ts"],
+  "include": ["src/**/*", "src/types/**/*.d.ts", "scripts/**/*.ts"],
   "exclude": ["node_modules"]
 }
