@@ -1,10 +1,11 @@
 /**
- * Real PF2e Environment Setup for Testing
+ * PF2e-Compatible Environment Setup for Testing
  *
- * This utility sets up an environment that closely mimics a real PF2e world
- * with actual PF2e world clock logic and calendar calculations.
+ * This utility sets up an environment that mimics a real PF2e world
+ * by replicating PF2e world clock logic and calendar calculations.
  *
- * Uses PF2e system code from test/fixtures/pf2e-system/ (not distributed with S&S)
+ * Implementation is based on PF2e system code analysis from test/fixtures/pf2e-system/
+ * but simplified for testing without full PF2e system dependencies.
  */
 
 import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
@@ -141,9 +142,12 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
  * These functions replicate PF2e's actual calendar logic for testing
  */
 export function createPF2eCalculations(): PF2eWorldClockCalculations {
+  // NOTE: These calculations replicate the logic from the actual PF2e WorldClock class
+  // (see test/fixtures/pf2e-system/src/world-clock/app.ts lines 140-142)
+  // but are simplified to work without full PF2e system dependencies
   const calculations = {
     calculateYear(worldTime: number, worldCreatedOn: string, dateTheme: string): number {
-      // Replicate PF2e's year calculation logic
+      // Replicates: this.worldTime.year + CONFIG.PF2E.worldClock[this.dateTheme].yearOffset
       const creationDate = new Date(worldCreatedOn);
       const currentDate = new Date(creationDate.getTime() + worldTime * 1000);
       const yearOffset = (global as any).CONFIG?.PF2E?.worldClock?.[dateTheme]?.yearOffset || 0;

@@ -1,13 +1,16 @@
 /**
- * Real PF2e Integration Tests for GitHub Issue #91
+ * PF2e Integration Tests for GitHub Issue #91
  *
- * These tests use actual PF2e system logic to validate that S&S widget
- * synchronization works correctly in real PF2e environments.
+ * These tests use PF2e-compatible calculations to validate that S&S widget
+ * synchronization works correctly with PF2e system integration.
  *
  * Tests the exact scenarios described in GitHub issue #91:
  * - Widget synchronization between S&S and PF2e
  * - Date setting accuracy ("3rd Arodus" should not become "22nd Rova")
  * - Year calculation consistency (4725 AR vs 6749 discrepancy)
+ *
+ * NOTE: Uses PF2e-compatible logic based on analysis of actual PF2e system code
+ * but simplified for testing without full PF2e system dependencies.
  */
 
 import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
@@ -20,11 +23,11 @@ import {
   setupRealPF2eEnvironment,
   createPF2eCalculations,
   validatePF2eEnvironment,
-} from './setup-pf2e-real';
+} from './setup-pf2e';
 import { setupFoundryEnvironment } from './setup';
 import golarionCalendarData from '../calendars/golarion-pf2e.json';
 
-describe('Real PF2e Integration Tests - GitHub Issue #91', () => {
+describe('PF2e Integration Tests - GitHub Issue #91', () => {
   let golarionCalendar: SeasonsStarsCalendar;
   let engine: CalendarEngine;
   let timeConverter: TimeConverter;
