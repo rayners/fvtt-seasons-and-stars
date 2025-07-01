@@ -9,51 +9,10 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { CalendarDate } from '../src/core/calendar-date';
 import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
+import golarionCalendarData from '../calendars/golarion-pf2e.json';
 
-// Test calendar matching PF2e Golarion setup
-const golarionCalendar: SeasonsStarsCalendar = {
-  id: 'golarion-pf2e',
-  name: 'Golarion Calendar System',
-  months: [
-    { name: 'Abadius', days: 31, description: '' },
-    { name: 'Calistril', days: 28, description: '' },
-    { name: 'Pharast', days: 31, description: '' },
-    { name: 'Gozran', days: 30, description: '' },
-    { name: 'Desnus', days: 31, description: '' },
-    { name: 'Sarenith', days: 30, description: '' },
-    { name: 'Erastus', days: 31, description: '' },
-    { name: 'Arodus', days: 31, description: '' },
-    { name: 'Rova', days: 30, description: '' },
-    { name: 'Lamashan', days: 31, description: '' },
-    { name: 'Neth', days: 30, description: '' },
-    { name: 'Kuthona', days: 31, description: '' },
-  ],
-  weekdays: [
-    { name: 'Moonday', abbreviation: 'Mo' },
-    { name: 'Toilday', abbreviation: 'To' },
-    { name: 'Wealday', abbreviation: 'We' },
-    { name: 'Oathday', abbreviation: 'Oa' },
-    { name: 'Fireday', abbreviation: 'Fi' },
-    { name: 'Starday', abbreviation: 'St' },
-    { name: 'Sunday', abbreviation: 'Su' },
-  ],
-  year: {
-    epoch: 2700,
-    suffix: ' AR',
-  },
-  leapYear: {
-    rule: 'custom',
-    interval: 4,
-    month: 'Calistril',
-    extraDays: 1,
-  },
-  time: {
-    hoursInDay: 24,
-    minutesInHour: 60,
-    secondsInMinute: 60,
-  },
-  intercalary: [],
-};
+// Use the actual Golarion calendar JSON file instead of duplicating definitions
+const golarionCalendar: SeasonsStarsCalendar = golarionCalendarData as SeasonsStarsCalendar;
 
 describe('CalendarEngine - World Creation Timestamp Support', () => {
   let engine: CalendarEngine;
