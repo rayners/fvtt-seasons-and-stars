@@ -128,7 +128,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
             Logger.debug('Mini widget: Single click - opening calendar selection');
             this._onOpenCalendarSelection(event, miniDateElement as HTMLElement);
             clickCount = 0;
-          }, 300);
+          }, 300) as unknown as number;
         } else if (clickCount === 2) {
           // Double click - cancel single click and handle double click
           if (clickTimeout) {
