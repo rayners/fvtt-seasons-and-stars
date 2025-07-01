@@ -1075,6 +1075,10 @@ export function setupAPI(): void {
       notes: notesManager,
       categories: noteCategories, // Will be available by this point since ready runs after init
       integration: SeasonsStarsIntegration.detect(),
+      // Expose warning state functions for debugging and external access
+      resetSeasonsWarningState,
+      getSeasonsWarningState,
+      setSeasonsWarningState,
     };
   }
 
