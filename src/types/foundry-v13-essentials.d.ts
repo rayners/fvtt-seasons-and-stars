@@ -152,6 +152,10 @@ interface Game {
     integration?: unknown;
     api?: unknown;
     categories?: unknown;
+    // Warning state functions for debugging and external access
+    resetSeasonsWarningState?: () => void;
+    getSeasonsWarningState?: () => boolean;
+    setSeasonsWarningState?: (warned: boolean) => void;
   };
 }
 

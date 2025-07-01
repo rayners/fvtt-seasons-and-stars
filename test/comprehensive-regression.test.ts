@@ -7,7 +7,6 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
-import { CalendarDate } from '../src/core/calendar-date';
 import * as fs from 'fs';
 import * as path from 'path';
 

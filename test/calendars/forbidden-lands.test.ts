@@ -27,40 +27,44 @@ describe('Forbidden Lands Calendar - Season Alignment', () => {
   });
 
   describe('🗡️ Forbidden Lands Calendar - Season Alignment', () => {
-    test('Forbidden Lands season transitions should align with month boundaries', () => {
+    test('Forbidden Lands should have seasons defined', () => {
       console.log('\n=== FORBIDDEN LANDS SEASON ALIGNMENT TEST ===');
 
       const forbiddenLandsCalendar = forbiddenLandsEngine.getCalendar();
+
+      // Test should fail if seasons are missing - most fantasy calendars should have seasons
+      expect(forbiddenLandsCalendar.seasons).toBeDefined();
+      expect(Array.isArray(forbiddenLandsCalendar.seasons)).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      expect(forbiddenLandsCalendar.seasons!.length).toBeGreaterThan(0);
+
       const year = forbiddenLandsCalendar.year.currentYear + 1;
 
-      if (forbiddenLandsCalendar.seasons) {
-        console.log('Forbidden Lands seasons:');
-        forbiddenLandsCalendar.seasons.forEach((season, index) => {
-          console.log(
-            `  ${season.name}: starts month ${season.startMonth}, ${season.months.length} months`
-          );
+      console.log('Forbidden Lands seasons:');
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      forbiddenLandsCalendar.seasons!.forEach((season, index) => {
+        console.log(
+          `  ${season.name}: starts month ${season.startMonth} (endMonth: ${season.endMonth || 'not specified'})`
+        );
 
-          // Test that season start aligns with month boundaries
-          const seasonStartDate = { year, month: season.startMonth, day: 1 };
-          const weekdayAtStart = forbiddenLandsEngine.calculateWeekday(
-            seasonStartDate.year,
-            seasonStartDate.month,
-            seasonStartDate.day
-          );
+        // Test that season start aligns with month boundaries
+        const seasonStartDate = { year, month: season.startMonth, day: 1 };
+        const weekdayAtStart = forbiddenLandsEngine.calculateWeekday(
+          seasonStartDate.year,
+          seasonStartDate.month,
+          seasonStartDate.day
+        );
 
-          console.log(
-            `    ${season.name} starts on weekday ${weekdayAtStart} (${forbiddenLandsCalendar.weekdays[weekdayAtStart]?.name})`
-          );
+        console.log(
+          `    ${season.name} starts on weekday ${weekdayAtStart} (${forbiddenLandsCalendar.weekdays[weekdayAtStart]?.name})`
+        );
 
-          // Seasons should start on valid weekdays
-          expect(weekdayAtStart).toBeGreaterThanOrEqual(0);
-          expect(weekdayAtStart).toBeLessThan(forbiddenLandsCalendar.weekdays.length);
-        });
+        // Seasons should start on valid weekdays
+        expect(weekdayAtStart).toBeGreaterThanOrEqual(0);
+        expect(weekdayAtStart).toBeLessThan(forbiddenLandsCalendar.weekdays.length);
+      });
 
-        console.log('✅ FORBIDDEN LANDS SEASONS: Season transitions align correctly with calendar');
-      } else {
-        console.log('ℹ️  Forbidden Lands calendar has no season configuration to test');
-      }
+      console.log('✅ FORBIDDEN LANDS SEASONS: Season transitions align correctly with calendar');
     });
 
     test('Forbidden Lands basic calendar operations work correctly', () => {

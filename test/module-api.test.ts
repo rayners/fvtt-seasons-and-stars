@@ -69,7 +69,6 @@ describe('Module API Methods', () => {
     // Since the module sets up the API when imported
     const { APIWrapper } = await import('../src/core/api-wrapper');
     const { CalendarDate } = await import('../src/core/calendar-date');
-    const { ValidationUtils } = await import('../src/core/validation-utils');
 
     // Mock CalendarDate
     vi.doMock('../src/core/calendar-date', () => ({
