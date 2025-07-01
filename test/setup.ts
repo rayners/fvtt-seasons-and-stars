@@ -49,6 +49,54 @@ import { vi, beforeEach } from 'vitest';
 // Mock ApplicationV2 directly for imports
 (globalThis as any).ApplicationV2 = (globalThis as any).foundry.applications.api.ApplicationV2;
 
+/**
+ * Set up basic Foundry environment for testing
+ */
+export function setupFoundryEnvironment(): void {
+  // Ensure game object exists
+  (global as any).game = (global as any).game || {};
+
+  // Set up basic game properties
+  global.game.settings = global.game.settings || {
+    get: vi.fn(),
+    set: vi.fn(),
+    register: vi.fn(),
+  };
+
+  global.game.time = global.game.time || {
+    worldTime: 0,
+  };
+
+  global.game.user = global.game.user || {
+    isGM: true,
+  };
+
+  global.game.i18n = global.game.i18n || {
+    lang: 'en',
+    localize: vi.fn((key: string) => key),
+    format: vi.fn((key: string, data?: any) => key),
+  };
+
+  global.game.system = global.game.system || {
+    id: 'pf2e',
+  };
+
+  // Set up UI
+  (global as any).ui = (global as any).ui || {
+    notifications: {
+      warn: vi.fn(),
+      error: vi.fn(),
+      info: vi.fn(),
+    },
+  };
+
+  // Set up Hooks
+  (global as any).Hooks = (global as any).Hooks || {
+    on: vi.fn(),
+    callAll: vi.fn(),
+  };
+}
+
 // Enhanced Hook system mock that actually registers and executes callbacks
 class MockHooks {
   private static hooks: Map<string, Function[]> = new Map();
