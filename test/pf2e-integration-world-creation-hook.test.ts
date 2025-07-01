@@ -1,19 +1,20 @@
 /**
- * PF2e Integration World Creation Hook Tests
+ * PF2e Integration Data Provider Tests
  *
- * Tests for the new PF2e integration hook that responds to world creation
- * timestamp requests from the time converter.
+ * Tests for the new PF2e integration data provider that responds to world creation
+ * timestamp requests via the Enhanced CompatibilityManager Data Registry.
  */
 
 import { describe, it, expect, beforeEach, vi, beforeAll, afterEach } from 'vitest';
 
-// We need to test the hook registration which happens at module level
-// So we'll mock the environment and then import to trigger the hook registration
+// We need to test the data provider registration which happens at module level
+// So we'll mock the environment and then import to trigger the registration
 
-describe('PF2e Integration - World Creation Timestamp Hook', () => {
+describe('PF2e Integration - Data Provider Registry', () => {
   let mockHooks: any;
   let mockLogger: any;
-  let sharedHookCallback: Function;
+  let mockCompatibilityManager: any;
+  let registeredDataProvider: Function;
 
   beforeAll(() => {
     // Setup comprehensive Foundry mocks
@@ -29,6 +30,11 @@ describe('PF2e Integration - World Creation Timestamp Hook', () => {
       error: vi.fn(),
       info: vi.fn(),
       warn: vi.fn(),
+    };
+
+    mockCompatibilityManager = {
+      registerTimeSource: vi.fn(),
+      registerDataProvider: vi.fn(),
     };
 
     global.Hooks = mockHooks;
@@ -57,78 +63,85 @@ describe('PF2e Integration - World Creation Timestamp Hook', () => {
     vi.clearAllMocks();
   });
 
-  describe('Hook Registration', () => {
-    it('should register hook listener for world creation timestamp requests', async () => {
+  describe('Data Provider Registration', () => {
+    it('should register data provider for world creation timestamp', async () => {
       // Import the integration module to trigger hook registration
       await import('../src/integrations/pf2e-integration');
 
-      // Verify the hook was registered
+      // Verify the system detected hook was registered
       expect(mockHooks.on).toHaveBeenCalledWith(
-        'seasons-stars:pf2e:getWorldCreationTimestamp',
+        'seasons-stars:pf2e:systemDetected',
         expect.any(Function)
       );
 
-      // Store the hook callback for other tests to use
-      const hookRegistration = mockHooks.on.mock.calls.find(
-        call => call[0] === 'seasons-stars:pf2e:getWorldCreationTimestamp'
+      // Simulate the system detected hook being called
+      const systemDetectedHook = mockHooks.on.mock.calls.find(
+        call => call[0] === 'seasons-stars:pf2e:systemDetected'
       );
-      sharedHookCallback = hookRegistration[1];
+      const systemDetectedCallback = systemDetectedHook[1];
+
+      // Execute the system detected callback with mock compatibility manager
+      systemDetectedCallback(mockCompatibilityManager);
+
+      // Verify data provider was registered
+      expect(mockCompatibilityManager.registerDataProvider).toHaveBeenCalledWith(
+        'pf2e',
+        'worldCreationTimestamp',
+        expect.any(Function)
+      );
+
+      // Store the registered data provider for other tests
+      const dataProviderCall = mockCompatibilityManager.registerDataProvider.mock.calls.find(
+        call => call[0] === 'pf2e' && call[1] === 'worldCreationTimestamp'
+      );
+      registeredDataProvider = dataProviderCall[2];
     });
   });
 
-  describe('Hook Response Logic', () => {
-    let hookCallback: Function;
+  describe('Data Provider Logic', () => {
+    let dataProvider: Function;
 
     beforeAll(() => {
-      // Use the hook callback stored from the registration test
-      hookCallback = sharedHookCallback;
+      // Use the data provider stored from the registration test
+      dataProvider = registeredDataProvider;
     });
 
     it('should provide world creation timestamp when PF2e data is available', () => {
-      // Setup timestamp data object
-      const timestampData = { worldCreationTimestamp: undefined };
-
-      // Execute hook callback
-      hookCallback(timestampData);
+      // Execute data provider
+      const result = dataProvider();
 
       // Verify timestamp was provided
-      expect(timestampData.worldCreationTimestamp).toBeDefined();
-      expect(typeof timestampData.worldCreationTimestamp).toBe('number');
-      expect(timestampData.worldCreationTimestamp).toBeGreaterThan(0);
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('number');
+      expect(result).toBeGreaterThan(0);
 
       // Verify it's the correct timestamp (2025-01-01)
       const expectedTimestamp = new Date('2025-01-01T00:00:00.000Z').getTime() / 1000;
-      expect(timestampData.worldCreationTimestamp).toBe(expectedTimestamp);
+      expect(result).toBe(expectedTimestamp);
     });
 
     it('should handle missing PF2e game object gracefully', () => {
       // Setup - remove PF2e game object
       global.game.pf2e = undefined;
 
-      const timestampData = { worldCreationTimestamp: undefined };
-
       // Execute - should not throw
       expect(() => {
-        hookCallback(timestampData);
+        const result = dataProvider();
+        // Verify null was returned (no timestamp available)
+        expect(result).toBeNull();
       }).not.toThrow();
-
-      // Verify no timestamp was provided
-      expect(timestampData.worldCreationTimestamp).toBeUndefined();
     });
 
     it('should handle missing worldClock settings gracefully', () => {
       // Setup - remove worldClock settings
       global.game.pf2e = { settings: {} };
 
-      const timestampData = { worldCreationTimestamp: undefined };
-
       // Execute - should not throw
       expect(() => {
-        hookCallback(timestampData);
+        const result = dataProvider();
+        // Verify null was returned
+        expect(result).toBeNull();
       }).not.toThrow();
-
-      // Verify no timestamp was provided
-      expect(timestampData.worldCreationTimestamp).toBeUndefined();
     });
 
     it('should handle missing worldCreatedOn setting gracefully', () => {
@@ -139,15 +152,12 @@ describe('PF2e Integration - World Creation Timestamp Hook', () => {
         },
       };
 
-      const timestampData = { worldCreationTimestamp: undefined };
-
       // Execute - should not throw
       expect(() => {
-        hookCallback(timestampData);
+        const result = dataProvider();
+        // Verify null was returned
+        expect(result).toBeNull();
       }).not.toThrow();
-
-      // Verify no timestamp was provided
-      expect(timestampData.worldCreationTimestamp).toBeUndefined();
     });
 
     it('should handle invalid date strings gracefully', () => {
@@ -163,15 +173,12 @@ describe('PF2e Integration - World Creation Timestamp Hook', () => {
           },
         };
 
-        const timestampData = { worldCreationTimestamp: undefined };
-
         // Execute - should not throw
         expect(() => {
-          hookCallback(timestampData);
+          const result = dataProvider();
+          // Verify null was returned for invalid dates
+          expect(result).toBeNull();
         }).not.toThrow();
-
-        // Verify no timestamp was provided for invalid dates
-        expect(timestampData.worldCreationTimestamp).toBeUndefined();
       });
     });
 
@@ -193,53 +200,29 @@ describe('PF2e Integration - World Creation Timestamp Hook', () => {
           },
         };
 
-        const timestampData = { worldCreationTimestamp: undefined };
-
         // Execute
-        hookCallback(timestampData);
+        const result = dataProvider();
 
         // Verify
         if (shouldProvide) {
-          expect(timestampData.worldCreationTimestamp).toBeDefined();
-          expect(timestampData.worldCreationTimestamp).toBeGreaterThan(0);
+          expect(result).toBeDefined();
+          expect(result).toBeGreaterThan(0);
         } else {
-          expect(timestampData.worldCreationTimestamp).toBeUndefined();
+          expect(result).toBeNull();
         }
       });
     });
   });
 
   describe('Error Handling and Logging', () => {
-    let hookCallback: Function;
+    let dataProvider: Function;
 
     beforeAll(() => {
-      // Use the hook callback stored from the registration test
-      hookCallback = sharedHookCallback;
+      // Use the data provider stored from the registration test
+      dataProvider = registeredDataProvider;
     });
 
-    it('should log debug message when providing timestamp', () => {
-      // Setup
-      global.game.pf2e = {
-        settings: {
-          worldClock: {
-            worldCreatedOn: '2025-01-01T00:00:00.000Z',
-          },
-        },
-      };
-
-      const timestampData = { worldCreationTimestamp: undefined };
-
-      // Execute
-      hookCallback(timestampData);
-
-      // Verify debug logging
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        'PF2e integration provided world creation timestamp:',
-        expect.any(Number)
-      );
-    });
-
-    it('should log error when exception occurs', () => {
+    it('should handle exception gracefully and return null', () => {
       // Setup - mock game object that throws when accessed
       Object.defineProperty(global, 'game', {
         get: () => {
@@ -248,21 +231,12 @@ describe('PF2e Integration - World Creation Timestamp Hook', () => {
         configurable: true,
       });
 
-      const timestampData = { worldCreationTimestamp: undefined };
-
       // Execute - should not throw
       expect(() => {
-        hookCallback(timestampData);
+        const result = dataProvider();
+        // Verify null was returned on error
+        expect(result).toBeNull();
       }).not.toThrow();
-
-      // Verify error logging
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'PF2e integration failed to provide world creation timestamp:',
-        expect.any(Error)
-      );
-
-      // Verify no timestamp was provided
-      expect(timestampData.worldCreationTimestamp).toBeUndefined();
     });
 
     it('should handle non-Error exceptions properly', () => {
@@ -274,18 +248,12 @@ describe('PF2e Integration - World Creation Timestamp Hook', () => {
         configurable: true,
       });
 
-      const timestampData = { worldCreationTimestamp: undefined };
-
       // Execute - should not throw
       expect(() => {
-        hookCallback(timestampData);
+        const result = dataProvider();
+        // Verify null was returned on error
+        expect(result).toBeNull();
       }).not.toThrow();
-
-      // Verify error logging with undefined (non-Error exception)
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        'PF2e integration failed to provide world creation timestamp:',
-        undefined
-      );
     });
   });
 

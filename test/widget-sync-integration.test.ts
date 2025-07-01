@@ -4,16 +4,17 @@
  * Tests for the GitHub #91 comment issue where widgets show different years
  * after date changes. This tests the integration between time converter
  * and widgets when world creation timestamps are involved.
+ *
+ * Updated for Enhanced CompatibilityManager Data Registry pattern.
  */
 
 import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { TimeConverter } from '../src/core/time-converter';
+import { compatibilityManager } from '../src/core/compatibility-manager';
 import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
 import { setupPF2eEnvironment } from './setup';
 import golarionCalendarData from '../calendars/golarion-pf2e.json';
-// Import PF2e integration to register the world creation timestamp hook
-import '../src/integrations/pf2e-integration';
 
 describe('Widget Synchronization Integration', () => {
   let golarionCalendar: SeasonsStarsCalendar;
@@ -38,6 +39,12 @@ describe('Widget Synchronization Integration', () => {
 
     engine = new CalendarEngine(golarionCalendar);
     timeConverter = new TimeConverter(engine);
+
+    // Clear compatibility manager data providers for clean tests
+    (compatibilityManager as any).dataProviderRegistry.clear();
+
+    // Reset mocks
+    vi.clearAllMocks();
   });
 
   describe('GitHub Issue #91 Comment Bug - Widget Year Mismatch', () => {
@@ -67,8 +74,8 @@ describe('Widget Synchronization Integration', () => {
       expect(yearDifference).toBe(2025); // 2025 year difference = the bug!
     });
 
-    it('should verify that widget sync fix works with enhanced foundry-test-utils', () => {
-      // This test verifies that our enhanced foundry-test-utils enable full PF2e integration
+    it('should verify that widget sync fix works with Enhanced CompatibilityManager Data Registry', () => {
+      // This test verifies that the new data provider pattern enables proper PF2e integration
 
       const WORLD_CREATION_DATE = '2025-01-01T00:00:00.000Z';
       const WORLD_CREATION_YEAR = 2025;
@@ -77,7 +84,7 @@ describe('Widget Synchronization Integration', () => {
       const SECONDS_PER_DAY = 86400;
       const ONE_DAY_ELAPSED = SECONDS_PER_DAY;
 
-      // Set up PF2e environment with proper integration
+      // Set up PF2e environment
       global.game.system = { id: 'pf2e' };
       global.game.pf2e = {
         settings: {
@@ -88,13 +95,17 @@ describe('Widget Synchronization Integration', () => {
       };
       global.game.time = { worldTime: ONE_DAY_ELAPSED };
 
-      // With enhanced foundry-test-utils, PF2e integration hooks should now work
-      // The time converter should get world creation timestamp via hooks and return PF2e year
+      // Register data provider (simulating what PF2e integration would do)
+      const worldCreationTimestamp = new Date(WORLD_CREATION_DATE).getTime() / 1000;
+      compatibilityManager.registerDataProvider('pf2e', 'worldCreationTimestamp', () => {
+        return worldCreationTimestamp;
+      });
+
+      // With data provider registered, time converter should get world creation timestamp and return PF2e year
       const currentDate = timeConverter.getCurrentDate();
-      expect(currentDate.year).toBe(EXPECTED_PF2E_YEAR); // 4725 with working hooks!
+      expect(currentDate.year).toBe(EXPECTED_PF2E_YEAR); // 4725 with working data provider!
 
       // Verify this matches what the engine produces with world creation timestamp
-      const worldCreationTimestamp = new Date(WORLD_CREATION_DATE).getTime() / 1000;
       const correctDate = engine.worldTimeToDate(ONE_DAY_ELAPSED, worldCreationTimestamp);
       expect(correctDate.year).toBe(EXPECTED_PF2E_YEAR); // 4725 - what widgets should get
 
@@ -123,37 +134,52 @@ describe('Widget Synchronization Integration', () => {
     });
   });
 
-  describe('Time Converter Enhancement Requirements', () => {
-    it('should detect PF2e environment and extract world creation timestamp', () => {
-      // Test what the time converter should do to fix the widget sync issue
+  describe('Enhanced CompatibilityManager Data Registry Integration', () => {
+    it('should use data provider when system has registered provider', () => {
+      // Test that time converter properly queries data providers
 
-      // Mock PF2e environment detection
-      const isPF2eSystem = global.game.system.id === 'pf2e';
-      expect(isPF2eSystem).toBe(true);
+      // Set up PF2e environment
+      global.game.system = { id: 'pf2e' };
 
-      // Mock world creation timestamp extraction
-      const worldCreationTimestamp = global.game.pf2e?.settings?.worldClock?.worldCreatedOn;
-      expect(worldCreationTimestamp).toBe('2025-01-01T00:00:00.000Z');
+      // Register data provider with world creation timestamp
+      const worldCreationTimestamp = new Date('2025-01-01T00:00:00.000Z').getTime() / 1000;
+      compatibilityManager.registerDataProvider('pf2e', 'worldCreationTimestamp', () => {
+        return worldCreationTimestamp;
+      });
 
-      // Convert to timestamp format
-      const timestamp = new Date(worldCreationTimestamp).getTime() / 1000;
-      expect(timestamp).toBeGreaterThan(0);
-
-      // Test that using this timestamp gives correct results
-      const result = engine.worldTimeToDate(0, timestamp);
-      expect(result.year).toBe(4725); // PF2e compatible year
+      // Test that using data provider gives correct results
+      const result = timeConverter.getCurrentDate();
+      expect(result.year).toBe(4725); // PF2e compatible year (2025 + 2700)
     });
 
-    it('should fall back to epoch-based calculation when not in PF2e', () => {
-      // Test backward compatibility for non-PF2e systems
+    it('should fall back to epoch-based calculation when no data provider registered', () => {
+      // Test backward compatibility for systems without data providers
 
       // Mock non-PF2e environment
-      global.game.system.id = 'dnd5e';
+      global.game.system = { id: 'dnd5e' };
 
-      const result = engine.worldTimeToDate(0); // No world creation timestamp
+      // No data provider registered for dnd5e
+      const result = timeConverter.getCurrentDate();
       expect(result.year).toBe(2700); // Should use epoch-based calculation
 
       // This ensures we don't break existing non-PF2e installations
+    });
+
+    it('should handle data provider errors gracefully', () => {
+      // Test that errors in data providers don't crash time converter
+
+      global.game.system = { id: 'pf2e' };
+
+      // Register data provider that throws an error
+      compatibilityManager.registerDataProvider('pf2e', 'worldCreationTimestamp', () => {
+        throw new Error('Mock provider error');
+      });
+
+      // Should not throw and should fall back to epoch calculation
+      expect(() => {
+        const result = timeConverter.getCurrentDate();
+        expect(result.year).toBe(2700); // Should fall back to epoch
+      }).not.toThrow();
     });
   });
 });
