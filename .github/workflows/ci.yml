@@ -38,14 +38,20 @@ jobs:
       - name: Type Check
         run: npm run typecheck
 
-      - name: Run Tests with PF2e Integration
+      - name: Setup Game Systems for Integration Testing
+        run: |
+          echo "🎮 Setting up game systems for integration testing..."
+          npm run setup-integration-testing
+          echo "✅ Game system setup complete"
+
+      - name: Run Tests with Integration Testing
         run: |
           if [[ "${{ matrix.node-version }}" == "18" && "${{ github.event_name }}" == "push" ]]; then
             # Run tests with both coverage and JUnit output for Node 18 on push
-            npm run test:coverage:junit
+            npx vitest run --coverage --reporter=default --reporter=junit --outputFile=test-report.junit.xml
           else
             # Run tests with JUnit output only
-            npm run test:junit
+            npx vitest run --reporter=default --reporter=junit --outputFile=test-report.junit.xml
           fi
 
       - name: Upload Coverage to Codecov
