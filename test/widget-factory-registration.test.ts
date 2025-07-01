@@ -5,7 +5,7 @@
  * that was added to fix issue #78 "No factory registered for widget type"
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CalendarWidgetManager, WidgetWrapper } from '../src/ui/widget-manager';
 import { CalendarWidget } from '../src/ui/calendar-widget';
 import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
