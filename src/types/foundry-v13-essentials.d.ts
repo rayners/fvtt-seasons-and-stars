@@ -152,6 +152,10 @@ interface Game {
     integration?: unknown;
     api?: unknown;
     categories?: unknown;
+    // Warning state functions for debugging and external access
+    resetSeasonsWarningState?: () => void;
+    getSeasonsWarningState?: () => boolean;
+    setSeasonsWarningState?: (warned: boolean) => void;
   };
 }
 
@@ -214,10 +218,7 @@ interface JournalEntryPage {
   update?(data: any): Promise<JournalEntryPage>;
 }
 
-interface JournalSheet {
-  document?: FoundryJournalEntry;
-  [key: string]: unknown;
-}
+// JournalSheet interface (unused)
 
 declare class FoundryJournalSheet {
   document: FoundryJournalEntry;
@@ -234,12 +235,14 @@ declare class FoundryFolder {
   getFlag(scope: string, key: string): any;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare class FoundryDialog {
   constructor(data: any, options?: any);
   render(force?: boolean): this;
   close(): Promise<void>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare class FoundryApplication {
   constructor(options?: any);
   render(force?: boolean): this;
@@ -297,12 +300,17 @@ declare class HooksManager {
 // DIALOG SYSTEM
 // =============================================================================
 
+// DialogButton interface (unused)
+/*
 interface DialogButton {
   icon?: string;
   label: string;
   callback?: (html: JQuery) => void;
 }
+*/
 
+// DialogOptions interface (unused)
+/*
 interface DialogOptions {
   title: string;
   content: string;
@@ -311,18 +319,9 @@ interface DialogOptions {
   render?: (html: JQuery) => void;
   close?: (html: JQuery) => void;
 }
+*/
 
-declare class Dialog {
-  constructor(data: DialogOptions, options?: any);
-  render(force?: boolean): this;
-}
-
-// Legacy Application class for scene controls
-declare class Application {
-  constructor(options?: any);
-  render(force?: boolean): this;
-  close(): Promise<void>;
-}
+// Dialog and Application classes (unused but kept for reference)
 
 // Updated Collection with proper iteration methods
 declare class FoundryCollection<T> extends Map<string, T> {
@@ -463,6 +462,7 @@ declare class HandlebarsApplicationMixin {
 // DIALOG SYSTEM (For Calendar Selection Dialog)
 // =============================================================================
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare class DialogV2<
   Configuration = DialogV2.Configuration,
   RenderContext = Record<string, unknown>,
@@ -499,6 +499,7 @@ declare namespace DialogV2 {
     rejectClose?: boolean;
     render?: Function;
     close?: Function;
+    result?: T; // Use the generic parameter
   }
 
   interface ConfirmOptions {
@@ -542,7 +543,8 @@ interface FoundryCalendar {
   seasons?: CalendarSeason[];
 }
 
-// Seasons & Stars specific calendar type
+// Seasons & Stars specific calendar type (unused - defined in calendar.d.ts)
+/*
 interface SeasonsStarsCalendar {
   id: string;
   name: string;
@@ -567,6 +569,7 @@ interface SeasonsStarsCalendar {
   moons?: CalendarMoon[];
   seasons?: CalendarSeason[];
 }
+*/
 
 interface CalendarMonth {
   id?: string;
@@ -604,13 +607,15 @@ interface CalendarSeason {
 }
 
 /**
- * Date interface used by Seasons & Stars
+ * Date interface used by Seasons & Stars (unused - defined in calendar.d.ts)
  */
+/*
 interface CalendarDate {
   year: number;
   month: number; // 1-based
   day: number; // 1-based
 }
+*/
 
 // =============================================================================
 // UTILITY TYPES
@@ -677,6 +682,7 @@ declare global {
 }
 
 // Ownership level type definition
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type OwnershipLevel = 0 | 1 | 2 | 3;
 
 // Export OwnershipLevel globally

@@ -2,11 +2,7 @@
  * Search and filtering system for calendar notes
  */
 
-import type {
-  CalendarDate as ICalendarDate,
-  CalendarDateData,
-  SeasonsStarsCalendar,
-} from '../types/calendar';
+import type { CalendarDate as ICalendarDate, CalendarDateData } from '../types/calendar';
 import { CalendarDate } from './calendar-date';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 

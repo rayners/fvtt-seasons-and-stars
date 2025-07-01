@@ -37,67 +37,63 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 
 ## 🚀 Planned Development
 
-### **v0.3.0 - Enhanced Widget Features** (Ready for Release)
+### **v0.5.0 - Calendar Validation and Quality Assurance** (Next Release - **PRIORITY BUMPED**)
 
-**Focus**: Widget customization and interaction improvements
+**Focus**: Preventing calendar definition bugs that cause runtime errors
 
-- **Configurable Quick Time Buttons**: Customizable time advancement with user-defined intervals and formatting
-- **Calendar Click Behavior**: Configurable calendar click actions with modifier key support for date setting vs navigation
-- **Enhanced Widget Controls**: Standardized button styling and improved visual consistency
-- **Settings Preview**: Live preview of button configurations in module settings
-
-### **v0.4.0 - Performance and Moon Tracking** (Next Release)
-
-**Focus**: Performance optimization and lunar cycle features
-
+- **JSON Schema Validation Tool**: Comprehensive calendar format validation to prevent bugs like Issue #83 ([#81](https://github.com/rayners/fvtt-seasons-and-stars/issues/81)) - **HIGH PRIORITY**
+- **Build-time Calendar Validation**: Catch incomplete calendar definitions before release
+- **Calendar Format Documentation**: Complete schema specification for calendar creators
 - **Lazy Calendar Loading**: Only load required calendars to improve startup performance and reduce errors ([#25](https://github.com/rayners/fvtt-seasons-and-stars/issues/25))
 - **Moon Phase Tracking**: Basic lunar cycle tracking for lycantropy, curses, and celestial events ([#17](https://github.com/rayners/fvtt-seasons-and-stars/issues/17))
 - **Performance Optimization**: Reduced memory usage and faster module initialization
-- **Calendar System Enhancement**: Better error handling and validation for calendar definitions
 
-### **v0.5.0 - Notes System Enhancement** (Next Priority)
+### **v0.6.0 - Notes System Enhancement** (High Priority)
 
 **Focus**: Complete the calendar-aware notes editing system
 
-- **Enable Custom Note Editor**: Activate the existing `NoteEditingDialog` for calendar notes (code exists but disabled)
+- **Enable Custom Note Editor**: Activate the existing `NoteEditingDialog` for calendar notes ([#42](https://github.com/rayners/fvtt-seasons-and-stars/issues/42))
+- **Enhanced Note Browser**: Dedicated interface for browsing and searching calendar notes with metadata filtering ([#43](https://github.com/rayners/fvtt-seasons-and-stars/issues/43))
 - **Note Metadata Management**: Interface for changing categories, tags, and date associations after creation
-- **Enhanced Note Browser**: Dedicated interface for browsing and searching calendar notes with metadata filtering
 - **Advanced Notes Features**: Enhanced search UI, bulk operations, and note templates
 
-### **v0.6.0 - Calendar Creation and Import System** (Future)
+### **v0.7.0 - Calendar Creation and Import System** (Community Priority)
 
-**Focus**: Calendar creation and migration tools
+**Focus**: Calendar creation and migration tools - **HIGHEST COMMUNITY DEMAND**
 
-- **Calendar Editor**: In-app tool for creating custom calendars
-- **Simple Calendar Import**: Tools for migrating Simple Calendar configurations and data
-- **Calendar Validation**: Built-in validation for custom calendar definitions
-- **Migration Wizard**: Step-by-step guide for Simple Calendar users
+- **Calendar Editor**: In-app tool for creating custom calendars ([#44](https://github.com/rayners/fvtt-seasons-and-stars/issues/44))
+- **Calendar Validation System**: Built-in validation for custom calendar definitions ([#45](https://github.com/rayners/fvtt-seasons-and-stars/issues/45))
+- **Migration Wizard**: Step-by-step guide for Simple Calendar users ([#46](https://github.com/rayners/fvtt-seasons-and-stars/issues/46))
+- **Simple Calendar Import**: Tools for migrating Simple Calendar configurations and data ([#3](https://github.com/rayners/fvtt-seasons-and-stars/issues/3))
+- **Bridge Migration System**: Pre-existing Simple Calendar notes migration ([#2](https://github.com/rayners/fvtt-seasons-and-stars/issues/2))
+- **Note Highlighting Sync**: Fix bridge-created notes display issues ([#1](https://github.com/rayners/fvtt-seasons-and-stars/issues/1))
 
-### **v0.7.0 - Enhanced Module Integration** (Future)
+### **v0.8.0 - Enhanced Module Integration** (Future)
 
 **Focus**: Deeper integration with the Foundry ecosystem
 
-- **Weather Module Support**: Enhanced integration with weather systems
-- **Advanced Event Management**: Improved recurring events and reminders
-- **API Expansion**: More comprehensive developer APIs
-- **Module Templates**: Examples for module developers
-- **UI/UX Improvements**: Enhanced widget interfaces and user experience refinements ([#35](https://github.com/rayners/fvtt-seasons-and-stars/issues/35))
-- **Date Context Menus**: Right-click context menus for calendar dates with additional actions and information
+- **Enhanced Weather Module Integration**: Deep integration with weather systems ([#47](https://github.com/rayners/fvtt-seasons-and-stars/issues/47))
+- **Advanced Event Management System**: Improved recurring events and reminders ([#48](https://github.com/rayners/fvtt-seasons-and-stars/issues/48))
+- **Date Context Menus**: Right-click context menus for calendar dates ([#49](https://github.com/rayners/fvtt-seasons-and-stars/issues/49))
+- **Module Developer Templates**: Examples for module developers ([#50](https://github.com/rayners/fvtt-seasons-and-stars/issues/50))
+- **Comprehensive Developer API Expansion**: More comprehensive developer APIs ([#51](https://github.com/rayners/fvtt-seasons-and-stars/issues/51))
 
-### **v1.0.0 - Stable Release** (Future)
+### **v1.0.0 - Stable Release** (Long-term Goal)
 
 **Focus**: Production stability and feature completeness
 
-- **Feature Parity**: Complete Simple Calendar compatibility
-- **Comprehensive Testing**: Full compatibility validation
-- **Performance Optimization**: Memory and speed improvements
-- **Community Features**: Calendar sharing and collaboration tools
+- **Complete Simple Calendar Feature Parity**: Full compatibility coverage ([#52](https://github.com/rayners/fvtt-seasons-and-stars/issues/52))
+- **Comprehensive Testing**: Full compatibility validation ([#53](https://github.com/rayners/fvtt-seasons-and-stars/issues/53))
+- **Community Features**: Calendar sharing and collaboration tools ([#54](https://github.com/rayners/fvtt-seasons-and-stars/issues/54))
+- **UI/UX Improvements**: Enhanced widget interfaces and user experience refinements ([#35](https://github.com/rayners/fvtt-seasons-and-stars/issues/35))
 
 ## 🎮 Game System Support
 
 ### **Current Support**
 
-Designed to work with any Foundry VTT game system, with built-in calendars for:
+Designed to work with any Foundry VTT game system through two approaches:
+
+**Built-in Calendar Support:**
 
 - **Universal**: Gregorian calendar for modern/sci-fi campaigns
 - **D&D Settings**: Intended for Forgotten Realms (Harptos), Greyhawk, Eberron, Dark Sun
@@ -105,9 +101,14 @@ Designed to work with any Foundry VTT game system, with built-in calendars for:
 - **Other Systems**: Intended for Exandrian (Critical Role), Symbaroum, Warhammer, Forbidden Lands
 - **Generic Fantasy**: Vale Reckoning calendar
 
+**System Integration Support:**
+
+- **Pathfinder 2e**: Full integration with PF2e World Clock system, automatic time synchronization, and weekday compatibility fixes
+- **Universal Hook Architecture**: `seasons-stars:{system}:systemDetected` hooks for any system to register custom time sources
+
 ### **Planned Support**
 
-Future releases may include enhanced system-specific features and additional calendar formats based on community requests.
+The extensible system compatibility architecture enables easy addition of new system integrations based on community requests and developer contributions.
 
 ## 🐛 Known Limitations
 

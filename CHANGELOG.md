@@ -9,6 +9,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.4.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.3...v0.4.4) (2025-07-01)
+
+
+### Bug Fixes
+
+* prevent repeated seasons warning spam and complete calendar seasons data ([#102](https://github.com/rayners/fvtt-seasons-and-stars/issues/102)) ([76b5478](https://github.com/rayners/fvtt-seasons-and-stars/commit/76b5478758b625fb7536f49d4a2cda4b88bfab37))
+
+
+### Documentation
+
+* add AI usage transparency to README files ([#90](https://github.com/rayners/fvtt-seasons-and-stars/issues/90)) ([5887d07](https://github.com/rayners/fvtt-seasons-and-stars/commit/5887d076593dff35f6a259913b50f20b419a881d))
+
+## [0.4.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.2...v0.4.3) (2025-06-28)
+
+
+### Bug Fixes
+
+* Resolve date alignment issues and worldTime edge cases (Issue [#66](https://github.com/rayners/fvtt-seasons-and-stars/issues/66)) ([#86](https://github.com/rayners/fvtt-seasons-and-stars/issues/86)) ([f06f0b9](https://github.com/rayners/fvtt-seasons-and-stars/commit/f06f0b9e8f737826c452d401bfb15697af34882e))
+
+## [0.4.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.1...v0.4.2) (2025-06-28)
+
+
+### Bug Fixes
+
+* Add missing seasons to WFRP calendar to resolve infinite loop ([#84](https://github.com/rayners/fvtt-seasons-and-stars/issues/84)) ([d0faffe](https://github.com/rayners/fvtt-seasons-and-stars/commit/d0faffe76c5697bf225bde894e726fb76be15ebf))
+
+## [0.4.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.0...v0.4.1) (2025-06-24)
+
+
+### Bug Fixes
+
+* register widget factories to resolve 'No factory registered' error ([89b121a](https://github.com/rayners/fvtt-seasons-and-stars/commit/89b121a19b6121000ec8e0ce38af3b45a38d0738))
+
+## [0.4.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.4...v0.4.0) (2025-06-24)
+
+
+### Features
+
+* implement extensible system compatibility architecture with PF2e integration ([47654e5](https://github.com/rayners/fvtt-seasons-and-stars/commit/47654e533eb73c4073d3619436910fb03bf13c2c))
+
+
+### Documentation
+
+* accuracy review and roadmap alignment with GitHub milestones ([4c7c2cc](https://github.com/rayners/fvtt-seasons-and-stars/commit/4c7c2cce88dba221832a642f6445a8b1060df461))
+
 ## [0.3.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.3.3...v0.3.4) (2025-06-20)
 
 
@@ -70,30 +115,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+### Next Priority Features
 
-- **Configurable Quick Time Buttons**: Customizable time advancement buttons with comprehensive controls
-  - **Global Settings**: Configure button sets and formatting across all widgets
-  - **Settings Preview**: Live preview of button appearance and formatting in module settings
-  - **Smart Mini Widget Selection**: Automatic selection of most relevant buttons for compact display (3-button limit)
-  - **Comprehensive Formatting**: Supports days (d), weeks (w), hours (h), minutes (m) with intelligent display formatting
-
-### Enhanced
-
-- **Visual Consistency**: Standardized button styling and icons across all widget contexts
-  - **Consistent Icons**: Added missing icons to settings preview (fa-backward for rewind, fa-clock for advance) 
-  - **Unified Color System**: All widgets now use identical Foundry CSS variables for consistent theming
-  - **Vibrant Button Styling**: Enhanced gradient styling for better visual feedback
-    - **Advance Buttons**: Green gradient (teal to emerald) with white text
-    - **Rewind Buttons**: Red gradient (red-600 to red-400) with white text
-  - **Theme Integration**: Proper integration with Foundry's CSS variable system for automatic theme compatibility
-
-### Fixed
-
-- **Mini Widget Button Overflow**: Reduced button limit from 4 to 3 for better spacing and visual clarity
-- **Button Color Inconsistencies**: Resolved issues where buttons appeared different colors across widgets
-- **CSS Variable Usage**: Replaced non-existent CSS variables with proper Foundry variables for reliable theming
-- **Settings Preview Accuracy**: Settings preview now correctly shows icons and uses same styling as actual widgets
+- **Calendar Import/Creation Tools**: In-app calendar editor and Simple Calendar migration utilities
+- **Enhanced Notes System**: Complete note editing interface for calendar-specific metadata
+- **Performance Optimizations**: Lazy calendar loading and memory improvements
 
 ## [0.2.6](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.2.5...seasons-and-stars-v0.2.6) (2025-06-09)
 

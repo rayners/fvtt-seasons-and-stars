@@ -16,9 +16,10 @@ import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
 import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
-import { NoteEditingDialog } from './ui/note-editing-dialog';
+// Note editing dialog imported when needed
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
+import { CalendarWidgetManager, WidgetWrapper } from './ui/widget-manager';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
@@ -43,6 +44,33 @@ import './integrations/pf2e-integration';
 // Module instances
 let calendarManager: CalendarManager;
 let notesManager: NotesManager;
+
+// Track if we've already warned about missing seasons for the current active calendar
+let hasWarnedAboutMissingSeasons = false;
+
+/**
+ * Reset the seasons warning state - exposed for testing and external calendar changes
+ * This is called automatically when the seasons-stars:calendarChanged hook fires
+ */
+export function resetSeasonsWarningState(): void {
+  hasWarnedAboutMissingSeasons = false;
+}
+
+/**
+ * Get the current seasons warning state - exposed for testing
+ * @returns true if we've already warned about missing seasons for the active calendar
+ */
+export function getSeasonsWarningState(): boolean {
+  return hasWarnedAboutMissingSeasons;
+}
+
+/**
+ * Set the seasons warning state - exposed for testing
+ * @param warned true if we should consider the warning as having been shown
+ */
+export function setSeasonsWarningState(warned: boolean): void {
+  hasWarnedAboutMissingSeasons = warned;
+}
 
 // Register scene controls at top level (critical timing requirement)
 SeasonsStarsSceneControls.registerControls();
@@ -243,6 +271,11 @@ Hooks.once('ready', async () => {
   // Complete calendar manager initialization (read settings and set active calendar)
   await calendarManager.completeInitialization();
 
+  // Reset seasons warning flag when calendar changes
+  Hooks.on('seasons-stars:calendarChanged', () => {
+    resetSeasonsWarningState();
+  });
+
   // Initialize notes manager
   await notesManager.initialize();
 
@@ -262,6 +295,21 @@ Hooks.once('ready', async () => {
   CalendarMiniWidget.registerHooks();
   CalendarGridWidget.registerHooks();
   CalendarMiniWidget.registerSmallTimeIntegration();
+
+  // Register widget factories for CalendarWidgetManager
+  Logger.debug('Registering widget factories');
+  CalendarWidgetManager.registerWidget(
+    'main',
+    () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+  );
+  CalendarWidgetManager.registerWidget(
+    'mini',
+    () => new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+  );
+  CalendarWidgetManager.registerWidget(
+    'grid',
+    () => new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+  );
 
   // Scene controls registered at top level for timing requirements
   Logger.debug('Registering macros');
@@ -462,7 +510,7 @@ function registerCalendarSettings(): void {
 /**
  * Setup the main Seasons & Stars API
  */
-function setupAPI(): void {
+export function setupAPI(): void {
   const api: SeasonsStarsAPI = {
     getCurrentDate: (calendarId?: string): ICalendarDate | null => {
       try {
@@ -574,10 +622,11 @@ function setupAPI(): void {
           case 'years':
             await calendarManager.advanceYears(amount);
             break;
-          default:
+          default: {
             const error = new Error(`Unsupported time unit: ${unit}`);
             Logger.error('Unsupported time unit', error);
             throw error;
+          }
         }
 
         Logger.api('advanceTime', { amount, unit }, 'success');
@@ -706,7 +755,11 @@ function setupAPI(): void {
         const result = engine.dateToWorldTime(date);
         Logger.api(
           'dateToWorldTime',
-          { date: (date as any).toObject?.() || date, calendarId },
+          {
+            date:
+              'toObject' in date && typeof date.toObject === 'function' ? date.toObject() : date,
+            calendarId,
+          },
           result
         );
         return result;
@@ -961,9 +1014,14 @@ function setupAPI(): void {
         if (
           !calendar ||
           !(calendar as SeasonsStarsCalendar).seasons ||
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           (calendar as SeasonsStarsCalendar).seasons!.length === 0
         ) {
-          Logger.warn(`No seasons found for calendar: ${calendarId || 'active'}`);
+          // Only log to console once per active calendar to prevent looping warnings
+          if (!hasWarnedAboutMissingSeasons && !calendarId) {
+            Logger.debug(`No seasons found for calendar: ${calendar?.id || 'active'}`);
+            hasWarnedAboutMissingSeasons = true;
+          }
           const result = { name: 'Unknown', icon: 'none' };
           Logger.api('getSeasonInfo', { date, calendarId }, result);
           return result;
@@ -971,6 +1029,7 @@ function setupAPI(): void {
 
         // Basic season detection - find season containing this date
         // This is a simple implementation that can be enhanced later
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const currentSeason = (calendar as SeasonsStarsCalendar).seasons!.find(season => {
           // Simple logic: match by rough month ranges
           // This could be enhanced with proper calendar-aware season calculation
@@ -990,6 +1049,7 @@ function setupAPI(): void {
         }
 
         // Fallback: use first season or default
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         const fallbackSeason = (calendar as SeasonsStarsCalendar).seasons![0];
         const result = {
           name: fallbackSeason?.name || 'Unknown',
@@ -1015,6 +1075,10 @@ function setupAPI(): void {
       notes: notesManager,
       categories: noteCategories, // Will be available by this point since ready runs after init
       integration: SeasonsStarsIntegration.detect(),
+      // Expose warning state functions for debugging and external access
+      resetSeasonsWarningState,
+      getSeasonsWarningState,
+      setSeasonsWarningState,
     };
   }
 

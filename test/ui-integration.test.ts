@@ -3,7 +3,7 @@
  * Widget management, SmallTime detection, and scene controls
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SmallTimeUtils, SidebarButtonManager } from '../src/ui/base-widget-manager';
 import { SeasonsStarsSceneControls } from '../src/ui/scene-controls';
 

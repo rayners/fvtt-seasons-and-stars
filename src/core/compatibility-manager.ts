@@ -53,6 +53,7 @@ export class CompatibilityManager {
 
   private timeSourceRegistry: Map<string, () => number | null> = new Map();
 
+  private dataProviderRegistry: Map<string, Map<string, () => any>> = new Map();
   constructor() {
     this.initializeHookSystem();
     this.initializeGenericHooks();
@@ -261,6 +262,55 @@ export class CompatibilityManager {
   }
 
   /**
+   * Register a data provider for a specific system and key
+   */
+  registerDataProvider<T>(systemId: string, key: string, provider: () => T): void {
+    if (!this.dataProviderRegistry.has(systemId)) {
+      this.dataProviderRegistry.set(systemId, new Map());
+    }
+    this.dataProviderRegistry.get(systemId)!.set(key, provider);
+    Logger.debug(`Registered data provider: ${systemId}.${key}`);
+  }
+
+  /**
+   * Get system-specific data by calling the registered provider
+   */
+  getSystemData<T>(systemId: string, key: string): T | null {
+    const systemProviders = this.dataProviderRegistry.get(systemId);
+    if (!systemProviders) {
+      return null;
+    }
+
+    const provider = systemProviders.get(key);
+    if (!provider) {
+      return null;
+    }
+
+    try {
+      return provider() as T;
+    } catch (error) {
+      Logger.warn(`Error getting system data ${systemId}.${key}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Check if a data provider exists for a system and key
+   */
+  hasDataProvider(systemId: string, key: string): boolean {
+    const systemProviders = this.dataProviderRegistry.get(systemId);
+    return systemProviders?.has(key) || false;
+  }
+
+  /**
+   * Get all available data providers for a system
+   */
+  getAvailableDataProviders(systemId: string): string[] {
+    const systemProviders = this.dataProviderRegistry.get(systemId);
+    return systemProviders ? Array.from(systemProviders.keys()) : [];
+  }
+
+  /**
    * List all available compatibility adjustments for debugging
    */
   debugListAll(): void {
@@ -277,6 +327,13 @@ export class CompatibilityManager {
       Logger.debug(`  Time source: ${sourceId}`);
     }
 
+    // Registered data providers
+    Logger.debug('Registered data providers:');
+    for (const [systemId, providers] of this.dataProviderRegistry.entries()) {
+      for (const key of providers.keys()) {
+        Logger.debug(`  Data provider: ${systemId}.${key}`);
+      }
+    }
     // Note: Calendar-defined compatibility is checked dynamically per calendar
     Logger.debug('  Calendar-defined compatibility is checked per calendar load');
   }

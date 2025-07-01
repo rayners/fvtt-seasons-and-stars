@@ -4,7 +4,6 @@
 
 import type {
   SeasonsStarsCalendar,
-  CalendarDate as ICalendarDate,
   CalendarDateData,
   CalendarCalculation,
   CalendarIntercalary,
@@ -26,7 +25,7 @@ export class CalendarEngine {
    * Convert Foundry world time (seconds) to calendar date
    * Now supports both epoch-based and real-time-based interpretation
    */
-  worldTimeToDate(worldTime: number): CalendarDate {
+  worldTimeToDate(worldTime: number, worldCreationTimestamp?: number): CalendarDate {
     const adjustedWorldTime = this.adjustWorldTimeForInterpretation(worldTime);
 
     const totalSeconds = Math.floor(adjustedWorldTime);
@@ -46,16 +45,59 @@ export class CalendarEngine {
     const minute = Math.floor((secondsInDay % secondsPerHour) / this.calendar.time.secondsInMinute);
     const second = secondsInDay % this.calendar.time.secondsInMinute;
 
+    // Normalize -0 to +0 for JavaScript precision issues
+    const normalizedHour = hour === 0 ? 0 : hour;
+    const normalizedMinute = minute === 0 ? 0 : minute;
+    const normalizedSecond = second === 0 ? 0 : second;
+
     // Convert days to calendar date
     const dateInfo = this.daysToDate(totalDays);
 
+    // Adjust year calculation for world creation timestamp (PF2e-style integration)
+    let adjustedYear = dateInfo.year;
+    if (worldCreationTimestamp !== undefined) {
+      // Convert world creation timestamp to year
+      const worldCreationDate = new Date(worldCreationTimestamp * 1000);
+      const worldCreationYear = worldCreationDate.getUTCFullYear();
+
+      // Use PF2e-style calculation: world creation year + calendar epoch offset
+      const calendarEpoch = this.calendar.year?.epoch || 0;
+      adjustedYear = worldCreationYear + calendarEpoch;
+
+      // Add any additional years from worldTime progression
+      // Use proper calendar year calculation for both positive and negative time
+      let remainingDays = totalDays;
+      let yearsSinceCreation = 0;
+
+      if (remainingDays >= 0) {
+        // Handle positive time advancement
+        let testYear = adjustedYear;
+        while (remainingDays >= this.getYearLength(testYear)) {
+          remainingDays -= this.getYearLength(testYear);
+          yearsSinceCreation++;
+          testYear++;
+        }
+      } else {
+        // Handle negative time (going backwards)
+        let testYear = adjustedYear - 1;
+        while (remainingDays < 0) {
+          const yearLength = this.getYearLength(testYear);
+          remainingDays += yearLength;
+          yearsSinceCreation--;
+          testYear--;
+        }
+      }
+
+      adjustedYear += yearsSinceCreation;
+    }
+
     const dateData: CalendarDateData = {
-      year: dateInfo.year,
+      year: adjustedYear,
       month: dateInfo.month,
       day: dateInfo.day,
       weekday: dateInfo.weekday,
       intercalary: dateInfo.intercalary,
-      time: { hour, minute, second },
+      time: { hour: normalizedHour, minute: normalizedMinute, second: normalizedSecond },
     };
 
     return new CalendarDate(dateData, this.calendar);
@@ -65,18 +107,43 @@ export class CalendarEngine {
    * Convert calendar date to Foundry world time (seconds)
    * Handles both interpretation modes
    */
-  dateToWorldTime(date: CalendarDate): number {
-    const totalDays = this.dateToDays(date);
+  dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number {
+    // When world creation timestamp is provided, we need to reverse the world creation calculation
+    let adjustedDate = date;
+    if (worldCreationTimestamp !== undefined) {
+      const worldCreationDate = new Date(worldCreationTimestamp * 1000);
+      const worldCreationYear = worldCreationDate.getUTCFullYear();
+      const calendarEpoch = this.calendar.year?.epoch || 0;
+      const baseYear = worldCreationYear + calendarEpoch;
+
+      // Calculate how many years have passed since the base year
+      const yearsDifference = date.year - baseYear;
+
+      // Convert the date to use epoch-based year calculation
+      adjustedDate = new CalendarDate(
+        {
+          year: this.calendar.year?.epoch + yearsDifference,
+          month: date.month,
+          day: date.day,
+          weekday: date.weekday,
+          intercalary: date.intercalary,
+          time: date.time,
+        },
+        this.calendar
+      );
+    }
+
+    const totalDays = this.dateToDays(adjustedDate);
     const secondsPerDay = CalendarTimeUtils.getSecondsPerDay(this.calendar);
 
     let totalSeconds = totalDays * secondsPerDay;
 
     // Add time of day if provided
-    if (date.time) {
+    if (adjustedDate.time) {
       const secondsPerHour = CalendarTimeUtils.getSecondsPerHour(this.calendar);
-      totalSeconds += date.time.hour * secondsPerHour;
-      totalSeconds += date.time.minute * this.calendar.time.secondsInMinute;
-      totalSeconds += date.time.second;
+      totalSeconds += adjustedDate.time.hour * secondsPerHour;
+      totalSeconds += adjustedDate.time.minute * this.calendar.time.secondsInMinute;
+      totalSeconds += adjustedDate.time.second;
     }
 
     return this.adjustWorldTimeFromInterpretation(totalSeconds);
@@ -262,6 +329,7 @@ export class CalendarEngine {
       return worldTime + epochOffset;
     }
 
+    // Unknown interpretation mode: return worldTime unchanged (fallback behavior)
     return worldTime;
   }
 
@@ -339,9 +407,10 @@ export class CalendarEngine {
       remainingDays -= monthLength;
 
       // Check for intercalary days after this month
-      const intercalaryAfterMonth = intercalaryDays.filter(
-        i => i.after === this.calendar.months[month - 1].name
-      );
+      const currentMonthName = this.calendar.months[month - 1]?.name;
+      const intercalaryAfterMonth = currentMonthName
+        ? intercalaryDays.filter(i => i.after === currentMonthName)
+        : [];
 
       for (const intercalary of intercalaryAfterMonth) {
         const intercalaryDayCount = intercalary.days || 1;
@@ -402,9 +471,10 @@ export class CalendarEngine {
       totalDays += monthLengths[month - 1];
 
       // Add intercalary days after this month
-      const intercalaryAfterMonth = intercalaryDays.filter(
-        i => i.after === this.calendar.months[month - 1].name
-      );
+      const currentMonthName = this.calendar.months[month - 1]?.name;
+      const intercalaryAfterMonth = currentMonthName
+        ? intercalaryDays.filter(i => i.after === currentMonthName)
+        : [];
       // Sum up all days from intercalary periods (using days field, defaulting to 1)
       totalDays += intercalaryAfterMonth.reduce((sum, intercalary) => {
         return sum + (intercalary.days || 1);
@@ -474,9 +544,10 @@ export class CalendarEngine {
       totalDays += monthLengths[month - 1];
 
       // Add only weekday-contributing intercalary days after this month
-      const intercalaryAfterMonth = intercalaryDays.filter(
-        i => i.after === this.calendar.months[month - 1].name
-      );
+      const currentMonthName = this.calendar.months[month - 1]?.name;
+      const intercalaryAfterMonth = currentMonthName
+        ? intercalaryDays.filter(i => i.after === currentMonthName)
+        : [];
 
       intercalaryAfterMonth.forEach(intercalary => {
         const countsForWeekdays = intercalary.countsForWeekdays ?? true;

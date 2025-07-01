@@ -13,37 +13,10 @@
 import { describe, test } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import golarionCalendarData from '../calendars/golarion-pf2e.json';
 
-const golarionCalendar: SeasonsStarsCalendar = {
-  id: 'golarion-pf2e',
-  year: { epoch: 2700, currentYear: 4710, startDay: 6 },
-  leapYear: { rule: 'custom', interval: 4, month: 'Calistril', extraDays: 1 },
-  months: [
-    { name: 'Abadius', days: 31 },
-    { name: 'Calistril', days: 28 },
-    { name: 'Pharast', days: 31 },
-    { name: 'Gozran', days: 30 },
-    { name: 'Desnus', days: 31 },
-    { name: 'Sarenith', days: 30 },
-    { name: 'Erastus', days: 31 },
-    { name: 'Arodus', days: 31 },
-    { name: 'Rova', days: 30 },
-    { name: 'Lamashan', days: 31 },
-    { name: 'Neth', days: 30 },
-    { name: 'Kuthona', days: 31 },
-  ],
-  weekdays: [
-    { name: 'Moonday' },
-    { name: 'Toilday' },
-    { name: 'Wealday' },
-    { name: 'Oathday' },
-    { name: 'Fireday' },
-    { name: 'Starday' },
-    { name: 'Sunday' },
-  ],
-  intercalary: [],
-  time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
-};
+// Use the actual Golarion calendar JSON file instead of duplicating definitions
+const golarionCalendar: SeasonsStarsCalendar = golarionCalendarData as SeasonsStarsCalendar;
 
 describe('Leap Year Calculation Regression', () => {
   test('Check year 2700 length calculations', () => {

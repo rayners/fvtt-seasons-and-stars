@@ -98,7 +98,6 @@ describe('Performance Baseline Tests', () => {
     const gregorianEngine = new CalendarEngine(gregorianData);
 
     const iterations = 1000;
-    const testDate = { year: 2522, month: 1, day: 1, weekday: 0 };
 
     // Time WFRP calculations
     const wfrpStart = performance.now();

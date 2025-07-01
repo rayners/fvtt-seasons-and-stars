@@ -17,7 +17,6 @@
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
-import { CalendarManager } from '../src/core/calendar-manager';
 import { TimeConverter } from '../src/core/time-converter';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
 import * as fs from 'fs';
