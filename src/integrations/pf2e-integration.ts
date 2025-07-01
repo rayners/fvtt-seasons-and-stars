@@ -193,7 +193,7 @@ Hooks.on('ready', () => {
   }, 30000); // Check every 30 seconds
 
   // Store interval for cleanup
-  integration.syncMonitorInterval = syncInterval;
+  integration.syncMonitorInterval = syncInterval as unknown as number;
 });
 
 // Main integration entry point - register time source with S&S core

@@ -7,17 +7,20 @@
 
 import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
 import type { SeasonsStarsIntegration } from './bridge-interfaces';
-import type { NoteCategories } from '../core/note-categories';
 
 // Extend the Game interface to include S&S specific properties
 declare global {
   interface Game {
     seasonsStars?: {
       api?: SeasonsStarsAPI;
-      manager?: CalendarManagerInterface; // CalendarManager interface
-      notes?: NotesManagerInterface; // NotesManager interface
-      categories?: NoteCategories; // Note categories management
+      manager?: unknown; // CalendarManager interface
+      notes?: unknown; // NotesManager interface
+      categories?: unknown; // Note categories management
       integration?: SeasonsStarsIntegration | null;
+      // Warning state functions for debugging and external access
+      resetSeasonsWarningState?: () => void;
+      getSeasonsWarningState?: () => boolean;
+      setSeasonsWarningState?: (warned: boolean) => void;
     };
   }
 
