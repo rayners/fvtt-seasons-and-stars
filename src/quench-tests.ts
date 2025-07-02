@@ -5,6 +5,14 @@
  * Based on Journeys & Jamborees Quench test patterns
  */
 
+import type * as Quench from '@ethaks/fvtt-quench';
+
+declare global {
+  interface Window {
+    quench: Quench.Quench;
+  }
+}
+
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
