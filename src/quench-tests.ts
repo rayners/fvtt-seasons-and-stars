@@ -5,13 +5,8 @@
  * Based on Journeys & Jamborees Quench test patterns
  */
 
-import type * as Quench from '@ethaks/fvtt-quench';
-
-declare global {
-  interface Window {
-    quench: Quench.Quench;
-  }
-}
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Register Quench test batches
@@ -212,7 +207,7 @@ function registerSeasonsStarsQuenchTests(): void {
       describe('PF2e Integration - GitHub Issue #91', function () {
         let initialDate: any;
 
-        beforeEach(function () {
+        beforeEach?.(function () {
           // Store initial date for restoration
           const seasonsStars = (game as any).seasonsStars;
           if (seasonsStars?.api?.getCurrentDate) {
@@ -220,7 +215,7 @@ function registerSeasonsStarsQuenchTests(): void {
           }
         });
 
-        afterEach(async function () {
+        afterEach?.(async function () {
           // Restore initial date using S&S API
           const seasonsStars = (game as any).seasonsStars;
           if (initialDate && seasonsStars?.api?.setCurrentDate) {
