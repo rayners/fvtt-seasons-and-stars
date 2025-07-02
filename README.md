@@ -203,7 +203,33 @@ The 15 built-in calendar systems are designed to work with popular RPG settings 
 
 ## 🐛 Support & Feedback
 
-- **Issues**: [GitHub Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues)
+### Reporting Date Mismatch Issues
+
+If you're experiencing date synchronization problems between Seasons & Stars and other modules (especially PF2e), use our **Diagnostic Tool** to generate a comprehensive report:
+
+#### 🔧 **Using the Diagnostic Tool**
+
+1. **Install [Quench Module](https://foundryvtt.com/packages/quench)** (testing framework)
+2. **Enable both Quench and Seasons & Stars** in your world
+3. **Click the Quench flask icon** to open the test UI
+4. **Run "Seasons & Stars: Diagnostic Tools"** test batch
+5. **Copy the diagnostic data** from the browser console (F12)
+6. **Include this data** when reporting your issue
+
+The diagnostic tool captures:
+
+- 🕐 **World time data** (creation timestamp, current time)
+- 📅 **Calendar configuration** (active calendar, epochs, month/weekday counts)
+- 🎯 **PF2e integration status** (world clock data, settings, date comparison)
+- 🧩 **Module compatibility** (Simple Calendar, SmallTime, Simple Weather versions)
+- 🌐 **Browser environment** (version, memory usage, screen size)
+- 🔍 **Automatic analysis** (detects date mismatches and calculates differences)
+
+This saves significant troubleshooting time and helps us quickly identify the root cause of date synchronization issues.
+
+### Other Support Channels
+
+- **Issues**: [GitHub Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues) (include diagnostic data!)
 - **Documentation**: [Complete Guides](https://docs.rayners.dev/seasons-and-stars/intro)
 - **Discord**: [Foundry VTT Community](https://discord.gg/foundryvtt) - `#modules` channel
 

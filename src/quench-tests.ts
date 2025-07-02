@@ -21,6 +21,188 @@ function registerSeasonsStarsQuenchTests(): void {
 
   const quench = window.quench;
 
+  // Register Diagnostic tests
+  quench.registerBatch(
+    'seasons-stars.diagnostics',
+    context => {
+      const { describe, it, assert } = context;
+
+      describe('Date Mismatch Diagnostics', function () {
+        it('should generate comprehensive diagnostic report for date mismatch issues', function () {
+          console.log('\n🔍 SEASONS & STARS DIAGNOSTIC REPORT');
+          console.log('='.repeat(50));
+          console.log('📋 Copy this entire report when reporting date mismatch issues');
+          console.log('='.repeat(50));
+
+          const seasonsStars = (game as any).seasonsStars;
+          const diagnosticData: any = {
+            timestamp: new Date().toISOString(),
+            foundryVersion: (game as any).version,
+            systemId: (game as any).system?.id || 'unknown',
+            systemVersion: (game as any).system?.version || 'unknown',
+            moduleName: 'seasons-and-stars',
+            moduleVersion: (game as any).modules?.get('seasons-and-stars')?.version || 'unknown',
+          };
+
+          // Basic S&S availability
+          if (!seasonsStars?.api) {
+            diagnosticData.error = 'Seasons & Stars API not available';
+            console.log('❌ ERROR: Seasons & Stars API not available');
+            console.log(JSON.stringify(diagnosticData, null, 2));
+            return;
+          }
+
+          // Core Foundry time data
+          try {
+            diagnosticData.foundry = {
+              worldTime: (game as any).time?.worldTime || 'unknown',
+              worldCreationTimestamp: (game as any).time?.worldCreationTimestamp || 'unknown',
+              worldCreatedDate: (game as any).time?.worldCreationTimestamp
+                ? new Date((game as any).time.worldCreationTimestamp * 1000).toISOString()
+                : 'unknown',
+            };
+          } catch (error) {
+            diagnosticData.foundry = { error: String(error) };
+          }
+
+          // S&S calendar data
+          try {
+            const currentDate = seasonsStars.api.getCurrentDate();
+            const activeCalendar = seasonsStars.manager?.getActiveCalendar();
+
+            diagnosticData.seasonsStars = {
+              currentDate: currentDate,
+              activeCalendarId: activeCalendar?.id || 'unknown',
+              activeCalendarName: activeCalendar?.name || 'unknown',
+              calendarEpoch: activeCalendar?.year?.epoch || 'unknown',
+              weekdayCount: activeCalendar?.weekdays?.length || 'unknown',
+              monthCount: activeCalendar?.months?.length || 'unknown',
+            };
+          } catch (error) {
+            diagnosticData.seasonsStars = { error: String(error) };
+          }
+
+          // PF2e specific data (if available)
+          if ((game as any).system?.id === 'pf2e') {
+            try {
+              const pf2eWorldClock = (game as any).pf2e?.worldClock;
+              const pf2eSettings = (game as any).pf2e?.settings?.worldClock;
+
+              diagnosticData.pf2e = {
+                worldClockAvailable: !!pf2eWorldClock,
+                worldClock: pf2eWorldClock
+                  ? {
+                      year: pf2eWorldClock.year,
+                      month: pf2eWorldClock.month,
+                      day: pf2eWorldClock.day,
+                      weekday: pf2eWorldClock.weekday,
+                    }
+                  : 'not available',
+                settings: pf2eSettings
+                  ? {
+                      dateTheme: pf2eSettings.dateTheme,
+                      worldCreatedOn: pf2eSettings.worldCreatedOn,
+                      showClockButton: pf2eSettings.showClockButton,
+                    }
+                  : 'not available',
+              };
+
+              // Calculate differences if both systems have data
+              if (pf2eWorldClock && diagnosticData.seasonsStars.currentDate) {
+                const ssDate = diagnosticData.seasonsStars.currentDate;
+                diagnosticData.comparison = {
+                  yearDifference: Math.abs(ssDate.year - pf2eWorldClock.year),
+                  monthDifference: Math.abs(ssDate.month - pf2eWorldClock.month),
+                  dayDifference: Math.abs(ssDate.day - pf2eWorldClock.day),
+                  sameDate:
+                    ssDate.year === pf2eWorldClock.year &&
+                    ssDate.month === pf2eWorldClock.month &&
+                    ssDate.day === pf2eWorldClock.day,
+                };
+              }
+            } catch (error) {
+              diagnosticData.pf2e = { error: String(error) };
+            }
+          } else {
+            diagnosticData.pf2e = { note: 'Not using PF2e system' };
+          }
+
+          // Module compatibility data
+          try {
+            const modules = (game as any).modules;
+            diagnosticData.modules = {
+              simpleCalendar: {
+                active: modules?.get('foundryvtt-simple-calendar')?.active || false,
+                version: modules?.get('foundryvtt-simple-calendar')?.version || 'not installed',
+              },
+              smallTime: {
+                active: modules?.get('smalltime')?.active || false,
+                version: modules?.get('smalltime')?.version || 'not installed',
+              },
+              simpleWeather: {
+                active: modules?.get('simple-weather')?.active || false,
+                version: modules?.get('simple-weather')?.version || 'not installed',
+              },
+            };
+          } catch (error) {
+            diagnosticData.modules = { error: String(error) };
+          }
+
+          // Browser and performance data
+          try {
+            diagnosticData.environment = {
+              userAgent: navigator.userAgent,
+              memoryUsage: (performance as any).memory
+                ? {
+                    usedJSHeapSize:
+                      Math.round((performance as any).memory.usedJSHeapSize / 1024 / 1024) + 'MB',
+                    totalJSHeapSize:
+                      Math.round((performance as any).memory.totalJSHeapSize / 1024 / 1024) + 'MB',
+                  }
+                : 'not available',
+              windowSize: `${window.innerWidth}x${window.innerHeight}`,
+              timestamp: Date.now(),
+            };
+          } catch (error) {
+            diagnosticData.environment = { error: String(error) };
+          }
+
+          // Output the complete diagnostic report
+          console.log('📊 DIAGNOSTIC DATA:');
+          console.log(JSON.stringify(diagnosticData, null, 2));
+          console.log('\n📋 COPY THE ABOVE JSON WHEN REPORTING ISSUES');
+          console.log('='.repeat(50));
+
+          // Provide quick analysis
+          if (diagnosticData.comparison) {
+            console.log('\n🔍 QUICK ANALYSIS:');
+            if (diagnosticData.comparison.sameDate) {
+              console.log('✅ S&S and PF2e show the same date - no mismatch detected');
+            } else {
+              console.log('⚠️ DATE MISMATCH DETECTED:');
+              console.log(
+                `   S&S Date: ${diagnosticData.seasonsStars.currentDate.year}-${diagnosticData.seasonsStars.currentDate.month}-${diagnosticData.seasonsStars.currentDate.day}`
+              );
+              console.log(
+                `   PF2e Date: ${diagnosticData.pf2e.worldClock.year}-${diagnosticData.pf2e.worldClock.month}-${diagnosticData.pf2e.worldClock.day}`
+              );
+              console.log(
+                `   Differences: ${diagnosticData.comparison.yearDifference} years, ${diagnosticData.comparison.monthDifference} months, ${diagnosticData.comparison.dayDifference} days`
+              );
+            }
+          }
+
+          // Always pass - this is a diagnostic test, not a validation test
+          assert.ok(true, 'Diagnostic report generated successfully');
+        });
+      });
+    },
+    {
+      displayName: 'Seasons & Stars: Diagnostic Tools',
+      preSelected: true,
+    }
+  );
+
   // Register PF2e Integration tests
   quench.registerBatch(
     'seasons-stars.pf2e-integration',
