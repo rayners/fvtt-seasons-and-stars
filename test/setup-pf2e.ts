@@ -11,13 +11,12 @@
 
 import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
 import { existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Use relative path from test directory - more reliable in test environments
 const pf2eWorldClockPath = join(
-  __dirname,
+  process.cwd(),
+  'test',
   'fixtures',
   'pf2e-system',
   'src',
