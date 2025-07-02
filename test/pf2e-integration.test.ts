@@ -225,6 +225,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
 
       // This suggests someone might be using a different calendar standard
       // or there's a calculation error adding an extra ~2024 years
+      console.log(`Alternative offset calculation: ${alternativeOffset}`);
 
       console.log(`Correct PF2e year: ${correctPF2eYear} (2025 + 2700)`);
       console.log(`Reported discrepancy: 6749`);
