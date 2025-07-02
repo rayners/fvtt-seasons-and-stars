@@ -7,11 +7,8 @@
 
 import type * as Quench from '@ethaks/fvtt-quench';
 
-declare global {
-  interface Window {
-    quench: Quench.Quench;
-  }
-}
+// Use module declaration instead of global to avoid conflicts with package's own globals
+declare const quench: Quench.Quench | undefined;
 
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -20,9 +17,7 @@ declare global {
  * Register Quench test batches
  */
 function registerSeasonsStarsQuenchTests(): void {
-  if (!window.quench) return;
-
-  const quench = window.quench;
+  if (!quench) return;
 
   // Register Diagnostic tests
   quench.registerBatch(
