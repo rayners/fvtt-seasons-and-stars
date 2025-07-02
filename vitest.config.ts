@@ -25,6 +25,7 @@ export default defineConfig({
         'calendars/',
         'languages/',
         'scripts/',
+        'src/quench-tests.ts', // Quench integration tests (not unit tests)
       ],
       thresholds: {
         global: {
