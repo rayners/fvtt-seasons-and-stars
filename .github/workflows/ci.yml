@@ -20,48 +20,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Run CI Pipeline
+        uses: rayners/foundry-module-actions/ci@v5
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Format Check
-        run: npm run format:check
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Type Check
-        run: npm run typecheck
-
-      - name: Run Tests
-        run: |
-          if [[ "${{ matrix.node-version }}" == "18" && "${{ github.event_name }}" == "push" ]]; then
-            # Run tests with both coverage and JUnit output for Node 18 on push
-            npx vitest run --coverage --reporter=default --reporter=junit --outputFile=test-report.junit.xml
-          else
-            # Run tests with JUnit output only
-            npx vitest run --reporter=default --reporter=junit --outputFile=test-report.junit.xml
-          fi
-
-      - name: Upload Coverage to Codecov
-        if: matrix.node-version == '18' && github.event_name == 'push'
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage/lcov.info
-          slug: rayners/fvtt-seasons-and-stars
-
-      - name: Upload Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results-node-${{ matrix.node-version }}
-          path: test-report.junit.xml
-
-      - name: Build
-        run: npm run build
+          github-packages: true
+          codecov: true
+          codecov-slug: rayners/fvtt-seasons-and-stars
+          coverage-node-version: '18'
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
+          junit-output: true
