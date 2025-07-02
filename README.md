@@ -205,27 +205,38 @@ The 15 built-in calendar systems are designed to work with popular RPG settings 
 
 ### Reporting Date Mismatch Issues
 
-If you're experiencing date synchronization problems between Seasons & Stars and other modules (especially PF2e), use our **Diagnostic Tool** to generate a comprehensive report:
+If you're experiencing date synchronization problems between Seasons & Stars and other modules (especially PF2e), please include this diagnostic information when reporting your issue:
 
-#### 🔧 **Using the Diagnostic Tool**
+#### 🔧 **Gathering Diagnostic Information**
 
-1. **Install [Quench Module](https://foundryvtt.com/packages/quench)** (testing framework)
-2. **Enable both Quench and Seasons & Stars** in your world
-3. **Click the Quench flask icon** to open the test UI
-4. **Run "Seasons & Stars: Diagnostic Tools"** test batch
-5. **Copy the diagnostic data** from the browser console (F12)
-6. **Include this data** when reporting your issue
+**Open your browser console (F12) and run these commands:**
 
-The diagnostic tool captures:
+```javascript
+// Basic system information
+console.log('=== Seasons & Stars Diagnostic ===');
+console.log('System ID:', game.system?.id);
+console.log('World Time:', game.time?.worldTime);
+console.log('Active Calendar:', game.seasonsStars?.manager?.getActiveCalendar()?.id);
 
-- 🕐 **World time data** (creation timestamp, current time)
-- 📅 **Calendar configuration** (active calendar, epochs, month/weekday counts)
-- 🎯 **PF2e integration status** (world clock data, settings, date comparison)
-- 🧩 **Module compatibility** (Simple Calendar, SmallTime, Simple Weather versions)
-- 🌐 **Browser environment** (version, memory usage, screen size)
-- 🔍 **Automatic analysis** (detects date mismatches and calculates differences)
+// S&S current date
+const ssDate = game.seasonsStars?.manager?.timeConverter?.getCurrentDate();
+console.log('S&S Date:', ssDate?.year, ssDate?.month, ssDate?.day, ssDate?.time);
 
-This saves significant troubleshooting time and helps us quickly identify the root cause of date synchronization issues.
+// For PF2e systems, include this data
+if (game.system?.id === 'pf2e') {
+  console.log('PF2e worldCreatedOn:', game.pf2e?.settings?.worldClock?.worldCreatedOn);
+  const baseDate = game.seasonsStars?.compatibilityManager?.getSystemData('pf2e', 'systemBaseDate');
+  console.log('PF2e Base Date:', baseDate);
+}
+
+// Module versions
+console.log('S&S Version:', game.modules.get('seasons-and-stars')?.version);
+console.log('Browser:', navigator.userAgent);
+```
+
+**Copy the console output and include it in your issue report.**
+
+This diagnostic information helps us quickly identify the root cause of date synchronization issues and provide targeted solutions.
 
 ### Other Support Channels
 

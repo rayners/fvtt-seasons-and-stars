@@ -41,61 +41,102 @@ export class CalendarEngine {
 
     // Calculate time of day
     const secondsPerHour = CalendarTimeUtils.getSecondsPerHour(this.calendar);
-    const hour = Math.floor(secondsInDay / secondsPerHour);
-    const minute = Math.floor((secondsInDay % secondsPerHour) / this.calendar.time.secondsInMinute);
-    const second = secondsInDay % this.calendar.time.secondsInMinute;
+    let hour = Math.floor(secondsInDay / secondsPerHour);
+    let minute = Math.floor((secondsInDay % secondsPerHour) / this.calendar.time.secondsInMinute);
+    let second = secondsInDay % this.calendar.time.secondsInMinute;
 
     // Normalize -0 to +0 for JavaScript precision issues
-    const normalizedHour = hour === 0 ? 0 : hour;
-    const normalizedMinute = minute === 0 ? 0 : minute;
-    const normalizedSecond = second === 0 ? 0 : second;
+    let normalizedHour = hour === 0 ? 0 : hour;
+    let normalizedMinute = minute === 0 ? 0 : minute;
+    let normalizedSecond = second === 0 ? 0 : second;
 
     // Convert days to calendar date
     const dateInfo = this.daysToDate(totalDays);
 
-    // Adjust year calculation for world creation timestamp (PF2e-style integration)
+    // Adjust date calculation for system-specific integration
     let adjustedYear = dateInfo.year;
+    let adjustedMonth = dateInfo.month;
+    let adjustedDay = dateInfo.day;
+    let adjustedWeekday = dateInfo.weekday;
+
     if (worldCreationTimestamp !== undefined) {
-      // Convert world creation timestamp to year
-      const worldCreationDate = new Date(worldCreationTimestamp * 1000);
-      const worldCreationYear = worldCreationDate.getUTCFullYear();
+      const currentSystem = game.system?.id;
+      if (currentSystem) {
+        try {
+          // Check if system provides a base date mapping (real-world date to calendar date)
+          const systemBaseDate = compatibilityManager.getSystemData<{
+            year: number;
+            month: number;
+            day: number;
+            hour?: number;
+            minute?: number;
+            second?: number;
+          }>(currentSystem, 'systemBaseDate');
 
-      // Use PF2e-style calculation: world creation year + calendar epoch offset
-      const calendarEpoch = this.calendar.year?.epoch || 0;
-      adjustedYear = worldCreationYear + calendarEpoch;
+          if (systemBaseDate) {
+            // Use system-provided base date calculation
+            const baseDate = new CalendarDate(
+              {
+                year: systemBaseDate.year,
+                month: systemBaseDate.month,
+                day: systemBaseDate.day,
+                weekday: 0, // Will be calculated
+                time: {
+                  hour: systemBaseDate.hour || 0,
+                  minute: systemBaseDate.minute || 0,
+                  second: systemBaseDate.second || 0,
+                },
+              },
+              this.calendar
+            );
 
-      // Add any additional years from worldTime progression
-      // Use proper calendar year calculation for both positive and negative time
-      let remainingDays = totalDays;
-      let yearsSinceCreation = 0;
+            // Convert base date to total seconds
+            const baseSeconds = this.dateToWorldTime(baseDate);
 
-      if (remainingDays >= 0) {
-        // Handle positive time advancement
-        let testYear = adjustedYear;
-        while (remainingDays >= this.getYearLength(testYear)) {
-          remainingDays -= this.getYearLength(testYear);
-          yearsSinceCreation++;
-          testYear++;
-        }
-      } else {
-        // Handle negative time (going backwards)
-        let testYear = adjustedYear - 1;
-        while (remainingDays < 0) {
-          const yearLength = this.getYearLength(testYear);
-          remainingDays += yearLength;
-          yearsSinceCreation--;
-          testYear--;
+            // Add worldTime progression to get final date
+            const finalSeconds = baseSeconds + worldTime;
+            const finalTotalDays = Math.floor(finalSeconds / secondsPerDay);
+            const finalDateInfo = this.daysToDate(finalTotalDays);
+
+            // Use the system-calculated date
+            adjustedYear = finalDateInfo.year;
+            adjustedMonth = finalDateInfo.month;
+            adjustedDay = finalDateInfo.day;
+            adjustedWeekday = finalDateInfo.weekday;
+
+            // Recalculate seconds in day for the final date
+            secondsInDay = Math.floor(finalSeconds % secondsPerDay);
+            if (secondsInDay < 0) {
+              secondsInDay += secondsPerDay;
+            }
+
+            // Recalculate time components from updated secondsInDay
+            hour = Math.floor(secondsInDay / secondsPerHour);
+            minute = Math.floor(
+              (secondsInDay % secondsPerHour) / this.calendar.time.secondsInMinute
+            );
+            second = secondsInDay % this.calendar.time.secondsInMinute;
+
+            // Update normalized time values
+            normalizedHour = hour === 0 ? 0 : hour;
+            normalizedMinute = minute === 0 ? 0 : minute;
+            normalizedSecond = second === 0 ? 0 : second;
+          } else {
+            // Fallback: use calendar's currentYear if no base date mapping
+            adjustedYear = this.calendar.year?.currentYear || this.calendar.year?.epoch || 0;
+          }
+        } catch {
+          // If integration fails, fall back to normal calculation
+          adjustedYear = dateInfo.year;
         }
       }
-
-      adjustedYear += yearsSinceCreation;
     }
 
     const dateData: CalendarDateData = {
       year: adjustedYear,
-      month: dateInfo.month,
-      day: dateInfo.day,
-      weekday: dateInfo.weekday,
+      month: adjustedMonth,
+      day: adjustedDay,
+      weekday: adjustedWeekday,
       intercalary: dateInfo.intercalary,
       time: { hour: normalizedHour, minute: normalizedMinute, second: normalizedSecond },
     };

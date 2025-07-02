@@ -9,6 +9,7 @@ import './styles/seasons-and-stars.scss';
 import { Logger } from './core/logger';
 import { CalendarManager } from './core/calendar-manager';
 import { NotesManager } from './core/notes-manager';
+import { compatibilityManager } from './core/compatibility-manager';
 import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
 import { CalendarLocalization } from './core/calendar-localization';
@@ -1078,6 +1079,7 @@ export function setupAPI(): void {
       notes: notesManager,
       categories: noteCategories, // Will be available by this point since ready runs after init
       integration: SeasonsStarsIntegration.detect(),
+      compatibilityManager, // Expose for debugging and external access
       // Expose warning state functions for debugging and external access
       resetSeasonsWarningState,
       getSeasonsWarningState,

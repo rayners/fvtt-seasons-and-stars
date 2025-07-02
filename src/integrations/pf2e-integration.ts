@@ -6,7 +6,6 @@
  */
 
 import { Logger } from '../core/logger';
-import { CalendarDate } from '../core/calendar-date';
 
 /**
  * Simple PF2e Integration Manager
@@ -15,7 +14,6 @@ import { CalendarDate } from '../core/calendar-date';
  */
 export class PF2eIntegration {
   private static instance: PF2eIntegration | null = null;
-  public syncMonitorInterval: number | null = null;
   private isActive: boolean = false;
 
   private constructor() {
@@ -51,7 +49,9 @@ export class PF2eIntegration {
    */
   getWorldCreatedOn(): string | null {
     try {
-      const worldCreatedOn = (game as any).pf2e?.settings?.worldClock?.worldCreatedOn;
+      const worldCreatedOn = (
+        game as { pf2e?: { settings?: { worldClock?: { worldCreatedOn?: string } } } }
+      ).pf2e?.settings?.worldClock?.worldCreatedOn;
       return worldCreatedOn || null;
     } catch (error) {
       Logger.error(
@@ -63,21 +63,17 @@ export class PF2eIntegration {
   }
 
   /**
-   * Get PF2e-specific world time
-   *
-   * DIAGNOSTIC: Understanding worldCreatedOn vs S&S epoch difference
+   * Get PF2e-style base date for calendar calculations
+   * Maps real-world creation date to Golarion calendar following PF2e's approach
    */
-  getPF2eWorldTime(): number | null {
+  getPF2eBaseDate(): { year: number; month: number; day: number } | null {
     try {
-      const foundryWorldTime = (game as any).time?.worldTime || 0;
       const worldCreatedOn = this.getWorldCreatedOn();
-
       if (!worldCreatedOn) {
-        Logger.debug('No PF2e worldCreatedOn found - using standard worldTime');
+        Logger.debug('No PF2e worldCreatedOn found');
         return null;
       }
 
-      // Calculate PF2e's current real-world date (same as PF2e World Clock)
       const pf2eCreationDate = new Date(worldCreatedOn);
       if (isNaN(pf2eCreationDate.getTime())) {
         Logger.error(
@@ -87,94 +83,96 @@ export class PF2eIntegration {
         return null;
       }
 
-      const pf2eCreationSeconds = Math.floor(pf2eCreationDate.getTime() / 1000);
-      const pf2eTotalSeconds = pf2eCreationSeconds + foundryWorldTime;
-      const realWorldDate = new Date(pf2eTotalSeconds * 1000);
-
-      // Map real-world date to Golarion calendar date using UTC (same as PF2e)
-      // PF2e maps: August 12, 2025 → 12th Arodus 4725 AR
-      // Month mapping: real-world month → same Golarion month
-      // Day mapping: real-world day → same Golarion day
-      // Year mapping: real-world year + 2700 → Golarion AR year
-      const golarionYear = 4725; // PF2e displays 2025 as 4725 AR
-      const golarionMonth = realWorldDate.getUTCMonth() + 1; // Convert to 1-based, use UTC
-      const golarionDay = realWorldDate.getUTCDate(); // Use UTC
-      const golarionHour = realWorldDate.getUTCHours(); // Use UTC
-      const golarionMinute = realWorldDate.getUTCMinutes(); // Use UTC
-      const golarionSecond = realWorldDate.getUTCSeconds(); // Use UTC
-
-      Logger.debug('PF2e date mapping:', {
-        realWorldDate: realWorldDate.toISOString(),
-        golarionDate: {
-          year: golarionYear,
-          month: golarionMonth,
-          day: golarionDay,
-          time: `${golarionHour}:${golarionMinute}:${golarionSecond}`,
-        },
-      });
-
-      // Get S&S calendar manager and utilities
-      const calendarManager = (game as any).seasonsStars?.manager;
+      // Get the active calendar to use its structure
+      const calendarManager = game.seasonsStars?.manager;
       if (!calendarManager) {
-        Logger.error('S&S calendar manager not available');
+        Logger.error('Calendar manager not available for PF2e date mapping');
         return null;
       }
 
-      const calendar = calendarManager.getActiveCalendar();
-      const engine = calendarManager.getActiveEngine();
+      const activeCalendar = calendarManager.getActiveCalendar();
+      if (!activeCalendar || activeCalendar.id !== 'golarion-pf2e') {
+        Logger.debug('PF2e integration only works with Golarion calendar');
+        return null;
+      }
 
-      // Create CalendarDate using S&S calendar utilities
-      const golarionCalendarDate = new CalendarDate(
-        {
-          year: golarionYear,
-          month: golarionMonth,
-          day: golarionDay,
-          weekday: 0, // Will be calculated by CalendarDate
-          time: {
-            hour: golarionHour,
-            minute: golarionMinute,
-            second: golarionSecond,
-          },
-        },
-        calendar
-      );
+      // PF2e maps real-world dates directly to Golarion calendar
+      // January = Abadius (month 1), June = Sarenith (month 6), etc.
+      const golarionYear = activeCalendar.year?.currentYear || 4725;
+      const golarionMonth = pf2eCreationDate.getUTCMonth() + 1; // 1-based
+      const golarionDay = pf2eCreationDate.getUTCDate();
 
-      // Use S&S's dateToWorldTime() utility to get correct worldTime
-      const correctWorldTime = engine.dateToWorldTime(golarionCalendarDate);
+      // Validate month is within calendar bounds
+      if (golarionMonth < 1 || golarionMonth > activeCalendar.months.length) {
+        Logger.error(
+          `Invalid month ${golarionMonth} for calendar with ${activeCalendar.months.length} months`
+        );
+        return null;
+      }
 
-      Logger.debug('S&S calendar conversion result:', {
-        inputDate: golarionCalendarDate.toObject(),
-        outputWorldTime: correctWorldTime,
+      const monthName = activeCalendar.months[golarionMonth - 1]?.name || 'Unknown';
+
+      Logger.debug('PF2e base date calculation:', {
+        worldCreatedOn,
+        realWorldDate: pf2eCreationDate.toISOString(),
+        golarionBaseDate: `${golarionDay} ${monthName}, ${golarionYear} AR`,
       });
 
-      return correctWorldTime;
+      // Include the time component from world creation for accurate time matching
+      const golarionHour = pf2eCreationDate.getUTCHours();
+      const golarionMinute = pf2eCreationDate.getUTCMinutes();
+      const golarionSecond = pf2eCreationDate.getUTCSeconds();
+
+      return {
+        year: golarionYear,
+        month: golarionMonth,
+        day: golarionDay,
+        hour: golarionHour,
+        minute: golarionMinute,
+        second: golarionSecond,
+      };
     } catch (error) {
-      Logger.error(
-        'Error converting PF2e date using S&S calendar utilities:',
-        error instanceof Error ? error : undefined
-      );
+      Logger.error('Error calculating PF2e base date:', error instanceof Error ? error : undefined);
       return null;
     }
   }
 
   /**
-   * Check for time synchronization issues between Foundry and PF2e
+   * Get PF2e world creation timestamp as fixed baseline
+   * This is the only data PF2e should provide - let S&S handle all date calculations
    */
-  checkPF2eTimeSync(): void {
-    const foundryTime = game.time?.worldTime || 0;
+  getWorldCreationTimestamp(): number | null {
+    try {
+      const worldCreatedOn = this.getWorldCreatedOn();
+      if (!worldCreatedOn) {
+        Logger.debug('No PF2e worldCreatedOn found');
+        return null;
+      }
 
-    // Since we're using standard worldTime, both systems should be synchronized
-    // This method now primarily serves as a monitoring function
-    Logger.debug('PF2e time sync check - using standard Foundry worldTime:', {
-      foundryTime,
-      message: 'Both PF2e and S&S using same worldTime base',
-    });
+      const pf2eCreationDate = new Date(worldCreatedOn);
+      if (isNaN(pf2eCreationDate.getTime())) {
+        Logger.error(
+          'Invalid PF2e worldCreatedOn format:',
+          new Error(`Invalid date format: ${worldCreatedOn}`)
+        );
+        return null;
+      }
 
-    // Emit hook for any widgets that want to know about time updates
-    Hooks.callAll('seasons-stars:pf2eTimeSync', {
-      foundryTime,
-      synchronized: true,
-    });
+      const timestamp = Math.floor(pf2eCreationDate.getTime() / 1000);
+      Logger.debug('PF2e world creation timestamp:', {
+        worldCreatedOn,
+        timestamp,
+        readableDate: pf2eCreationDate.toISOString(),
+      });
+
+      return timestamp;
+    } catch (error) {
+      Logger.error(
+        'Error getting PF2e world creation timestamp:',
+        error instanceof Error ? error : undefined
+      );
+      return null;
+    }
   }
 
   /**
@@ -195,53 +193,34 @@ export class PF2eIntegration {
    * Cleanup integration when module is disabled
    */
   destroy(): void {
-    if (this.syncMonitorInterval) {
-      clearInterval(this.syncMonitorInterval);
-      this.syncMonitorInterval = null;
-    }
     this.isActive = false;
   }
 }
 
-// Time monitoring - start periodic sync checking when ready
-Hooks.on('ready', () => {
-  const integration = PF2eIntegration.getInstance();
-  if (!integration?.isIntegrationActive()) return;
-
-  const syncInterval = setInterval(() => {
-    integration.checkPF2eTimeSync();
-  }, 30000); // Check every 30 seconds
-
-  // Store interval for cleanup
-  integration.syncMonitorInterval = syncInterval as unknown as number;
-});
-
 // Main integration entry point - register time source and data providers with S&S core
-Hooks.on('seasons-stars:pf2e:systemDetected', (compatibilityManager: any) => {
-  Logger.debug(
-    'PF2e system detected - registering time source and data providers with compatibility manager'
-  );
+Hooks.on(
+  'seasons-stars:pf2e:systemDetected',
+  (compatibilityManager: {
+    registerDataProvider: (system: string, key: string, provider: () => unknown) => void;
+  }) => {
+    Logger.debug(
+      'PF2e system detected - registering time source and data providers with compatibility manager'
+    );
 
-  // Initialize PF2e integration
-  const integration = PF2eIntegration.initialize();
+    // Initialize PF2e integration
+    const integration = PF2eIntegration.initialize();
 
-  // Create time source function that uses the integration's logic
-  const pf2eTimeSourceFunction = (): number | null => {
-    return integration.getPF2eWorldTime();
-  };
+    // PF2e integration no longer provides external time source
+    // Instead, we just provide the world creation timestamp as baseline
 
-  // Register time source with the compatibility manager
-  compatibilityManager.registerTimeSource('pf2e', pf2eTimeSourceFunction);
+    // Register world creation timestamp data provider
+    compatibilityManager.registerDataProvider('pf2e', 'worldCreationTimestamp', () => {
+      return integration.getWorldCreationTimestamp();
+    });
 
-  // Register world creation timestamp data provider
-  compatibilityManager.registerDataProvider('pf2e', 'worldCreationTimestamp', () => {
-    const worldCreatedOn = integration.getWorldCreatedOn();
-    if (worldCreatedOn) {
-      const timestamp = new Date(worldCreatedOn).getTime() / 1000;
-      if (isFinite(timestamp) && timestamp > 0) {
-        return timestamp;
-      }
-    }
-    return null;
-  });
-});
+    // Register system base date provider for real-world date mapping
+    compatibilityManager.registerDataProvider('pf2e', 'systemBaseDate', () => {
+      return integration.getPF2eBaseDate();
+    });
+  }
+);
