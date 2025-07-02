@@ -38,13 +38,7 @@ jobs:
       - name: Type Check
         run: npm run typecheck
 
-      - name: Setup Game Systems for Integration Testing
-        run: |
-          echo "🎮 Setting up game systems for integration testing..."
-          npm run setup-integration-testing
-          echo "✅ Game system setup complete"
-
-      - name: Run Tests with Integration Testing
+      - name: Run Tests
         run: |
           if [[ "${{ matrix.node-version }}" == "18" && "${{ github.event_name }}" == "push" ]]; then
             # Run tests with both coverage and JUnit output for Node 18 on push
