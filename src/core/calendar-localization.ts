@@ -210,7 +210,14 @@ export class CalendarLocalization {
   static createCalendarChoices(calendars: SeasonsStarsCalendar[]): { [key: string]: string } {
     const choices: { [key: string]: string } = {};
 
-    for (const calendar of calendars) {
+    // Sort calendars alphabetically by their display labels
+    const sortedCalendars = [...calendars].sort((a, b) => {
+      const labelA = this.getCalendarLabel(a);
+      const labelB = this.getCalendarLabel(b);
+      return labelA.localeCompare(labelB);
+    });
+
+    for (const calendar of sortedCalendars) {
       choices[calendar.id] = this.getCalendarLabel(calendar);
     }
 
