@@ -8,8 +8,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { CalendarDate } from '../src/core/calendar-date';
+import { compatibilityManager } from '../src/core/compatibility-manager';
 import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
 import golarionCalendarData from '../calendars/golarion-pf2e.json';
+import { setupRealPF2eEnvironment } from './setup-pf2e';
 
 // Use the actual Golarion calendar JSON file instead of duplicating definitions
 const golarionCalendar: SeasonsStarsCalendar = golarionCalendarData as SeasonsStarsCalendar;
@@ -18,6 +20,24 @@ describe('CalendarEngine - World Creation Timestamp Support', () => {
   let engine: CalendarEngine;
 
   beforeEach(() => {
+    // Set up PF2e environment for these tests
+    setupRealPF2eEnvironment({
+      worldCreationTimestamp: Math.floor(new Date('2025-01-01T00:00:00.000Z').getTime() / 1000),
+      currentWorldTime: 0,
+      expectedWorldCreationYear: 2025,
+      dateTheme: 'AR',
+    });
+
+    // Set up compatibility manager with PF2e system base date provider
+    compatibilityManager.registerDataProvider('pf2e', 'systemBaseDate', () => ({
+      year: 4725, // PF2e AR year for 2025 creation
+      month: 1, // January -> Abadius
+      day: 1, // 1st
+      hour: 0,
+      minute: 0,
+      second: 0,
+    }));
+
     engine = new CalendarEngine(golarionCalendar);
   });
 
@@ -108,7 +128,7 @@ describe('CalendarEngine - World Creation Timestamp Support', () => {
         { worldTime: 0, expectedYear: 4725, expectedMonth: 1, expectedDay: 1 },
         { worldTime: 86400, expectedYear: 4725, expectedMonth: 1, expectedDay: 2 }, // +1 day
         { worldTime: 86400 * 31, expectedYear: 4725, expectedMonth: 2, expectedDay: 1 }, // +31 days (Feb 1)
-        { worldTime: 86400 * 365, expectedYear: 4726, expectedMonth: 12, expectedDay: 31 }, // +365 days
+        { worldTime: 86400 * 365, expectedYear: 4726, expectedMonth: 1, expectedDay: 1 }, // +365 days = Jan 1 next year
       ];
 
       testCases.forEach(({ worldTime, expectedYear, expectedMonth, expectedDay }) => {
@@ -149,8 +169,8 @@ describe('CalendarEngine - World Creation Timestamp Support', () => {
       const result = engine.worldTimeToDate(twoYearsInSeconds, worldCreationTimestamp);
 
       expect(result.year).toBe(4727); // Base year + 2 years
-      expect(result.month).toBe(12);
-      expect(result.day).toBe(31);
+      expect(result.month).toBe(1);
+      expect(result.day).toBe(1);
     });
   });
 
@@ -191,8 +211,8 @@ describe('CalendarEngine - World Creation Timestamp Support', () => {
       const worldTime = engine.dateToWorldTime(originalDate, worldCreationTimestamp);
       const convertedDate = engine.worldTimeToDate(worldTime, worldCreationTimestamp);
 
-      // Document the actual behavior (not ideal, but this is edge case handling)
-      expect(convertedDate.year).toBe(4726); // Off by one year
+      // Document the actual behavior - converting from the last day of a year should round-trip correctly
+      expect(convertedDate.year).toBe(4725); // Same year
       expect(convertedDate.month).toBe(12);
       expect(convertedDate.day).toBe(31);
     });

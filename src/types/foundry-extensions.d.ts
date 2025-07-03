@@ -17,6 +17,7 @@ declare global {
       notes?: unknown; // NotesManager interface
       categories?: unknown; // Note categories management
       integration?: SeasonsStarsIntegration | null;
+      compatibilityManager?: unknown; // Expose for debugging and external access
       // Warning state functions for debugging and external access
       resetSeasonsWarningState?: () => void;
       getSeasonsWarningState?: () => boolean;

@@ -110,3 +110,10 @@ public
 # Temporary folders
 tmp/
 temp/
+
+# Test fixtures - Real PF2e system code for integration testing
+# These files are shallow-cloned from https://github.com/foundryvtt/pf2e for authentic testing
+# They are used only for testing and are NOT included in module distributions
+test/fixtures/pf2e-system/
+test/fixtures/*/node_modules/
+test/fixtures/*/*.zip

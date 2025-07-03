@@ -138,22 +138,11 @@ export class TimeConverter {
    * Get the current calendar date based on Foundry world time
    */
   getCurrentDate(): CalendarDate {
-    let worldTime = game.time?.worldTime || 0;
+    const worldTime = game.time?.worldTime || 0;
 
-    // Check for external time sources via compatibility manager
-    const currentSystem = game.system?.id;
-    if (currentSystem) {
-      const externalTime = compatibilityManager.getExternalTimeSource(currentSystem);
-      if (externalTime !== null) {
-        Logger.debug(
-          `Using external time source for ${currentSystem}: ${externalTime} (Foundry: ${worldTime})`
-        );
-        worldTime = externalTime;
-      }
-    }
-
-    // Allow system-specific integrations to provide world creation timestamp
+    // Get world creation timestamp from system-specific integrations
     let worldCreationTimestamp: number | undefined;
+    const currentSystem = game.system?.id;
     if (currentSystem) {
       try {
         const timestamp = compatibilityManager.getSystemData<number>(
@@ -161,6 +150,11 @@ export class TimeConverter {
           'worldCreationTimestamp'
         );
         worldCreationTimestamp = timestamp ?? undefined;
+        if (worldCreationTimestamp) {
+          Logger.debug(
+            `Using world creation timestamp for ${currentSystem}: ${worldCreationTimestamp}`
+          );
+        }
       } catch (error) {
         Logger.warn(`Error getting world creation timestamp for ${currentSystem}:`, error);
         // Continue with undefined worldCreationTimestamp

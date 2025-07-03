@@ -9,6 +9,7 @@ import './styles/seasons-and-stars.scss';
 import { Logger } from './core/logger';
 import { CalendarManager } from './core/calendar-manager';
 import { NotesManager } from './core/notes-manager';
+import { compatibilityManager } from './core/compatibility-manager';
 import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
 import { CalendarLocalization } from './core/calendar-localization';
@@ -40,6 +41,9 @@ import type {
 
 // Import integrations (they register their own hooks independently)
 import './integrations/pf2e-integration';
+
+// Import quench tests - they self-register via the quenchReady hook
+import './quench-tests';
 
 // Module instances
 let calendarManager: CalendarManager;
@@ -1075,6 +1079,7 @@ export function setupAPI(): void {
       notes: notesManager,
       categories: noteCategories, // Will be available by this point since ready runs after init
       integration: SeasonsStarsIntegration.detect(),
+      compatibilityManager, // Expose for debugging and external access
       // Expose warning state functions for debugging and external access
       resetSeasonsWarningState,
       getSeasonsWarningState,

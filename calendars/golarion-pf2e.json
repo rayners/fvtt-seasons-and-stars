@@ -16,8 +16,8 @@
 
   "compatibility": {
     "pf2e": {
-      "weekdayOffset": 5,
-      "description": "Adjusts weekday calculation to match PF2e World Clock expectations. PF2e uses real-world calendar math while S&S uses fantasy calendar math, creating a 5-position weekday difference."
+      "weekdayOffset": 0,
+      "description": "PF2e weekday calculation already matches expectations - no offset needed."
     }
   },
 
@@ -30,8 +30,7 @@
   },
 
   "leapYear": {
-    "rule": "custom",
-    "interval": 4,
+    "rule": "gregorian",
     "month": "Calistril",
     "extraDays": 1
   },
