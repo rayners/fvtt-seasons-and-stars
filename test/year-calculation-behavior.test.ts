@@ -12,14 +12,43 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
+import { compatibilityManager } from '../src/core/compatibility-manager';
 import type { SeasonsStarsCalendar, ICalendarDate } from '../src/types/calendar-types';
 import golarionCalendarData from '../calendars/golarion-pf2e.json';
+import { setupRealPF2eEnvironment } from './setup-pf2e';
 
 describe('Year Calculation Behavior', () => {
   let golarionCalendar: SeasonsStarsCalendar;
   let engine: CalendarEngine;
 
   beforeEach(() => {
+    // Set up PF2e environment for these tests
+    setupRealPF2eEnvironment({
+      worldCreationTimestamp: Math.floor(new Date('2025-01-01T00:00:00.000Z').getTime() / 1000),
+      currentWorldTime: 0,
+      expectedWorldCreationYear: 2025,
+      dateTheme: 'AR',
+    });
+
+    // Set up compatibility manager with PF2e system base date provider
+    // This will be dynamically updated by tests that need different base dates
+    compatibilityManager.registerDataProvider('pf2e', 'systemBaseDate', () => {
+      // Default to 2025 creation year (4725 AR)
+      const creationDate = new Date(
+        global.game?.pf2e?.settings?.worldClock?.worldCreatedOn || '2025-01-01T00:00:00.000Z'
+      );
+      const creationYear = creationDate.getUTCFullYear();
+
+      return {
+        year: creationYear + 2700, // PF2e AR calculation
+        month: creationDate.getUTCMonth() + 1, // 1-based
+        day: creationDate.getUTCDate(),
+        hour: creationDate.getUTCHours(),
+        minute: creationDate.getUTCMinutes(),
+        second: creationDate.getUTCSeconds(),
+      };
+    });
+
     // Use the actual Golarion calendar JSON file instead of duplicating definitions
     golarionCalendar = golarionCalendarData as SeasonsStarsCalendar;
 
@@ -98,6 +127,10 @@ describe('Year Calculation Behavior', () => {
       testCases.forEach(({ creationYear, expectedYear }) => {
         const worldCreationTimestamp =
           new Date(`${creationYear}-01-01T00:00:00.000Z`).getTime() / 1000;
+
+        // Update PF2e environment for this specific test case
+        global.game.pf2e.settings.worldClock.worldCreatedOn = `${creationYear}-01-01T00:00:00.000Z`;
+
         const date = engine.worldTimeToDate(0, worldCreationTimestamp);
 
         expect(date.year).toBe(expectedYear);

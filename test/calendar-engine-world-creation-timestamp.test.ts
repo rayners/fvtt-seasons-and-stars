@@ -8,8 +8,10 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { CalendarDate } from '../src/core/calendar-date';
+import { compatibilityManager } from '../src/core/compatibility-manager';
 import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
 import golarionCalendarData from '../calendars/golarion-pf2e.json';
+import { setupRealPF2eEnvironment } from './setup-pf2e';
 
 // Use the actual Golarion calendar JSON file instead of duplicating definitions
 const golarionCalendar: SeasonsStarsCalendar = golarionCalendarData as SeasonsStarsCalendar;
@@ -18,6 +20,24 @@ describe('CalendarEngine - World Creation Timestamp Support', () => {
   let engine: CalendarEngine;
 
   beforeEach(() => {
+    // Set up PF2e environment for these tests
+    setupRealPF2eEnvironment({
+      worldCreationTimestamp: Math.floor(new Date('2025-01-01T00:00:00.000Z').getTime() / 1000),
+      currentWorldTime: 0,
+      expectedWorldCreationYear: 2025,
+      dateTheme: 'AR',
+    });
+
+    // Set up compatibility manager with PF2e system base date provider
+    compatibilityManager.registerDataProvider('pf2e', 'systemBaseDate', () => ({
+      year: 4725, // PF2e AR year for 2025 creation
+      month: 1, // January -> Abadius
+      day: 1, // 1st
+      hour: 0,
+      minute: 0,
+      second: 0,
+    }));
+
     engine = new CalendarEngine(golarionCalendar);
   });
 
