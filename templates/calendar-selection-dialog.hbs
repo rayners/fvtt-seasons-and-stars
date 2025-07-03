@@ -7,16 +7,26 @@
       <div class="form-fields">
         <div class="input-grid calendar-selection-grid" style="--grid-cols: 2;">
           {{#each calendars}}
-          <div class="calendar-card ui-control {{#if isCurrent}}active{{/if}} {{#if isSelected}}picked{{/if}}" 
+          <div class="calendar-card ui-control {{#if isCurrent}}active{{/if}} {{#if isSelected}}picked{{/if}} {{#if isVariant}}variant{{/if}}" 
                data-action="selectCalendar"
                data-calendar-id="{{id}}" 
                title="{{description}}">
             
             <div class="card-header flexrow">
               <div class="calendar-info flexcol">
-                <h4 class="calendar-name">{{label}}</h4>
+                <h4 class="calendar-name">
+                  {{#if isVariant}}
+                  <span class="variant-indicator">
+                    <i class="fas fa-code-branch"></i>
+                  </span>
+                  {{/if}}
+                  {{label}}
+                </h4>
                 {{#if setting}}
                 <span class="calendar-setting">{{setting}}</span>
+                {{/if}}
+                {{#if variantInfo}}
+                <span class="variant-info">{{variantInfo}}</span>
                 {{/if}}
               </div>
               {{#if isCurrent}}

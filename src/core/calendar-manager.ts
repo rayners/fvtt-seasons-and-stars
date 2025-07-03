@@ -2,7 +2,7 @@
  * Calendar management system for Seasons & Stars
  */
 
-import type { SeasonsStarsCalendar } from '../types/calendar';
+import type { SeasonsStarsCalendar, CalendarVariant } from '../types/calendar';
 import { CalendarEngine } from './calendar-engine';
 import { TimeConverter } from './time-converter';
 import { CalendarValidator } from './calendar-validator';
@@ -12,7 +12,7 @@ import { Logger } from './logger';
 import { BUILT_IN_CALENDARS } from '../generated/calendar-list';
 
 export class CalendarManager {
-  private calendars: Map<string, SeasonsStarsCalendar> = new Map();
+  public calendars: Map<string, SeasonsStarsCalendar> = new Map();
   public engines: Map<string, CalendarEngine> = new Map();
   private timeConverter: TimeConverter | null = null;
   private activeCalendarId: string | null = null;
@@ -92,12 +92,17 @@ export class CalendarManager {
       Logger.warn(`Calendar warnings for ${calendarData.id}: ${validation.warnings.join(', ')}`);
     }
 
-    // Store the calendar
+    // Store the base calendar
     this.calendars.set(calendarData.id, calendarData);
 
-    // Create engine for this calendar
+    // Create engine for base calendar
     const engine = new CalendarEngine(calendarData);
     this.engines.set(calendarData.id, engine);
+
+    // Expand variants if they exist
+    if (calendarData.variants) {
+      this.expandCalendarVariants(calendarData);
+    }
 
     const label = CalendarLocalization.getCalendarLabel(calendarData);
     Logger.debug(`Loaded calendar: ${label} (${calendarData.id})`);
@@ -108,17 +113,20 @@ export class CalendarManager {
    * Set the active calendar
    */
   async setActiveCalendar(calendarId: string): Promise<boolean> {
-    if (!this.calendars.has(calendarId)) {
-      Logger.error(`Calendar not found: ${calendarId}`);
+    // Resolve default variant if setting base calendar with variants
+    const resolvedCalendarId = this.resolveDefaultVariant(calendarId);
+
+    if (!this.calendars.has(resolvedCalendarId)) {
+      Logger.error(`Calendar not found: ${resolvedCalendarId}`);
       return false;
     }
 
-    this.activeCalendarId = calendarId;
+    this.activeCalendarId = resolvedCalendarId;
 
     // Update time converter with new engine
-    const engine = this.engines.get(calendarId);
+    const engine = this.engines.get(resolvedCalendarId);
     if (!engine) {
-      Logger.error(`Engine not found for calendar: ${calendarId}`);
+      Logger.error(`Engine not found for calendar: ${resolvedCalendarId}`);
       return false;
     }
 
@@ -130,16 +138,16 @@ export class CalendarManager {
 
     // Save to settings
     if (game.settings) {
-      await game.settings.set('seasons-and-stars', 'activeCalendar', calendarId);
+      await game.settings.set('seasons-and-stars', 'activeCalendar', resolvedCalendarId);
     }
 
     // Emit hook for calendar change
     Hooks.callAll('seasons-stars:calendarChanged', {
-      newCalendarId: calendarId,
-      calendar: this.calendars.get(calendarId),
+      newCalendarId: resolvedCalendarId,
+      calendar: this.calendars.get(resolvedCalendarId),
     });
 
-    Logger.debug(`Active calendar set to: ${calendarId}`);
+    Logger.debug(`Active calendar set to: ${resolvedCalendarId}`);
     return true;
   }
 
@@ -160,6 +168,13 @@ export class CalendarManager {
   }
 
   /**
+   * Get the active calendar ID
+   */
+  getActiveCalendarId(): string | null {
+    return this.activeCalendarId;
+  }
+
+  /**
    * Get the time converter
    */
   getTimeConverter(): TimeConverter | null {
@@ -169,8 +184,8 @@ export class CalendarManager {
   /**
    * Get all available calendar IDs
    */
-  getAvailableCalendars(): string[] {
-    return Array.from(this.calendars.keys());
+  getAvailableCalendars(): SeasonsStarsCalendar[] {
+    return Array.from(this.calendars.values());
   }
 
   /**
@@ -328,6 +343,7 @@ export class CalendarManager {
   /**
    * Set current date using active calendar
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async setCurrentDate(date: any): Promise<void> {
     if (!this.timeConverter) {
       throw new Error('No active calendar set');
@@ -339,6 +355,7 @@ export class CalendarManager {
   /**
    * Get debug information
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getDebugInfo(): any {
     return {
       activeCalendarId: this.activeCalendarId,
@@ -351,7 +368,9 @@ export class CalendarManager {
   /**
    * Validate all loaded calendars
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validateAllCalendars(): { [calendarId: string]: any } {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const results: { [calendarId: string]: any } = {};
 
     for (const [calendarId, calendar] of this.calendars.entries()) {
@@ -359,5 +378,100 @@ export class CalendarManager {
     }
 
     return results;
+  }
+
+  /**
+   * Resolve a calendar ID to its default variant if applicable
+   */
+  private resolveDefaultVariant(calendarId: string): string {
+    // If the ID already includes a variant (contains parentheses), return as-is
+    if (calendarId.includes('(') && calendarId.includes(')')) {
+      return calendarId;
+    }
+
+    // If the calendar has variants, check for a default variant
+    const baseCalendar = this.calendars.get(calendarId);
+    if (baseCalendar?.variants) {
+      // Find the default variant
+      for (const [variantId, variant] of Object.entries(baseCalendar.variants)) {
+        if (variant.default) {
+          return `${calendarId}(${variantId})`;
+        }
+      }
+    }
+
+    // Return the original ID if no default variant found
+    return calendarId;
+  }
+
+  /**
+   * Expand calendar variants into separate calendar entries
+   */
+  private expandCalendarVariants(baseCalendar: SeasonsStarsCalendar): void {
+    if (!baseCalendar.variants) return;
+
+    for (const [variantId, variant] of Object.entries(baseCalendar.variants)) {
+      const variantCalendar = this.applyVariantOverrides(baseCalendar, variantId, variant);
+      const variantCalendarId = `${baseCalendar.id}(${variantId})`;
+
+      // Store the variant calendar
+      this.calendars.set(variantCalendarId, variantCalendar);
+
+      // Create engine for variant calendar
+      const variantEngine = new CalendarEngine(variantCalendar);
+      this.engines.set(variantCalendarId, variantEngine);
+
+      Logger.debug(`Created calendar variant: ${variantCalendarId}`);
+    }
+  }
+
+  /**
+   * Apply variant overrides to a base calendar
+   */
+  private applyVariantOverrides(
+    baseCalendar: SeasonsStarsCalendar,
+    variantId: string,
+    variant: CalendarVariant
+  ): SeasonsStarsCalendar {
+    // Deep clone the base calendar
+    const variantCalendar: SeasonsStarsCalendar = JSON.parse(JSON.stringify(baseCalendar));
+
+    // Update ID to include variant
+    variantCalendar.id = `${baseCalendar.id}(${variantId})`;
+
+    // Update translations to show variant name
+    for (const translation of Object.values(variantCalendar.translations)) {
+      translation.label = `${translation.label} (${variant.name})`;
+    }
+
+    // Apply overrides
+    if (variant.overrides) {
+      // Apply year overrides
+      if (variant.overrides.year) {
+        Object.assign(variantCalendar.year, variant.overrides.year);
+      }
+
+      // Apply month overrides
+      if (variant.overrides.months) {
+        for (const [monthName, monthOverrides] of Object.entries(variant.overrides.months)) {
+          const monthIndex = variantCalendar.months.findIndex(m => m.name === monthName);
+          if (monthIndex !== -1) {
+            Object.assign(variantCalendar.months[monthIndex], monthOverrides);
+          }
+        }
+      }
+
+      // Apply weekday overrides
+      if (variant.overrides.weekdays) {
+        for (const [weekdayName, weekdayOverrides] of Object.entries(variant.overrides.weekdays)) {
+          const weekdayIndex = variantCalendar.weekdays.findIndex(w => w.name === weekdayName);
+          if (weekdayIndex !== -1) {
+            Object.assign(variantCalendar.weekdays[weekdayIndex], weekdayOverrides);
+          }
+        }
+      }
+    }
+
+    return variantCalendar;
   }
 }

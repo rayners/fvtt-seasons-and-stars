@@ -185,5 +185,142 @@
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "variants": {
+    "absalom-reckoning": {
+      "name": "Absalom Reckoning",
+      "description": "Standard Pathfinder Society calendar used throughout the Inner Sea region",
+      "default": true,
+      "config": {
+        "yearOffset": 2700
+      },
+      "overrides": {
+        "year": {
+          "suffix": " AR"
+        }
+      }
+    },
+
+    "imperial-calendar": {
+      "name": "Imperial Calendar",
+      "description": "Chelish Imperial dating system used in Cheliax and its territories",
+      "config": {
+        "yearOffset": 5200
+      },
+      "overrides": {
+        "year": {
+          "suffix": " IC"
+        },
+        "months": {
+          "Abadius": {
+            "name": "First Imperial",
+            "description": "The first month of the Imperial calendar, marking the beginning of the fiscal year in Cheliax."
+          },
+          "Calistril": {
+            "name": "Second Imperial",
+            "description": "The second month of the Imperial calendar, often marked by increased devil worship ceremonies."
+          },
+          "Pharast": {
+            "name": "Third Imperial",
+            "description": "The third month of the Imperial calendar, when the Imperial bureaucracy reaches peak activity."
+          }
+        }
+      }
+    },
+
+    "varisian-traditional": {
+      "name": "Varisian Traditional",
+      "description": "Traditional Varisian calendar with local cultural names and seasonal focus",
+      "config": {
+        "yearOffset": 2700
+      },
+      "overrides": {
+        "year": {
+          "suffix": " VC"
+        },
+        "months": {
+          "Calistril": {
+            "name": "Winter's Heart",
+            "description": "The coldest month when Varisian caravans seek shelter and tell stories by the fire."
+          },
+          "Pharast": {
+            "name": "Death's Door",
+            "description": "The final month of winter when the veil between life and death grows thin."
+          },
+          "Gozran": {
+            "name": "Spring's Awakening",
+            "description": "The first month of spring when Varisian caravans begin their travels anew."
+          },
+          "Sarenith": {
+            "name": "Sun's Blessing",
+            "description": "The warm month when Varisian festivals celebrate Desna and the open road."
+          }
+        }
+      }
+    },
+
+    "earth-historical": {
+      "name": "Earth Historical (AD)",
+      "description": "Earth Anno Domini calendar for modern campaigns and real-world synchronization",
+      "config": {
+        "yearOffset": -95
+      },
+      "overrides": {
+        "year": {
+          "suffix": " AD"
+        },
+        "months": {
+          "Abadius": {
+            "name": "January",
+            "description": "The first month of the Gregorian calendar."
+          },
+          "Calistril": {
+            "name": "February",
+            "description": "The second month of the Gregorian calendar, shortest of the year."
+          },
+          "Pharast": {
+            "name": "March",
+            "description": "The third month of the Gregorian calendar, marking the arrival of spring."
+          },
+          "Gozran": {
+            "name": "April",
+            "description": "The fourth month of the Gregorian calendar, known for spring growth."
+          },
+          "Desnus": {
+            "name": "May",
+            "description": "The fifth month of the Gregorian calendar, peak of spring."
+          },
+          "Sarenith": {
+            "name": "June",
+            "description": "The sixth month of the Gregorian calendar, beginning of summer."
+          },
+          "Erastus": {
+            "name": "July",
+            "description": "The seventh month of the Gregorian calendar, peak of summer."
+          },
+          "Arodus": {
+            "name": "August",
+            "description": "The eighth month of the Gregorian calendar, late summer."
+          },
+          "Rova": {
+            "name": "September",
+            "description": "The ninth month of the Gregorian calendar, beginning of autumn."
+          },
+          "Lamashan": {
+            "name": "October",
+            "description": "The tenth month of the Gregorian calendar, mid-autumn."
+          },
+          "Neth": {
+            "name": "November",
+            "description": "The eleventh month of the Gregorian calendar, late autumn."
+          },
+          "Kuthona": {
+            "name": "December",
+            "description": "The twelfth month of the Gregorian calendar, beginning of winter."
+          }
+        }
+      }
+    }
   }
 }

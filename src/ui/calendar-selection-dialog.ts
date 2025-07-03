@@ -15,6 +15,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private calendars: Map<string, SeasonsStarsCalendar>;
   private currentCalendarId: string;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(calendars: any, currentCalendarId: string) {
     super();
 
@@ -77,6 +78,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   };
 
   /** @override */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async _prepareContext(options = {}): Promise<any> {
     const context = await super._prepareContext(options);
 
@@ -84,6 +86,21 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       const label = CalendarLocalization.getCalendarLabel(calendar);
       const description = CalendarLocalization.getCalendarDescription(calendar);
       const setting = CalendarLocalization.getCalendarSetting(calendar);
+
+      // Check if this is a calendar variant
+      const isVariant = id.includes('(') && id.includes(')');
+      let variantInfo = '';
+      let baseCalendarId = id;
+
+      if (isVariant) {
+        // Extract base calendar ID and variant name
+        const match = id.match(/^(.+)\((.+)\)$/);
+        if (match) {
+          baseCalendarId = match[1];
+          const variantId = match[2];
+          variantInfo = `Variant: ${variantId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+        }
+      }
 
       // Generate sample date for preview
       const sampleDate = this.generateSampleDate(calendar);
@@ -96,17 +113,36 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         sampleDate,
         isCurrent: id === this.currentCalendarId,
         isSelected: id === this.selectedCalendarId,
+        isVariant,
+        variantInfo,
+        baseCalendarId,
       };
     });
 
+    // Sort calendars: base calendars first, then their variants
+    const sortedCalendars = calendarsData.sort((a, b) => {
+      // First, group by base calendar
+      if (a.baseCalendarId !== b.baseCalendarId) {
+        return a.baseCalendarId.localeCompare(b.baseCalendarId);
+      }
+
+      // Within same base calendar, put base calendar first, then variants
+      if (a.isVariant && !b.isVariant) return 1;
+      if (!a.isVariant && b.isVariant) return -1;
+
+      // Both are variants, sort by variant name
+      return a.id.localeCompare(b.id);
+    });
+
     return Object.assign(context, {
-      calendars: calendarsData,
+      calendars: sortedCalendars,
       selectedCalendar: this.selectedCalendarId,
       currentCalendar: this.currentCalendarId,
     });
   }
 
   /** @override */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
     super._attachPartListeners(partId, htmlElement, options);
 
@@ -170,8 +206,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     selectButton.prop('disabled', !isDifferent);
     selectButton.toggleClass('disabled', !isDifferent);
 
-    if (isDifferent) {
-      const calendar = this.calendars.get(this.selectedCalendarId!);
+    if (isDifferent && this.selectedCalendarId) {
+      const calendar = this.calendars.get(this.selectedCalendarId);
       const label = calendar
         ? CalendarLocalization.getCalendarLabel(calendar)
         : this.selectedCalendarId;
@@ -231,7 +267,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
           action: 'close',
           icon: 'fas fa-times',
           label: game.i18n.localize('SEASONS_STARS.dialog.close'),
-          callback: () => {},
+          callback: (): void => {},
         },
       ],
       default: 'close',
@@ -390,6 +426,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const calendars = (game.seasonsStars.manager as any).getAllCalendars();
     Logger.debug('CalendarSelectionDialog.show() - calendars from manager', {
       type: typeof calendars,
