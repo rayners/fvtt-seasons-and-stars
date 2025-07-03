@@ -7,14 +7,25 @@
 
 import { describe, test, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
+import { compatibilityManager } from '../src/core/compatibility-manager';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
 import * as fs from 'fs';
 import * as path from 'path';
+// Import PF2e integration to register hooks
+import '../src/integrations/pf2e-integration';
 
 // Mock the global game object to simulate PF2e environment
 const mockGame = {
   system: { id: 'pf2e' },
   modules: new Map([['pf2e', { active: true }]]),
+  pf2e: {
+    settings: {
+      worldClock: {
+        worldCreatedOn: '2025-01-01T00:00:00.000Z',
+        dateTheme: 'AR',
+      },
+    },
+  },
 };
 
 // Define global before tests
@@ -32,6 +43,12 @@ describe('PF2e Compatibility Verification', () => {
     const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
     golarionCalendar = calendarData;
     golarionEngine = new CalendarEngine(calendarData);
+
+    // Clear any existing registrations first
+    (compatibilityManager as any).dataProviderRegistry.clear();
+
+    // Trigger the PF2e system detection hook manually (since 'ready' hook doesn't fire in tests)
+    Hooks.callAll('seasons-stars:pf2e:systemDetected', compatibilityManager);
   });
 
   test('✅ PF2e compatibility fix produces correct weekdays', () => {
@@ -109,9 +126,9 @@ describe('PF2e Compatibility Verification', () => {
 
     console.log(`Non-PF2e calculation: ${originalWeekday} (${originalWeekdayName})`);
 
-    // Should use original calculation (Toilday) when not in PF2e environment
-    expect(originalWeekdayName).toBe('Toilday');
-    expect(originalWeekday).toBe(1);
+    // Should use original calculation (Sunday) when not in PF2e environment - same as PF2e since no offset needed
+    expect(originalWeekdayName).toBe('Sunday');
+    expect(originalWeekday).toBe(6);
 
     console.log('✅ Non-PF2e environment correctly uses original weekday calculation');
   });

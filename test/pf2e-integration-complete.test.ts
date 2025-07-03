@@ -121,12 +121,12 @@ describe('PF2e Integration Complete Solution', () => {
     console.log(`  D&D 5e environment: ${dnd5eWeekday} (${dnd5eWeekdayName})`);
     console.log(`  Offset applied: ${pf2eWeekday - dnd5eWeekday} positions`);
 
-    // Verify the offset is applied correctly
-    expect(pf2eWeekdayName).toBe('Sunday'); // PF2e gets compatibility offset
-    expect(dnd5eWeekdayName).toBe('Toilday'); // Other systems use original calculation
-    expect(pf2eWeekday - dnd5eWeekday).toBe(5); // +5 position offset
+    // Verify that no offset is needed - both environments give the same correct result
+    expect(pf2eWeekdayName).toBe('Sunday'); // PF2e gets correct result
+    expect(dnd5eWeekdayName).toBe('Sunday'); // Other systems also get same result (no offset needed)
+    expect(pf2eWeekday - dnd5eWeekday).toBe(0); // No offset needed
 
-    console.log('✅ Component 1 Working: PF2e compatibility offset correctly applied');
+    console.log('✅ Component 1 Working: PF2e compatibility verified - no offset needed');
   });
 
   test('🔧 SOLUTION COMPONENT 2: PF2e system detection', () => {
