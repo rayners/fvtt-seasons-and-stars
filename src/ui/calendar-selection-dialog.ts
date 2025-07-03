@@ -15,6 +15,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private calendars: Map<string, SeasonsStarsCalendar>;
   private currentCalendarId: string;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(calendars: any, currentCalendarId: string) {
     super();
 
@@ -77,6 +78,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   };
 
   /** @override */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async _prepareContext(options = {}): Promise<any> {
     const context = await super._prepareContext(options);
 
@@ -84,6 +86,21 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       const label = CalendarLocalization.getCalendarLabel(calendar);
       const description = CalendarLocalization.getCalendarDescription(calendar);
       const setting = CalendarLocalization.getCalendarSetting(calendar);
+
+      // Check if this is a calendar variant
+      const isVariant = id.includes('(') && id.includes(')');
+      let variantInfo = '';
+      let baseCalendarId = id;
+
+      if (isVariant) {
+        // Extract base calendar ID and variant name
+        const match = id.match(/^(.+)\((.+)\)$/);
+        if (match) {
+          baseCalendarId = match[1];
+          const variantId = match[2];
+          variantInfo = `Variant: ${variantId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+        }
+      }
 
       // Generate sample date for preview
       const sampleDate = this.generateSampleDate(calendar);
@@ -96,17 +113,72 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         sampleDate,
         isCurrent: id === this.currentCalendarId,
         isSelected: id === this.selectedCalendarId,
+        isVariant,
+        variantInfo,
+        baseCalendarId,
       };
     });
 
+    // Group calendars hierarchically by base calendar
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const calendarGroups = new Map<string, { base: any | null; variants: any[] }>();
+
+    for (const calendar of calendarsData) {
+      if (!calendarGroups.has(calendar.baseCalendarId)) {
+        calendarGroups.set(calendar.baseCalendarId, { base: null, variants: [] });
+      }
+
+      const group = calendarGroups.get(calendar.baseCalendarId);
+      if (!group) continue;
+      if (calendar.isVariant) {
+        group.variants.push(calendar);
+      } else {
+        group.base = calendar;
+      }
+    }
+
+    // Sort groups with Gregorian first, then alphabetically
+    const sortedGroups = Array.from(calendarGroups.entries()).sort(
+      ([aId, aGroup], [bId, bGroup]) => {
+        // Gregorian calendar always comes first
+        if (aId === 'gregorian') return -1;
+        if (bId === 'gregorian') return 1;
+
+        // All other calendars sorted alphabetically by display label
+        const labelA = aGroup.base ? aGroup.base.label : aId;
+        const labelB = bGroup.base ? bGroup.base.label : bId;
+        return labelA.localeCompare(labelB);
+      }
+    );
+
+    // Build hierarchical calendar list
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sortedCalendars: any[] = [];
+    for (const [, group] of sortedGroups) {
+      // Add base calendar first
+      if (group.base) {
+        sortedCalendars.push(group.base);
+      }
+
+      // Sort variants alphabetically and add with hierarchy indicator
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      group.variants.sort((a: any, b: any) => a.label.localeCompare(b.label));
+      for (const variant of group.variants) {
+        // Add visual hierarchy level for CSS styling
+        variant.hierarchyLevel = 1;
+        sortedCalendars.push(variant);
+      }
+    }
+
     return Object.assign(context, {
-      calendars: calendarsData,
+      calendars: sortedCalendars,
       selectedCalendar: this.selectedCalendarId,
       currentCalendar: this.currentCalendarId,
     });
   }
 
   /** @override */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
     super._attachPartListeners(partId, htmlElement, options);
 
@@ -170,8 +242,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     selectButton.prop('disabled', !isDifferent);
     selectButton.toggleClass('disabled', !isDifferent);
 
-    if (isDifferent) {
-      const calendar = this.calendars.get(this.selectedCalendarId!);
+    if (isDifferent && this.selectedCalendarId) {
+      const calendar = this.calendars.get(this.selectedCalendarId);
       const label = calendar
         ? CalendarLocalization.getCalendarLabel(calendar)
         : this.selectedCalendarId;
@@ -231,7 +303,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
           action: 'close',
           icon: 'fas fa-times',
           label: game.i18n.localize('SEASONS_STARS.dialog.close'),
-          callback: () => {},
+          callback: (): void => {},
         },
       ],
       default: 'close',
@@ -390,6 +462,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const calendars = (game.seasonsStars.manager as any).getAllCalendars();
     Logger.debug('CalendarSelectionDialog.show() - calendars from manager', {
       type: typeof calendars,
