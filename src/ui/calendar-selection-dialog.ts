@@ -119,29 +119,50 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       };
     });
 
-    // Sort calendars alphabetically by display label, with base calendars before their variants
-    const sortedCalendars = calendarsData.sort((a, b) => {
-      // First, group by base calendar display label alphabetically
-      const baseCalendarA = this.calendars.get(a.baseCalendarId);
-      const baseCalendarB = this.calendars.get(b.baseCalendarId);
-      const baseLabelA = baseCalendarA
-        ? CalendarLocalization.getCalendarLabel(baseCalendarA)
-        : a.baseCalendarId;
-      const baseLabelB = baseCalendarB
-        ? CalendarLocalization.getCalendarLabel(baseCalendarB)
-        : b.baseCalendarId;
+    // Group calendars hierarchically by base calendar
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const calendarGroups = new Map<string, { base: any | null; variants: any[] }>();
 
-      if (baseLabelA !== baseLabelB) {
-        return baseLabelA.localeCompare(baseLabelB);
+    for (const calendar of calendarsData) {
+      if (!calendarGroups.has(calendar.baseCalendarId)) {
+        calendarGroups.set(calendar.baseCalendarId, { base: null, variants: [] });
       }
 
-      // Within same base calendar, put base calendar first, then variants
-      if (a.isVariant && !b.isVariant) return 1;
-      if (!a.isVariant && b.isVariant) return -1;
+      const group = calendarGroups.get(calendar.baseCalendarId);
+      if (!group) continue;
+      if (calendar.isVariant) {
+        group.variants.push(calendar);
+      } else {
+        group.base = calendar;
+      }
+    }
 
-      // Both are variants, sort by their display labels
-      return a.label.localeCompare(b.label);
-    });
+    // Sort groups by base calendar display label alphabetically
+    const sortedGroups = Array.from(calendarGroups.entries()).sort(
+      ([aId, aGroup], [bId, bGroup]) => {
+        const labelA = aGroup.base ? aGroup.base.label : aId;
+        const labelB = bGroup.base ? bGroup.base.label : bId;
+        return labelA.localeCompare(labelB);
+      }
+    );
+
+    // Build hierarchical calendar list
+    const sortedCalendars = [];
+    for (const [, group] of sortedGroups) {
+      // Add base calendar first
+      if (group.base) {
+        sortedCalendars.push(group.base);
+      }
+
+      // Sort variants alphabetically and add with hierarchy indicator
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      group.variants.sort((a: any, b: any) => a.label.localeCompare(b.label));
+      for (const variant of group.variants) {
+        // Add visual hierarchy level for CSS styling
+        variant.hierarchyLevel = 1;
+        sortedCalendars.push(variant);
+      }
+    }
 
     return Object.assign(context, {
       calendars: sortedCalendars,

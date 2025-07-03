@@ -7,7 +7,7 @@
       <div class="form-fields">
         <div class="input-grid calendar-selection-grid" style="--grid-cols: 2;">
           {{#each calendars}}
-          <div class="calendar-card ui-control {{#if isCurrent}}active{{/if}} {{#if isSelected}}picked{{/if}} {{#if isVariant}}variant{{/if}}" 
+          <div class="calendar-card ui-control {{#if isCurrent}}active{{/if}} {{#if isSelected}}picked{{/if}} {{#if isVariant}}variant{{/if}} {{#if hierarchyLevel}}hierarchy-level-{{hierarchyLevel}}{{/if}}" 
                data-action="selectCalendar"
                data-calendar-id="{{id}}" 
                title="{{description}}">
