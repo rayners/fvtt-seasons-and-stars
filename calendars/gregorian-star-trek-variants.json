@@ -1,0 +1,199 @@
+{
+  "id": "gregorian-star-trek-variants",
+  "baseCalendar": "gregorian",
+  "name": "Star Trek Calendar Variants",
+  "description": "Star Trek universe calendar variants based on the Gregorian calendar system",
+  "author": "Seasons & Stars",
+  "version": "1.0.0",
+  "translations": {
+    "en": {
+      "label": "Star Trek Calendar Variants",
+      "description": "Calendar variants for Star Trek gaming sessions"
+    }
+  },
+  "variants": {
+    "earth-stardate": {
+      "name": "Earth Stardate System",
+      "description": "Earth-based stardate calendar for Star Trek campaigns",
+      "default": true,
+      "config": {
+        "yearOffset": 2323
+      },
+      "overrides": {
+        "year": {
+          "prefix": "Stardate ",
+          "suffix": ""
+        }
+      }
+    },
+    "vulcan-calendar": {
+      "name": "Vulcan Calendar",
+      "description": "Traditional Vulcan calendar system",
+      "config": {
+        "yearOffset": 2161
+      },
+      "overrides": {
+        "year": {
+          "prefix": "",
+          "suffix": " V.S."
+        },
+        "months": {
+          "January": {
+            "name": "T'Keth",
+            "description": "First month in Vulcan calendar"
+          },
+          "February": {
+            "name": "T'Ket",
+            "description": "Second month in Vulcan calendar"
+          },
+          "March": {
+            "name": "T'Ketheris",
+            "description": "Third month in Vulcan calendar"
+          },
+          "April": {
+            "name": "T'Keithen",
+            "description": "Fourth month in Vulcan calendar"
+          },
+          "May": {
+            "name": "T'Kesava",
+            "description": "Fifth month in Vulcan calendar"
+          },
+          "June": {
+            "name": "Khuti",
+            "description": "Sixth month in Vulcan calendar"
+          },
+          "July": {
+            "name": "Ta'Krat",
+            "description": "Seventh month in Vulcan calendar"
+          },
+          "August": {
+            "name": "T'Kevas",
+            "description": "Eighth month in Vulcan calendar"
+          },
+          "September": {
+            "name": "Sutai",
+            "description": "Ninth month in Vulcan calendar"
+          },
+          "October": {
+            "name": "T'Kuht",
+            "description": "Tenth month in Vulcan calendar"
+          },
+          "November": {
+            "name": "T'Rilis",
+            "description": "Eleventh month in Vulcan calendar"
+          },
+          "December": {
+            "name": "Ta'Khetar",
+            "description": "Twelfth month in Vulcan calendar"
+          }
+        }
+      }
+    },
+    "klingon-calendar": {
+      "name": "Klingon Calendar",
+      "description": "Traditional Klingon warrior calendar",
+      "config": {
+        "yearOffset": 2151
+      },
+      "overrides": {
+        "year": {
+          "prefix": "",
+          "suffix": " K.Y."
+        },
+        "months": {
+          "January": {
+            "name": "Maktag",
+            "description": "Month of battle preparation"
+          },
+          "February": {
+            "name": "Jagh",
+            "description": "Month of enemies"
+          },
+          "March": {
+            "name": "DIch",
+            "description": "Month of duty"
+          },
+          "April": {
+            "name": "naQ",
+            "description": "Month of strategy"
+          },
+          "May": {
+            "name": "Hung",
+            "description": "Month of honor"
+          },
+          "June": {
+            "name": "DIlo'",
+            "description": "Month of the warrior"
+          },
+          "July": {
+            "name": "baH",
+            "description": "Month of weapons"
+          },
+          "August": {
+            "name": "DIch nugh",
+            "description": "Month of loyal society"
+          },
+          "September": {
+            "name": "DIch DIch",
+            "description": "Month of true duty"
+          },
+          "October": {
+            "name": "DIch Hoch",
+            "description": "Month of all duty"
+          },
+          "November": {
+            "name": "noD",
+            "description": "Month of revenge"
+          },
+          "December": {
+            "name": "DIch naDev",
+            "description": "Month of duty's end"
+          }
+        },
+        "weekdays": {
+          "Sunday": {
+            "name": "jup",
+            "description": "Day of the warrior"
+          },
+          "Monday": {
+            "name": "ghItlh",
+            "description": "Day of writing"
+          },
+          "Tuesday": {
+            "name": "jaq",
+            "description": "Day of the blade"
+          },
+          "Wednesday": {
+            "name": "nugh",
+            "description": "Day of society"
+          },
+          "Thursday": {
+            "name": "ram",
+            "description": "Day of insignificance"
+          },
+          "Friday": {
+            "name": "Hov",
+            "description": "Day of the star"
+          },
+          "Saturday": {
+            "name": "lojmit",
+            "description": "Day of the threshold"
+          }
+        }
+      }
+    },
+    "federation-standard": {
+      "name": "Federation Standard Calendar",
+      "description": "United Federation of Planets standard calendar",
+      "config": {
+        "yearOffset": 2161
+      },
+      "overrides": {
+        "year": {
+          "prefix": "",
+          "suffix": " F.S."
+        }
+      }
+    }
+  }
+}

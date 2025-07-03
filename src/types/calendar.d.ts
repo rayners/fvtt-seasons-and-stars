@@ -48,6 +48,11 @@ export interface SeasonsStarsCalendar {
     minutesInHour: number;
     secondsInMinute: number;
   };
+
+  // Calendar Variants System
+  variants?: {
+    [variantId: string]: CalendarVariant;
+  };
 }
 
 export interface CalendarMonth {
@@ -179,4 +184,27 @@ export interface DateFormatOptions {
   includeWeekday?: boolean;
   includeYear?: boolean;
   format?: 'short' | 'long' | 'numeric';
+}
+
+// Calendar Variants System
+export interface CalendarVariant {
+  name: string;
+  description: string;
+  default?: boolean;
+  config?: {
+    yearOffset?: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
+  };
+  overrides?: {
+    year?: Partial<SeasonsStarsCalendar['year']>;
+    months?: {
+      [monthName: string]: Partial<CalendarMonth>;
+    };
+    weekdays?: {
+      [weekdayName: string]: Partial<CalendarWeekday>;
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any;
+  };
 }

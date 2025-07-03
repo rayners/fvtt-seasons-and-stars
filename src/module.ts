@@ -844,7 +844,8 @@ export function setupAPI(): void {
     getAvailableCalendars: (): string[] => {
       try {
         Logger.api('getAvailableCalendars');
-        const result = calendarManager.getAvailableCalendars();
+        const calendars = calendarManager.getAvailableCalendars();
+        const result = calendars.map(calendar => calendar.id);
         Logger.api('getAvailableCalendars', undefined, result);
         return result;
       } catch (error) {

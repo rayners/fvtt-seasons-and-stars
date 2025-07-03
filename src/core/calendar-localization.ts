@@ -205,13 +205,75 @@ export class CalendarLocalization {
   }
 
   /**
-   * Create settings choices for calendar selection
+   * Create settings choices for calendar selection with hierarchical organization
    */
   static createCalendarChoices(calendars: SeasonsStarsCalendar[]): { [key: string]: string } {
     const choices: { [key: string]: string } = {};
 
+    // Group calendars by base calendar ID
+    const calendarGroups = new Map<
+      string,
+      { base: SeasonsStarsCalendar | null; variants: SeasonsStarsCalendar[] }
+    >();
+
     for (const calendar of calendars) {
-      choices[calendar.id] = this.getCalendarLabel(calendar);
+      // Check if this is a variant calendar
+      const isVariant = calendar.id.includes('(') && calendar.id.includes(')');
+      let baseCalendarId = calendar.id;
+
+      if (isVariant) {
+        const match = calendar.id.match(/^(.+)\((.+)\)$/);
+        if (match) {
+          baseCalendarId = match[1];
+        }
+      }
+
+      // Initialize group if it doesn't exist
+      if (!calendarGroups.has(baseCalendarId)) {
+        calendarGroups.set(baseCalendarId, { base: null, variants: [] });
+      }
+
+      const group = calendarGroups.get(baseCalendarId);
+      if (!group) continue;
+      if (isVariant) {
+        group.variants.push(calendar);
+      } else {
+        group.base = calendar;
+      }
+    }
+
+    // Sort groups with Gregorian first, then alphabetically
+    const sortedGroups = Array.from(calendarGroups.entries()).sort(
+      ([aId, aGroup], [bId, bGroup]) => {
+        // Gregorian calendar always comes first
+        if (aId === 'gregorian') return -1;
+        if (bId === 'gregorian') return 1;
+
+        // All other calendars sorted alphabetically by display label
+        const labelA = aGroup.base ? this.getCalendarLabel(aGroup.base) : aId;
+        const labelB = bGroup.base ? this.getCalendarLabel(bGroup.base) : bId;
+        return labelA.localeCompare(labelB);
+      }
+    );
+
+    // Build choices with hierarchical structure
+    for (const [, group] of sortedGroups) {
+      // Add base calendar first
+      if (group.base) {
+        choices[group.base.id] = this.getCalendarLabel(group.base);
+      }
+
+      // Sort variants alphabetically and add with prefix
+      group.variants.sort((a: SeasonsStarsCalendar, b: SeasonsStarsCalendar) => {
+        const labelA = this.getCalendarLabel(a);
+        const labelB = this.getCalendarLabel(b);
+        return labelA.localeCompare(labelB);
+      });
+
+      for (const variant of group.variants) {
+        const variantLabel = this.getCalendarLabel(variant);
+        choices[variant.id] = `— ${variantLabel}`;
+      }
     }
 
     return choices;

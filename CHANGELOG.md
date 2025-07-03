@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.4.6](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.5...v0.4.6) (2025-07-03)
+
+
+### Bug Fixes
+
+* **pf2e:** resolve calendar engine date synchronization issues and add comprehensive testing ([#105](https://github.com/rayners/fvtt-seasons-and-stars/issues/105)) ([99cc9dd](https://github.com/rayners/fvtt-seasons-and-stars/commit/99cc9dde05fadc59b0071122af34f25fe6162269))
+* **ui:** calendar selection dialog light theme visibility ([#109](https://github.com/rayners/fvtt-seasons-and-stars/issues/109)) ([b2c3c7f](https://github.com/rayners/fvtt-seasons-and-stars/commit/b2c3c7f50c0c3bc22bc6ae364c0e1c4de18ec017))
+
 ## [0.4.5](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.4...v0.4.5) (2025-07-01)
 
 

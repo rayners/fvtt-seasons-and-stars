@@ -44,7 +44,17 @@ export class CalendarValidator {
    * Validate required fields are present
    */
   private static validateRequiredFields(calendar: any, result: ValidationResult): void {
-    const requiredFields = ['id', 'translations', 'months', 'weekdays'];
+    // Check if this is an external variant file
+    const isExternalVariant = calendar.baseCalendar && calendar.variants;
+
+    let requiredFields: string[];
+    if (isExternalVariant) {
+      // External variant files need different required fields
+      requiredFields = ['id', 'baseCalendar', 'variants'];
+    } else {
+      // Regular calendar files need the full structure
+      requiredFields = ['id', 'translations', 'months', 'weekdays'];
+    }
 
     for (const field of requiredFields) {
       if (!(field in calendar)) {
@@ -52,7 +62,7 @@ export class CalendarValidator {
       }
     }
 
-    // Check required fields in nested objects
+    // Check required fields in nested objects (only for regular calendars)
     if (calendar.months) {
       calendar.months.forEach((month: any, index: number) => {
         if (!month.name) {
@@ -72,6 +82,37 @@ export class CalendarValidator {
       });
     }
 
+    // Validate external variant structure
+    if (calendar.baseCalendar) {
+      if (typeof calendar.baseCalendar !== 'string' || calendar.baseCalendar.trim() === '') {
+        result.errors.push('baseCalendar must be a non-empty string');
+      }
+    }
+
+    if (calendar.variants) {
+      if (typeof calendar.variants !== 'object') {
+        result.errors.push('Variants must be an object');
+      } else {
+        const variantKeys = Object.keys(calendar.variants);
+        if (variantKeys.length === 0) {
+          result.errors.push('Variants object must contain at least one variant');
+        }
+
+        // Validate each variant
+        for (const [variantId, variant] of Object.entries(calendar.variants)) {
+          if (typeof variant !== 'object') {
+            result.errors.push(`Variant '${variantId}' must be an object`);
+            continue;
+          }
+
+          const v = variant as any;
+          if (!v.name || typeof v.name !== 'string') {
+            result.errors.push(`Variant '${variantId}' missing required field: name`);
+          }
+        }
+      }
+    }
+
     if (calendar.intercalary) {
       calendar.intercalary.forEach((intercalary: any, index: number) => {
         if (!intercalary.name) {
@@ -88,12 +129,15 @@ export class CalendarValidator {
    * Validate data types
    */
   private static validateDataTypes(calendar: any, result: ValidationResult): void {
+    // Check if this is an external variant file
+    const isExternalVariant = calendar.baseCalendar && calendar.variants;
+
     // Validate ID
     if (typeof calendar.id !== 'string') {
       result.errors.push('Calendar ID must be a string');
     }
 
-    // Validate translations structure
+    // Validate translations structure (optional for external variants)
     if (calendar.translations) {
       if (typeof calendar.translations !== 'object') {
         result.errors.push('Calendar translations must be an object');
@@ -117,6 +161,9 @@ export class CalendarValidator {
           }
         }
       }
+    } else if (!isExternalVariant) {
+      // Regular calendars require translations, external variants don't
+      result.errors.push('Calendar must have translations');
     }
 
     // Validate year configuration
@@ -129,13 +176,15 @@ export class CalendarValidator {
       this.validateLeapYearConfig(calendar.leapYear, result);
     }
 
-    // Validate arrays
-    if (!Array.isArray(calendar.months)) {
-      result.errors.push('Months must be an array');
-    }
+    // Validate arrays (skip for external variants since they reference base calendar)
+    if (!isExternalVariant) {
+      if (!Array.isArray(calendar.months)) {
+        result.errors.push('Months must be an array');
+      }
 
-    if (!Array.isArray(calendar.weekdays)) {
-      result.errors.push('Weekdays must be an array');
+      if (!Array.isArray(calendar.weekdays)) {
+        result.errors.push('Weekdays must be an array');
+      }
     }
 
     if (calendar.intercalary && !Array.isArray(calendar.intercalary)) {
@@ -330,6 +379,9 @@ export class CalendarValidator {
    * Validate data constraints and ranges
    */
   private static validateConstraints(calendar: any, result: ValidationResult): void {
+    // Check if this is an external variant file
+    const isExternalVariant = calendar.baseCalendar && calendar.variants;
+
     // Validate ID format
     if (calendar.id && !/^[a-zA-Z0-9_-]+$/.test(calendar.id)) {
       result.errors.push(
@@ -337,8 +389,8 @@ export class CalendarValidator {
       );
     }
 
-    // Validate months
-    if (Array.isArray(calendar.months)) {
+    // Validate months (skip for external variants)
+    if (!isExternalVariant && Array.isArray(calendar.months)) {
       if (calendar.months.length === 0) {
         result.errors.push('Calendar must have at least one month');
       }
@@ -352,8 +404,8 @@ export class CalendarValidator {
       });
     }
 
-    // Validate weekdays
-    if (Array.isArray(calendar.weekdays)) {
+    // Validate weekdays (skip for external variants)
+    if (!isExternalVariant && Array.isArray(calendar.weekdays)) {
       if (calendar.weekdays.length === 0) {
         result.errors.push('Calendar must have at least one weekday');
       }
@@ -393,8 +445,11 @@ export class CalendarValidator {
    * Validate cross-references between fields
    */
   private static validateCrossReferences(calendar: any, result: ValidationResult): void {
-    // Check for unique month names
-    if (Array.isArray(calendar.months)) {
+    // Check if this is an external variant file
+    const isExternalVariant = calendar.baseCalendar && calendar.variants;
+
+    // Check for unique month names (skip for external variants)
+    if (!isExternalVariant && Array.isArray(calendar.months)) {
       const monthNames = calendar.months.map((m: any) => m.name).filter(Boolean);
       const uniqueNames = new Set(monthNames);
 
@@ -403,8 +458,8 @@ export class CalendarValidator {
       }
     }
 
-    // Check for unique weekday names
-    if (Array.isArray(calendar.weekdays)) {
+    // Check for unique weekday names (skip for external variants)
+    if (!isExternalVariant && Array.isArray(calendar.weekdays)) {
       const weekdayNames = calendar.weekdays.map((w: any) => w.name).filter(Boolean);
       const uniqueNames = new Set(weekdayNames);
 

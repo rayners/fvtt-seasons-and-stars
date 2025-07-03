@@ -14,6 +14,7 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Module Integration**: Clean APIs for weather modules and other integrations via compatibility bridges
 - **SmallTime Integration**: Seamless positioning and visual consistency with enhanced styling
 - **15 Built-in Calendars**: Switch between Gregorian, fantasy calendars (D&D, PF2e, Critical Role, etc.), and custom formats based on official game sources
+- **Calendar Variants System**: Cultural and regional calendar variations (e.g., Golarion has Absalom Reckoning, Imperial, Varisian, and Earth Historical variants)
 
 ### ✅ **Notes System (Basic Creation)**
 
@@ -66,6 +67,11 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **[Migration Guide](./docs/MIGRATION-GUIDE.md)** - Moving from Simple Calendar
 - **[Roadmap](./docs/ROADMAP.md)** - Development timeline and planned features
 - **[Known Issues](./KNOWN-ISSUES.md)** - Current limitations and workarounds
+
+### Calendar Variants System
+
+- **[Inline Calendar Variants](./docs/INLINE-CALENDAR-VARIANTS.md)** - Cultural and regional calendar variations within the same file
+- **[External Calendar Variants](./docs/EXTERNAL-CALENDAR-VARIANTS.md)** - Themed calendar collections in separate files
 
 ## 🎯 Who Should Use This
 
