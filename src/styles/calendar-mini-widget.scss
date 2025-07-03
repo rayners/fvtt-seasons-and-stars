@@ -37,12 +37,15 @@
     min-width: 200px; // Ensure minimum width
     min-height: 24px; // Similar height to SmallTime's content area, expandable for controls
     height: auto; // Allow height to grow with time controls
-    background: var(--color-bg-option);
+    background: var(--color-bg-primary);
     border: 1px solid var(--color-border-light-secondary);
     border-radius: 6px;
     padding: 4px 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(4px);
+    
+    // Ensure solid background for readability
+    opacity: 0.95;
     
     // Match SmallTime's font exactly
     font-family: 'Signika', 'Palatino Linotype', serif;
@@ -242,7 +245,7 @@
       // Match SmallTime styling when docked
       width: 200px;
       border-radius: 3px;
-      background: var(--color-bg-option);
+      background: var(--color-bg-primary);
       border: 1px solid var(--color-border-light-secondary);
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
       
