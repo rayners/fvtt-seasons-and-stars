@@ -180,6 +180,37 @@
     }
   ],
 
+  "seasons": [
+    {
+      "name": "Winter",
+      "startMonth": 10,
+      "endMonth": 12,
+      "icon": "winter",
+      "description": "The cold season culminating in Deepwinter's harsh embrace."
+    },
+    {
+      "name": "Spring",
+      "startMonth": 1,
+      "endMonth": 3,
+      "icon": "spring",
+      "description": "The season of renewal beginning with Hammer's thaw and ending with Ches's growth."
+    },
+    {
+      "name": "Summer",
+      "startMonth": 4,
+      "endMonth": 6,
+      "icon": "summer",
+      "description": "The warm season of Tarsakh's melting through Kythorn's height."
+    },
+    {
+      "name": "Autumn",
+      "startMonth": 7,
+      "endMonth": 9,
+      "icon": "fall",
+      "description": "The harvest season from Flamerule through Marpenoth's end."
+    }
+  ],
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,

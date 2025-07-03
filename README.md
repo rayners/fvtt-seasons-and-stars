@@ -203,7 +203,44 @@ The 15 built-in calendar systems are designed to work with popular RPG settings 
 
 ## 🐛 Support & Feedback
 
-- **Issues**: [GitHub Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues)
+### Reporting Date Mismatch Issues
+
+If you're experiencing date synchronization problems between Seasons & Stars and other modules (especially PF2e), please include this diagnostic information when reporting your issue:
+
+#### 🔧 **Gathering Diagnostic Information**
+
+**Open your browser console (F12) and run these commands:**
+
+```javascript
+// Basic system information
+console.log('=== Seasons & Stars Diagnostic ===');
+console.log('System ID:', game.system?.id);
+console.log('World Time:', game.time?.worldTime);
+console.log('Active Calendar:', game.seasonsStars?.manager?.getActiveCalendar()?.id);
+
+// S&S current date
+const ssDate = game.seasonsStars?.manager?.timeConverter?.getCurrentDate();
+console.log('S&S Date:', ssDate?.year, ssDate?.month, ssDate?.day, ssDate?.time);
+
+// For PF2e systems, include this data
+if (game.system?.id === 'pf2e') {
+  console.log('PF2e worldCreatedOn:', game.pf2e?.settings?.worldClock?.worldCreatedOn);
+  const baseDate = game.seasonsStars?.compatibilityManager?.getSystemData('pf2e', 'systemBaseDate');
+  console.log('PF2e Base Date:', baseDate);
+}
+
+// Module versions
+console.log('S&S Version:', game.modules.get('seasons-and-stars')?.version);
+console.log('Browser:', navigator.userAgent);
+```
+
+**Copy the console output and include it in your issue report.**
+
+This diagnostic information helps us quickly identify the root cause of date synchronization issues and provide targeted solutions.
+
+### Other Support Channels
+
+- **Issues**: [GitHub Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues) (include diagnostic data!)
 - **Documentation**: [Complete Guides](https://docs.rayners.dev/seasons-and-stars/intro)
 - **Discord**: [Foundry VTT Community](https://discord.gg/foundryvtt) - `#modules` channel
 

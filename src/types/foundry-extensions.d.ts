@@ -7,17 +7,21 @@
 
 import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
 import type { SeasonsStarsIntegration } from './bridge-interfaces';
-import type { NoteCategories } from '../core/note-categories';
 
 // Extend the Game interface to include S&S specific properties
 declare global {
   interface Game {
     seasonsStars?: {
       api?: SeasonsStarsAPI;
-      manager?: CalendarManagerInterface; // CalendarManager interface
-      notes?: NotesManagerInterface; // NotesManager interface
-      categories?: NoteCategories; // Note categories management
+      manager?: unknown; // CalendarManager interface
+      notes?: unknown; // NotesManager interface
+      categories?: unknown; // Note categories management
       integration?: SeasonsStarsIntegration | null;
+      compatibilityManager?: unknown; // Expose for debugging and external access
+      // Warning state functions for debugging and external access
+      resetSeasonsWarningState?: () => void;
+      getSeasonsWarningState?: () => boolean;
+      setSeasonsWarningState?: (warned: boolean) => void;
     };
   }
 
@@ -87,8 +91,8 @@ export interface CalendarEngineInterface {
   getCalendar(): SeasonsStarsCalendar;
   calculateWeekday(year: number, month: number, day: number): number;
   getMonthLength(month: number, year: number): number;
-  dateToWorldTime(date: CalendarDate): number;
-  worldTimeToDate(timestamp: number): CalendarDate;
+  dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number;
+  worldTimeToDate(timestamp: number, worldCreationTimestamp?: number): CalendarDate;
   getIntercalaryDaysAfterMonth(month: number, year: number): any[];
   addMonths(date: CalendarDate, months: number): CalendarDate;
   addYears(date: CalendarDate, years: number): CalendarDate;

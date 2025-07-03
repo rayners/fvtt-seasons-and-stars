@@ -27,7 +27,7 @@ export class CalendarEngine {
    * Convert Foundry world time (seconds) to calendar date
    * Now supports both epoch-based and real-time-based interpretation
    */
-  worldTimeToDate(worldTime: number): CalendarDate {
+  worldTimeToDate(worldTime: number, worldCreationTimestamp?: number): CalendarDate {
     const adjustedWorldTime = this.adjustWorldTimeForInterpretation(worldTime);
 
     const totalSeconds = Math.floor(adjustedWorldTime);
@@ -43,23 +43,100 @@ export class CalendarEngine {
 
     // Calculate time of day
     const secondsPerHour = CalendarTimeUtils.getSecondsPerHour(this.calendar);
-    const hour = Math.floor(secondsInDay / secondsPerHour);
-    const minute = Math.floor((secondsInDay % secondsPerHour) / this.calendar.time.secondsInMinute);
-    const second = secondsInDay % this.calendar.time.secondsInMinute;
+    let hour = Math.floor(secondsInDay / secondsPerHour);
+    let minute = Math.floor((secondsInDay % secondsPerHour) / this.calendar.time.secondsInMinute);
+    let second = secondsInDay % this.calendar.time.secondsInMinute;
 
     // Normalize -0 to +0 for JavaScript precision issues
-    const normalizedHour = hour === 0 ? 0 : hour;
-    const normalizedMinute = minute === 0 ? 0 : minute;
-    const normalizedSecond = second === 0 ? 0 : second;
+    let normalizedHour = hour === 0 ? 0 : hour;
+    let normalizedMinute = minute === 0 ? 0 : minute;
+    let normalizedSecond = second === 0 ? 0 : second;
 
     // Convert days to calendar date
     const dateInfo = this.daysToDate(totalDays);
 
+    // Adjust date calculation for system-specific integration
+    let adjustedYear = dateInfo.year;
+    let adjustedMonth = dateInfo.month;
+    let adjustedDay = dateInfo.day;
+    let adjustedWeekday = dateInfo.weekday;
+
+    if (worldCreationTimestamp !== undefined) {
+      // Use PF2e-style calculation: real-world world creation date maps to calendar date
+      const worldCreationDate = new Date(worldCreationTimestamp * 1000);
+
+      // Handle invalid timestamps
+      if (isNaN(worldCreationDate.getTime())) {
+        // Return invalid date with NaN year
+        adjustedYear = NaN;
+        adjustedMonth = dateInfo.month;
+        adjustedDay = dateInfo.day;
+        adjustedWeekday = dateInfo.weekday;
+      } else {
+        const epochYear = this.calendar.year?.epoch || 0;
+
+        // Calculate calendar year from real-world year + epoch offset
+        const realWorldYear = worldCreationDate.getUTCFullYear();
+        const calendarBaseYear = realWorldYear + epochYear;
+
+        // Calculate the base date: world creation timestamp = calendar base year on exact creation date
+        const baseCalendarDate = new CalendarDate(
+          {
+            year: calendarBaseYear,
+            month: worldCreationDate.getUTCMonth() + 1, // 1-based
+            day: worldCreationDate.getUTCDate(),
+            weekday: 0, // Will be calculated
+            time: {
+              hour: worldCreationDate.getUTCHours(),
+              minute: worldCreationDate.getUTCMinutes(),
+              second: worldCreationDate.getUTCSeconds(),
+            },
+          },
+          this.calendar
+        );
+
+        // Calculate base world time using epoch-based calculation (no recursion)
+        const baseTotalDays = this.dateToDays(baseCalendarDate);
+        const baseTimeOfDay =
+          (baseCalendarDate.time?.hour || 0) * secondsPerHour +
+          (baseCalendarDate.time?.minute || 0) * this.calendar.time.secondsInMinute +
+          (baseCalendarDate.time?.second || 0);
+        const baseWorldTime = baseTotalDays * secondsPerDay + baseTimeOfDay;
+
+        // Add the elapsed world time to get the final calendar date
+        const totalWorldTime = baseWorldTime + worldTime;
+        const finalTotalDays = Math.floor(totalWorldTime / secondsPerDay);
+        const finalDateInfo = this.daysToDate(finalTotalDays);
+
+        // Use the calculated date
+        adjustedYear = finalDateInfo.year;
+        adjustedMonth = finalDateInfo.month;
+        adjustedDay = finalDateInfo.day;
+        adjustedWeekday = finalDateInfo.weekday;
+
+        // Recalculate seconds in day for the final date
+        secondsInDay = Math.floor(totalWorldTime % secondsPerDay);
+        if (secondsInDay < 0) {
+          secondsInDay += secondsPerDay;
+        }
+
+        // Recalculate time components from updated secondsInDay
+        hour = Math.floor(secondsInDay / secondsPerHour);
+        minute = Math.floor((secondsInDay % secondsPerHour) / this.calendar.time.secondsInMinute);
+        second = secondsInDay % this.calendar.time.secondsInMinute;
+
+        // Update normalized time values
+        normalizedHour = hour === 0 ? 0 : hour;
+        normalizedMinute = minute === 0 ? 0 : minute;
+        normalizedSecond = second === 0 ? 0 : second;
+      }
+    }
+
     const dateData: CalendarDateData = {
-      year: dateInfo.year,
-      month: dateInfo.month,
-      day: dateInfo.day,
-      weekday: dateInfo.weekday,
+      year: adjustedYear,
+      month: adjustedMonth,
+      day: adjustedDay,
+      weekday: adjustedWeekday,
       intercalary: dateInfo.intercalary,
       time: { hour: normalizedHour, minute: normalizedMinute, second: normalizedSecond },
     };
@@ -71,18 +148,65 @@ export class CalendarEngine {
    * Convert calendar date to Foundry world time (seconds)
    * Handles both interpretation modes
    */
-  dateToWorldTime(date: CalendarDate): number {
-    const totalDays = this.dateToDays(date);
+  dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number {
+    // When world creation timestamp is provided, we need to reverse the world creation calculation
+    const adjustedDate = date;
+    if (worldCreationTimestamp !== undefined) {
+      const worldCreationDate = new Date(worldCreationTimestamp * 1000);
+      const epochYear = this.calendar.year?.epoch || 0;
+
+      // Calculate the calendar base year from real-world year + epoch offset
+      const realWorldYear = worldCreationDate.getUTCFullYear();
+      const calendarBaseYear = realWorldYear + epochYear;
+
+      // Calculate the base date: world creation timestamp = calendar base year on exact creation date/time
+      const baseCalendarDate = new CalendarDate(
+        {
+          year: calendarBaseYear,
+          month: worldCreationDate.getUTCMonth() + 1, // 1-based
+          day: worldCreationDate.getUTCDate(),
+          weekday: 0, // Will be calculated
+          time: {
+            hour: worldCreationDate.getUTCHours(),
+            minute: worldCreationDate.getUTCMinutes(),
+            second: worldCreationDate.getUTCSeconds(),
+          },
+        },
+        this.calendar
+      );
+
+      // Calculate the difference from the base date to input date
+      const baseWorldTime =
+        this.dateToDays(baseCalendarDate) * CalendarTimeUtils.getSecondsPerDay(this.calendar);
+      const baseTimeOfDay =
+        (baseCalendarDate.time?.hour || 0) * CalendarTimeUtils.getSecondsPerHour(this.calendar) +
+        (baseCalendarDate.time?.minute || 0) * this.calendar.time.secondsInMinute +
+        (baseCalendarDate.time?.second || 0);
+      const totalBaseWorldTime = baseWorldTime + baseTimeOfDay;
+
+      const inputWorldTime =
+        this.dateToDays(date) * CalendarTimeUtils.getSecondsPerDay(this.calendar);
+      const inputTimeOfDay =
+        (date.time?.hour || 0) * CalendarTimeUtils.getSecondsPerHour(this.calendar) +
+        (date.time?.minute || 0) * this.calendar.time.secondsInMinute +
+        (date.time?.second || 0);
+      const totalInputWorldTime = inputWorldTime + inputTimeOfDay;
+
+      // The world time is the difference from the base
+      return totalInputWorldTime - totalBaseWorldTime;
+    }
+
+    const totalDays = this.dateToDays(adjustedDate);
     const secondsPerDay = CalendarTimeUtils.getSecondsPerDay(this.calendar);
 
     let totalSeconds = totalDays * secondsPerDay;
 
     // Add time of day if provided
-    if (date.time) {
+    if (adjustedDate.time) {
       const secondsPerHour = CalendarTimeUtils.getSecondsPerHour(this.calendar);
-      totalSeconds += date.time.hour * secondsPerHour;
-      totalSeconds += date.time.minute * this.calendar.time.secondsInMinute;
-      totalSeconds += date.time.second;
+      totalSeconds += adjustedDate.time.hour * secondsPerHour;
+      totalSeconds += adjustedDate.time.minute * this.calendar.time.secondsInMinute;
+      totalSeconds += adjustedDate.time.second;
     }
 
     return this.adjustWorldTimeFromInterpretation(totalSeconds);
@@ -268,6 +392,7 @@ export class CalendarEngine {
       return worldTime + epochOffset;
     }
 
+    // Unknown interpretation mode: return worldTime unchanged (fallback behavior)
     return worldTime;
   }
 

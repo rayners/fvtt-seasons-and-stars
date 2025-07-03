@@ -42,8 +42,36 @@ export default [
     },
   },
 
+  // Node.js scripts with appropriate environment
+  {
+    files: ['scripts/**/*.js'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        global: 'writable',
+      },
+      sourceType: 'module',
+    },
+    rules: {
+      'no-console': 'off',
+      '@typescript-eslint/no-unused-vars': 'error',
+    },
+  },
+
   // Ignore build artifacts and dependencies
   {
-    ignores: ['dist/', 'node_modules/', 'coverage/', '*.js', '*.mjs'],
+    ignores: [
+      'dist/',
+      'node_modules/',
+      'coverage/',
+      '*.js',
+      '*.mjs',
+      '!scripts/**/*.js',
+      '*.config.ts',
+    ],
   },
 ];

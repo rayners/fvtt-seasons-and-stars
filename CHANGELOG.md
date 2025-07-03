@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.4.5](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.4...v0.4.5) (2025-07-01)
+
+
+### Bug Fixes
+
+* **pf2e:** widget synchronization issue for PF2e world creation timestamps ([#101](https://github.com/rayners/fvtt-seasons-and-stars/issues/101)) ([cae8a43](https://github.com/rayners/fvtt-seasons-and-stars/commit/cae8a436490a37dff6760477ddcfc4c24808f406))
+
+## [0.4.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.3...v0.4.4) (2025-07-01)
+
+
+### Bug Fixes
+
+* prevent repeated seasons warning spam and complete calendar seasons data ([#102](https://github.com/rayners/fvtt-seasons-and-stars/issues/102)) ([76b5478](https://github.com/rayners/fvtt-seasons-and-stars/commit/76b5478758b625fb7536f49d4a2cda4b88bfab37))
+
+
+### Documentation
+
+* add AI usage transparency to README files ([#90](https://github.com/rayners/fvtt-seasons-and-stars/issues/90)) ([5887d07](https://github.com/rayners/fvtt-seasons-and-stars/commit/5887d076593dff35f6a259913b50f20b419a881d))
+
 ## [0.4.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.2...v0.4.3) (2025-06-28)
 
 
