@@ -16,6 +16,7 @@ export class CalendarManager {
   public engines: Map<string, CalendarEngine> = new Map();
   private timeConverter: TimeConverter | null = null;
   private activeCalendarId: string | null = null;
+  private externalVariantDefaults: Map<string, string> = new Map(); // Maps baseCalendarId to defaultVariantId
 
   /**
    * Initialize the calendar manager
@@ -58,7 +59,13 @@ export class CalendarManager {
   async loadBuiltInCalendars(): Promise<void> {
     const builtInCalendars = BUILT_IN_CALENDARS;
 
+    // First, load all base calendars (excluding external variant files)
     for (const calendarId of builtInCalendars) {
+      // Skip external variant files - they'll be loaded separately
+      if (calendarId.includes('-variants')) {
+        continue;
+      }
+
       try {
         // Try to load from module's calendars directory
         const response = await fetch(`modules/seasons-and-stars/calendars/${calendarId}.json`);
@@ -73,6 +80,9 @@ export class CalendarManager {
         Logger.error(`Error loading calendar ${calendarId}`, error as Error);
       }
     }
+
+    // Then, load external variant files
+    await this.loadExternalVariantFiles();
   }
 
   /**
@@ -389,10 +399,10 @@ export class CalendarManager {
       return calendarId;
     }
 
-    // If the calendar has variants, check for a default variant
+    // First, check for inline variants in the base calendar
     const baseCalendar = this.calendars.get(calendarId);
     if (baseCalendar?.variants) {
-      // Find the default variant
+      // Find the default variant in inline variants
       for (const [variantId, variant] of Object.entries(baseCalendar.variants)) {
         if (variant.default) {
           return `${calendarId}(${variantId})`;
@@ -400,8 +410,37 @@ export class CalendarManager {
       }
     }
 
+    // Then, check for external variants that reference this base calendar
+    for (const [variantCalendarId] of this.calendars.entries()) {
+      // Skip the base calendar itself
+      if (variantCalendarId === calendarId) continue;
+
+      // Check if this is a variant of our base calendar
+      if (variantCalendarId.startsWith(`${calendarId}(`)) {
+        // Check if this variant is marked as default (from external variant file)
+        // We need to check if the variant has a default flag in its metadata
+        const variantMatch = variantCalendarId.match(new RegExp(`^${calendarId}\\((.+)\\)$`));
+        if (variantMatch) {
+          const variantId = variantMatch[1];
+          // For external variants, we store the default flag in a special way
+          // Let's check if this variant was created with default: true
+          if (this.isDefaultExternalVariant(calendarId, variantId)) {
+            return variantCalendarId;
+          }
+        }
+      }
+    }
+
     // Return the original ID if no default variant found
     return calendarId;
+  }
+
+  /**
+   * Check if a variant is the default external variant for a base calendar
+   */
+  private isDefaultExternalVariant(baseCalendarId: string, variantId: string): boolean {
+    const defaultVariantId = this.externalVariantDefaults.get(baseCalendarId);
+    return defaultVariantId === variantId;
   }
 
   /**
@@ -473,5 +512,104 @@ export class CalendarManager {
     }
 
     return variantCalendar;
+  }
+
+  /**
+   * Load external variant files that reference existing calendars
+   */
+  private async loadExternalVariantFiles(): Promise<void> {
+    const builtInCalendars = BUILT_IN_CALENDARS;
+
+    // Find all variant files in the calendar list
+    const variantFiles = builtInCalendars.filter(calendarId => calendarId.includes('-variants'));
+
+    for (const variantFileId of variantFiles) {
+      await this.loadExternalVariantFile(variantFileId);
+    }
+  }
+
+  /**
+   * Load a specific external variant file
+   */
+  private async loadExternalVariantFile(variantFileId: string): Promise<void> {
+    try {
+      const response = await fetch(`modules/seasons-and-stars/calendars/${variantFileId}.json`);
+
+      if (!response.ok) {
+        Logger.debug(`External variant file not found: ${variantFileId}`);
+        return;
+      }
+
+      const variantFileData = await response.json();
+
+      // Validate external variant file structure
+      if (!this.validateExternalVariantFile(variantFileData)) {
+        Logger.error(`Invalid external variant file: ${variantFileId}`);
+        return;
+      }
+
+      // Check if base calendar exists
+      const baseCalendar = this.calendars.get(variantFileData.baseCalendar);
+      if (!baseCalendar) {
+        Logger.warn(
+          `Base calendar '${variantFileData.baseCalendar}' not found for variant file: ${variantFileId}`
+        );
+        return;
+      }
+
+      // Apply external variants to the base calendar
+      this.applyExternalVariants(baseCalendar, variantFileData);
+
+      Logger.debug(
+        `Loaded external variant file: ${variantFileId} (${Object.keys(variantFileData.variants).length} variants)`
+      );
+    } catch (error) {
+      Logger.error(`Error loading external variant file ${variantFileId}`, error as Error);
+    }
+  }
+
+  /**
+   * Validate external variant file structure
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private validateExternalVariantFile(data: any): boolean {
+    return (
+      data &&
+      typeof data === 'object' &&
+      typeof data.id === 'string' &&
+      typeof data.baseCalendar === 'string' &&
+      typeof data.variants === 'object' &&
+      data.variants !== null
+    );
+  }
+
+  /**
+   * Apply external variants to a base calendar
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private applyExternalVariants(baseCalendar: SeasonsStarsCalendar, variantFileData: any): void {
+    for (const [variantId, variant] of Object.entries(variantFileData.variants)) {
+      const variantCalendar = this.applyVariantOverrides(
+        baseCalendar,
+        variantId,
+        variant as CalendarVariant
+      );
+      const variantCalendarId = `${baseCalendar.id}(${variantId})`;
+
+      // Store the variant calendar
+      this.calendars.set(variantCalendarId, variantCalendar);
+
+      // Create engine for variant calendar
+      const variantEngine = new CalendarEngine(variantCalendar);
+      this.engines.set(variantCalendarId, variantEngine);
+
+      // Track default external variant
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((variant as any).default) {
+        this.externalVariantDefaults.set(baseCalendar.id, variantId);
+      }
+
+      Logger.debug(`Created external calendar variant: ${variantCalendarId}`);
+    }
   }
 }
