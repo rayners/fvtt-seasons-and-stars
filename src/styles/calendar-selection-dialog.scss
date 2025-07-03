@@ -72,26 +72,8 @@
     &.variant {
       border-left: 3px solid var(--color-cool-2);
       margin-left: 1rem;
-      position: relative;
       
-      &::before {
-        content: "" !important; // Explicitly clear any inherited content
-        position: absolute;
-        left: -1.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 0.75rem;
-        height: 1px;
-        background: var(--color-cool-5);
-      }
-
-      // Ensure no content is added to any child elements
-      * {
-        &::before,
-        &::after {
-          content: "" !important;
-        }
-      }
+      // No connecting line - just indentation and border
       
       &:hover {
         border-left-color: var(--color-cool-1);
