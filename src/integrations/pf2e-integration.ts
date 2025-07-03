@@ -66,7 +66,14 @@ export class PF2eIntegration {
    * Get PF2e-style base date for calendar calculations
    * Maps real-world creation date to Golarion calendar following PF2e's approach
    */
-  getPF2eBaseDate(): { year: number; month: number; day: number } | null {
+  getPF2eBaseDate(): {
+    year: number;
+    month: number;
+    day: number;
+    hour?: number;
+    minute?: number;
+    second?: number;
+  } | null {
     try {
       const worldCreatedOn = this.getWorldCreatedOn();
       if (!worldCreatedOn) {
@@ -84,7 +91,7 @@ export class PF2eIntegration {
       }
 
       // Get the active calendar to use its structure
-      const calendarManager = game.seasonsStars?.manager;
+      const calendarManager = game.seasonsStars?.manager as any;
       if (!calendarManager) {
         Logger.error('Calendar manager not available for PF2e date mapping');
         return null;
