@@ -152,7 +152,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     );
 
     // Build hierarchical calendar list
-    const sortedCalendars = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sortedCalendars: any[] = [];
     for (const [, group] of sortedGroups) {
       // Add base calendar first
       if (group.base) {
