@@ -242,9 +242,14 @@ export class CalendarLocalization {
       }
     }
 
-    // Sort groups by base calendar display label
+    // Sort groups with Gregorian first, then alphabetically
     const sortedGroups = Array.from(calendarGroups.entries()).sort(
       ([aId, aGroup], [bId, bGroup]) => {
+        // Gregorian calendar always comes first
+        if (aId === 'gregorian') return -1;
+        if (bId === 'gregorian') return 1;
+
+        // All other calendars sorted alphabetically by display label
         const labelA = aGroup.base ? this.getCalendarLabel(aGroup.base) : aId;
         const labelB = bGroup.base ? this.getCalendarLabel(bGroup.base) : bId;
         return labelA.localeCompare(labelB);

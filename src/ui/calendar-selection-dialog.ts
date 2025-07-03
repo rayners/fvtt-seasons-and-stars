@@ -137,9 +137,14 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       }
     }
 
-    // Sort groups by base calendar display label alphabetically
+    // Sort groups with Gregorian first, then alphabetically
     const sortedGroups = Array.from(calendarGroups.entries()).sort(
       ([aId, aGroup], [bId, bGroup]) => {
+        // Gregorian calendar always comes first
+        if (aId === 'gregorian') return -1;
+        if (bId === 'gregorian') return 1;
+
+        // All other calendars sorted alphabetically by display label
         const labelA = aGroup.base ? aGroup.base.label : aId;
         const labelB = bGroup.base ? bGroup.base.label : bId;
         return labelA.localeCompare(labelB);
