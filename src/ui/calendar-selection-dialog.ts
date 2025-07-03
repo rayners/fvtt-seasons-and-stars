@@ -135,11 +135,11 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private addActionButtons(html: JQuery): void {
     const footer = $(`
       <div class="dialog-buttons flexrow">
-        <button data-action="cancel" type="button">
+        <button data-action="cancel" type="button" class="button">
           <i class="fas fa-times"></i>
           ${game.i18n.localize('SEASONS_STARS.dialog.calendar_selection.cancel')}
         </button>
-        <button data-action="chooseCalendar" type="button" class="ss-button primary" id="select-calendar">
+        <button data-action="chooseCalendar" type="button" class="button ss-button primary" id="select-calendar">
           <i class="fas fa-check"></i>
           ${game.i18n.localize('SEASONS_STARS.dialog.calendar_selection.select')}
         </button>
