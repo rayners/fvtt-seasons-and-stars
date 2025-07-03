@@ -21,16 +21,16 @@
     }
     
     &::-webkit-scrollbar-track {
-      background: var(--color-cool-6);
+      background: var(--color-bg-secondary);
       border-radius: 3px;
     }
     
     &::-webkit-scrollbar-thumb {
-      background: var(--color-cool-4);
+      background: var(--color-border-light-secondary);
       border-radius: 3px;
       
       &:hover {
-        background: var(--color-cool-3);
+        background: var(--color-border-light-primary);
       }
     }
   }
@@ -44,8 +44,8 @@
     cursor: var(--cursor-pointer, pointer);
     
     // Use Foundry's interactive colors
-    border: 1px solid var(--color-cool-4);
-    background: var(--color-cool-5);
+    border: 1px solid var(--color-border-light-secondary);
+    background: var(--color-bg-option);
     transition: all 0.2s ease;
 
     // Native Foundry hover effect (matches directory items)
@@ -57,7 +57,7 @@
 
     // Native Foundry active state
     &.active {
-      background: var(--color-cool-4);
+      background: var(--color-bg-primary);
       border-color: var(--color-warm-2);
     }
 
@@ -65,7 +65,7 @@
     &.picked {
       outline: 1px solid var(--color-warm-1);
       box-shadow: 0 0 4px var(--color-warm-1) inset;
-      background: var(--color-cool-4);
+      background: var(--color-bg-primary);
     }
 
     .card-header {
@@ -109,8 +109,8 @@
 
       .sample-preview {
         // Use native form styling
-        background: var(--color-cool-6);
-        border: 1px solid var(--color-cool-4);
+        background: var(--color-bg-secondary);
+        border: 1px solid var(--color-border-light-secondary);
         border-radius: 3px;
         padding: 0.5rem;
         margin-top: auto;
@@ -198,7 +198,7 @@
     .preview-header {
       margin-bottom: 1.5rem;
       padding-bottom: 1rem;
-      border-bottom: 1px solid var(--color-cool-4);
+      border-bottom: 1px solid var(--color-border-light-secondary);
       
       h3 {
         margin: 0 0 0.5rem 0;
@@ -219,8 +219,8 @@
     .preview-description {
       margin-bottom: 1.5rem;
       padding: 1rem;
-      background: var(--color-cool-6);
-      border: 1px solid var(--color-cool-4);
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-light-secondary);
       border-radius: 4px;
       font-size: 0.95rem;
       line-height: 1.5;
@@ -246,8 +246,8 @@
       }
       
       .sample-date {
-        background: var(--color-cool-5);
-        border: 1px solid var(--color-cool-4);
+        background: var(--color-bg-option);
+        border: 1px solid var(--color-border-light-secondary);
         border-radius: 3px;
         padding: 0.5rem 0.75rem;
         margin-bottom: 0.5rem;
@@ -279,8 +279,8 @@
       }
       
       .structure-info {
-        background: var(--color-cool-6);
-        border: 1px solid var(--color-cool-4);
+        background: var(--color-bg-secondary);
+        border: 1px solid var(--color-border-light-secondary);
         border-radius: 4px;
         padding: 1rem;
         
