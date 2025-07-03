@@ -304,6 +304,33 @@
   }
 }
 
+// Dialog footer buttons
+.dialog-buttons {
+  padding: 1rem;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  
+  button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    
+    i {
+      margin-right: 0.5rem;
+    }
+    
+    &.ss-button.primary {
+      background: var(--color-text-light-highlight);
+      color: var(--color-text-dark-primary);
+      border-color: var(--color-text-light-highlight);
+      
+      &:hover {
+        background: var(--color-text-light-heading);
+        border-color: var(--color-text-light-heading);
+      }
+    }
+  }
+}
+
 // Native Foundry pulse animation
 @keyframes foundry-pulse {
   0%, 100% { 
