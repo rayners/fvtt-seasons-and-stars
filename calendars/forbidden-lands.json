@@ -111,6 +111,30 @@
 
   "intercalary": [],
 
+  "moons": [
+    {
+      "name": "Moon",
+      "cycleLength": 30,
+      "firstNewMoon": { "year": 1165, "month": 1, "day": 5 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 7, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 6, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 7, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#e0e0e0",
+      "translations": {
+        "en": {
+          "description": "The solitary moon hanging over the Forbidden Lands, survivor of whatever catastrophe changed the world"
+        }
+      }
+    }
+  ],
+
   "seasons": [
     {
       "name": "Winter",

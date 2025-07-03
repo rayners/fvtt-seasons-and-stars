@@ -135,6 +135,51 @@
     }
   ],
 
+  "moons": [
+    {
+      "name": "Máni",
+      "cycleLength": 29,
+      "firstNewMoon": { "year": 1542, "month": 1, "day": 8 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 7, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 6, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 6, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#b0c4de",
+      "translations": {
+        "en": {
+          "description": "The main moon, personification of the moon in Norse mythology, brother to Sól"
+        }
+      }
+    },
+    {
+      "name": "Nótt",
+      "cycleLength": 37,
+      "firstNewMoon": { "year": 1542, "month": 2, "day": 15 },
+      "phases": [
+        { "name": "New Moon", "length": 2, "singleDay": false, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 8, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 2, "singleDay": false, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 7, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 2, "singleDay": false, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 7, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 2, "singleDay": false, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 7, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#483d8b",
+      "translations": {
+        "en": {
+          "description": "The night moon, Norse goddess of night who rides her horse across the sky"
+        }
+      }
+    }
+  ],
+
   "seasons": [
     {
       "name": "Winter",

@@ -145,7 +145,7 @@ export class CompatibilityManager {
     calendar: any,
     systemId?: string
   ): SystemCompatibilityAdjustment | null {
-    const currentSystemId = systemId || game.system?.id;
+    const currentSystemId = systemId || (typeof game !== 'undefined' && game?.system?.id);
     if (!currentSystemId || !calendar) return null;
 
     // 1. Check calendar-defined compatibility first

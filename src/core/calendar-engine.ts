@@ -7,6 +7,8 @@ import type {
   CalendarDateData,
   CalendarCalculation,
   CalendarIntercalary,
+  CalendarMoon,
+  MoonPhaseInfo,
 } from '../types/calendar';
 import { CalendarDate } from './calendar-date';
 import { CalendarTimeUtils } from './calendar-time-utils';
@@ -776,5 +778,107 @@ export class CalendarEngine {
    */
   getCalendar(): SeasonsStarsCalendar {
     return { ...this.calendar };
+  }
+
+  /**
+   * Get all moons for Simple Calendar bridge compatibility
+   */
+  getAllMoons(date?: CalendarDate): CalendarMoon[] | MoonPhaseInfo[] {
+    const moons = this.calendar.moons || [];
+
+    if (!date) {
+      // Return raw moon definitions if no date provided (legacy behavior)
+      return moons;
+    }
+
+    // Return calculated moon phases for the specified date
+    return moons.map(moon => this.calculateMoonPhaseForDate(moon, date));
+  }
+
+  /**
+   * Calculate moon phase information for a specific date
+   */
+  getMoonPhaseInfo(date: CalendarDate, moonName?: string): MoonPhaseInfo[] {
+    const moons = this.calendar.moons;
+    if (!moons || moons.length === 0) {
+      return [];
+    }
+
+    const targetMoons = moonName ? moons.filter(m => m.name === moonName) : moons;
+    return targetMoons.map(moon => this.calculateMoonPhaseForDate(moon, date));
+  }
+
+  /**
+   * Calculate specific moon phase for a date
+   */
+  private calculateMoonPhaseForDate(moon: CalendarMoon, date: CalendarDate): MoonPhaseInfo {
+    // Calculate days since reference new moon
+    const referenceDate = new CalendarDate(
+      {
+        year: moon.firstNewMoon.year,
+        month: moon.firstNewMoon.month,
+        day: moon.firstNewMoon.day,
+        weekday: 0, // Will be calculated
+      },
+      this.calendar
+    );
+
+    const daysSinceReference = this.dateToDays(date) - this.dateToDays(referenceDate);
+
+    // Handle negative days (date before reference)
+    const adjustedDays =
+      daysSinceReference >= 0
+        ? daysSinceReference
+        : daysSinceReference +
+          Math.ceil(Math.abs(daysSinceReference) / moon.cycleLength) * moon.cycleLength;
+
+    // Calculate position in current cycle
+    const dayInCycle = adjustedDays % moon.cycleLength;
+
+    // Find current phase
+    let currentPhaseIndex = 0;
+    let daysIntoPhase = dayInCycle;
+
+    for (let i = 0; i < moon.phases.length; i++) {
+      if (daysIntoPhase < moon.phases[i].length) {
+        currentPhaseIndex = i;
+        break;
+      }
+      daysIntoPhase -= moon.phases[i].length;
+    }
+
+    const currentPhase = moon.phases[currentPhaseIndex];
+    const daysUntilNext = currentPhase.length - daysIntoPhase;
+
+    return {
+      moon,
+      phase: currentPhase,
+      phaseIndex: currentPhaseIndex,
+      dayInPhase: Math.floor(daysIntoPhase),
+      daysUntilNext: Math.ceil(daysUntilNext),
+    };
+  }
+
+  /**
+   * Get current moon phases based on world time
+   */
+  getCurrentMoonPhases(worldTime?: number): MoonPhaseInfo[] {
+    const fallbackWorldTime =
+      worldTime !== undefined
+        ? worldTime
+        : typeof game !== 'undefined' && game?.time?.worldTime
+          ? game.time.worldTime
+          : 0;
+
+    const currentDate = this.worldTimeToDate(fallbackWorldTime);
+    return this.getMoonPhaseInfo(currentDate);
+  }
+
+  /**
+   * Calculate moon phase for a specific world time
+   */
+  getMoonPhaseAtWorldTime(worldTime: number, moonName?: string): MoonPhaseInfo[] {
+    const date = this.worldTimeToDate(worldTime);
+    return this.getMoonPhaseInfo(date, moonName);
   }
 }

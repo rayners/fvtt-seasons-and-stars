@@ -501,6 +501,75 @@
       &:hover .quick-note-btn {
         opacity: 1;
       }
+
+      /* Moon phase indicators */
+      .moon-indicator {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        font-size: 8px;
+        color: #f0f0f0;
+        filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.7));
+        pointer-events: none;
+
+
+        .multiple-moons-indicator {
+          margin-left: 1px;
+          font-size: 6px;
+          font-weight: bold;
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Moon phase specific styling with better differentiation */
+        .moon-phase-new {
+          color: #333333 !important;
+          text-shadow: 0 0 2px rgba(255, 255, 255, 0.4);
+          opacity: 0.6;
+        }
+
+        .moon-phase-waxing-crescent {
+          color: #ffd700 !important;
+          filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.6));
+        }
+
+        .moon-phase-first-quarter {
+          color: #f0f0f0 !important;
+          filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.4));
+        }
+
+        .moon-phase-waxing-gibbous {
+          color: #f8f8f8 !important;
+          filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.5));
+          text-shadow: -1px 0 0 #777;
+        }
+
+        .moon-phase-full {
+          color: #ffffff !important;
+          filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.9));
+          text-shadow: 0 0 3px rgba(255, 255, 255, 0.8);
+        }
+
+        .moon-phase-waning-gibbous {
+          color: #f8f8f8 !important;
+          filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.5));
+          text-shadow: 1px 0 0 #777;
+        }
+
+        .moon-phase-last-quarter {
+          color: #f0f0f0 !important;
+          transform: scaleX(-1);
+          filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.4));
+        }
+
+        .moon-phase-waning-crescent {
+          color: #ffd700 !important;
+          transform: scaleX(-1);
+          filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.6));
+        }
+      }
     }
   }
 

@@ -75,7 +75,31 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
-  }
+  },
+
+  "moons": [
+    {
+      "name": "Luna",
+      "cycleLength": 29.53059,
+      "firstNewMoon": { "year": 2024, "month": 1, "day": 11 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        {
+          "name": "Waxing Crescent",
+          "length": 6.38,
+          "singleDay": false,
+          "icon": "waxing-crescent"
+        },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 6.38, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 6.38, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 6.38, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#f0f0f0"
+    }
+  ]
 }
 ```
 
@@ -150,6 +174,33 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 | `hoursInDay`      | number | 24      | Number of hours in a day      |
 | `minutesInHour`   | number | 60      | Number of minutes in an hour  |
 | `secondsInMinute` | number | 60      | Number of seconds in a minute |
+
+### Moon Definitions
+
+| Field          | Type   | Required | Description                            |
+| -------------- | ------ | -------- | -------------------------------------- |
+| `name`         | string | ✅       | Full moon name                         |
+| `cycleLength`  | number | ✅       | Length of full lunar cycle in days     |
+| `firstNewMoon` | object | ✅       | Reference date for first new moon      |
+| `phases`       | array  | ✅       | Array of moon phase definitions        |
+| `color`        | string | ❌       | Hex color code for moon identification |
+
+#### First New Moon Object
+
+| Field   | Type   | Required | Description                     |
+| ------- | ------ | -------- | ------------------------------- |
+| `year`  | number | ✅       | Year of the reference new moon  |
+| `month` | number | ✅       | Month of the reference new moon |
+| `day`   | number | ✅       | Day of the reference new moon   |
+
+#### Moon Phase Definitions
+
+| Field       | Type    | Required | Description                           |
+| ----------- | ------- | -------- | ------------------------------------- |
+| `name`      | string  | ✅       | Name of the phase (e.g., "Full Moon") |
+| `length`    | number  | ✅       | Duration of this phase in days        |
+| `singleDay` | boolean | ✅       | Whether this is a single-day phase    |
+| `icon`      | string  | ✅       | Icon identifier for UI display        |
 
 ## Format Examples
 
@@ -322,6 +373,57 @@ For intercalary periods longer than one day, use the `days` field:
 - **Festival weeks**: Common values are 5-7 days for festival periods
 - **Seasonal breaks**: Longer periods like 10-15 days for major seasonal transitions
 
+### Moon Phase Tracking
+
+For calendars with lunar cycles, add moon definitions with phase tracking:
+
+```json
+{
+  "moons": [
+    {
+      "name": "Catha",
+      "cycleLength": 33,
+      "firstNewMoon": { "year": 835, "month": 1, "day": 1 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 7, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 7, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 7, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 8, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#e0e0e0"
+    },
+    {
+      "name": "Ruidus",
+      "cycleLength": 328,
+      "firstNewMoon": { "year": 835, "month": 1, "day": 15 },
+      "phases": [
+        { "name": "New Moon", "length": 41, "singleDay": false, "icon": "new" },
+        { "name": "Full Moon", "length": 41, "singleDay": false, "icon": "full" },
+        { "name": "New Moon", "length": 41, "singleDay": false, "icon": "new" },
+        { "name": "Full Moon", "length": 41, "singleDay": false, "icon": "full" },
+        { "name": "New Moon", "length": 41, "singleDay": false, "icon": "new" },
+        { "name": "Full Moon", "length": 41, "singleDay": false, "icon": "full" },
+        { "name": "New Moon", "length": 41, "singleDay": false, "icon": "new" },
+        { "name": "Full Moon", "length": 41, "singleDay": false, "icon": "full" }
+      ],
+      "color": "#800020"
+    }
+  ]
+}
+```
+
+**Moon Usage Notes:**
+
+- **Multiple moons**: Fantasy settings can have multiple moons with different cycles
+- **Standard phases**: Use 8 standard phases for Earth-like moons
+- **Custom phases**: Define any phase system that fits your world
+- **Reference dates**: Use a known new moon date for accurate calculations
+- **Color coding**: Helps distinguish multiple moons in the UI
+
 ## Validation Rules
 
 ### Required Fields
@@ -330,6 +432,8 @@ For intercalary periods longer than one day, use the `days` field:
 - Months: `name`, `days`
 - Weekdays: `name`
 - Intercalary: `name`, `after`
+- Moons: `name`, `cycleLength`, `firstNewMoon`, `phases`
+- Moon Phases: `name`, `length`, `singleDay`, `icon`
 
 ### Data Constraints
 
@@ -339,6 +443,9 @@ For intercalary periods longer than one day, use the `days` field:
 - `hoursInDay`, `minutesInHour`, `secondsInMinute`: Must be positive integers
 - `epoch`, `currentYear`: Can be negative (BCE/before epoch years)
 - `startDay`: Must be 0 to (weekdays.length - 1)
+- `cycleLength`: Must be positive number (supports fractional days)
+- `length` (moon phases): Must be positive number, total must equal `cycleLength`
+- `color`: Must be valid hex color code (e.g., "#ffffff")
 
 ### Cross-References
 
@@ -376,7 +483,6 @@ The format is designed for future extensibility:
 ### Planned Extensions
 
 - **Seasons**: Add seasonal definitions with dates and characteristics
-- **Moon phases**: Lunar cycle calculations and display
 - **Holiday systems**: More complex recurring events beyond intercalary days
 - **Regional variants**: Support for regional calendar differences
 - **Display formatting**: Custom date format strings

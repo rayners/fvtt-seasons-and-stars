@@ -167,10 +167,53 @@
       "description": "The harvest season when leaves change color and temperatures begin to cool."
     }
   ],
-
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
-  }
+  },
+
+  "moons": [
+    {
+      "name": "Luna",
+      "cycleLength": 29.53059,
+      "firstNewMoon": { "year": 2024, "month": 1, "day": 11 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        {
+          "name": "Waxing Crescent",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waxing-crescent"
+        },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        {
+          "name": "Waxing Gibbous",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waxing-gibbous"
+        },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        {
+          "name": "Waning Gibbous",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waning-gibbous"
+        },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        {
+          "name": "Waning Crescent",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waning-crescent"
+        }
+      ],
+      "color": "#f0f0f0",
+      "translations": {
+        "en": {
+          "description": "Earth's moon, following a 29.5-day synodic cycle with eight traditional phases"
+        }
+      }
+    }
+  ]
 }

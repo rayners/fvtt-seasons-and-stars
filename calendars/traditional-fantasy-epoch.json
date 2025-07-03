@@ -13,7 +13,7 @@
     "epochYear": 1,
     "currentYear": 1547
   },
-  
+
   "year": {
     "epoch": 1,
     "currentYear": 1547,
@@ -21,14 +21,14 @@
     "suffix": " AE",
     "startDay": 1
   },
-  
+
   "leapYear": {
     "rule": "custom",
     "interval": 4,
     "month": "Frost-moon",
     "extraDays": 1
   },
-  
+
   "months": [
     {
       "name": "Dawn-moon",
@@ -103,7 +103,7 @@
       "description": "The third month of winter, the shortest and darkest time of the year."
     }
   ],
-  
+
   "weekdays": [
     {
       "name": "Godsday",
@@ -141,7 +141,7 @@
       "description": "Seventh day, sacred to lunar deities and magic"
     }
   ],
-  
+
   "intercalary": [
     {
       "name": "Spring Awakening",
@@ -172,7 +172,31 @@
       "description": "The deepest night of winter, when folk kindle fires against the dark"
     }
   ],
-  
+
+  "moons": [
+    {
+      "name": "Luna",
+      "cycleLength": 30,
+      "firstNewMoon": { "year": 1547, "month": 1, "day": 3 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 7, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 6, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 7, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#f0f8ff",
+      "translations": {
+        "en": {
+          "description": "The eternal moon watching over fantasy realms, sacred to magic and dreams"
+        }
+      }
+    }
+  ],
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,

@@ -37,6 +37,23 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 
 ## 🚀 Planned Development
 
+## 🔄 **Ongoing Foundation Work** (Cross-Release Priorities)
+
+These high-priority initiatives span multiple releases and provide foundational capabilities for the entire ecosystem:
+
+### **🔗 Simple Calendar Feature Parity** ([#52](https://github.com/rayners/fvtt-seasons-and-stars/issues/52)) - **HIGH PRIORITY**
+
+**Status**: Ongoing across multiple releases  
+**Goal**: Complete API and feature compatibility with Simple Calendar for seamless migration
+
+**Phase 1 (v0.5.0-v0.6.0)**: Core API compatibility, basic migration tools  
+**Phase 2 (v0.7.0-v0.8.0)**: Advanced features, data migration, comprehensive testing  
+**Phase 3 (v1.0.0)**: Full parity validation, performance optimization, production readiness
+
+_This foundational work enables the entire Simple Calendar migration strategy and receives high priority across all releases. While final completion targets v1.0.0, incremental compatibility improvements happen in every release._
+
+---
+
 ### **v0.5.0 - Calendar Validation and Quality Assurance** (Next Release - **PRIORITY BUMPED**)
 
 **Focus**: Preventing calendar definition bugs that cause runtime errors
@@ -82,7 +99,7 @@ Seasons & Stars aims to provide a **reliable and extensible** calendar solution 
 
 **Focus**: Production stability and feature completeness
 
-- **Complete Simple Calendar Feature Parity**: Full compatibility coverage ([#52](https://github.com/rayners/fvtt-seasons-and-stars/issues/52))
+- **Simple Calendar Parity Completion**: Final validation and production readiness ([#52](https://github.com/rayners/fvtt-seasons-and-stars/issues/52) - _Phase 3_)
 - **Comprehensive Testing**: Full compatibility validation ([#53](https://github.com/rayners/fvtt-seasons-and-stars/issues/53))
 - **Community Features**: Calendar sharing and collaboration tools ([#54](https://github.com/rayners/fvtt-seasons-and-stars/issues/54))
 - **UI/UX Improvements**: Enhanced widget interfaces and user experience refinements ([#35](https://github.com/rayners/fvtt-seasons-and-stars/issues/35))
