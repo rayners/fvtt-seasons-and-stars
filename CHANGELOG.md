@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.5.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.6...v0.5.0) (2025-07-03)
+
+
+### Features
+
+* comprehensive calendar variants system for cultural/regional calendars ([#110](https://github.com/rayners/fvtt-seasons-and-stars/issues/110)) ([c7f920e](https://github.com/rayners/fvtt-seasons-and-stars/commit/c7f920e53a985254f11b117db4f6467e6a6aec4d))
+* implement moon phase tracking system ([#88](https://github.com/rayners/fvtt-seasons-and-stars/issues/88)) ([f0a770e](https://github.com/rayners/fvtt-seasons-and-stars/commit/f0a770e2cf11cf878b0745f47e50bea03c2731aa))
+
 ## [0.4.6](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.5...v0.4.6) (2025-07-03)
 
 
