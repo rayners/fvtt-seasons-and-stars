@@ -119,19 +119,28 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       };
     });
 
-    // Sort calendars: base calendars first, then their variants
+    // Sort calendars alphabetically by display label, with base calendars before their variants
     const sortedCalendars = calendarsData.sort((a, b) => {
-      // First, group by base calendar
-      if (a.baseCalendarId !== b.baseCalendarId) {
-        return a.baseCalendarId.localeCompare(b.baseCalendarId);
+      // First, group by base calendar display label alphabetically
+      const baseCalendarA = this.calendars.get(a.baseCalendarId);
+      const baseCalendarB = this.calendars.get(b.baseCalendarId);
+      const baseLabelA = baseCalendarA
+        ? CalendarLocalization.getCalendarLabel(baseCalendarA)
+        : a.baseCalendarId;
+      const baseLabelB = baseCalendarB
+        ? CalendarLocalization.getCalendarLabel(baseCalendarB)
+        : b.baseCalendarId;
+
+      if (baseLabelA !== baseLabelB) {
+        return baseLabelA.localeCompare(baseLabelB);
       }
 
       // Within same base calendar, put base calendar first, then variants
       if (a.isVariant && !b.isVariant) return 1;
       if (!a.isVariant && b.isVariant) return -1;
 
-      // Both are variants, sort by variant name
-      return a.id.localeCompare(b.id);
+      // Both are variants, sort by their display labels
+      return a.label.localeCompare(b.label);
     });
 
     return Object.assign(context, {

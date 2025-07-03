@@ -163,12 +163,14 @@ describe('Calendar Selection Dialog - Variants Support', () => {
     expect(gregorianCalendar.baseCalendarId).toBe('gregorian');
   });
 
-  it('should sort calendars with base calendars first, then variants', async () => {
+  it('should sort calendars alphabetically by display label with base calendars first, then variants', async () => {
     const context = await dialog._prepareContext();
     const calendarsData = context.calendars;
     const calendarIds = calendarsData.map((c: any) => c.id);
 
-    // Should be sorted: golarion-pf2e, golarion-pf2e(absalom-reckoning), golarion-pf2e(imperial-calendar), gregorian
+    // Should be sorted alphabetically by base calendar display label:
+    // - "Golarion Calendar (Pathfinder 2e)" comes before "Gregorian Calendar"
+    // - Within Golarion group: base calendar first, then variants alphabetically
     expect(calendarIds).toEqual([
       'golarion-pf2e',
       'golarion-pf2e(absalom-reckoning)',
