@@ -294,15 +294,16 @@ describe('External Calendar Variants System', () => {
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
     });
 
-    it('should resolve to default external variant when setting base calendar', async () => {
+    it('should not auto-resolve to external variants when setting base calendar', async () => {
       await calendarManager.loadBuiltInCalendars();
 
       // Set active calendar to base ID
       await calendarManager.setActiveCalendar('gregorian');
 
-      // Should resolve to the default external variant (earth-stardate)
+      // Should remain base calendar - external variants are not automatic defaults
+      // They represent themed collections that should be explicitly selected
       const activeId = calendarManager.getActiveCalendarId();
-      expect(activeId).toBe('gregorian(earth-stardate)');
+      expect(activeId).toBe('gregorian');
     });
 
     it('should allow setting specific external variants directly', async () => {

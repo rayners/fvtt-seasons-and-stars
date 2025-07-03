@@ -16,7 +16,6 @@ export class CalendarManager {
   public engines: Map<string, CalendarEngine> = new Map();
   private timeConverter: TimeConverter | null = null;
   private activeCalendarId: string | null = null;
-  private externalVariantDefaults: Map<string, string> = new Map(); // Maps baseCalendarId to defaultVariantId
 
   /**
    * Initialize the calendar manager
@@ -410,37 +409,12 @@ export class CalendarManager {
       }
     }
 
-    // Then, check for external variants that reference this base calendar
-    for (const [variantCalendarId] of this.calendars.entries()) {
-      // Skip the base calendar itself
-      if (variantCalendarId === calendarId) continue;
-
-      // Check if this is a variant of our base calendar
-      if (variantCalendarId.startsWith(`${calendarId}(`)) {
-        // Check if this variant is marked as default (from external variant file)
-        // We need to check if the variant has a default flag in its metadata
-        const variantMatch = variantCalendarId.match(new RegExp(`^${calendarId}\\((.+)\\)$`));
-        if (variantMatch) {
-          const variantId = variantMatch[1];
-          // For external variants, we store the default flag in a special way
-          // Let's check if this variant was created with default: true
-          if (this.isDefaultExternalVariant(calendarId, variantId)) {
-            return variantCalendarId;
-          }
-        }
-      }
-    }
+    // Note: External variants are not checked for automatic defaults
+    // They represent themed collections intended for specific campaign types
+    // and should be explicitly selected by users, not automatic defaults
 
     // Return the original ID if no default variant found
     return calendarId;
-  }
-
-  /**
-   * Check if a variant is the default external variant for a base calendar
-   */
-  private isDefaultExternalVariant(baseCalendarId: string, variantId: string): boolean {
-    const defaultVariantId = this.externalVariantDefaults.get(baseCalendarId);
-    return defaultVariantId === variantId;
   }
 
   /**
@@ -603,11 +577,8 @@ export class CalendarManager {
       const variantEngine = new CalendarEngine(variantCalendar);
       this.engines.set(variantCalendarId, variantEngine);
 
-      // Track default external variant
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((variant as any).default) {
-        this.externalVariantDefaults.set(baseCalendar.id, variantId);
-      }
+      // Note: External variants with default=true are only defaults within their
+      // themed context, not automatic defaults for the base calendar
 
       Logger.debug(`Created external calendar variant: ${variantCalendarId}`);
     }

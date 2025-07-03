@@ -74,7 +74,7 @@ Each variant can include:
 
 - `name`: Display name for the variant
 - `description`: Description of the variant
-- `default`: Boolean indicating if this is the default variant when selecting the base calendar
+- `default`: Boolean indicating if this is the default variant within the themed collection (does not make it the default for the base calendar)
 - `config`: Configuration options (like year offsets)
 - `overrides`: Selective property overrides for the base calendar
 
@@ -154,14 +154,17 @@ Once loaded, external variants appear in the calendar selection dialog alongside
 
 - Base calendars group with their variants
 - Variant indicators show the relationship
-- Default variants are automatically selected when choosing the base calendar
-- Specific variants can be selected directly
+- External variants must be explicitly selected (they are not automatic defaults)
+- Specific variants can be selected directly from the calendar selection dialog
 
 ## Calendar Selection Behavior
 
-- Selecting `gregorian` resolves to `gregorian(earth-stardate)` (if marked as default)
-- Selecting `gregorian(vulcan-calendar)` uses that specific variant
+- Selecting `gregorian` uses the base Gregorian calendar (external variants are NOT automatic defaults)
+- Selecting `gregorian(earth-stardate)` uses the specific Star Trek Earth Stardate variant
+- Selecting `gregorian(vulcan-calendar)` uses the specific Vulcan calendar variant
 - All variants inherit from the base calendar with selective overrides applied
+
+**Important**: External variants represent themed collections intended for specific campaign types and must be explicitly selected. They do not automatically become defaults for the base calendar.
 
 ## Benefits
 
