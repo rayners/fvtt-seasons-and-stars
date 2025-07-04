@@ -14,6 +14,7 @@ import type {
 import { CalendarDate as CalendarDateClass } from './calendar-date';
 import type { CreateNoteData } from '../types/external-integrations';
 import type { CalendarManagerInterface, NotesManagerInterface } from '../types/foundry-extensions';
+import { compatibilityManager } from './compatibility-manager';
 import type {
   SeasonsStarsAPI,
   SeasonsStarsWidgets,
