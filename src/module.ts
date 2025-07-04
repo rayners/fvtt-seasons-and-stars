@@ -41,6 +41,7 @@ import type {
 
 // Import integrations (they register their own hooks independently)
 import './integrations/pf2e-integration';
+import './integrations/dnd5e-integration';
 
 // Import quench tests - they self-register via the quenchReady hook
 import './quench-tests';
