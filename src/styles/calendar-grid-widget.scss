@@ -203,6 +203,33 @@
 
   /* Calendar Grid */
   .calendar-grid {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px; // Space for scrollbar
+    
+    // Smooth scrolling
+    scroll-behavior: smooth;
+    
+    // Better scrollbar styling for Foundry
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: var(--color-bg-secondary);
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: var(--color-border-light-secondary);
+      border-radius: 3px;
+      
+      &:hover {
+        background: var(--color-border-light-primary);
+      }
+    }
+    
     .calendar-week {
       display: grid;
       grid-template-columns: repeat(var(--weekday-count, 7), 1fr);
@@ -264,7 +291,7 @@
           font-size: 8px;
           font-weight: 600;
           text-align: center;
-          color: rgba(255, 255, 255, 0.8);
+          color: var(--color-text-light);
           line-height: 1;
           pointer-events: none;
         }
@@ -309,10 +336,9 @@
         
         .intercalary-description {
           font-size: 11px;
-          color: rgba(255, 255, 255, 0.8);
+          color: var(--color-text-secondary);
           line-height: 1.2;
           font-style: italic;
-          opacity: 0.9;
         }
 
         &.clickable {
@@ -607,6 +633,30 @@
   }
 }
 
+/* Light theme specific adjustments */
+body.theme-light {
+  .calendar-grid-widget {
+    .calendar-day {
+      &.today {
+        &::before {
+          // Use darker text for light themes to ensure visibility
+          color: rgba(0, 0, 0, 0.9);
+          text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+        }
+      }
+      
+      &.intercalary.today {
+        &::before {
+          // Use much darker text for intercalary "CURRENT DATE" label in light themes
+          color: rgba(50, 25, 8, 1); // Very dark brown for high contrast
+          text-shadow: 0 0 3px rgba(255, 255, 255, 1), 0 0 6px rgba(255, 255, 255, 0.8);
+          font-weight: 700; // Extra bold for better visibility
+        }
+      }
+    }
+  }
+}
+
 /* Responsive adjustments for smaller calendars */
 @media (max-width: 500px) {
   .calendar-grid-widget {
@@ -635,7 +685,7 @@
 }
 
 /* Dark theme compatibility */
-body.dark {
+body.theme-dark {
   .calendar-grid-widget {
     .calendar-day {
       background: rgba(0, 0, 0, 0.2);
