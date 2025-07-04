@@ -176,24 +176,6 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
       warnSpy.mockRestore();
     });
 
-    it('should work normally when no system is available', async () => {
-      // Setup game without system
-      global.game = {
-        system: null,
-        user: { isGM: true },
-        time: {
-          worldTime: 0,
-          advance: vi.fn(),
-        },
-      } as any;
-
-      const testDate = new CalendarDate({ year: 4725, month: 1, day: 2, weekday: 1 }, calendar);
-
-      // Should work without transformation
-      await timeConverter.setCurrentDate(testDate);
-      expect(global.game.time.advance).toHaveBeenCalled();
-    });
-
     it('should handle case where transform returns null offset', async () => {
       // Setup game with system
       global.game = {

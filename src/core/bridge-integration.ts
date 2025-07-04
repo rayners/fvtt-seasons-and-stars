@@ -282,17 +282,15 @@ class IntegrationAPI {
     let transformedWorldTime = timestamp;
     let systemTimeOffset: number | undefined;
 
-    if (game.system?.id) {
-      try {
-        const transform = compatibilityManager.getSystemData<
-          (worldTime: number, defaultOffset?: number) => [number, number | undefined]
-        >(game.system.id, 'worldTimeTransform');
-        if (transform) {
-          [transformedWorldTime, systemTimeOffset] = transform(timestamp);
-        }
-      } catch (error) {
-        Logger.warn(`Error applying ${game.system.id} worldTime transformation:`, error);
+    try {
+      const transform = compatibilityManager.getSystemData<
+        (worldTime: number, defaultOffset?: number) => [number, number | undefined]
+      >(game.system!.id, 'worldTimeTransform');
+      if (transform) {
+        [transformedWorldTime, systemTimeOffset] = transform(timestamp);
       }
+    } catch (error) {
+      Logger.warn(`Error applying ${game.system!.id} worldTime transformation:`, error);
     }
 
     return engine.worldTimeToDate(transformedWorldTime, systemTimeOffset);
@@ -308,18 +306,16 @@ class IntegrationAPI {
     // Apply system-specific worldTime transformation if available
     let systemTimeOffset: number | undefined;
 
-    if (game.system?.id) {
-      try {
-        const transform = compatibilityManager.getSystemData<
-          (worldTime: number, defaultOffset?: number) => [number, number | undefined]
-        >(game.system.id, 'worldTimeTransform');
-        if (transform) {
-          // Get the system time offset (we don't need to transform the input here)
-          [, systemTimeOffset] = transform(0);
-        }
-      } catch (error) {
-        Logger.warn(`Error getting ${game.system.id} system time offset:`, error);
+    try {
+      const transform = compatibilityManager.getSystemData<
+        (worldTime: number, defaultOffset?: number) => [number, number | undefined]
+      >(game.system!.id, 'worldTimeTransform');
+      if (transform) {
+        // Get the system time offset (we don't need to transform the input here)
+        [, systemTimeOffset] = transform(0);
       }
+    } catch (error) {
+      Logger.warn(`Error getting ${game.system!.id} system time offset:`, error);
     }
 
     return engine.dateToWorldTime(date, systemTimeOffset);

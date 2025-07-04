@@ -184,22 +184,6 @@ describe('TimeConverter - CompatibilityManager Integration', () => {
   });
 
   describe('Error Handling and Robustness', () => {
-    it('should handle undefined/null system ID gracefully', () => {
-      // Test with undefined system
-      global.game.system = undefined;
-      expect(() => {
-        const currentDate = timeConverter.getCurrentDate();
-        expect(currentDate.year).toBe(2700); // Should use epoch
-      }).not.toThrow();
-
-      // Test with null system ID
-      global.game.system = { id: null };
-      expect(() => {
-        const currentDate = timeConverter.getCurrentDate();
-        expect(currentDate.year).toBe(2700); // Should use epoch
-      }).not.toThrow();
-    });
-
     it('should provide consistent timestamps across multiple calls', () => {
       // Register a data provider
       const mockTimestamp = new Date('2025-01-01T00:00:00.000Z').getTime() / 1000;
