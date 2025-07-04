@@ -187,12 +187,59 @@ await game.seasonsStars.api.setActiveCalendar('gregorian');
 
 #### `getAvailableCalendars()`
 
-Get list of all available calendar IDs.
+Get list of all available calendar IDs, including external calendars.
 
 ```javascript
 const calendars = game.seasonsStars.api.getAvailableCalendars();
 console.log('Available calendars:', calendars);
-// Returns: ['gregorian', 'vale-reckoning', 'custom-calendar']
+// Returns: ['gregorian', 'vale-reckoning', 'github:user/repo/calendar.json', 'https://example.com/calendar.json']
+```
+
+### External Calendar Management
+
+#### `loadExternalCalendar(externalId: string)`
+
+Load a calendar from an external source.
+
+```javascript
+// Load from GitHub repository
+const calendar = await game.seasonsStars.api.loadExternalCalendar('github:user/repo/calendar.json');
+
+// Load from HTTPS URL
+const calendar = await game.seasonsStars.api.loadExternalCalendar(
+  'https://example.com/calendar.json'
+);
+
+// Load from another module
+const calendar = await game.seasonsStars.api.loadExternalCalendar(
+  'module:other-module/calendars/calendar.json'
+);
+
+// Load with fragment selection
+const calendar = await game.seasonsStars.api.loadExternalCalendar(
+  'github:user/repo/calendars/#specific-calendar'
+);
+```
+
+#### External Calendar Sources
+
+Supported external calendar protocols:
+
+- **HTTPS**: `https://example.com/calendar.json`
+- **GitHub**: `github:user/repo/path/calendar.json`
+- **Module**: `module:module-name/path/calendar.json`
+- **Local**: `local:path/to/calendar.json`
+
+#### Fragment Selection
+
+Use fragment syntax to select specific calendars from collections:
+
+```javascript
+// Select specific calendar from index
+'github:user/repo/calendars/#medieval-calendar';
+
+// Load directory index automatically
+'https://example.com/calendars/';
 ```
 
 ## 🔄 Bridge Integration
@@ -401,6 +448,34 @@ Add compatibility blocks to calendar JSON files:
 }
 ```
 
+### Cache Management
+
+#### Development Mode
+
+Season & Stars automatically detects development mode and skips caching for better iteration:
+
+```javascript
+// Cache is automatically skipped in development
+const isDevMode = game.data.world.flags['seasons-and-stars']?.devMode;
+// or when URL contains 'foundrytest'
+const isTestMode = window.location.href.includes('foundrytest');
+```
+
+#### Manual Cache Control
+
+```javascript
+// Force refresh external calendar
+const calendar = await game.seasonsStars.api.loadExternalCalendar(
+  'github:user/repo/calendar.json',
+  { forceRefresh: true }
+);
+
+// Clear all external calendar cache
+if (game.seasonsStars.manager?.externalRegistry) {
+  await game.seasonsStars.manager.externalRegistry.clearCache();
+}
+```
+
 ## 📊 Calendar Data Structures
 
 ### CalendarDate Interface
@@ -547,6 +622,57 @@ class SpellEffectManager {
         this.removeEffect(actorId, effect);
         ui.notifications.info(`${effect.name} effect has expired on ${actorId}`);
       });
+    }
+  }
+}
+```
+
+### External Calendar Integration
+
+```javascript
+class ExternalCalendarManager {
+  constructor() {
+    this.setupExternalSources();
+  }
+
+  async setupExternalSources() {
+    // Add external calendar sources
+    const sources = [
+      {
+        protocol: 'github',
+        location: 'community/calendars/historical.json',
+        label: 'Historical Calendars',
+        trusted: true,
+      },
+      {
+        protocol: 'https',
+        location: 'mysite.com/custom-calendars/campaign.json',
+        label: 'Campaign Calendar',
+      },
+    ];
+
+    for (const source of sources) {
+      await this.addExternalSource(source);
+    }
+  }
+
+  async addExternalSource(source) {
+    if (game.seasonsStars.manager?.externalRegistry) {
+      const registry = game.seasonsStars.manager.externalRegistry;
+      await registry.addExternalSource(source);
+    }
+  }
+
+  async loadCalendarCollection(url) {
+    try {
+      // Load calendar collection index
+      const result = await game.seasonsStars.api.loadExternalCalendar(url);
+      if (result.success && result.calendar) {
+        console.log('Loaded external calendar:', result.calendar.id);
+        return result.calendar;
+      }
+    } catch (error) {
+      console.error('Failed to load external calendar:', error);
     }
   }
 }
