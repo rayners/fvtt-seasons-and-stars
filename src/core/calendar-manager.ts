@@ -3,7 +3,7 @@
  */
 
 import type { SeasonsStarsCalendar, CalendarVariant } from '../types/calendar';
-import type { ExternalCalendarSource } from '../types/external-calendar';
+import type { ExternalCalendarSource, LoadCalendarOptions } from '../types/external-calendar';
 import { CalendarEngine } from './calendar-engine';
 import { TimeConverter } from './time-converter';
 import { CalendarValidator } from './calendar-validator';
@@ -442,9 +442,11 @@ export class CalendarManager {
         Logger.warn(`Skipping invalid variant '${variantId}': missing or invalid 'name' field`);
         continue;
       }
-      
+
       if (!variant.description || typeof variant.description !== 'string') {
-        Logger.warn(`Skipping invalid variant '${variantId}': missing or invalid 'description' field`);
+        Logger.warn(
+          `Skipping invalid variant '${variantId}': missing or invalid 'description' field`
+        );
         continue;
       }
 
@@ -613,15 +615,15 @@ export class CalendarManager {
    */
   private initializeExternalRegistry(): void {
     Logger.debug('Initializing external calendar registry');
-    
+
     this.externalRegistry = new ExternalCalendarRegistry();
-    
+
     // Register all protocol handlers
     this.externalRegistry.registerHandler(new HttpsProtocolHandler());
     this.externalRegistry.registerHandler(new GitHubProtocolHandler());
     this.externalRegistry.registerHandler(new ModuleProtocolHandler());
     this.externalRegistry.registerHandler(new LocalProtocolHandler());
-    
+
     Logger.info('External calendar registry initialized with 4 protocol handlers');
   }
 
@@ -636,8 +638,12 @@ export class CalendarManager {
 
     try {
       // Get configured external sources from settings
-      const externalSources = game.settings?.get('seasons-and-stars', 'externalCalendarSources') as ExternalCalendarSource[] || [];
-      
+      const externalSources =
+        (game.settings?.get(
+          'seasons-and-stars',
+          'externalCalendarSources'
+        ) as ExternalCalendarSource[]) || [];
+
       if (externalSources.length === 0) {
         Logger.debug('No external calendar sources configured');
         return;
@@ -655,19 +661,22 @@ export class CalendarManager {
         try {
           // Add the source to the registry
           this.externalRegistry.addExternalSource(source);
-          
+
           // Attempt to load the calendar
           const externalId = `${source.protocol}:${source.location}`;
           await this.loadExternalCalendar(externalId);
-          
         } catch (error) {
-          Logger.error(`Failed to load external calendar source: ${source.protocol}:${source.location}`, error as Error);
+          Logger.error(
+            `Failed to load external calendar source: ${source.protocol}:${source.location}`,
+            error as Error
+          );
           // Continue loading other sources even if one fails
         }
       }
-      
-      Logger.info(`External calendar loading complete (${externalSources.length} sources processed)`);
-      
+
+      Logger.info(
+        `External calendar loading complete (${externalSources.length} sources processed)`
+      );
     } catch (error) {
       Logger.error('Error loading configured external calendar sources', error as Error);
     }
@@ -676,7 +685,10 @@ export class CalendarManager {
   /**
    * Load a calendar from an external source
    */
-  async loadExternalCalendar(externalId: string): Promise<boolean> {
+  async loadExternalCalendar(
+    externalId: string,
+    options: LoadCalendarOptions = {}
+  ): Promise<boolean> {
     if (!this.externalRegistry) {
       Logger.error('External registry not initialized');
       return false;
@@ -684,15 +696,17 @@ export class CalendarManager {
 
     try {
       Logger.debug(`Loading external calendar: ${externalId}`);
-      
-      const result = await this.externalRegistry.loadExternalCalendar(externalId);
-      
+
+      const result = await this.externalRegistry.loadExternalCalendar(externalId, options);
+
       if (result.success && result.calendar) {
         // Load the calendar into the manager
         const loaded = this.loadCalendar(result.calendar);
-        
+
         if (loaded) {
-          Logger.info(`Successfully loaded external calendar: ${result.calendar.id} from ${externalId}`);
+          Logger.info(
+            `Successfully loaded external calendar: ${result.calendar.id} from ${externalId}`
+          );
           return true;
         } else {
           Logger.error(`Failed to validate external calendar: ${externalId}`);
@@ -702,7 +716,6 @@ export class CalendarManager {
         Logger.error(`Failed to load external calendar: ${externalId} - ${result.error}`);
         return false;
       }
-      
     } catch (error) {
       Logger.error(`Error loading external calendar: ${externalId}`, error as Error);
       return false;
@@ -729,10 +742,10 @@ export class CalendarManager {
 
     // Add to registry
     this.externalRegistry.addExternalSource(source);
-    
+
     // Save to settings
     this.saveExternalSourcesToSettings();
-    
+
     Logger.info(`Added external calendar source: ${source.protocol}:${source.location}`);
   }
 
@@ -746,22 +759,22 @@ export class CalendarManager {
 
     // Remove from registry
     this.externalRegistry.removeExternalSource(externalId);
-    
+
     // Remove calendar from manager if it was loaded
     const { protocol, location } = this.externalRegistry.parseExternalCalendarId(externalId);
-    const possibleCalendarIds = Array.from(this.calendars.keys()).filter(id => 
-      id.includes(location) || id.includes(protocol)
+    const possibleCalendarIds = Array.from(this.calendars.keys()).filter(
+      id => id.includes(location) || id.includes(protocol)
     );
-    
+
     for (const calendarId of possibleCalendarIds) {
       this.calendars.delete(calendarId);
       this.engines.delete(calendarId);
       Logger.debug(`Removed external calendar: ${calendarId}`);
     }
-    
+
     // Save to settings
     this.saveExternalSourcesToSettings();
-    
+
     Logger.info(`Removed external calendar source: ${externalId}`);
   }
 
@@ -775,14 +788,14 @@ export class CalendarManager {
 
     this.externalRegistry.updateExternalSource(externalId, updates);
     this.saveExternalSourcesToSettings();
-    
+
     Logger.info(`Updated external calendar source: ${externalId}`);
   }
 
   /**
    * Get external calendar cache statistics
    */
-  getExternalCacheStats() {
+  getExternalCacheStats(): any {
     if (!this.externalRegistry) {
       return null;
     }
@@ -796,7 +809,7 @@ export class CalendarManager {
     if (!this.externalRegistry) {
       return;
     }
-    
+
     this.externalRegistry.clearCache();
     Logger.info('External calendar cache cleared');
   }

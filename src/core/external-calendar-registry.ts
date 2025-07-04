@@ -2,7 +2,7 @@
  * External calendar registry for managing different protocol handlers and external calendar sources
  */
 
-import type { 
+import type {
   ProtocolHandler,
   ExternalCalendarSource,
   LoadCalendarResult,
@@ -11,7 +11,7 @@ import type {
   ExternalCalendarEvent,
   CalendarProtocol,
   CalendarLocation,
-  ExternalCalendarId
+  ExternalCalendarId,
 } from '../types/external-calendar';
 import { ExternalCalendarCache } from './external-calendar-cache';
 import { Logger } from './logger';
@@ -23,13 +23,13 @@ export class ExternalCalendarRegistry {
   private cache: ExternalCalendarCache;
   private externalSources: ExternalCalendarSource[] = [];
   private eventListeners = new Map<string, EventListener[]>();
-  
+
   private config: ExternalCalendarConfig = {
     defaultCacheDuration: 7 * 24 * 60 * 60 * 1000, // 1 week
     maxCacheSize: 100,
     requestTimeout: 30000,
     autoUpdate: false,
-    updateInterval: 24 * 60 * 60 * 1000 // 24 hours
+    updateInterval: 24 * 60 * 60 * 1000, // 24 hours
   };
 
   constructor() {
@@ -43,7 +43,7 @@ export class ExternalCalendarRegistry {
     if (this.handlers.has(handler.protocol)) {
       throw new Error(`Protocol ${handler.protocol} already registered`);
     }
-    
+
     this.handlers.set(handler.protocol, handler);
     Logger.debug(`Registered protocol handler: ${handler.protocol}`);
   }
@@ -75,16 +75,21 @@ export class ExternalCalendarRegistry {
   /**
    * Parse external calendar ID into protocol and location
    */
-  parseExternalCalendarId(externalId: ExternalCalendarId): { protocol: CalendarProtocol; location: CalendarLocation } {
+  parseExternalCalendarId(externalId: ExternalCalendarId): {
+    protocol: CalendarProtocol;
+    location: CalendarLocation;
+  } {
     const colonIndex = externalId.indexOf(':');
-    
+
     if (colonIndex === -1 || colonIndex === 0 || colonIndex === externalId.length - 1) {
-      throw new Error(`Invalid external calendar ID format: ${externalId}. Expected format: protocol:location`);
+      throw new Error(
+        `Invalid external calendar ID format: ${externalId}. Expected format: protocol:location`
+      );
     }
 
     return {
       protocol: externalId.substring(0, colonIndex),
-      location: externalId.substring(colonIndex + 1)
+      location: externalId.substring(colonIndex + 1),
     };
   }
 
@@ -92,12 +97,12 @@ export class ExternalCalendarRegistry {
    * Load calendar from external source
    */
   async loadExternalCalendar(
-    externalId: ExternalCalendarId, 
+    externalId: ExternalCalendarId,
     options: LoadCalendarOptions = {}
   ): Promise<LoadCalendarResult> {
     try {
       const { protocol, location } = this.parseExternalCalendarId(externalId);
-      
+
       // Check if handler exists for protocol
       const handler = this.handlers.get(protocol);
       if (!handler) {
@@ -106,39 +111,40 @@ export class ExternalCalendarRegistry {
         return { success: false, error };
       }
 
-      // Check cache first (unless force refresh or local files)
-      // Skip caching for local files to support development workflows
-      const skipCache = protocol === 'local';
+      // Check cache first (unless force refresh or development workflows)
+      // Skip caching for local files and development modules to support development workflows
+      const skipCache = this.shouldSkipCache(protocol, location, options);
       if (skipCache) {
-        Logger.debug(`Skipping cache for local file: ${location} (development mode)`);
+        const reason = protocol === 'local' ? 'local file' : 'module development mode';
+        Logger.debug(`Skipping cache for ${reason}: ${location} (development mode)`);
       }
       if (!options.forceRefresh && options.useCache !== false && !skipCache) {
         const cached = this.cache.get(externalId);
         if (cached) {
-          this.emitEvent('calendar-cached', { 
-            type: 'cached', 
-            calendarId: externalId, 
-            calendar: cached.calendar 
+          this.emitEvent('calendar-cached', {
+            type: 'cached',
+            calendarId: externalId,
+            calendar: cached.calendar,
           });
-          return { 
-            success: true, 
-            calendar: cached.calendar, 
-            fromCache: true, 
-            source: cached.source 
+          return {
+            success: true,
+            calendar: cached.calendar,
+            fromCache: true,
+            source: cached.source,
           };
         }
       }
 
       // Load from handler
       const calendar = await handler.loadCalendar(location, options);
-      
+
       // Create source info
       const source: ExternalCalendarSource = {
         protocol,
         location,
         lastChecked: Date.now(),
         enabled: true,
-        trusted: true // TODO: Implement trust system
+        trusted: true, // TODO: Implement trust system
       };
 
       // Cache the result (skip caching for local files)
@@ -149,32 +155,31 @@ export class ExternalCalendarRegistry {
         Logger.debug(`Not caching local file: ${location} (development mode)`);
       }
 
-      this.emitEvent('calendar-loaded', { 
-        type: 'loaded', 
-        calendarId: externalId, 
-        calendar 
+      this.emitEvent('calendar-loaded', {
+        type: 'loaded',
+        calendarId: externalId,
+        calendar,
       });
 
-      return { 
-        success: true, 
-        calendar, 
-        fromCache: false, 
-        source 
+      return {
+        success: true,
+        calendar,
+        fromCache: false,
+        source,
       };
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       Logger.error(`Failed to load external calendar ${externalId}`, error as Error);
-      
-      this.emitEvent('calendar-error', { 
-        type: 'error', 
-        calendarId: externalId, 
-        error: errorMessage 
+
+      this.emitEvent('calendar-error', {
+        type: 'error',
+        calendarId: externalId,
+        error: errorMessage,
       });
 
-      return { 
-        success: false, 
-        error: errorMessage 
+      return {
+        success: false,
+        error: errorMessage,
       };
     }
   }
@@ -205,7 +210,7 @@ export class ExternalCalendarRegistry {
    */
   removeExternalSource(externalId: ExternalCalendarId): void {
     const { protocol, location } = this.parseExternalCalendarId(externalId);
-    
+
     const index = this.externalSources.findIndex(
       s => s.protocol === protocol && s.location === location
     );
@@ -221,9 +226,12 @@ export class ExternalCalendarRegistry {
   /**
    * Update external source configuration
    */
-  updateExternalSource(externalId: ExternalCalendarId, updates: Partial<ExternalCalendarSource>): void {
+  updateExternalSource(
+    externalId: ExternalCalendarId,
+    updates: Partial<ExternalCalendarSource>
+  ): void {
     const { protocol, location } = this.parseExternalCalendarId(externalId);
-    
+
     const source = this.externalSources.find(
       s => s.protocol === protocol && s.location === location
     );
@@ -246,12 +254,15 @@ export class ExternalCalendarRegistry {
    */
   configure(config: Partial<ExternalCalendarConfig>): void {
     this.config = { ...this.config, ...config };
-    
+
     // Apply cache configuration
     if (config.maxCacheSize !== undefined || config.defaultCacheDuration !== undefined) {
       this.cache.configure({
         maxSize: config.maxCacheSize !== undefined ? config.maxCacheSize : this.config.maxCacheSize,
-        defaultTtl: config.defaultCacheDuration !== undefined ? config.defaultCacheDuration : this.config.defaultCacheDuration
+        defaultTtl:
+          config.defaultCacheDuration !== undefined
+            ? config.defaultCacheDuration
+            : this.config.defaultCacheDuration,
       });
     }
 
@@ -277,6 +288,78 @@ export class ExternalCalendarRegistry {
    */
   clearCache(): void {
     this.cache.clear();
+  }
+
+  /**
+   * Determine if caching should be skipped for a given protocol and location
+   */
+  private shouldSkipCache(
+    protocol: CalendarProtocol,
+    location: CalendarLocation,
+    options: LoadCalendarOptions
+  ): boolean {
+    // Always skip caching for local files
+    if (protocol === 'local') {
+      return true;
+    }
+
+    // Skip caching for modules if explicitly requested
+    if (protocol === 'module' && options.skipModuleCache) {
+      return true;
+    }
+
+    // Skip caching for development modules
+    if (protocol === 'module') {
+      return this.isModuleDevelopmentVersion(location);
+    }
+
+    return false;
+  }
+
+  /**
+   * Check if a module appears to be a development version
+   */
+  private isModuleDevelopmentVersion(location: CalendarLocation): boolean {
+    try {
+      const parts = location.split('/');
+      if (parts.length < 2) return false;
+
+      const moduleName = parts[0];
+
+      // Check if game object is available
+      if (typeof game === 'undefined' || !game.modules) {
+        return false;
+      }
+
+      const module = game.modules.get(moduleName);
+      if (!module || !module.active) {
+        return false;
+      }
+
+      // Check for development indicators in version
+      const version = module.version || module.manifest?.version || '';
+      const isDevelopmentVersion =
+        version.includes('dev') ||
+        version.includes('beta') ||
+        version.includes('alpha') ||
+        version.includes('snapshot') ||
+        version.includes('pre') ||
+        version === '' ||
+        version.startsWith('0.0.') ||
+        version.includes('-'); // Semantic versioning pre-release indicators
+
+      if (isDevelopmentVersion) {
+        Logger.debug(
+          `Module ${moduleName} detected as development version (${version}), skipping cache`
+        );
+      }
+
+      return isDevelopmentVersion;
+    } catch (error) {
+      // If we can't determine module version, default to caching
+      Logger.warn(`Error checking module development version for ${location}:`, error as Error);
+      return false;
+    }
   }
 
   /**

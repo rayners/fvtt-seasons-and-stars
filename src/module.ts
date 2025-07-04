@@ -485,7 +485,7 @@ function registerSettings(): void {
   game.settings.register('seasons-and-stars', 'manageExternalSources', {
     name: 'Manage External Calendar Sources',
     hint: 'Configure external calendar sources from HTTPS, GitHub, modules, and local files. Click to open configuration dialog.',
-    scope: 'world', 
+    scope: 'world',
     config: true,
     type: Boolean,
     default: false,
@@ -493,14 +493,16 @@ function registerSettings(): void {
       if (value) {
         // Reset the setting immediately to prevent it from staying checked
         game.settings?.set('seasons-and-stars', 'manageExternalSources', false);
-        
+
         // Import and show the dialog
-        import('./ui/external-calendar-sources-dialog').then(module => {
-          module.ExternalCalendarSourcesDialog.show();
-        }).catch(error => {
-          Logger.error('Failed to load external calendar sources dialog', error);
-          ui.notifications?.error('Failed to open external calendar sources configuration');
-        });
+        import('./ui/external-calendar-sources-dialog')
+          .then(module => {
+            module.ExternalCalendarSourcesDialog.show();
+          })
+          .catch(error => {
+            Logger.error('Failed to load external calendar sources dialog', error);
+            ui.notifications?.error('Failed to open external calendar sources configuration');
+          });
       }
     },
   });
@@ -1123,6 +1125,46 @@ export function setupAPI(): void {
       } catch (error) {
         Logger.error(
           'Failed to load external calendar',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    loadExternalCalendarWithOptions: async (
+      externalId: string,
+      options: Record<string, unknown> = {}
+    ) => {
+      try {
+        Logger.api('loadExternalCalendarWithOptions', { externalId, options });
+
+        // Input validation
+        if (typeof externalId !== 'string' || externalId.trim() === '') {
+          const error = new Error('External ID must be a non-empty string');
+          Logger.error('Invalid external ID parameter', error);
+          throw error;
+        }
+
+        // Convert options to LoadCalendarOptions
+        const loadOptions: Record<string, unknown> = {};
+        if (typeof options === 'object' && options !== null) {
+          if (typeof options.useCache === 'boolean') loadOptions.useCache = options.useCache;
+          if (typeof options.forceRefresh === 'boolean')
+            loadOptions.forceRefresh = options.forceRefresh;
+          if (typeof options.skipModuleCache === 'boolean')
+            loadOptions.skipModuleCache = options.skipModuleCache;
+          if (typeof options.timeout === 'number') loadOptions.timeout = options.timeout;
+          if (typeof options.headers === 'object' && options.headers !== null) {
+            loadOptions.headers = options.headers as Record<string, string>;
+          }
+        }
+
+        const result = await calendarManager.loadExternalCalendar(externalId, loadOptions);
+        Logger.api('loadExternalCalendarWithOptions', { externalId, options }, result);
+        return result;
+      } catch (error) {
+        Logger.error(
+          'Failed to load external calendar with options',
           error instanceof Error ? error : new Error(String(error))
         );
         throw error;

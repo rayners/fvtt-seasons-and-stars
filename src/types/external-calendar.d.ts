@@ -64,17 +64,20 @@ export interface CachedCalendarData {
 export interface ProtocolHandler {
   /** The protocol this handler supports (e.g., 'https', 'github') */
   readonly protocol: CalendarProtocol;
-  
+
   /**
    * Check if this handler can process the given location
    */
   canHandle(location: CalendarLocation): boolean;
-  
+
   /**
    * Load a calendar from the given location
    */
-  loadCalendar(location: CalendarLocation, options?: LoadCalendarOptions): Promise<SeasonsStarsCalendar>;
-  
+  loadCalendar(
+    location: CalendarLocation,
+    options?: LoadCalendarOptions
+  ): Promise<SeasonsStarsCalendar>;
+
   /**
    * Check if a calendar at the location has been updated
    */
@@ -89,6 +92,8 @@ export interface LoadCalendarOptions {
   useCache?: boolean;
   /** Force refresh even if cached data is valid */
   forceRefresh?: boolean;
+  /** Skip caching for module calendars (useful for development) */
+  skipModuleCache?: boolean;
   /** Timeout for the request in milliseconds */
   timeout?: number;
   /** Additional headers for the request */
@@ -158,3 +163,75 @@ export interface ExternalCalendarEvent {
   /** Additional event data */
   data?: any;
 }
+
+/**
+ * Universal calendar collection index structure
+ * Used by all protocol handlers for directory-based calendar loading
+ */
+export interface CalendarCollectionIndex {
+  /** Collection name */
+  name: string;
+  /** Collection description */
+  description?: string;
+  /** Collection version */
+  version?: string;
+  /** List of available calendars */
+  calendars: CalendarIndexEntry[];
+  /** Additional metadata */
+  metadata?: {
+    /** Last update timestamp */
+    lastUpdated?: string;
+    /** Source URL or location */
+    source?: string;
+    /** License information */
+    license?: string;
+    /** Author information */
+    author?: string;
+    /** Additional arbitrary metadata */
+    [key: string]: any;
+  };
+}
+
+/**
+ * Calendar entry in collection index
+ * Used by all protocol handlers for individual calendar metadata
+ */
+export interface CalendarIndexEntry {
+  /** Unique identifier for this calendar */
+  id: string;
+  /** Display name */
+  name: string;
+  /** Calendar description */
+  description?: string;
+  /** Relative path to calendar file */
+  file: string;
+  /** Tags for categorization and filtering */
+  tags?: string[];
+  /** Author of this calendar */
+  author?: string;
+  /** Calendar version */
+  version?: string;
+  /** Additional metadata */
+  metadata?: {
+    /** Game systems this calendar is designed for */
+    systems?: string[];
+    /** Language/locale */
+    language?: string;
+    /** Minimum Foundry version */
+    minimumFoundryVersion?: string;
+    /** Additional arbitrary metadata */
+    [key: string]: any;
+  };
+}
+
+/**
+ * GitHub repository calendar index structure (alias for backward compatibility)
+ * @deprecated Use CalendarCollectionIndex instead
+ */
+export type GitHubRepositoryIndex = CalendarCollectionIndex;
+
+/**
+ * Calendar entry in GitHub repository index (alias for backward compatibility)
+ * @deprecated Use CalendarIndexEntry instead
+ */
+export type GitHubCalendarEntry = CalendarIndexEntry;

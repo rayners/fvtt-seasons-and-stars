@@ -3,15 +3,22 @@
  * Handles loading calendars from other Foundry VTT modules
  */
 
-import type { 
-  ProtocolHandler, 
+import type {
+  ProtocolHandler,
   LoadCalendarOptions,
   CalendarProtocol,
-  CalendarLocation
+  CalendarLocation,
+  CalendarCollectionIndex,
 } from '../../types/external-calendar';
 import type { SeasonsStarsCalendar } from '../../types/calendar';
 import { Logger } from '../logger';
-import { normalizeCalendarLocation, hasFileExtension } from './utils';
+import {
+  normalizeCalendarLocation,
+  hasFileExtension,
+  parseLocationWithCalendarId,
+  validateCalendarCollectionIndex,
+  selectCalendarFromIndex,
+} from './utils';
 
 export class ModuleProtocolHandler implements ProtocolHandler {
   readonly protocol: CalendarProtocol = 'module';
@@ -23,9 +30,13 @@ export class ModuleProtocolHandler implements ProtocolHandler {
     // Module paths should be in format: module-name/path/to/file.json
     // Must have at least module-name/file pattern
     const parts = location.split('/');
-    
+
     // Exclude obvious URLs
-    if (location.startsWith('https://') || location.startsWith('http://') || location.includes('://')) {
+    if (
+      location.startsWith('https://') ||
+      location.startsWith('http://') ||
+      location.includes('://')
+    ) {
       return false;
     }
 
@@ -60,88 +71,32 @@ export class ModuleProtocolHandler implements ProtocolHandler {
   /**
    * Load a calendar from a Foundry module
    */
-  async loadCalendar(location: CalendarLocation, options: LoadCalendarOptions = {}): Promise<SeasonsStarsCalendar> {
+  async loadCalendar(
+    location: CalendarLocation,
+    options: LoadCalendarOptions = {}
+  ): Promise<SeasonsStarsCalendar> {
     try {
-      // Normalize location - add .json extension if no extension specified
-      const normalizedLocation = normalizeCalendarLocation(location);
-      
+      // Parse location for fragments (calendar IDs)
+      const { basePath, calendarId } = parseLocationWithCalendarId(location);
+      const normalizedLocation = normalizeCalendarLocation(basePath);
+
       // Parse module path
       const parts = normalizedLocation.split('/');
       if (parts.length < 2) {
-        throw new Error(`Invalid module path format: ${normalizedLocation}. Expected: module-name/path/to/file.json`);
+        throw new Error(
+          `Invalid module path format: ${normalizedLocation}. Expected: module-name/path/to/file.json`
+        );
       }
 
       const moduleName = parts[0];
       const filePath = parts.slice(1).join('/');
 
-      Logger.debug(`Loading calendar from module: ${moduleName}/${filePath}`);
-
-      // Check if game object is available
-      if (typeof game === 'undefined' || !game.modules) {
-        throw new Error('Foundry game object not available - cannot load from modules');
+      // Check if this is an index.json file (directory loading)
+      if (filePath === 'index.json') {
+        return await this.loadFromIndex(moduleName, filePath, calendarId, options);
+      } else {
+        return await this.loadDirectFile(moduleName, filePath, options);
       }
-
-      // Get the module
-      const module = game.modules.get(moduleName);
-      if (!module) {
-        throw new Error(`Module ${moduleName} not found`);
-      }
-
-      // Check if module is active
-      if (!module.active) {
-        throw new Error(`Module ${moduleName} is not active`);
-      }
-
-      // Get module path
-      const modulePath = module.path || `/modules/${moduleName}`;
-      const fullUrl = `${modulePath}/${filePath}`;
-
-      Logger.debug(`Loading from module URL: ${fullUrl}`);
-
-      // Prepare fetch options
-      const fetchOptions: RequestInit = {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          ...options.headers
-        }
-      };
-
-      // Add timeout if specified
-      if (options.timeout) {
-        const controller = new AbortController();
-        setTimeout(() => controller.abort(), options.timeout);
-        fetchOptions.signal = controller.signal;
-      }
-
-      // Fetch the calendar data from the module
-      const response = await fetch(fullUrl, fetchOptions);
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error(`Calendar file not found in module ${moduleName}: ${filePath}`);
-        } else if (response.status === 403) {
-          throw new Error(`Access forbidden to module file: ${moduleName}/${filePath}`);
-        } else {
-          throw new Error(`Error loading from module ${moduleName}: ${response.status} ${response.statusText}`);
-        }
-      }
-
-      // Parse the JSON response
-      const calendarData = await response.json();
-
-      // Validate that it's a valid calendar object
-      if (!calendarData || typeof calendarData !== 'object') {
-        throw new Error('Invalid calendar data: not a valid JSON object');
-      }
-
-      if (!calendarData.id || !calendarData.months || !calendarData.weekdays) {
-        throw new Error('Invalid calendar data: missing required fields (id, months, weekdays)');
-      }
-
-      Logger.info(`Successfully loaded calendar from module: ${calendarData.id} (${moduleName})`);
-      return calendarData as SeasonsStarsCalendar;
-
     } catch (error) {
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
@@ -154,6 +109,186 @@ export class ModuleProtocolHandler implements ProtocolHandler {
         Logger.error(errorMessage);
         throw new Error(errorMessage);
       }
+    }
+  }
+
+  /**
+   * Load calendar from collection index
+   */
+  private async loadFromIndex(
+    moduleName: string,
+    indexPath: string,
+    calendarId?: string,
+    options: LoadCalendarOptions = {}
+  ): Promise<SeasonsStarsCalendar> {
+    // Load the collection index
+    const index = await this.loadCollectionIndex(moduleName, indexPath, options);
+
+    // Use universal selection logic
+    const selectionResult = selectCalendarFromIndex(index, calendarId, `Module ${moduleName}`);
+
+    if (selectionResult.error) {
+      throw new Error(selectionResult.error);
+    }
+
+    if (selectionResult.selectedEntry) {
+      Logger.debug(
+        `Loading calendar from index entry: ${selectionResult.selectedEntry.id} -> ${selectionResult.selectedEntry.file}`
+      );
+      return await this.loadDirectFile(moduleName, selectionResult.selectedEntry.file, options);
+    }
+
+    throw new Error(`Unexpected error in calendar selection from index`);
+  }
+
+  /**
+   * Load collection index file
+   */
+  private async loadCollectionIndex(
+    moduleName: string,
+    indexPath: string,
+    options: LoadCalendarOptions = {}
+  ): Promise<CalendarCollectionIndex> {
+    Logger.debug(`Loading collection index from module: ${moduleName}/${indexPath}`);
+
+    // Get module info
+    const moduleInfo = await this.getModuleInfo(moduleName);
+    const fullUrl = `${moduleInfo.path}/${indexPath}`;
+
+    const response = await this.fetchWithOptions(fullUrl, options);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error(`Collection index not found in module ${moduleName}: ${indexPath}`);
+      } else if (response.status === 403) {
+        throw new Error(`Access forbidden to module index file: ${moduleName}/${indexPath}`);
+      } else {
+        throw new Error(
+          `Error loading collection index from module ${moduleName}: ${response.status} ${response.statusText}`
+        );
+      }
+    }
+
+    // Parse the index JSON
+    let indexData: CalendarCollectionIndex;
+    try {
+      indexData = await response.json();
+    } catch {
+      throw new Error('Invalid JSON content in module collection index');
+    }
+
+    // Validate index structure
+    validateCalendarCollectionIndex(indexData);
+
+    Logger.info(
+      `Successfully loaded collection index: ${indexData.name} (${indexData.calendars.length} calendars)`
+    );
+    return indexData;
+  }
+
+  /**
+   * Load specific calendar file
+   */
+  private async loadDirectFile(
+    moduleName: string,
+    filePath: string,
+    options: LoadCalendarOptions = {}
+  ): Promise<SeasonsStarsCalendar> {
+    Logger.debug(`Loading calendar from module: ${moduleName}/${filePath}`);
+
+    // Get module info
+    const moduleInfo = await this.getModuleInfo(moduleName);
+    const fullUrl = `${moduleInfo.path}/${filePath}`;
+
+    const response = await this.fetchWithOptions(fullUrl, options);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error(`Calendar file not found in module ${moduleName}: ${filePath}`);
+      } else if (response.status === 403) {
+        throw new Error(`Access forbidden to module file: ${moduleName}/${filePath}`);
+      } else {
+        throw new Error(
+          `Error loading from module ${moduleName}: ${response.status} ${response.statusText}`
+        );
+      }
+    }
+
+    // Parse the JSON response
+    const calendarData = await response.json();
+
+    // Validate that it's a valid calendar object
+    if (!calendarData || typeof calendarData !== 'object') {
+      throw new Error('Invalid calendar data: not a valid JSON object');
+    }
+
+    if (!calendarData.id || !calendarData.months || !calendarData.weekdays) {
+      throw new Error('Invalid calendar data: missing required fields (id, months, weekdays)');
+    }
+
+    Logger.info(`Successfully loaded calendar from module: ${calendarData.id} (${moduleName})`);
+    return calendarData as SeasonsStarsCalendar;
+  }
+
+  /**
+   * Get module information and validate availability
+   */
+  private async getModuleInfo(moduleName: string): Promise<{ path: string; module: any }> {
+    // Check if game object is available
+    if (typeof game === 'undefined' || !game.modules) {
+      throw new Error('Foundry game object not available - cannot load from modules');
+    }
+
+    // Get the module
+    const module = game.modules.get(moduleName);
+    if (!module) {
+      throw new Error(`Module ${moduleName} not found`);
+    }
+
+    // Check if module is active
+    if (!module.active) {
+      throw new Error(`Module ${moduleName} is not active`);
+    }
+
+    // Get module path
+    const modulePath = module.path || `/modules/${moduleName}`;
+
+    return { path: modulePath, module };
+  }
+
+  /**
+   * Execute fetch with standard options and error handling
+   */
+  private async fetchWithOptions(
+    url: string,
+    options: LoadCalendarOptions = {}
+  ): Promise<Response> {
+    Logger.debug(`Loading from module URL: ${url}`);
+
+    // Prepare fetch options
+    const fetchOptions: RequestInit = {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        ...options.headers,
+      },
+    };
+
+    // Add timeout if specified
+    if (options.timeout) {
+      const controller = new AbortController();
+      setTimeout(() => controller.abort(), options.timeout);
+      fetchOptions.signal = controller.signal;
+    }
+
+    // Fetch the data
+    try {
+      return await fetch(url, fetchOptions);
+    } catch (fetchError) {
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        throw new Error(`Request timeout: Failed to load from ${url}`);
+      }
+      throw fetchError;
     }
   }
 
@@ -195,7 +330,7 @@ export class ModuleProtocolHandler implements ProtocolHandler {
 
       // Use module version for update comparison
       const currentVersion = module.version || module.manifest?.version || '1.0.0';
-      
+
       if (!lastVersion) {
         // No previous version recorded, assume potential update
         Logger.debug(`No previous version for module ${moduleName}, assuming potential update`);
@@ -203,10 +338,11 @@ export class ModuleProtocolHandler implements ProtocolHandler {
       }
 
       const hasUpdates = currentVersion !== lastVersion;
-      Logger.debug(`Version comparison for module ${moduleName}: ${lastVersion} -> ${currentVersion} (updated: ${hasUpdates})`);
-      
-      return hasUpdates;
+      Logger.debug(
+        `Version comparison for module ${moduleName}: ${lastVersion} -> ${currentVersion} (updated: ${hasUpdates})`
+      );
 
+      return hasUpdates;
     } catch (error) {
       Logger.error(`Error checking for updates in module ${location}:`, error as Error);
       // On error, assume no updates to avoid unnecessary re-downloads

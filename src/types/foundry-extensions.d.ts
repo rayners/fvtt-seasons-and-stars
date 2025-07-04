@@ -62,9 +62,13 @@ export interface SeasonsStarsAPI {
   formatDate(date: CalendarDate, options?: DateFormatOptions): string;
   dateToWorldTime(date: CalendarDate, calendarId?: string): number;
   worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate;
-  
+
   // External calendar management
   loadExternalCalendar(externalId: string): Promise<boolean>;
+  loadExternalCalendarWithOptions(
+    externalId: string,
+    options?: Record<string, unknown>
+  ): Promise<boolean>;
   getExternalSources(): unknown[];
   addExternalSource(source: unknown): void;
   removeExternalSource(externalId: string): void;
@@ -93,7 +97,7 @@ export interface CalendarManagerInterface {
   advanceWeeks(weeks: number): Promise<void>;
   advanceMonths(months: number): Promise<void>;
   advanceYears(years: number): Promise<void>;
-  
+
   // External calendar management
   loadExternalCalendar(externalId: string): Promise<boolean>;
   getExternalSources(): unknown[];
