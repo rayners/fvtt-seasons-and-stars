@@ -35,7 +35,7 @@ export class LocalProtocolHandler implements ProtocolHandler {
     }
 
     // Check for Windows-style paths
-    if (/^[A-Za-z]:[\\]//.test(location)) {
+    if (/^[A-Za-z]:[\\\/]/.test(location)) {
       return !hasFileExtension(location) || hasSupportedExtension(location);
     }
 
@@ -100,7 +100,7 @@ export class LocalProtocolHandler implements ProtocolHandler {
       if (normalizedLocation.startsWith('/')) {
         // Absolute path - in browser context, this would be relative to the server root
         fileUrl = normalizedLocation;
-      } else if (/^[A-Za-z]:[\\]//.test(normalizedLocation)) {
+      } else if (/^[A-Za-z]:[\\\/]/.test(normalizedLocation)) {
         // Windows absolute path - convert to file:// URL
         fileUrl = `file:///${normalizedLocation.replace(/\\/g, '/')}`;
       } else if (normalizedLocation.startsWith('./') || normalizedLocation.startsWith('../')) {
@@ -206,7 +206,7 @@ export class LocalProtocolHandler implements ProtocolHandler {
       let fileUrl = normalizedLocation;
       if (normalizedLocation.startsWith('/')) {
         fileUrl = normalizedLocation;
-      } else if (/^[A-Za-z]:[\\]//.test(normalizedLocation)) {
+      } else if (/^[A-Za-z]:[\\\/]/.test(normalizedLocation)) {
         fileUrl = `file:///${normalizedLocation.replace(/\\/g, '/')}`;
       } else if (normalizedLocation.startsWith('./') || normalizedLocation.startsWith('../')) {
         fileUrl = normalizedLocation;

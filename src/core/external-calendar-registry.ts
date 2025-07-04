@@ -106,8 +106,13 @@ export class ExternalCalendarRegistry {
         return { success: false, error };
       }
 
-      // Check cache first (unless force refresh)
-      if (!options.forceRefresh && options.useCache !== false) {
+      // Check cache first (unless force refresh or local files)
+      // Skip caching for local files to support development workflows
+      const skipCache = protocol === 'local';
+      if (skipCache) {
+        Logger.debug(`Skipping cache for local file: ${location} (development mode)`);
+      }
+      if (!options.forceRefresh && options.useCache !== false && !skipCache) {
         const cached = this.cache.get(externalId);
         if (cached) {
           this.emitEvent('calendar-cached', { 
@@ -136,9 +141,13 @@ export class ExternalCalendarRegistry {
         trusted: true // TODO: Implement trust system
       };
 
-      // Cache the result
-      const expiresAt = Date.now() + (this.config.defaultCacheDuration || 604800000); // 1 week default
-      this.cache.set(externalId, calendar, source, expiresAt);
+      // Cache the result (skip caching for local files)
+      if (!skipCache) {
+        const expiresAt = Date.now() + (this.config.defaultCacheDuration || 604800000); // 1 week default
+        this.cache.set(externalId, calendar, source, expiresAt);
+      } else {
+        Logger.debug(`Not caching local file: ${location} (development mode)`);
+      }
 
       this.emitEvent('calendar-loaded', { 
         type: 'loaded', 
