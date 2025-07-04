@@ -11,7 +11,7 @@ describe('Dark Sun Calendar', () => {
 
   describe('Weekday Behavior', () => {
     it('should start every month on "1 Day" (weekday index 0)', () => {
-      const testYear = 1; // FY 1
+      const testYear = 102; // FY 102
 
       // Test each month
       for (let month = 1; month <= 12; month++) {
@@ -30,7 +30,7 @@ describe('Dark Sun Calendar', () => {
     });
 
     it('should reset weekday cycle after each intercalary period', () => {
-      const testYear = 1;
+      const testYear = 102;
 
       // Test Cooling Sun (after Gather, month 4)
       // Last day of Gather should be 6 Day (30 days, starting from 1 Day)
@@ -59,7 +59,7 @@ describe('Dark Sun Calendar', () => {
     });
 
     it('should maintain consistent weekday progression within months', () => {
-      const testYear = 1;
+      const testYear = 102;
       const testMonth = 3; // Rest
 
       // Each month has 30 days and 6-day weeks
@@ -75,7 +75,7 @@ describe('Dark Sun Calendar', () => {
 
     it('should handle year transitions correctly', () => {
       // Test multiple years to ensure consistency
-      for (let year = -101; year <= 10; year++) {
+      for (let year = 0; year <= 110; year++) {
         // First day of first month should always be 1 Day
         const firstDayScorch = engine.calculateWeekday(year, 1, 1);
         expect(firstDayScorch).toBe(0);
