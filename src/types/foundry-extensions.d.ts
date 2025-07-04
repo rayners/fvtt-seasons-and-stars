@@ -62,6 +62,15 @@ export interface SeasonsStarsAPI {
   formatDate(date: CalendarDate, options?: DateFormatOptions): string;
   dateToWorldTime(date: CalendarDate, calendarId?: string): number;
   worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate;
+  
+  // External calendar management
+  loadExternalCalendar(externalId: string): Promise<boolean>;
+  getExternalSources(): unknown[];
+  addExternalSource(source: unknown): void;
+  removeExternalSource(externalId: string): void;
+  updateExternalSource(externalId: string, updates: unknown): void;
+  getExternalCacheStats(): unknown;
+  clearExternalCache(): void;
 }
 
 // Type guard functions (implementations in type-guards.ts)
@@ -84,6 +93,15 @@ export interface CalendarManagerInterface {
   advanceWeeks(weeks: number): Promise<void>;
   advanceMonths(months: number): Promise<void>;
   advanceYears(years: number): Promise<void>;
+  
+  // External calendar management
+  loadExternalCalendar(externalId: string): Promise<boolean>;
+  getExternalSources(): unknown[];
+  addExternalSource(source: unknown): void;
+  removeExternalSource(externalId: string): void;
+  updateExternalSource(externalId: string, updates: unknown): void;
+  getExternalCacheStats(): unknown;
+  clearExternalCache(): void;
 }
 
 // Calendar Engine interface for date calculations

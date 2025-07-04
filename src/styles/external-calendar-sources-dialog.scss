@@ -1,0 +1,380 @@
+/**
+ * Styling for External Calendar Sources Dialog
+ */
+
+.external-calendar-sources-dialog {
+  .window-content {
+    padding: 15px;
+  }
+
+  .external-calendar-sources {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    height: 100%;
+  }
+
+  .sources-header {
+    p {
+      margin: 5px 0;
+      color: var(--color-text-primary);
+      
+      &.warning {
+        color: var(--color-warning);
+        font-size: 0.9em;
+        background: rgba(255, 193, 7, 0.1);
+        padding: 8px 12px;
+        border-radius: 4px;
+        border-left: 3px solid var(--color-warning);
+        
+        i {
+          margin-right: 6px;
+        }
+      }
+    }
+  }
+
+  .sources-list {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid var(--color-border-light);
+    border-radius: 4px;
+    background: var(--color-bg-primary);
+  }
+
+  .sources-table {
+    width: 100%;
+    border-collapse: collapse;
+    
+    th {
+      background: var(--color-bg-secondary);
+      color: var(--color-text-primary);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--color-border-light);
+      font-size: 0.9em;
+      
+      &:first-child {
+        width: 60px;
+        text-align: center;
+      }
+      
+      &:nth-child(2) { // Protocol
+        width: 80px;
+      }
+      
+      &:nth-child(3) { // Location
+        min-width: 200px;
+      }
+      
+      &:nth-child(4) { // Label
+        min-width: 150px;
+      }
+      
+      &:nth-child(5) { // Trusted
+        width: 60px;
+        text-align: center;
+      }
+      
+      &:last-child { // Actions
+        width: 120px;
+        text-align: center;
+      }
+    }
+    
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--color-border-light);
+      vertical-align: middle;
+      
+      &.no-sources {
+        text-align: center;
+        color: var(--color-text-secondary);
+        font-style: italic;
+        padding: 20px;
+      }
+      
+      &.protocol-cell {
+        font-family: var(--font-family-mono);
+        font-size: 0.85em;
+        background: rgba(0, 123, 255, 0.1);
+        color: var(--color-primary);
+        font-weight: 600;
+      }
+      
+      &.location-cell {
+        font-family: var(--font-family-mono);
+        font-size: 0.8em;
+        color: var(--color-text-secondary);
+        word-break: break-all;
+        max-width: 200px;
+      }
+      
+      &.label-cell {
+        font-weight: 500;
+        
+        em {
+          color: var(--color-text-secondary);
+          font-size: 0.9em;
+        }
+      }
+      
+      &.actions-cell {
+        text-align: center;
+        
+        button {
+          background: none;
+          border: none;
+          padding: 4px 6px;
+          margin: 0 2px;
+          cursor: pointer;
+          border-radius: 3px;
+          color: var(--color-text-secondary);
+          font-size: 0.9em;
+          transition: all 0.2s ease;
+          
+          &:hover {
+            background: var(--color-bg-secondary);
+            color: var(--color-text-primary);
+          }
+          
+          &.edit-source:hover {
+            color: var(--color-info);
+          }
+          
+          &.remove-source:hover {
+            color: var(--color-danger);
+          }
+          
+          &.test-source:hover {
+            color: var(--color-success);
+          }
+        }
+      }
+    }
+    
+    // Zebra striping
+    tbody tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    // Checkbox styling
+    input[type="checkbox"] {
+      transform: scale(1.1);
+      cursor: pointer;
+    }
+  }
+
+  .add-source-form {
+    background: var(--color-bg-secondary);
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border-light);
+    
+    h3 {
+      margin: 0 0 15px 0;
+      color: var(--color-text-primary);
+      font-size: 1.1em;
+    }
+    
+    .form-group {
+      margin-bottom: 12px;
+      
+      label {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+        font-size: 0.9em;
+      }
+      
+      input, select, textarea {
+        width: 100%;
+        padding: 6px 10px;
+        border: 1px solid var(--color-border-light);
+        border-radius: 4px;
+        background: var(--color-bg-primary);
+        color: var(--color-text-primary);
+        font-family: inherit;
+        
+        &:focus {
+          outline: none;
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        
+        &::placeholder {
+          color: var(--color-text-placeholder);
+        }
+      }
+      
+      textarea {
+        min-height: 60px;
+        resize: vertical;
+        font-family: inherit;
+      }
+      
+      select {
+        cursor: pointer;
+      }
+      
+      &.checkbox-group {
+        label.checkbox {
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          
+          input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+            transform: scale(1.1);
+          }
+          
+          span {
+            font-size: 0.9em;
+          }
+        }
+      }
+    }
+    
+    .location-help {
+      margin-top: 4px;
+      
+      small {
+        color: var(--color-text-secondary);
+        font-size: 0.8em;
+        line-height: 1.3;
+        display: block;
+        
+        strong {
+          color: var(--color-primary);
+          font-family: var(--font-family-mono);
+        }
+      }
+    }
+    
+    .form-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      
+      button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        
+        &.confirm-add-source {
+          background: var(--color-primary);
+          color: white;
+          
+          &:hover {
+            background: var(--color-primary-dark);
+          }
+        }
+        
+        &.cancel-add-source {
+          background: var(--color-bg-tertiary);
+          color: var(--color-text-secondary);
+          border: 1px solid var(--color-border-light);
+          
+          &:hover {
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+          }
+        }
+      }
+    }
+  }
+
+  // Dialog buttons styling
+  .dialog-buttons {
+    border-top: 1px solid var(--color-border-light);
+    padding-top: 15px;
+    
+    button {
+      &[data-button="add"] {
+        background: var(--color-success);
+        color: white;
+        
+        &:hover {
+          background: var(--color-success-dark);
+        }
+      }
+      
+      &[data-button="save"] {
+        background: var(--color-primary);
+        color: white;
+        
+        &:hover {
+          background: var(--color-primary-dark);
+        }
+      }
+      
+      &[data-button="cancel"] {
+        background: var(--color-bg-tertiary);
+        color: var(--color-text-secondary);
+        border: 1px solid var(--color-border-light);
+        
+        &:hover {
+          background: var(--color-bg-primary);
+          color: var(--color-text-primary);
+        }
+      }
+    }
+  }
+}
+
+// Dark theme adjustments
+body.dark {
+  .external-calendar-sources-dialog {
+    .sources-table {
+      tbody tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      
+      tbody tr:hover {
+        background: rgba(255, 255, 255, 0.07);
+      }
+    }
+    
+    .add-source-form {
+      background: var(--color-bg-primary);
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .external-calendar-sources-dialog {
+    .sources-table {
+      font-size: 0.85em;
+      
+      th, td {
+        padding: 6px 8px;
+      }
+      
+      .location-cell {
+        max-width: 150px;
+        font-size: 0.75em;
+      }
+    }
+    
+    .add-source-form {
+      .form-buttons {
+        flex-direction: column;
+        
+        button {
+          width: 100%;
+        }
+      }
+    }
+  }
+}

@@ -471,6 +471,40 @@ function registerSettings(): void {
     default: null,
   });
 
+  // External calendar sources configuration
+  game.settings.register('seasons-and-stars', 'externalCalendarSources', {
+    name: 'External Calendar Sources',
+    hint: 'Configured external calendar sources (HTTPS, GitHub, Module, Local)',
+    scope: 'world',
+    config: false, // Not shown in config UI, managed by external calendar UI
+    type: Object,
+    default: [],
+  });
+
+  // External calendar sources management (shown in config UI as button)
+  game.settings.register('seasons-and-stars', 'manageExternalSources', {
+    name: 'Manage External Calendar Sources',
+    hint: 'Configure external calendar sources from HTTPS, GitHub, modules, and local files. Click to open configuration dialog.',
+    scope: 'world', 
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: (value: boolean) => {
+      if (value) {
+        // Reset the setting immediately to prevent it from staying checked
+        game.settings?.set('seasons-and-stars', 'manageExternalSources', false);
+        
+        // Import and show the dialog
+        import('./ui/external-calendar-sources-dialog').then(module => {
+          module.ExternalCalendarSourcesDialog.show();
+        }).catch(error => {
+          Logger.error('Failed to load external calendar sources dialog', error);
+          ui.notifications?.error('Failed to open external calendar sources configuration');
+        });
+      }
+    },
+  });
+
   // Development and debugging settings (last for developers)
   game.settings.register('seasons-and-stars', 'debugMode', {
     name: 'Debug Mode',
@@ -1065,6 +1099,146 @@ export function setupAPI(): void {
       } catch (error) {
         Logger.error(
           'Failed to get season info',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    // External calendar management
+    loadExternalCalendar: async (externalId: string): Promise<boolean> => {
+      try {
+        Logger.api('loadExternalCalendar', { externalId });
+
+        // Input validation
+        if (typeof externalId !== 'string' || externalId.trim() === '') {
+          const error = new Error('External ID must be a non-empty string');
+          Logger.error('Invalid external ID parameter', error);
+          throw error;
+        }
+
+        const result = await calendarManager.loadExternalCalendar(externalId);
+        Logger.api('loadExternalCalendar', { externalId }, result);
+        return result;
+      } catch (error) {
+        Logger.error(
+          'Failed to load external calendar',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    getExternalSources: () => {
+      try {
+        Logger.api('getExternalSources');
+        const result = calendarManager.getExternalSources();
+        Logger.api('getExternalSources', undefined, result.length);
+        return result;
+      } catch (error) {
+        Logger.error(
+          'Failed to get external sources',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    addExternalSource: (source: unknown): void => {
+      try {
+        Logger.api('addExternalSource', { source });
+
+        // Input validation
+        if (!source || typeof source !== 'object') {
+          const error = new Error('Source must be a valid ExternalCalendarSource object');
+          Logger.error('Invalid source parameter', error);
+          throw error;
+        }
+
+        calendarManager.addExternalSource(source as any);
+        Logger.api('addExternalSource', { source }, 'success');
+      } catch (error) {
+        Logger.error(
+          'Failed to add external source',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    removeExternalSource: (externalId: string): void => {
+      try {
+        Logger.api('removeExternalSource', { externalId });
+
+        // Input validation
+        if (typeof externalId !== 'string' || externalId.trim() === '') {
+          const error = new Error('External ID must be a non-empty string');
+          Logger.error('Invalid external ID parameter', error);
+          throw error;
+        }
+
+        calendarManager.removeExternalSource(externalId);
+        Logger.api('removeExternalSource', { externalId }, 'success');
+      } catch (error) {
+        Logger.error(
+          'Failed to remove external source',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    updateExternalSource: (externalId: string, updates: unknown): void => {
+      try {
+        Logger.api('updateExternalSource', { externalId, updates });
+
+        // Input validation
+        if (typeof externalId !== 'string' || externalId.trim() === '') {
+          const error = new Error('External ID must be a non-empty string');
+          Logger.error('Invalid external ID parameter', error);
+          throw error;
+        }
+
+        if (!updates || typeof updates !== 'object') {
+          const error = new Error('Updates must be a valid object');
+          Logger.error('Invalid updates parameter', error);
+          throw error;
+        }
+
+        calendarManager.updateExternalSource(externalId, updates as any);
+        Logger.api('updateExternalSource', { externalId, updates }, 'success');
+      } catch (error) {
+        Logger.error(
+          'Failed to update external source',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    getExternalCacheStats: () => {
+      try {
+        Logger.api('getExternalCacheStats');
+        const result = calendarManager.getExternalCacheStats();
+        Logger.api('getExternalCacheStats', undefined, result);
+        return result;
+      } catch (error) {
+        Logger.error(
+          'Failed to get external cache stats',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    clearExternalCache: (): void => {
+      try {
+        Logger.api('clearExternalCache');
+        calendarManager.clearExternalCache();
+        Logger.api('clearExternalCache', undefined, 'success');
+      } catch (error) {
+        Logger.error(
+          'Failed to clear external cache',
           error instanceof Error ? error : new Error(String(error))
         );
         throw error;

@@ -255,6 +255,11 @@ interface Module {
   title: string;
   active: boolean;
   version?: string;
+  path?: string; // Module path for file loading
+  manifest?: {    // Module manifest data
+    version?: string;
+    [key: string]: unknown;
+  };
   api?: unknown; // For modules that expose APIs
 }
 
