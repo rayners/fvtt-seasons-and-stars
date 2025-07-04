@@ -75,6 +75,16 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **[Inline Calendar Variants](./docs/INLINE-CALENDAR-VARIANTS.md)** - Cultural and regional calendar variations within the same file
 - **[External Calendar Variants](./docs/EXTERNAL-CALENDAR-VARIANTS.md)** - Themed calendar collections in separate files
 
+### JSON Schema Validation
+
+Validate your custom calendars with our comprehensive schemas:
+
+- **[Calendar Schema v1.0.0](./schemas/calendar-v1.0.0.json)** - Individual calendar files
+- **[Collection Index Schema v1.0.0](./schemas/calendar-collection-v1.0.0.json)** - Calendar collection indexes
+- **[External Variants Schema v1.0.0](./schemas/calendar-variants-v1.0.0.json)** - External variant files
+
+Use online tools like [jsonschemavalidator.net](https://www.jsonschemavalidator.net/) for easy validation.
+
 ## 🎯 Who Should Use This
 
 ### **Beta Testers**

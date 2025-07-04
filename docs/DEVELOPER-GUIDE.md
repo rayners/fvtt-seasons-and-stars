@@ -478,6 +478,16 @@ if (game.seasonsStars.manager?.externalRegistry) {
 
 ## 📊 Calendar Data Structures
 
+### JSON Schema Validation
+
+Before working with calendar data, validate your JSON files using our comprehensive schemas:
+
+- **Calendar Schema**: `https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-v1.0.0.json`
+- **Collection Index Schema**: `https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-collection-v1.0.0.json`
+- **External Variants Schema**: `https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-variants-v1.0.0.json`
+
+See the [Calendar Format Specification](./CALENDAR-FORMAT.md#json-schema-validation) for detailed validation instructions and online tools.
+
 ### CalendarDate Interface
 
 ```typescript

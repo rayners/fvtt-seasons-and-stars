@@ -421,14 +421,211 @@ Cache is automatically skipped when:
 - URL contains 'foundrytest'
 - Module protocol with `skipModuleCache: true`
 
-## Best Practices
+## JSON Schema Validation
 
-### Calendar Design
+Seasons & Stars provides comprehensive JSON schemas for validating calendar files before use. These schemas help ensure your calendars are properly formatted and will load correctly.
 
-1. **Unique IDs**: Use descriptive, unique identifiers
-2. **Complete Translations**: Provide comprehensive localization
-3. **Logical Structure**: Design months and weekdays logically
-4. **Validation**: Test calendars thoroughly before distribution
+### Available Schemas
+
+#### Calendar Schema v1.0.0
+
+**URL**: `https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-v1.0.0.json`
+
+Validates individual calendar files with complete structure validation including:
+
+- Required fields and data types
+- Value constraints (e.g., month lengths, weekday counts)
+- Pattern validation for IDs and language codes
+- Leap year rule validation
+- Variant structure validation
+
+#### Calendar Collection Index Schema v1.0.0
+
+**URL**: `https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-collection-v1.0.0.json`
+
+Validates calendar collection index files (`index.json`) including:
+
+- Collection metadata validation
+- Calendar entry validation
+- Tag and system compatibility validation
+- Version format validation
+
+#### External Calendar Variants Schema v1.0.0
+
+**URL**: `https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-variants-v1.0.0.json`
+
+Validates external variant files including:
+
+- Base calendar references
+- Variant override structures
+- Translation validation
+- Configuration validation
+
+### Using JSON Schema Validators
+
+#### Online Validation Tools
+
+**JSONSchemaLint** (Recommended):
+
+1. Go to [jsonschemavalidator.net](https://www.jsonschemavalidator.net/)
+2. Paste your calendar JSON in the left panel
+3. Paste the schema URL in the schema field: `https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-v1.0.0.json`
+4. Click "Validate" to see results
+
+**Alternative Online Tools**:
+
+- [JSON Schema Validator](https://jsonschemalint.com/)
+- [ExtendsClass JSON Schema Validator](https://extendsclass.com/json-schema-validator.html)
+
+#### Command Line Validation
+
+Using `ajv-cli` (Node.js):
+
+```bash
+npm install -g ajv-cli
+ajv validate -s https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-v1.0.0.json -d your-calendar.json
+```
+
+Using `jsonschema` (Python):
+
+```python
+import json
+import requests
+from jsonschema import validate
+
+# Load your calendar
+with open('your-calendar.json', 'r') as f:
+    calendar_data = json.load(f)
+
+# Download schema
+schema_url = 'https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-v1.0.0.json'
+schema = requests.get(schema_url).json()
+
+# Validate
+validate(instance=calendar_data, schema=schema)
+print("Calendar is valid!")
+```
+
+#### IDE Integration
+
+Most modern code editors support JSON schema validation:
+
+**VS Code**:
+Add to your calendar JSON file:
+
+```json
+{
+  "$schema": "https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-v1.0.0.json",
+  "id": "your-calendar-id",
+  ...
+}
+```
+
+**JetBrains IDEs** (WebStorm, IntelliJ):
+Configure JSON schema mapping in Settings → Languages & Frameworks → Schemas and DTDs → JSON Schema Mappings
+
+### Schema Validation Examples
+
+#### Valid Calendar Example
+
+```json
+{
+  "$schema": "https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-v1.0.0.json",
+  "id": "my-custom-calendar",
+  "translations": {
+    "en": {
+      "label": "My Custom Calendar",
+      "description": "A unique calendar for my campaign"
+    }
+  },
+  "year": {
+    "epoch": 1,
+    "currentYear": 1000,
+    "prefix": "Year ",
+    "suffix": " AC",
+    "startDay": 0
+  },
+  "months": [
+    {
+      "name": "Springtide",
+      "length": 30,
+      "description": "Month of renewal"
+    }
+  ],
+  "weekdays": [
+    {
+      "name": "Solday",
+      "description": "Day of the sun"
+    }
+  ],
+  "leapYear": {
+    "rule": "none"
+  },
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}
+```
+
+#### Common Validation Errors
+
+**Invalid ID Format**:
+
+```json
+// ❌ Invalid - contains uppercase and spaces
+"id": "My Calendar ID"
+
+// ✅ Valid - lowercase with hyphens
+"id": "my-calendar-id"
+```
+
+**Missing Required Fields**:
+
+```json
+// ❌ Invalid - missing required 'translations' field
+{
+  "id": "test-calendar",
+  "year": {...},
+  "months": [...],
+  ...
+}
+
+// ✅ Valid - includes all required fields
+{
+  "id": "test-calendar",
+  "translations": { "en": { "label": "Test Calendar" } },
+  "year": {...},
+  ...
+}
+```
+
+**Invalid Month Length**:
+
+```json
+// ❌ Invalid - month length must be positive
+{
+  "name": "Invalid Month",
+  "length": 0
+}
+
+// ✅ Valid - positive month length
+{
+  "name": "Valid Month",
+  "length": 30
+}
+```
+
+### Best Practices
+
+#### Calendar Design
+
+1. **Unique IDs**: Use descriptive, unique identifiers following the pattern `^[a-z0-9-]+$`
+2. **Complete Translations**: Provide comprehensive localization with at least English (`en`)
+3. **Logical Structure**: Design months and weekdays logically with reasonable constraints
+4. **Schema Validation**: Always validate calendars with JSON schema before distribution
+5. **Version Schema References**: Include `$schema` property in your JSON files for IDE support
 
 ### External Calendar Hosting
 

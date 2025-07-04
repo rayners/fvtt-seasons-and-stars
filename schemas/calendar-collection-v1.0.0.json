@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-collection-v1.0.0.json",
+  "title": "Seasons & Stars Calendar Collection Index Schema",
+  "description": "JSON schema for Seasons & Stars calendar collection index format v1.0.0",
+  "type": "object",
+  "required": ["name", "calendars"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Display name for the calendar collection"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Description of the calendar collection"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+([+-][a-zA-Z0-9.-]+)?$",
+      "description": "Semantic version of the collection"
+    },
+    "calendars": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "description": "Array of calendar definitions in the collection",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "file"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Unique identifier for the calendar"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Display name for the calendar"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Description of the calendar"
+          },
+          "file": {
+            "type": "string",
+            "pattern": "^[^/\\\\]+\\.json$",
+            "description": "Filename of the calendar JSON file (relative to index)"
+          },
+          "tags": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]+$",
+              "minLength": 1,
+              "maxLength": 30
+            },
+            "description": "Tags for categorizing the calendar"
+          },
+          "author": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "Author of the calendar"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+([+-][a-zA-Z0-9.-]+)?$",
+            "description": "Version of the calendar"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "systems": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9-]+$",
+                  "minLength": 1,
+                  "maxLength": 30
+                },
+                "description": "Compatible game systems"
+              },
+              "language": {
+                "type": "string",
+                "pattern": "^[a-z]{2}(-[A-Z]{2})?$",
+                "description": "Primary language of the calendar"
+              },
+              "minimumFoundryVersion": {
+                "type": "string",
+                "pattern": "^\\d+(\\.\\d+)?(\\.\\d+)?$",
+                "description": "Minimum required Foundry VTT version"
+              },
+              "license": {
+                "type": "string",
+                "maxLength": 50,
+                "description": "License for the calendar"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "URL for more information about the calendar"
+              }
+            },
+            "description": "Additional metadata for the calendar"
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lastUpdated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last update"
+        },
+        "source": {
+          "type": "string",
+          "format": "uri",
+          "description": "Source URL for the collection"
+        },
+        "license": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "License for the collection"
+        },
+        "author": {
+          "type": "string",
+          "maxLength": 100,
+          "description": "Author of the collection"
+        },
+        "contributors": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": "Contributors to the collection"
+        },
+        "homepage": {
+          "type": "string",
+          "format": "uri",
+          "description": "Homepage URL for the collection"
+        },
+        "repository": {
+          "type": "string",
+          "format": "uri",
+          "description": "Repository URL for the collection"
+        }
+      },
+      "description": "Metadata for the collection"
+    }
+  }
+}
