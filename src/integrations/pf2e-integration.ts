@@ -230,7 +230,19 @@ Hooks.on(
       return integration.getPF2eBaseDate();
     });
 
-    // Register worldTime transformation function for PF2e-aware date calculations
+    /**
+     * Register worldTime transformation function for PF2e-aware date calculations.
+     *
+     * This transformation solves the critical bug where clicking calendar dates in S&S
+     * caused PF2e to jump 2000+ years due to different worldTime interpretations:
+     * - S&S: worldTime=0 represents calendar epoch (e.g., 2700 AR for Golarion)
+     * - PF2e: worldTime=0 represents real-world creation date + 0 seconds elapsed
+     *
+     * The transform provides PF2e's worldCreationTimestamp as system time offset,
+     * enabling proper synchronization between S&S calendar and PF2e time displays.
+     *
+     * @see docs/SYSTEM-INTEGRATION.md for implementation details and examples
+     */
     compatibilityManager.registerDataProvider('pf2e', 'worldTimeTransform', () => {
       return (worldTime: number, defaultOffset?: number): [number, number | undefined] => {
         // Return worldTime and PF2e world creation timestamp as system time offset
