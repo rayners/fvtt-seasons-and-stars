@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.5.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.6...v0.5.0) (2025-07-04)
+
+
+### Features
+
+* comprehensive calendar variants system for cultural/regional calendars ([#110](https://github.com/rayners/fvtt-seasons-and-stars/issues/110)) ([c7f920e](https://github.com/rayners/fvtt-seasons-and-stars/commit/c7f920e53a985254f11b117db4f6467e6a6aec4d))
+* implement moon phase tracking system ([#88](https://github.com/rayners/fvtt-seasons-and-stars/issues/88)) ([f0a770e](https://github.com/rayners/fvtt-seasons-and-stars/commit/f0a770e2cf11cf878b0745f47e50bea03c2731aa))
+
+
+### Bug Fixes
+
+* clean up Dark Sun calendar epoch from -101 to 0 ([#116](https://github.com/rayners/fvtt-seasons-and-stars/issues/116)) ([47803cd](https://github.com/rayners/fvtt-seasons-and-stars/commit/47803cd75286c9d71f7cbe8c0ec0c3ae912f7e52))
+* improve calendar grid styling for light theme and large calendars ([#115](https://github.com/rayners/fvtt-seasons-and-stars/issues/115)) ([d0fbe9c](https://github.com/rayners/fvtt-seasons-and-stars/commit/d0fbe9c1ec71b84ae07cdd7f1796ade75228682d))
+* PF2e calendar click bug causing 2000+ year jump ([#113](https://github.com/rayners/fvtt-seasons-and-stars/issues/113)) ([9834cf8](https://github.com/rayners/fvtt-seasons-and-stars/commit/9834cf8bf99312c1c8e884a2bfafe9a83556d8d6))
+
 ## [0.5.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.6...v0.5.0) (2025-07-03)
 
 
