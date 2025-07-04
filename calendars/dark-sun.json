@@ -9,8 +9,8 @@
   },
 
   "year": {
-    "epoch": -101,
-    "currentYear": 1,
+    "epoch": 0,
+    "currentYear": 102,
     "prefix": "",
     "suffix": "",
     "startDay": 0
@@ -20,7 +20,7 @@
     "seasons-and-stars": {
       "namedYears": {
         "rule": "repeat",
-        "startYear": -101,
+        "startYear": 0,
         "names": [
           "Ral's Fury",
           "Friend's Contemplation",
