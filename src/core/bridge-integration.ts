@@ -14,6 +14,7 @@ import type {
 import { CalendarDate as CalendarDateClass } from './calendar-date';
 import type { CreateNoteData } from '../types/external-integrations';
 import type { CalendarManagerInterface, NotesManagerInterface } from '../types/foundry-extensions';
+import { compatibilityManager } from './compatibility-manager';
 import type {
   SeasonsStarsAPI,
   SeasonsStarsWidgets,
@@ -276,7 +277,23 @@ class IntegrationAPI {
     if (!engine) {
       throw new Error('No active calendar engine');
     }
-    return engine.worldTimeToDate(timestamp);
+
+    // Apply system-specific worldTime transformation if available
+    let transformedWorldTime = timestamp;
+    let systemTimeOffset: number | undefined;
+
+    try {
+      const transform = compatibilityManager.getSystemData<
+        (worldTime: number, defaultOffset?: number) => [number, number | undefined]
+      >(game.system!.id, 'worldTimeTransform');
+      if (transform) {
+        [transformedWorldTime, systemTimeOffset] = transform(timestamp);
+      }
+    } catch (error) {
+      Logger.warn(`Error applying ${game.system!.id} worldTime transformation:`, error);
+    }
+
+    return engine.worldTimeToDate(transformedWorldTime, systemTimeOffset);
   }
 
   dateToWorldTime(date: CalendarDate, _calendarId?: string): number {
@@ -285,7 +302,23 @@ class IntegrationAPI {
     if (!engine) {
       throw new Error('No active calendar engine');
     }
-    return engine.dateToWorldTime(date);
+
+    // Apply system-specific worldTime transformation if available
+    let systemTimeOffset: number | undefined;
+
+    try {
+      const transform = compatibilityManager.getSystemData<
+        (worldTime: number, defaultOffset?: number) => [number, number | undefined]
+      >(game.system!.id, 'worldTimeTransform');
+      if (transform) {
+        // Get the system time offset (we don't need to transform the input here)
+        [, systemTimeOffset] = transform(0);
+      }
+    } catch (error) {
+      Logger.warn(`Error getting ${game.system!.id} system time offset:`, error);
+    }
+
+    return engine.dateToWorldTime(date, systemTimeOffset);
   }
 
   formatDate(date: CalendarDate, options?: DateFormatOptions): string {

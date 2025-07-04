@@ -105,18 +105,15 @@ export class TimeConverter {
 
     // Allow system-specific integrations to provide world creation timestamp
     let worldCreationTimestamp: number | undefined;
-    const currentSystem = game.system?.id;
-    if (currentSystem) {
-      try {
-        const timestamp = compatibilityManager.getSystemData<number>(
-          currentSystem,
-          'worldCreationTimestamp'
-        );
-        worldCreationTimestamp = timestamp ?? undefined;
-      } catch (error) {
-        Logger.warn(`Error getting world creation timestamp for ${currentSystem}:`, error);
-        // Continue with undefined worldCreationTimestamp
-      }
+    try {
+      const timestamp = compatibilityManager.getSystemData<number>(
+        game.system!.id,
+        'worldCreationTimestamp'
+      );
+      worldCreationTimestamp = timestamp ?? undefined;
+    } catch (error) {
+      Logger.warn(`Error getting world creation timestamp for ${game.system!.id}:`, error);
+      // Continue with undefined worldCreationTimestamp
     }
 
     const dateResult = this.engine.worldTimeToDate(newTime, worldCreationTimestamp);
@@ -142,23 +139,20 @@ export class TimeConverter {
 
     // Get world creation timestamp from system-specific integrations
     let worldCreationTimestamp: number | undefined;
-    const currentSystem = game.system?.id;
-    if (currentSystem) {
-      try {
-        const timestamp = compatibilityManager.getSystemData<number>(
-          currentSystem,
-          'worldCreationTimestamp'
+    try {
+      const timestamp = compatibilityManager.getSystemData<number>(
+        game.system!.id,
+        'worldCreationTimestamp'
+      );
+      worldCreationTimestamp = timestamp ?? undefined;
+      if (worldCreationTimestamp) {
+        Logger.debug(
+          `Using world creation timestamp for ${game.system!.id}: ${worldCreationTimestamp}`
         );
-        worldCreationTimestamp = timestamp ?? undefined;
-        if (worldCreationTimestamp) {
-          Logger.debug(
-            `Using world creation timestamp for ${currentSystem}: ${worldCreationTimestamp}`
-          );
-        }
-      } catch (error) {
-        Logger.warn(`Error getting world creation timestamp for ${currentSystem}:`, error);
-        // Continue with undefined worldCreationTimestamp
       }
+    } catch (error) {
+      Logger.warn(`Error getting world creation timestamp for ${game.system!.id}:`, error);
+      // Continue with undefined worldCreationTimestamp
     }
 
     const result = this.engine.worldTimeToDate(worldTime, worldCreationTimestamp);
@@ -175,7 +169,22 @@ export class TimeConverter {
    * Set the current date by updating Foundry world time
    */
   async setCurrentDate(date: CalendarDate): Promise<void> {
-    const worldTime = this.engine.dateToWorldTime(date);
+    // Apply system-specific time offset when converting date to worldTime
+    let systemTimeOffset: number | undefined;
+
+    try {
+      const transform = compatibilityManager.getSystemData<
+        (worldTime: number, defaultOffset?: number) => [number, number | undefined]
+      >(game.system!.id, 'worldTimeTransform');
+      if (transform) {
+        // Get the system time offset for date conversion
+        [, systemTimeOffset] = transform(0);
+      }
+    } catch (error) {
+      Logger.warn(`Error getting ${game.system!.id} system time offset for date setting:`, error);
+    }
+
+    const worldTime = this.engine.dateToWorldTime(date, systemTimeOffset);
 
     if (game.user?.isGM) {
       await game.time?.advance(worldTime - (game.time?.worldTime || 0));
