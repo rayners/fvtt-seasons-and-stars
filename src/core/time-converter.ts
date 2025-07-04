@@ -175,7 +175,24 @@ export class TimeConverter {
    * Set the current date by updating Foundry world time
    */
   async setCurrentDate(date: CalendarDate): Promise<void> {
-    const worldTime = this.engine.dateToWorldTime(date);
+    // Apply system-specific time offset when converting date to worldTime
+    let systemTimeOffset: number | undefined;
+
+    if (game.system?.id) {
+      try {
+        const transform = compatibilityManager.getSystemData<
+          (worldTime: number, defaultOffset?: number) => [number, number | undefined]
+        >(game.system.id, 'worldTimeTransform');
+        if (transform) {
+          // Get the system time offset for date conversion
+          [, systemTimeOffset] = transform(0);
+        }
+      } catch (error) {
+        Logger.warn(`Error getting ${game.system.id} system time offset for date setting:`, error);
+      }
+    }
+
+    const worldTime = this.engine.dateToWorldTime(date, systemTimeOffset);
 
     if (game.user?.isGM) {
       await game.time?.advance(worldTime - (game.time?.worldTime || 0));

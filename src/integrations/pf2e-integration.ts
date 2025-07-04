@@ -229,5 +229,14 @@ Hooks.on(
     compatibilityManager.registerDataProvider('pf2e', 'systemBaseDate', () => {
       return integration.getPF2eBaseDate();
     });
+
+    // Register worldTime transformation function for PF2e-aware date calculations
+    compatibilityManager.registerDataProvider('pf2e', 'worldTimeTransform', () => {
+      return (worldTime: number, defaultOffset?: number): [number, number | undefined] => {
+        // Return worldTime and PF2e world creation timestamp as system time offset
+        const systemTimeOffset = integration.getWorldCreationTimestamp();
+        return [worldTime, systemTimeOffset || defaultOffset];
+      };
+    });
   }
 );
