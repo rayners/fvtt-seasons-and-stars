@@ -246,19 +246,26 @@ function safeWorldTimeTransform(worldTime: number): [number, number | undefined]
 
 ## Migration from Simple Calendar
 
-If your system previously integrated with Simple Calendar, you can maintain compatibility:
+If your system previously integrated with Simple Calendar, you can access world creation timestamps:
 
 ```typescript
-function migrateFromSimpleCalendar() {
-  // Check if migrating from Simple Calendar
-  const hasSimpleCalendarData = game.settings.get('your-system', 'simpleCalendarIntegration');
+function getWorldCreationTimestamp() {
+  // For PF2e systems - Simple Calendar reads from game.pf2e.settings.worldClock.worldCreatedOn
+  if (game.system?.id === 'pf2e' && game.pf2e?.settings?.worldClock?.worldCreatedOn) {
+    return Math.floor(new Date(game.pf2e.settings.worldClock.worldCreatedOn).getTime() / 1000);
+  }
 
-  if (hasSimpleCalendarData) {
-    // Use Simple Calendar's stored world creation date
-    const scWorldCreated = game.settings.get('simple-calendar', 'worldCreatedOn');
-    if (scWorldCreated) {
-      return Math.floor(new Date(scWorldCreated).getTime() / 1000);
+  // For other systems, Simple Calendar doesn't store worldCreatedOn directly
+  // Check if Simple Calendar has current date to estimate world age
+  try {
+    const scCurrentDate = game.settings.get('simple-calendar', 'current-date');
+    if (scCurrentDate && typeof scCurrentDate === 'object' && scCurrentDate.year) {
+      // Note: This would require calendar-specific logic to convert
+      // Simple Calendar's current date back to world creation timestamp
+      // Implementation depends on your specific calendar system
     }
+  } catch (error) {
+    console.warn('Simple Calendar current-date setting not available:', error);
   }
 
   // Fall back to current real-world time for new worlds
