@@ -151,19 +151,19 @@
   },
 
   "dateFormats": {
-    "galactic": "{{year}}.{{s&s-month:pad}}.{{s&s-day:pad}} AG",
-    "pact": "{{s&s-month:abbr}} {{ss-day}}, {{year}} AG",
-    "long": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}} AG",
-    "short": "{{s&s-month:abbr}} {{ss-day}}",
-    "date": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}} AG",
-    "time": "{{s&s-hour:pad}}:{{s&s-minute:pad}}:{{s&s-second:pad}} GST",
-    "datetime": "{{s&s-dateFmt:date}} at {{s&s-dateFmt:time}}",
+    "galactic": "{{year}}.{{ss-month:pad}}.{{ss-day:pad}} AG",
+    "pact": "{{ss-month:abbr}} {{ss-day}}, {{year}} AG",
+    "long": "{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}} AG",
+    "short": "{{ss-month:abbr}} {{ss-day}}",
+    "date": "{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}} AG",
+    "time": "{{ss-hour:pad}}:{{ss-minute:pad}}:{{ss-second:pad}} GST",
+    "datetime": "{{ss-dateFmt:date}} at {{ss-dateFmt:time}}",
     "standard": "{{ss-day}}/{{ss-month}}/{{year}} AG",
-    "formal": "The {{s&s-day:ordinal}} day of {{s&s-month:name}}, in the year {{year}} After the Gap",
-    "starship": "Stardate {{year}}.{{s&s-month:pad}}{{s&s-day:pad}}",
+    "formal": "The {{ss-day:ordinal}} day of {{ss-month:name}}, in the year {{year}} After the Gap",
+    "starship": "Stardate {{year}}.{{ss-month:pad}}{{ss-day:pad}}",
     "widgets": {
-      "mini": "{{s&s-month:abbr}} {{ss-day}}",
-      "main": "{{s&s-weekday:abbr}}, {{s&s-day:ordinal}} {{s&s-month:name}}",
+      "mini": "{{ss-month:abbr}} {{ss-day}}",
+      "main": "{{ss-weekday:abbr}}, {{ss-day:ordinal}} {{ss-month:name}}",
       "grid": "{{ss-day}}"
     }
   }
