@@ -92,7 +92,7 @@ describe('DateFormatter', () => {
       const result = formatter.format(mockDate, template);
 
       // Assert
-      expect(result).toBe('2024-1-15'); // Should fallback to basic format
+      expect(result).toBe('Monday, 15th January 2024'); // Should fallback to basic format
     });
 
     it('should cache compiled templates for performance', () => {
@@ -282,7 +282,7 @@ describe('DateFormatter', () => {
       const result = formatter.formatNamed(mockDate, 'nonexistent');
 
       // Assert - should fallback to basic format
-      expect(result).toBe('2024-1-15');
+      expect(result).toBe('Monday, 15th January 2024');
     });
 
     it('should handle variant formats (format as object)', () => {
@@ -374,7 +374,7 @@ describe('DateFormatter', () => {
         },
       };
 
-      const mockCompiledTemplate = vi.fn().mockReturnValueOnce('Date: 2024-1-15'); // processed format with fallback embedded
+      const mockCompiledTemplate = vi.fn().mockReturnValueOnce('Date: Monday, 15th January 2024'); // processed format with fallback embedded
       mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
 
       // Act
@@ -382,9 +382,9 @@ describe('DateFormatter', () => {
       const result = formatter.formatNamed(mockDate, 'invalid');
 
       // Assert
-      expect(result).toBe('Date: 2024-1-15');
+      expect(result).toBe('Date: Monday, 15th January 2024');
       // Should compile the processed template with fallback embedded
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('Date: 2024-1-15');
+      expect(mockHandlebars.compile).toHaveBeenCalledWith('Date: Monday, 15th January 2024');
     });
   });
 

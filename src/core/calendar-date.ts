@@ -64,7 +64,7 @@ export class CalendarDate implements ICalendarDate {
     const { includeTime, format } = options;
 
     // Look for common format names based on options
-    const possibleNames = [];
+    const possibleNames: string[] = [];
 
     if (format === 'short') {
       possibleNames.push('short', 'brief');

@@ -29,6 +29,9 @@ declare global {
   const canvas: Canvas;
   const renderTemplate: (path: string, data?: any) => Promise<string>;
 
+  // Handlebars templating engine (global in Foundry)
+  const Handlebars: typeof import('handlebars');
+
   // Foundry global namespace
   const foundry: FoundryNamespace;
 
