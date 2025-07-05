@@ -269,7 +269,14 @@ export class DateFormatter {
    * Fallback basic format when template compilation fails
    */
   private getBasicFormat(date: CalendarDate): string {
-    return `${date.year}-${date.month}-${date.day}`;
+    // For calendars without dateFormats, return a simple format
+    const monthName = this.getMonthName(date.month);
+    const weekdayName = this.getWeekdayName(date.weekday);
+    const dayOrdinal = this.addOrdinalSuffix(date.day);
+    const yearString =
+      `${this.calendar.year?.prefix || ''}${date.year}${this.calendar.year?.suffix || ''}`.trim();
+
+    return `${weekdayName}, ${dayOrdinal} ${monthName} ${yearString}`;
   }
 
   /**
