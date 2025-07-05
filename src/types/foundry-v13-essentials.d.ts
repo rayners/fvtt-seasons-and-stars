@@ -106,6 +106,7 @@ declare global {
       position?: Partial<Position>;
       window?: Partial<ApplicationWindow>;
       parts?: string[];
+      [key: string]: unknown; // Index signature for additional properties
     }
 
     interface CloseOptions {
@@ -163,6 +164,9 @@ interface Game {
     api?: unknown;
     categories?: unknown;
     compatibilityManager?: unknown; // Expose for debugging and external access
+    widgets?: {
+      createContextAPI?: (moduleId: string) => any;
+    };
     // Warning state functions for debugging and external access
     resetSeasonsWarningState?: () => void;
     getSeasonsWarningState?: () => boolean;
@@ -424,6 +428,7 @@ declare namespace ApplicationV2 {
     position?: Partial<Position>;
     window?: Partial<ApplicationWindow>;
     parts?: string[];
+    [key: string]: unknown; // Index signature for additional properties
   }
 
   interface CloseOptions {

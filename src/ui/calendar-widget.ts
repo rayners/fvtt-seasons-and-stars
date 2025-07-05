@@ -7,6 +7,7 @@ import { CalendarSelectionDialog } from './calendar-selection-dialog';
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { DateFormatter } from '../core/date-formatter';
+import { CalendarDate } from '../core/calendar-date';
 import { TemplateContextExtensions } from '../core/template-context-extensions';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import type { MainWidgetContext } from '../types/widget-types';
@@ -115,9 +116,12 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     const context: MainWidgetContext = Object.assign(baseContext, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
-      formattedDate: formatter.formatWidget(currentDate, 'main') || currentDate.toLongString(),
-      shortDate: formatter.formatNamed(currentDate, 'date') || currentDate.toDateString(),
-      timeString: formatter.formatNamed(currentDate, 'time') || currentDate.toTimeString(),
+      formattedDate:
+        formatter.formatWidget(currentDate as CalendarDate, 'main') || currentDate.toLongString(),
+      shortDate:
+        formatter.formatNamed(currentDate as CalendarDate, 'date') || currentDate.toDateString(),
+      timeString:
+        formatter.formatNamed(currentDate as CalendarDate, 'time') || currentDate.toTimeString(),
       isGM: game.user?.isGM || false,
       canAdvanceTime: game.user?.isGM || false,
       hasSmallTime: hasSmallTime,

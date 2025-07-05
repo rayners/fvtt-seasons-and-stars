@@ -10,18 +10,14 @@ import { Logger } from '../core/logger';
 import { TemplateContextExtensions } from '../core/template-context-extensions';
 import type { NoteCategories } from '../core/note-categories';
 import type { CreateNoteData } from '../core/notes-manager';
-import type {
-  CalendarDate as ICalendarDate,
-  CalendarDateData,
-  SeasonsStarsCalendar,
-} from '../types/calendar';
+import type { CalendarDateData, SeasonsStarsCalendar } from '../types/calendar';
 import type { CalendarDayData } from '../types/external-integrations';
 import type { CalendarManagerInterface, NotesManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarGridWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
-  private viewDate: ICalendarDate;
+  private viewDate: CalendarDateData;
   private static activeInstance: CalendarGridWidget | null = null;
   private sidebarButtons: Array<{
     name: string;
@@ -30,7 +26,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     callback: Function;
   }> = [];
 
-  constructor(initialDate?: ICalendarDate) {
+  constructor(initialDate?: CalendarDateData) {
     super();
 
     // Use provided date or current date
@@ -171,7 +167,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       viewDate: this.viewDate,
       currentDate: currentDate.toObject(),
       formattedDate:
-        formatter.formatWidget(currentDate, 'main') ||
+        formatter.formatWidget(currentDate as CalendarDate, 'main') ||
         currentDate.toLongString?.() ||
         'Current Date', // Add formattedDate for consistency
       monthData: monthData,
@@ -197,8 +193,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   private generateMonthData(
     calendar: SeasonsStarsCalendar,
-    viewDate: ICalendarDate,
-    currentDate: ICalendarDate
+    viewDate: CalendarDateData,
+    currentDate: CalendarDateData
   ) {
     const engine = (game.seasonsStars?.manager as CalendarManagerInterface)?.getActiveEngine();
     if (!engine) return { weeks: [], totalDays: 0 };
@@ -525,7 +521,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Format date as storage key
    */
-  private formatDateKey(date: ICalendarDate): string {
+  private formatDateKey(date: CalendarDateData): string {
     return `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
   }
 
@@ -543,7 +539,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Check if two dates are the same (ignoring time)
    */
-  private isSameDate(date1: ICalendarDate, date2: ICalendarDate): boolean {
+  private isSameDate(date1: CalendarDateData, date2: CalendarDateData): boolean {
     // Basic date comparison
     const sameBasicDate =
       date1.year === date2.year && date1.month === date2.month && date1.day === date2.day;
@@ -600,7 +596,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Check if two intercalary dates are the same
    */
-  private isSameIntercalaryDate(date1: ICalendarDate, date2: ICalendarDate): boolean {
+  private isSameIntercalaryDate(date1: CalendarDateData, date2: CalendarDateData): boolean {
     return (
       date1.year === date2.year &&
       date1.month === date2.month &&
@@ -704,7 +700,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       const calendarDay = target.closest('.calendar-day');
       const isIntercalary = calendarDay?.classList.contains('intercalary');
 
-      let targetDate: ICalendarDate;
+      let targetDate: CalendarDate;
       const currentDate = manager.getCurrentDate();
 
       if (isIntercalary) {
@@ -760,7 +756,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       await manager.setCurrentDate(targetDate);
 
       // Update view date to selected date
-      this.viewDate = targetDate;
+      this.viewDate = targetDate.toObject();
       this.render();
     } catch (error) {
       Logger.error('Failed to set date', error as Error);
@@ -857,7 +853,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           </div>
         </form>
       `,
-      ok: (event: Event, button: HTMLElement, html: HTMLElement) => {
+      ok: 'Set Year',
+      callback: (html: HTMLElement): number | false => {
         const yearInput = html.querySelector('input[name="year"]') as HTMLInputElement;
         const year = parseInt(yearInput.value);
         if (!isNaN(year) && year > 0) {
@@ -870,11 +867,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       rejectClose: false,
     });
 
-    if (newYear !== null) {
-      const viewDateData = this.viewDate.toObject
-        ? this.viewDate.toObject()
-        : (this.viewDate as any);
-      this.viewDate = { ...viewDateData, year: newYear } as CalendarDate;
+    if (newYear !== null && typeof newYear === 'number') {
+      this.viewDate = { ...this.viewDate, year: newYear };
       this.render();
     }
   }
@@ -939,7 +933,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Show note creation dialog with enhanced category and tag support
    */
-  private async showCreateNoteDialog(date: ICalendarDate): Promise<CreateNoteData | null> {
+  private async showCreateNoteDialog(date: CalendarDateData): Promise<CreateNoteData | null> {
     const categories = game.seasonsStars?.categories as NoteCategories | undefined;
     if (!categories) {
       ui.notifications?.error('Note categories system not available');
@@ -1275,10 +1269,29 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
                 ui.notifications?.warn(`Some tags are not allowed: ${invalidTags.join(', ')}`);
               }
 
+              // Convert CalendarDateData to CalendarDate for interface compatibility
+              const engine = (
+                game.seasonsStars?.manager as CalendarManagerInterface
+              )?.getActiveEngine();
+              let startDate: CalendarDate;
+              if (engine) {
+                const calendar = engine.getCalendar();
+                startDate = new CalendarDate(date, calendar);
+              } else {
+                // Fallback if no engine available
+                startDate = {
+                  ...date,
+                  toObject: () => date,
+                  toLongString: () => '',
+                  toDateString: () => '',
+                  toTimeString: () => '',
+                } as CalendarDate;
+              }
+
               resolve({
                 title: title.trim(),
                 content: content || '',
-                startDate: date,
+                startDate: startDate,
                 allDay: formData.has('allDay'),
                 category:
                   (formData.get('category') as string) || categories.getDefaultCategory().id,
@@ -1563,7 +1576,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   private async showNotesSelectionDialog(
     notes: JournalEntry[],
-    date: ICalendarDate
+    date: CalendarDateData
   ): Promise<void> {
     const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     const activeCalendar = manager?.getActiveCalendar();
@@ -1748,7 +1761,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Show the widget
    */
-  static show(initialDate?: ICalendarDate): void {
+  static show(initialDate?: CalendarDateData): void {
     if (CalendarGridWidget.activeInstance) {
       if (!CalendarGridWidget.activeInstance.rendered) {
         CalendarGridWidget.activeInstance.render(true);
@@ -1761,7 +1774,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Toggle widget visibility
    */
-  static toggle(initialDate?: ICalendarDate): void {
+  static toggle(initialDate?: CalendarDateData): void {
     if (CalendarGridWidget.activeInstance) {
       if (CalendarGridWidget.activeInstance.rendered) {
         CalendarGridWidget.activeInstance.close();

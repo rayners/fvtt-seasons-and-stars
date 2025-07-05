@@ -19,14 +19,14 @@ export class WeatherIntegrationExample {
    */
   async initialize() {
     // Check if Seasons & Stars is available
-    if (!game.seasonsStars?.api?.widgets) {
+    if (!game.seasonsStars?.widgets?.createContextAPI) {
       console.log('Seasons & Stars not available - skipping integration');
       return;
     }
 
     try {
       // Create scoped API for this module
-      this.contextAPI = game.seasonsStars.api.widgets.createContextAPI('simple-weather');
+      this.contextAPI = game.seasonsStars.widgets.createContextAPI('simple-weather');
 
       // Register our extensions and hooks
       this.registerWeatherExtensions();

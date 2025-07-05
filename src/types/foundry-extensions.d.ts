@@ -19,6 +19,9 @@ declare global {
       categories?: unknown; // Note categories management
       integration?: SeasonsStarsIntegration | null;
       compatibilityManager?: unknown; // Expose for debugging and external access
+      widgets?: {
+        createContextAPI: (moduleId: string) => ContextExtensionAPI;
+      };
       // Warning state functions for debugging and external access
       resetSeasonsWarningState?: () => void;
       getSeasonsWarningState?: () => boolean;
@@ -182,8 +185,8 @@ export interface CalendarEngineInterface {
   dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number;
   worldTimeToDate(timestamp: number, worldCreationTimestamp?: number): CalendarDate;
   getIntercalaryDaysAfterMonth(month: number, year: number): any[];
-  addMonths(date: CalendarDate, months: number): CalendarDate;
-  addYears(date: CalendarDate, years: number): CalendarDate;
+  addMonths(date: CalendarDateData, months: number): CalendarDateData;
+  addYears(date: CalendarDateData, years: number): CalendarDateData;
 }
 
 // Notes Manager interface for type safety

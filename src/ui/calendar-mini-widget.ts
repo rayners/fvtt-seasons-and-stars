@@ -7,8 +7,9 @@ import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
 import { DateFormatter } from '../core/date-formatter';
+import { CalendarDate } from '../core/calendar-date';
 import { TemplateContextExtensions } from '../core/template-context-extensions';
-import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
+import type { MiniWidgetContext, SidebarButton } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -51,7 +52,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Prepare rendering context for template
    */
-  async _prepareContext(options: WidgetRenderOptions = {}): Promise<MiniWidgetContext> {
+  async _prepareContext(options: Record<string, unknown> = {}): Promise<MiniWidgetContext> {
     const baseContext = (await super._prepareContext(options)) as Record<string, unknown>;
 
     const manager = game.seasonsStars?.manager as CalendarManagerInterface;
@@ -98,7 +99,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const formatter = new DateFormatter(activeCalendar);
 
     const context: MiniWidgetContext = Object.assign(baseContext, {
-      shortDate: formatter.formatWidget(currentDate, 'mini') || currentDate.toDateString(),
+      shortDate:
+        formatter.formatWidget(currentDate as CalendarDate, 'mini') || currentDate.toDateString(),
       hasSmallTime: hasSmallTime,
       showTimeControls: !hasSmallTime && (game.user?.isGM || false),
       isGM: game.user?.isGM || false,
@@ -108,7 +110,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         description: activeCalendar.description,
       },
       currentDate: currentDate.toObject(),
-      formattedDate: formatter.formatWidget(currentDate, 'main') || currentDate.toLongString(),
+      formattedDate:
+        formatter.formatWidget(currentDate as CalendarDate, 'main') || currentDate.toLongString(),
     });
 
     // Process context through extensions system

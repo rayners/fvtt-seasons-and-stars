@@ -401,11 +401,11 @@ export class DateFormatter {
 
         // Calculate stardate: prefix + (year - baseYear) + dayOfYear
         // Format: XXYYYY.P where XX is era prefix, YYYY is year offset + day, P is precision
-        const yearOffset = year - baseYear;
-        const stardatePrefix = parseInt(prefix) + yearOffset;
-        const paddedDayOfYear = dayOfYear.toString().padStart(3, '0');
+        const yearOffset = Number(year) - Number(baseYear);
+        const stardatePrefix = parseInt(String(prefix)) + yearOffset;
+        const paddedDayOfYear = String(dayOfYear).padStart(3, '0');
 
-        return `${stardatePrefix}${paddedDayOfYear}.${precision > 0 ? '0'.repeat(precision) : ''}`.replace(
+        return `${stardatePrefix}${paddedDayOfYear}.${Number(precision) > 0 ? '0'.repeat(Number(precision)) : ''}`.replace(
           /\.$/,
           '.0'
         );
