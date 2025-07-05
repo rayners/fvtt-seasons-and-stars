@@ -284,8 +284,10 @@ export class DateFormatter {
   private calculateDayOfYear(date: CalendarDate): number {
     // Bounds checking for month value
     if (date.month < 1 || date.month > this.calendar.months.length) {
-      console.warn(`[S&S] Invalid month value ${date.month}, using day value only`);
-      return date.day;
+      console.warn(`[S&S] Invalid month value ${date.month}, using start of year fallback`);
+      // Return 1 to indicate start of year, which is more meaningful than raw day value
+      // This prevents confusing calculations in stardate helpers and other features
+      return 1;
     }
 
     let dayOfYear = 0;
