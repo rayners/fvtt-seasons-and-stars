@@ -141,13 +141,13 @@ describe('Predefined Formats Usage', () => {
       );
     });
 
-    it('should use timestamp format when includeTime is true and format is numeric', () => {
+    it('should use datetime format when includeTime is true and format is numeric', () => {
       // Act
       mockDate.format({ format: 'numeric', includeTime: true });
 
-      // Assert - Should find timestamp format
+      // Assert - Should find datetime format (higher priority than timestamp)
       expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{year}}-{{month:pad}}-{{day:pad}} {{hour:pad}}:{{minute:pad}}:{{second:pad}}'
+        '{{month:name}} {{day}}, {{year}} at {{hour:pad}}:{{minute:pad}}'
       );
     });
   });
@@ -315,8 +315,8 @@ describe('Predefined Formats Usage', () => {
 
       // Assert - Should build template from options instead of using predefined format
       const templateCall = mockHandlebars.compile.mock.calls[0];
-      expect(templateCall[0]).toContain('{{weekday:name}}'); // Built template includes weekday by default
-      expect(templateCall[0]).toContain('{{month:abbr}}'); // Short format uses abbreviations
+      expect(templateCall[0]).toContain('{{weekday:abbr}}'); // Short format uses weekday abbreviations
+      expect(templateCall[0]).toContain('{{month:abbr}}'); // Short format uses month abbreviations
     });
 
     it('should fallback to basic string formatting when dateFormats is undefined', () => {

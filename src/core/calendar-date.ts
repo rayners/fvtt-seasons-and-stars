@@ -75,8 +75,10 @@ export class CalendarDate implements ICalendarDate {
     }
 
     if (includeTime) {
-      possibleNames.unshift(...possibleNames.map(name => `${name}Time`));
-      possibleNames.unshift('datetime', 'timestamp');
+      // Add specific time variants first (e.g., shortTime, longTime)
+      const timeVariants = possibleNames.map(name => `${name}Time`);
+      // Add generic time formats last
+      possibleNames.unshift(...timeVariants, 'datetime', 'timestamp');
     }
 
     // Check if any of these formats exist in calendar

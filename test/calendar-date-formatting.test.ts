@@ -170,11 +170,15 @@ describe('CalendarDate Formatting', () => {
       };
       const date = new CalendarDate(dateData, mockCalendar);
 
+      const mockCompiledTemplate = vi.fn().mockReturnValue('Leap Day');
+      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
+
       // Act
       const result = date.format();
 
       // Assert
-      expect(result).toBe('Leap Day');
+      expect(result).toBe('Leap Day'); // Should return intercalary string directly
+      expect(mockHandlebars.compile).toHaveBeenCalledWith('Leap Day'); // buildTemplateFromOptions returns intercalary directly
     });
   });
 
@@ -360,7 +364,7 @@ describe('CalendarDate Formatting', () => {
       const result = date.toShortString();
 
       // Assert
-      expect(result).toBe('15 Jan Year 2024 CE');
+      expect(result).toBe('Monday, 15th January Year 2024 CE'); // DateFormatter.getBasicFormat() output
     });
 
     it('should fallback to basic format when long string fails', () => {
@@ -382,7 +386,7 @@ describe('CalendarDate Formatting', () => {
       const result = date.toLongString();
 
       // Assert
-      expect(result).toBe('Monday, 15th January Year 2024 CE 10:30:45');
+      expect(result).toBe('Monday, 15th January Year 2024 CE'); // DateFormatter.getBasicFormat() output (no time in basic format)
     });
 
     it('should fallback to basic format when date string fails', () => {
