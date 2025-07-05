@@ -71,12 +71,12 @@ describe('Helper Parameter Verification', () => {
       hash: { format: 'pad' },
     };
 
-    // Test with undefined hour (should default to '0')
+    // Test with undefined hour (when passed undefined with pad format, should apply padding)
     const result1 = capturedHelper(undefined, mockOptions);
-    expect(result1).toBe('0');
+    expect(result1).toBe('00');
 
-    // Test with null hour (should default to '0')
+    // Test with null hour (when passed null with pad format, should apply padding)
     const result2 = capturedHelper(null, mockOptions);
-    expect(result2).toBe('0');
+    expect(result2).toBe('00');
   });
 });

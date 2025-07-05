@@ -162,13 +162,13 @@ describe('Star Trek Helpers Functionality', () => {
     it('should handle undefined/null values gracefully', () => {
       const hourHelper = capturedHelpers['ss-hour'];
 
-      // Test undefined
+      // Test undefined - when passed undefined with pad format, should apply padding to default 0
       const result1 = hourHelper(undefined, { hash: { format: 'pad' } });
-      expect(result1).toBe('0');
+      expect(result1).toBe('00');
 
-      // Test null
+      // Test null - when passed null with pad format, should apply padding to default 0
       const result2 = hourHelper(null, { hash: { format: 'pad' } });
-      expect(result2).toBe('0');
+      expect(result2).toBe('00');
     });
 
     it('should use context when no explicit value provided', () => {

@@ -13,10 +13,189 @@ describe('Star Trek Calendar Comprehensive Tests', () => {
   let mockCalendar: SeasonsStarsCalendar;
   let formatter: DateFormatter;
   let starTrekFormats: any;
+  let realHandlebars: any;
 
   beforeEach(async () => {
     // Reset helper registration
     DateFormatter.resetHelpersForTesting();
+
+    // Save real Handlebars functionality for this test
+    const originalCompile = global.Handlebars?.compile;
+    const originalRegisterHelper = global.Handlebars?.registerHelper;
+
+    // Create a real Handlebars-like implementation for testing
+    const helpers: Record<string, Function> = {};
+    const templates: Map<string, Function> = new Map();
+
+    realHandlebars = {
+      compile: (template: string) => {
+        if (templates.has(template)) {
+          return templates.get(template);
+        }
+
+        const compiledTemplate = (context: any) => {
+          let result = template;
+
+          // First pass: Handle complex helper calls with parameters
+          // Like {{ss-stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear precision=1}}
+          result = result.replace(
+            /\{\{\s*(\w+(?:-\w+)*)\s+([^}]+)\}\}/g,
+            (match, helperName, params) => {
+              const helper = helpers[helperName];
+              if (!helper) return match;
+
+              // Parse parameters
+              const args: any[] = [];
+              const options: any = { hash: {}, data: { root: context } };
+
+              // Better parameter parsing that handles quotes and variable references
+              const parts = [];
+              let current = '';
+              let inQuotes = false;
+              let quoteChar = '';
+
+              for (let i = 0; i < params.length; i++) {
+                const char = params[i];
+                if ((char === '"' || char === "'") && !inQuotes) {
+                  inQuotes = true;
+                  quoteChar = char;
+                  current += char;
+                } else if (char === quoteChar && inQuotes) {
+                  inQuotes = false;
+                  current += char;
+                } else if (char === ' ' && !inQuotes) {
+                  if (current.trim()) {
+                    parts.push(current.trim());
+                    current = '';
+                  }
+                } else {
+                  current += char;
+                }
+              }
+              if (current.trim()) parts.push(current.trim());
+
+              for (const part of parts) {
+                if (part.includes('=')) {
+                  const [key, value] = part.split('=');
+                  let parsedValue = value.replace(/^['"]|['"]$/g, '');
+                  if (!isNaN(Number(parsedValue))) {
+                    parsedValue = Number(parsedValue);
+                  } else if (context[parsedValue] !== undefined) {
+                    parsedValue = context[parsedValue];
+                  }
+                  options.hash[key] = parsedValue;
+                } else {
+                  let argValue = part.replace(/^['"]|['"]$/g, '');
+                  if (!isNaN(Number(argValue))) {
+                    argValue = Number(argValue);
+                  } else if (context[argValue] !== undefined) {
+                    argValue = context[argValue];
+                  }
+                  args.push(argValue);
+                }
+              }
+
+              try {
+                return helper(...args, options);
+              } catch (error) {
+                console.warn(`Helper ${helperName} failed:`, error);
+                return match;
+              }
+            }
+          );
+
+          // Second pass: Handle helper calls with colon syntax like {{ss-month:abbr}}
+          result = result.replace(
+            /\{\{\s*(\w+(?:-\w+)*):(\w+)\s*\}\}/g,
+            (match, helperName, format) => {
+              const helper = helpers[helperName];
+              if (!helper) return match;
+
+              const options: any = { hash: { format }, data: { root: context } };
+
+              try {
+                // For these helpers, pass the context value as first arg
+                let value = undefined;
+                if (helperName === 'ss-month') value = context.month;
+                else if (helperName === 'ss-day') value = context.day;
+                else if (helperName === 'ss-weekday') value = context.weekday;
+                else if (helperName === 'ss-hour') value = context.hour;
+                else if (helperName === 'ss-minute') value = context.minute;
+                else if (helperName === 'ss-second') value = context.second;
+
+                return helper(value, options);
+              } catch (error) {
+                console.warn(`Helper ${helperName} failed:`, error);
+                return match;
+              }
+            }
+          );
+
+          // Handle helper calls with format attribute like {{ss-hour format='pad'}}
+          result = result.replace(
+            /\{\{\s*(\w+(?:-\w+)*)\s+format=['"]([^'"]+)['"]\s*\}\}/g,
+            (match, helperName, format) => {
+              const helper = helpers[helperName];
+              if (!helper) return match;
+
+              const options: any = { hash: { format }, data: { root: context } };
+
+              try {
+                // For these helpers, pass the context value as first arg
+                let value = undefined;
+                if (helperName === 'ss-hour') value = context.hour;
+                else if (helperName === 'ss-minute') value = context.minute;
+                else if (helperName === 'ss-second') value = context.second;
+
+                return helper(value, options);
+              } catch (error) {
+                console.warn(`Helper ${helperName} failed:`, error);
+                return match;
+              }
+            }
+          );
+
+          // Third pass: Handle simple helper calls like {{ss-day}}
+          result = result.replace(/\{\{\s*(\w+(?:-\w+)*)\s*\}\}/g, (match, helperName) => {
+            const helper = helpers[helperName];
+            if (helper) {
+              const options: any = { hash: {}, data: { root: context } };
+
+              try {
+                // For these helpers, pass the context value as first arg
+                let value = undefined;
+                if (helperName === 'ss-month') value = context.month;
+                else if (helperName === 'ss-day') value = context.day;
+                else if (helperName === 'ss-weekday') value = context.weekday;
+                else if (helperName === 'ss-hour') value = context.hour;
+                else if (helperName === 'ss-minute') value = context.minute;
+                else if (helperName === 'ss-second') value = context.second;
+
+                return helper(value, options);
+              } catch (error) {
+                console.warn(`Helper ${helperName} failed:`, error);
+                return match;
+              }
+            }
+
+            // Simple variable replacement for context values
+            return context[helperName] || '';
+          });
+
+          return result;
+        };
+
+        templates.set(template, compiledTemplate);
+        return compiledTemplate;
+      },
+
+      registerHelper: (name: string, helper: Function) => {
+        helpers[name] = helper;
+      },
+    };
+
+    // Replace global Handlebars for this test
+    global.Handlebars = realHandlebars;
 
     // Load the actual Star Trek date formats
     const fs = await import('fs/promises');

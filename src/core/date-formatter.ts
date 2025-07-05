@@ -375,7 +375,7 @@ export class DateFormatter {
 
       // Handle still undefined/null values gracefully
       if (hourValue === undefined || hourValue === null) {
-        return '0';
+        hourValue = 0;
       }
 
       const format = options.hash?.format;
@@ -398,7 +398,7 @@ export class DateFormatter {
 
       // Handle still undefined/null values gracefully
       if (minuteValue === undefined || minuteValue === null) {
-        return '0';
+        minuteValue = 0;
       }
 
       const format = options.hash?.format;
@@ -421,7 +421,7 @@ export class DateFormatter {
 
       // Handle still undefined/null values gracefully
       if (secondValue === undefined || secondValue === null) {
-        return '0';
+        secondValue = 0;
       }
 
       const format = options.hash?.format;
