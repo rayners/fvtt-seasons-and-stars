@@ -1,0 +1,24 @@
+# External Calendar Sources Examples
+# Copy and paste these examples into the "External Calendar Sources" setting
+# One source per line. Lines starting with # are ignored.
+
+# HTTPS URLs (most common)
+https://raw.githubusercontent.com/username/calendars/main/my-calendar.json
+https://example.com/shared/calendars/fantasy-calendar.json
+
+# GitHub repositories (shorthand)
+github:username/calendar-repo/calendars/greyhawk.json
+github:user/campaign-calendars/calendars/custom-calendar.json
+
+# Module calendars (from other installed modules)
+module:world-calendar-pack/calendars/eberron.json
+module:custom-calendars/calendars/homebrew.json
+
+# Local files (in your Foundry data directory)
+local:data/calendars/my-custom-calendar.json
+local:worlds/my-world/calendars/campaign-calendar.json
+
+# Mixed example setup
+https://calendar-sharing.com/api/fantasy-calendar.json
+github:calendar-collective/shared-calendars/calendars/forgotten-realms.json
+module:community-calendars/calendars/greyhawk.json
