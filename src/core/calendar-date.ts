@@ -151,12 +151,21 @@ export class CalendarDate implements ICalendarDate {
       return this.formatter.formatWidget(this, 'mini');
     }
 
-    // Fallback to options-based format
-    return this.format({
-      includeTime: false,
-      includeWeekday: false,
-      format: 'short',
-    });
+    // Fallback to basic string formatting for calendars without dateFormats
+    if (!dateFormats) {
+      return `${this.day} ${this.getMonthName('short')} ${this.getYearString()}`;
+    }
+
+    // Try options-based format but fall back to basic if it fails
+    try {
+      return this.format({
+        includeTime: false,
+        includeWeekday: false,
+        format: 'short',
+      });
+    } catch {
+      return `${this.day} ${this.getMonthName('short')} ${this.getYearString()}`;
+    }
   }
 
   /**
@@ -169,13 +178,32 @@ export class CalendarDate implements ICalendarDate {
       return this.formatter.formatWidget(this, 'main');
     }
 
-    // Fallback to options-based format
-    return this.format({
-      includeTime: true,
-      includeWeekday: true,
-      includeYear: true,
-      format: 'long',
-    });
+    // Fallback to basic string formatting for calendars without dateFormats
+    if (!dateFormats) {
+      const weekdayName = this.getWeekdayName('long');
+      const monthName = this.getMonthName('long');
+      const dayOrdinal = this.getDayString('long');
+      const yearString = this.getYearString();
+      const timeString = this.time ? ` ${this.getTimeString()}` : '';
+      return `${weekdayName}, ${dayOrdinal} ${monthName} ${yearString}${timeString}`;
+    }
+
+    // Try options-based format but fall back to basic if it fails
+    try {
+      return this.format({
+        includeTime: true,
+        includeWeekday: true,
+        includeYear: true,
+        format: 'long',
+      });
+    } catch {
+      const weekdayName = this.getWeekdayName('long');
+      const monthName = this.getMonthName('long');
+      const dayOrdinal = this.getDayString('long');
+      const yearString = this.getYearString();
+      const timeString = this.time ? ` ${this.getTimeString()}` : '';
+      return `${weekdayName}, ${dayOrdinal} ${monthName} ${yearString}${timeString}`;
+    }
   }
 
   /**
@@ -188,13 +216,30 @@ export class CalendarDate implements ICalendarDate {
       return this.formatter.formatNamed(this, 'date');
     }
 
-    // Fallback to options-based format
-    return this.format({
-      includeTime: false,
-      includeWeekday: true,
-      includeYear: true,
-      format: 'long',
-    });
+    // Fallback to basic string formatting for calendars without dateFormats
+    if (!dateFormats) {
+      const weekdayName = this.getWeekdayName('long');
+      const monthName = this.getMonthName('long');
+      const dayOrdinal = this.getDayString('long');
+      const yearString = this.getYearString();
+      return `${weekdayName}, ${dayOrdinal} ${monthName} ${yearString}`;
+    }
+
+    // Try options-based format but fall back to basic if it fails
+    try {
+      return this.format({
+        includeTime: false,
+        includeWeekday: true,
+        includeYear: true,
+        format: 'long',
+      });
+    } catch {
+      const weekdayName = this.getWeekdayName('long');
+      const monthName = this.getMonthName('long');
+      const dayOrdinal = this.getDayString('long');
+      const yearString = this.getYearString();
+      return `${weekdayName}, ${dayOrdinal} ${monthName} ${yearString}`;
+    }
   }
 
   /**
@@ -207,6 +252,11 @@ export class CalendarDate implements ICalendarDate {
     const dateFormats = this.calendar.dateFormats;
     if (dateFormats?.time) {
       return this.formatter.formatNamed(this, 'time');
+    }
+
+    // Fallback to basic string formatting for calendars without dateFormats
+    if (!dateFormats) {
+      return this.getTimeString();
     }
 
     // Fallback to template-based time format
