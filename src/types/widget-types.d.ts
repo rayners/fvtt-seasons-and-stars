@@ -3,12 +3,12 @@
  * Reduces reliance on 'any' types for better type safety
  */
 
-import type { CalendarDate as ICalendarDate } from './calendar';
+import type { CalendarDateData } from './calendar';
 
 // Base widget context shared by all widgets
 export interface BaseWidgetContext extends Record<string, unknown> {
   calendar: CalendarInfo | null;
-  currentDate: ICalendarDate | null;
+  currentDate: CalendarDateData | null;
   formattedDate: string;
   isGM: boolean;
   error?: string;
@@ -32,7 +32,7 @@ export interface MainWidgetContext extends BaseWidgetContext {
 
 // Grid widget specific context
 export interface GridWidgetContext extends BaseWidgetContext {
-  viewDate: ICalendarDate;
+  viewDate: CalendarDateData;
   monthData: MonthData;
   monthName: string;
   monthDescription?: string;
@@ -42,7 +42,7 @@ export interface GridWidgetContext extends BaseWidgetContext {
 }
 
 // Widget render options
-export interface WidgetRenderOptions {
+export interface WidgetRenderOptions extends Record<string, unknown> {
   force?: boolean;
   position?: Partial<ApplicationV2Position>;
   window?: Partial<ApplicationV2Window>;
@@ -114,13 +114,13 @@ export interface SceneControlTool {
 // Debug info type
 export interface DebugInfo {
   worldTime: number;
-  calendarDate: ICalendarDate;
+  calendarDate: CalendarDateData;
   formattedDate: string;
   dayProgress: number;
   isDaytime: boolean;
   season: number;
   lastKnownTime: number;
-  lastKnownDate: ICalendarDate | null;
+  lastKnownDate: CalendarDateData | null;
 }
 
 // Calendar validation result
@@ -141,7 +141,7 @@ export interface CreateNoteDialogResult {
   recurring?: {
     frequency: string;
     interval: number;
-    endDate?: ICalendarDate;
+    endDate?: CalendarDateData;
     maxOccurrences?: number;
   };
 }
@@ -163,4 +163,57 @@ export interface ApplicationV2Window {
   minimizable: boolean;
   resizable: boolean;
   id?: string;
+}
+
+// Template context extension types
+export interface ContextExtensionAPI {
+  /**
+   * Register an extension that adds data to widget template contexts
+   * @param extensionData Extension configuration
+   * @returns Extension ID for later cleanup
+   */
+  registerExtension(extensionData: {
+    id?: string;
+    priority?: number;
+    widgetTypes: string[];
+    extensionFunction: (context: any, widgetType: string, options?: any) => any | Promise<any>;
+    metadata: {
+      name: string;
+      description?: string;
+      version?: string;
+      author?: string;
+    };
+  }): string;
+
+  /**
+   * Register a hook that runs before or after context preparation
+   * @param hookData Hook configuration
+   * @returns Hook ID for later cleanup
+   */
+  registerHook(hookData: {
+    id?: string;
+    phase: 'before' | 'after';
+    widgetTypes: string[];
+    hookFunction: (
+      context: any,
+      widgetType: string,
+      phase: string,
+      options?: any
+    ) => any | Promise<any> | void;
+  }): string;
+
+  /**
+   * Unregister an extension by ID
+   */
+  unregisterExtension(extensionId: string): boolean;
+
+  /**
+   * Unregister a hook by ID
+   */
+  unregisterHook(hookId: string): boolean;
+
+  /**
+   * Clean up all extensions and hooks for this module
+   */
+  cleanup(): void;
 }

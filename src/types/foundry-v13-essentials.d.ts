@@ -15,6 +15,16 @@ declare global {
   interface Window {
     gc?: () => void; // Chrome garbage collection (when enabled with --enable-precise-memory-info)
   }
+
+  // Handlebars types for template compilation
+  namespace Handlebars {
+    function compile(source: string): HandlebarsTemplateDelegate;
+    function registerHelper(name: string, helper: Function): void;
+  }
+
+  interface HandlebarsTemplateDelegate {
+    (context: any): string;
+  }
 }
 
 // =============================================================================
@@ -96,6 +106,7 @@ declare global {
       position?: Partial<Position>;
       window?: Partial<ApplicationWindow>;
       parts?: string[];
+      [key: string]: unknown; // Index signature for additional properties
     }
 
     interface CloseOptions {
@@ -153,6 +164,9 @@ interface Game {
     api?: unknown;
     categories?: unknown;
     compatibilityManager?: unknown; // Expose for debugging and external access
+    widgets?: {
+      createContextAPI?: (moduleId: string) => any;
+    };
     // Warning state functions for debugging and external access
     resetSeasonsWarningState?: () => void;
     getSeasonsWarningState?: () => boolean;
@@ -255,6 +269,12 @@ interface Module {
   title: string;
   active: boolean;
   version?: string;
+  path?: string; // Module path for file loading
+  manifest?: {
+    // Module manifest data
+    version?: string;
+    [key: string]: unknown;
+  };
   api?: unknown; // For modules that expose APIs
 }
 
@@ -408,6 +428,7 @@ declare namespace ApplicationV2 {
     position?: Partial<Position>;
     window?: Partial<ApplicationWindow>;
     parts?: string[];
+    [key: string]: unknown; // Index signature for additional properties
   }
 
   interface CloseOptions {
@@ -517,6 +538,7 @@ declare namespace DialogV2 {
     content?: string;
     label?: string;
     default?: string;
+    ok?: string;
     callback?: Function;
     modal?: boolean;
     rejectClose?: boolean;

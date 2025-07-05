@@ -13,8 +13,10 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Convenient Defaults**: Gregorian calendars can initialize with current date/time
 - **Module Integration**: Clean APIs for weather modules and other integrations via compatibility bridges
 - **SmallTime Integration**: Seamless positioning and visual consistency with enhanced styling
-- **15 Built-in Calendars**: Switch between Gregorian, fantasy calendars (D&D, PF2e, Critical Role, etc.), and custom formats based on official game sources
+- **18 Built-in Calendars**: Switch between Gregorian, fantasy calendars (D&D, PF2e, Critical Role, Star Trek, etc.), and custom formats based on official game sources
+- **Advanced Date Formatting**: Handlebars-based templates with mathematical operations, format embedding, and era-specific calculations (like Star Trek stardates)
 - **Calendar Variants System**: Cultural and regional calendar variations (e.g., Golarion has Absalom Reckoning, Imperial, Varisian, and Earth Historical variants)
+- **External Calendar Loading**: Load calendars from HTTPS, GitHub repositories, other modules, and local file sources with universal index format
 
 ### ✅ **Notes System (Basic Creation)**
 
@@ -68,10 +70,21 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **[Roadmap](./docs/ROADMAP.md)** - Development timeline and planned features
 - **[Known Issues](./KNOWN-ISSUES.md)** - Current limitations and workarounds
 
-### Calendar Variants System
+### Calendar System
 
+- **[Calendar Format Specification](./docs/CALENDAR-FORMAT.md)** - Complete calendar format reference and external loading system
 - **[Inline Calendar Variants](./docs/INLINE-CALENDAR-VARIANTS.md)** - Cultural and regional calendar variations within the same file
 - **[External Calendar Variants](./docs/EXTERNAL-CALENDAR-VARIANTS.md)** - Themed calendar collections in separate files
+
+### JSON Schema Validation
+
+Validate your custom calendars with our comprehensive schemas:
+
+- **[Calendar Schema v1.0.0](./schemas/calendar-v1.0.0.json)** - Individual calendar files
+- **[Collection Index Schema v1.0.0](./schemas/calendar-collection-v1.0.0.json)** - Calendar collection indexes
+- **[External Variants Schema v1.0.0](./schemas/calendar-variants-v1.0.0.json)** - External variant files
+
+Use online tools like [jsonschemavalidator.net](https://www.jsonschemavalidator.net/) for easy validation.
 
 ## 🎯 Who Should Use This
 

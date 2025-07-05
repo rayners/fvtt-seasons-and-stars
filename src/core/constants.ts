@@ -52,3 +52,52 @@ export const UI_CONSTANTS = {
   ANIMATION_DURATION: 200,
   NOTIFICATION_DURATION: 5000,
 } as const;
+
+// Development environment detection constants
+export const DEV_CONSTANTS = {
+  LOCALHOST_PATTERNS: [
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+    '::1', // IPv6 localhost
+  ],
+  DEV_PORTS: [
+    3000,
+    3001,
+    3002,
+    3003, // Common React/Node dev ports
+    4000,
+    4001,
+    4002,
+    4003, // Common dev server ports
+    5000,
+    5001,
+    5002,
+    5003, // Common Python/Flask dev ports
+    8000,
+    8001,
+    8002,
+    8003, // Common dev ports
+    8080,
+    8081,
+    8082,
+    8083, // Common alternative HTTP ports
+    9000,
+    9001,
+    9002,
+    9003, // Common dev ports
+    30000, // Foundry VTT default port
+  ] as number[],
+  DEV_HOSTNAMES: [
+    'dev.',
+    'development.',
+    'test.',
+    'testing.',
+    'staging.',
+    'local.',
+    '.local',
+    '.test',
+    '.dev',
+  ],
+  DEV_INDICATORS: ['dev', 'development', 'test', 'testing', 'staging', 'local', 'debug'],
+} as const;

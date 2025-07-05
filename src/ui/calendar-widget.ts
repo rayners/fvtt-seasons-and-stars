@@ -6,7 +6,11 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarSelectionDialog } from './calendar-selection-dialog';
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
+import { DateFormatter } from '../core/date-formatter';
+import { CalendarDate } from '../core/calendar-date';
+import { TemplateContextExtensions } from '../core/template-context-extensions';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
+import type { MainWidgetContext } from '../types/widget-types';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -57,30 +61,48 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Prepare rendering context for template
    */
-  async _prepareContext(options = {}): Promise<any> {
-    const context = await super._prepareContext(options);
+  async _prepareContext(options = {}): Promise<MainWidgetContext> {
+    const baseContext = await super._prepareContext(options);
 
     const manager = game.seasonsStars?.manager as CalendarManagerInterface;
 
     if (!manager) {
-      return Object.assign(context, {
+      const errorContext: MainWidgetContext = Object.assign(baseContext, {
         error: 'Calendar manager not initialized',
         calendar: null,
         currentDate: null,
         formattedDate: 'Not Available',
+        shortDate: 'Not Available',
+        timeString: 'Not Available',
+        isGM: game.user?.isGM || false,
+        canAdvanceTime: false,
+        hasSmallTime: false,
+        sidebarButtons: this.sidebarButtons,
       });
+
+      // Process through extensions even for error states
+      return await TemplateContextExtensions.processContext(errorContext, 'main', options);
     }
 
     const activeCalendar = manager.getActiveCalendar();
     const currentDate = manager.getCurrentDate();
 
     if (!activeCalendar || !currentDate) {
-      return Object.assign(context, {
+      const errorContext: MainWidgetContext = Object.assign(baseContext, {
         error: 'No active calendar',
         calendar: null,
         currentDate: null,
         formattedDate: 'No Calendar Active',
+        shortDate: 'No Calendar Active',
+        timeString: 'No Calendar Active',
+        isGM: game.user?.isGM || false,
+        canAdvanceTime: false,
+        hasSmallTime: false,
+        sidebarButtons: this.sidebarButtons,
       });
+
+      // Process through extensions even for error states
+      return await TemplateContextExtensions.processContext(errorContext, 'main', options);
     }
 
     const calendarInfo = CalendarLocalization.getLocalizedCalendarInfo(activeCalendar);
@@ -88,18 +110,27 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Check if SmallTime is available and active
     const hasSmallTime = this.detectSmallTime();
 
-    return Object.assign(context, {
+    // Use DateFormatter with widget-specific formats
+    const formatter = new DateFormatter(activeCalendar);
+
+    const context: MainWidgetContext = Object.assign(baseContext, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
-      formattedDate: currentDate.toLongString(),
-      shortDate: currentDate.toDateString(),
-      timeString: currentDate.toTimeString(),
+      formattedDate:
+        formatter.formatWidget(currentDate as CalendarDate, 'main') || currentDate.toLongString(),
+      shortDate:
+        formatter.formatNamed(currentDate as CalendarDate, 'date') || currentDate.toDateString(),
+      timeString:
+        formatter.formatNamed(currentDate as CalendarDate, 'time') || currentDate.toTimeString(),
       isGM: game.user?.isGM || false,
       canAdvanceTime: game.user?.isGM || false,
       hasSmallTime: hasSmallTime,
       showTimeControls: !hasSmallTime, // Only show time controls if SmallTime is not available
       sidebarButtons: this.sidebarButtons, // Include sidebar buttons for template
     });
+
+    // Process context through extensions system
+    return await TemplateContextExtensions.processContext(context, 'main', options);
   }
 
   /**

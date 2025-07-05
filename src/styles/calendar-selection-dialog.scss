@@ -88,6 +88,23 @@
       }
     }
 
+    // External calendar cards have a visual distinction to show their source
+    &.external {
+      border-right: 3px solid var(--color-warm-3);
+      
+      &:hover {
+        border-right-color: var(--color-warm-2);
+        
+        .calendar-name .external-indicator i {
+          opacity: 1;
+        }
+      }
+      
+      &.picked {
+        border-right-color: var(--color-warm-1);
+      }
+    }
+
     // Hierarchical indentation for variants
     &.hierarchy-level-1 {
       margin-left: 1.5rem;
@@ -139,6 +156,16 @@
               transition: transform 0.2s ease;
             }
           }
+
+          .external-indicator {
+            color: var(--color-warm-2);
+            font-size: 0.9rem;
+            opacity: 0.9;
+            
+            i {
+              transition: opacity 0.2s ease;
+            }
+          }
         }
 
         .calendar-setting {
@@ -157,6 +184,20 @@
           padding: 0.125rem 0.375rem;
           border-radius: 3px;
           border: 1px solid var(--color-cool-5);
+          margin-top: 0.25rem;
+          display: inline-block;
+        }
+
+        .namespace-info {
+          font-size: 0.75rem;
+          color: var(--color-warm-3);
+          font-weight: 500;
+          text-transform: none; // Keep original case for readability
+          letter-spacing: 0.3px;
+          background: var(--color-bg-tertiary);
+          padding: 0.125rem 0.375rem;
+          border-radius: 3px;
+          border: 1px solid var(--color-warm-6);
           margin-top: 0.25rem;
           display: inline-block;
         }

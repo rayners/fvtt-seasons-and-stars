@@ -27,6 +27,7 @@ Seasons & Stars provides calendar and timekeeping functionality for Foundry VTT 
 
 - **15 Built-in Calendars**: Gregorian, D&D settings (Forgotten Realms, Greyhawk, Eberron, Dark Sun), Pathfinder (Golarion), Critical Role (Exandrian), Warhammer, and more
 - **Custom Calendars**: JSON-based format for creating your own
+- **External Calendar Sources**: Load calendars from the internet, GitHub repositories, or other modules
 - **Calendar Switching**: Support for multiple calendar systems
 
 ### **Time Management**
@@ -45,7 +46,7 @@ Seasons & Stars provides calendar and timekeeping functionality for Foundry VTT 
 ## Getting Started
 
 1. Install Seasons & Stars from the Foundry package manager
-2. Select a calendar system or configure your own
+2. Select a calendar system or configure external calendar sources
 3. Use the calendar widgets to track time in your campaign
 4. Add notes for important events and milestones
 

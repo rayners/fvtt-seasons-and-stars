@@ -158,6 +158,92 @@ interface DateFormatOptions {
 }
 ```
 
+#### `formatDateNamed(date: CalendarDate, formatName: string, variant?: string)`
+
+**New in v0.5.0** - Format a date using named formats from the calendar's `dateFormats` configuration.
+
+```javascript
+const date = game.seasonsStars.api.getCurrentDate();
+
+// Use a named format from the calendar
+const stardate = game.seasonsStars.api.formatDateNamed(date, 'tng-stardate');
+// Returns: "47015.0"
+
+const diplomatic = game.seasonsStars.api.formatDateNamed(date, 'diplomatic');
+// Returns: "Jan 15, 2024 (47015.0)"
+
+// Use format variants
+const shortDate = game.seasonsStars.api.formatDateNamed(date, 'date', 'short');
+const longDate = game.seasonsStars.api.formatDateNamed(date, 'date', 'long');
+```
+
+#### `formatDateWidget(date: CalendarDate, widgetType: 'mini' | 'main' | 'grid')`
+
+**New in v0.5.0** - Format a date using widget-specific formats optimized for different UI contexts.
+
+```javascript
+const date = game.seasonsStars.api.getCurrentDate();
+
+// Widget-optimized formats
+const miniFormat = game.seasonsStars.api.formatDateWidget(date, 'mini');
+// Returns: "Jan 15" (compact)
+
+const mainFormat = game.seasonsStars.api.formatDateWidget(date, 'main');
+// Returns: "Mon, 15th January" (standard)
+
+const gridFormat = game.seasonsStars.api.formatDateWidget(date, 'grid');
+// Returns: "15" (minimal)
+```
+
+### Advanced Date Formatting
+
+Seasons & Stars v0.5.0+ includes a powerful Handlebars-based formatting system with mathematical operations and format embedding:
+
+**Template Variables Available:**
+
+- `{{year}}`, `{{month}}`, `{{day}}`, `{{weekday}}` - Basic date components
+- `{{dayOfYear}}` - Day of year (1-365)
+- `{{hour}}`, `{{minute}}`, `{{second}}` - Time components
+
+**Mathematical Operations:**
+
+```javascript
+// Calendar defines: "historical": "{{s&s-math year op='subtract' value=894}} years since the Last War"
+const historical = game.seasonsStars.api.formatDateNamed(date, 'historical');
+// Returns: "130 years since the Last War" (if current year is 1024)
+```
+
+**Format Embedding:**
+
+```javascript
+// Calendar defines:
+// "tng-stardate": "{{s&s-stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}"
+// "starfleet": "Stardate {{s&s-dateFmt:tng-stardate}}"
+// "command-log": "{{s&s-dateFmt:starfleet}} - {{s&s-dateFmt:federation}}"
+
+const complex = game.seasonsStars.api.formatDateNamed(date, 'command-log');
+// Returns: "Stardate 47015.0 - Jan 15, 2024"
+```
+
+**Custom Calendar Date Formats:**
+
+Define advanced formats in your calendar JSON:
+
+```json
+{
+  "dateFormats": {
+    "stardate": "{{s&s-stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}",
+    "mathematical": "Year {{s&s-math year op='add' value=1000}} of the Empire",
+    "embedded": "Today is {{s&s-dateFmt:stardate}} ({{s&s-dateFmt:federation}})",
+    "widgets": {
+      "mini": "SD {{s&s-dateFmt:stardate}}",
+      "main": "{{s&s-weekday:abbr}}, Day {{dayOfYear}}",
+      "grid": "{{day}}"
+    }
+  }
+}
+```
+
 ### Calendar Management
 
 #### `getActiveCalendar()`
@@ -187,12 +273,59 @@ await game.seasonsStars.api.setActiveCalendar('gregorian');
 
 #### `getAvailableCalendars()`
 
-Get list of all available calendar IDs.
+Get list of all available calendar IDs, including external calendars.
 
 ```javascript
 const calendars = game.seasonsStars.api.getAvailableCalendars();
 console.log('Available calendars:', calendars);
-// Returns: ['gregorian', 'vale-reckoning', 'custom-calendar']
+// Returns: ['gregorian', 'vale-reckoning', 'github:user/repo/calendar.json', 'https://example.com/calendar.json']
+```
+
+### External Calendar Management
+
+#### `loadExternalCalendar(externalId: string)`
+
+Load a calendar from an external source.
+
+```javascript
+// Load from GitHub repository
+const calendar = await game.seasonsStars.api.loadExternalCalendar('github:user/repo/calendar.json');
+
+// Load from HTTPS URL
+const calendar = await game.seasonsStars.api.loadExternalCalendar(
+  'https://example.com/calendar.json'
+);
+
+// Load from another module
+const calendar = await game.seasonsStars.api.loadExternalCalendar(
+  'module:other-module/calendars/calendar.json'
+);
+
+// Load with fragment selection
+const calendar = await game.seasonsStars.api.loadExternalCalendar(
+  'github:user/repo/calendars/#specific-calendar'
+);
+```
+
+#### External Calendar Sources
+
+Supported external calendar protocols:
+
+- **HTTPS**: `https://example.com/calendar.json`
+- **GitHub**: `github:user/repo/path/calendar.json`
+- **Module**: `module:module-name/path/calendar.json`
+- **Local**: `local:path/to/calendar.json`
+
+#### Fragment Selection
+
+Use fragment syntax to select specific calendars from collections:
+
+```javascript
+// Select specific calendar from index
+'github:user/repo/calendars/#medieval-calendar';
+
+// Load directory index automatically
+'https://example.com/calendars/';
 ```
 
 ## 🔄 Bridge Integration
@@ -401,7 +534,45 @@ Add compatibility blocks to calendar JSON files:
 }
 ```
 
+### Cache Management
+
+#### Development Mode
+
+Season & Stars automatically detects development mode and skips caching for better iteration:
+
+```javascript
+// Cache is automatically skipped in development
+const isDevMode = game.data.world.flags['seasons-and-stars']?.devMode;
+// or when URL contains 'foundrytest'
+const isTestMode = window.location.href.includes('foundrytest');
+```
+
+#### Manual Cache Control
+
+```javascript
+// Force refresh external calendar
+const calendar = await game.seasonsStars.api.loadExternalCalendar(
+  'github:user/repo/calendar.json',
+  { forceRefresh: true }
+);
+
+// Clear all external calendar cache
+if (game.seasonsStars.manager?.externalRegistry) {
+  await game.seasonsStars.manager.externalRegistry.clearCache();
+}
+```
+
 ## 📊 Calendar Data Structures
+
+### JSON Schema Validation
+
+Before working with calendar data, validate your JSON files using our comprehensive schemas:
+
+- **Calendar Schema**: `https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-v1.0.0.json`
+- **Collection Index Schema**: `https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-collection-v1.0.0.json`
+- **External Variants Schema**: `https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-variants-v1.0.0.json`
+
+See the [Calendar Format Specification](./CALENDAR-FORMAT.md#json-schema-validation) for detailed validation instructions and online tools.
 
 ### CalendarDate Interface
 
@@ -547,6 +718,57 @@ class SpellEffectManager {
         this.removeEffect(actorId, effect);
         ui.notifications.info(`${effect.name} effect has expired on ${actorId}`);
       });
+    }
+  }
+}
+```
+
+### External Calendar Integration
+
+```javascript
+class ExternalCalendarManager {
+  constructor() {
+    this.setupExternalSources();
+  }
+
+  async setupExternalSources() {
+    // Add external calendar sources
+    const sources = [
+      {
+        protocol: 'github',
+        location: 'community/calendars/historical.json',
+        label: 'Historical Calendars',
+        trusted: true,
+      },
+      {
+        protocol: 'https',
+        location: 'mysite.com/custom-calendars/campaign.json',
+        label: 'Campaign Calendar',
+      },
+    ];
+
+    for (const source of sources) {
+      await this.addExternalSource(source);
+    }
+  }
+
+  async addExternalSource(source) {
+    if (game.seasonsStars.manager?.externalRegistry) {
+      const registry = game.seasonsStars.manager.externalRegistry;
+      await registry.addExternalSource(source);
+    }
+  }
+
+  async loadCalendarCollection(url) {
+    try {
+      // Load calendar collection index
+      const result = await game.seasonsStars.api.loadExternalCalendar(url);
+      if (result.success && result.calendar) {
+        console.log('Loaded external calendar:', result.calendar.id);
+        return result.calendar;
+      }
+    } catch (error) {
+      console.error('Failed to load external calendar:', error);
     }
   }
 }

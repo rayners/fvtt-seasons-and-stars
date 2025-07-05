@@ -11,7 +11,7 @@
  * For manual testing, use console commands in a test world.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { compatibilityManager } from '../src/core/compatibility-manager';
 import golarionCalendar from '../calendars/golarion-pf2e.json';

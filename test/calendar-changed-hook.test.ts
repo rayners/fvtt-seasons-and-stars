@@ -5,14 +5,13 @@
  * added in the prevent-seasons-warning-loop branch.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   resetSeasonsWarningState,
   getSeasonsWarningState,
   setSeasonsWarningState,
   setupAPI,
 } from '../src/module';
-import { Logger } from '../src/core/logger';
 
 // Mock Foundry globals to enable module setup
 const mockGame = {
@@ -93,21 +92,6 @@ vi.mock('../src/ui/scene-controls', () => ({
     registerMacros: vi.fn(),
   },
 }));
-
-// Test calendar without seasons
-const calendarWithoutSeasons = {
-  id: 'test-no-seasons',
-  name: 'Test Calendar No Seasons',
-  year: { epoch: 0, currentYear: 2024 },
-  months: [
-    { name: 'January', days: 31 },
-    { name: 'February', days: 28 },
-  ],
-  weekdays: [{ name: 'Sunday' }, { name: 'Monday' }],
-  intercalary: [],
-  time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
-  // No seasons property
-};
 
 describe('Seasons Warning State Management Functions', () => {
   beforeEach(() => {

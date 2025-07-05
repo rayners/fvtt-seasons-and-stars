@@ -25,6 +25,7 @@ import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
+import { TemplateContextExtensions } from './core/template-context-extensions';
 import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
@@ -41,6 +42,7 @@ import type {
 
 // Import integrations (they register their own hooks independently)
 import './integrations/pf2e-integration';
+import './integrations/dnd5e-integration';
 
 // Import quench tests - they self-register via the quenchReady hook
 import './quench-tests';
@@ -469,6 +471,42 @@ function registerSettings(): void {
     config: false, // Not shown in config UI, managed by category system
     type: Object,
     default: null,
+  });
+
+  // External calendar sources configuration
+  game.settings.register('seasons-and-stars', 'externalCalendarSources', {
+    name: 'External Calendar Sources',
+    hint: 'Configured external calendar sources (HTTPS, GitHub, Module, Local)',
+    scope: 'world',
+    config: false, // Not shown in config UI, managed by external calendar UI
+    type: Object,
+    default: [],
+  });
+
+  // External calendar sources management (shown in config UI as button)
+  game.settings.register('seasons-and-stars', 'manageExternalSources', {
+    name: 'Manage External Calendar Sources',
+    hint: 'Configure external calendar sources from HTTPS, GitHub, modules, and local files. Click to open configuration dialog.',
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: (value: boolean) => {
+      if (value) {
+        // Reset the setting immediately to prevent it from staying checked
+        game.settings?.set('seasons-and-stars', 'manageExternalSources', false);
+
+        // Import and show the dialog
+        import('./ui/external-calendar-sources-dialog')
+          .then(module => {
+            module.ExternalCalendarSourcesDialog.show();
+          })
+          .catch(error => {
+            Logger.error('Failed to load external calendar sources dialog', error);
+            ui.notifications?.error('Failed to open external calendar sources configuration');
+          });
+      }
+    },
   });
 
   // Development and debugging settings (last for developers)
@@ -1069,6 +1107,248 @@ export function setupAPI(): void {
         );
         throw error;
       }
+    },
+
+    // External calendar management
+    loadExternalCalendar: async (externalId: string): Promise<boolean> => {
+      try {
+        Logger.api('loadExternalCalendar', { externalId });
+
+        // Input validation
+        if (typeof externalId !== 'string' || externalId.trim() === '') {
+          const error = new Error('External ID must be a non-empty string');
+          Logger.error('Invalid external ID parameter', error);
+          throw error;
+        }
+
+        const result = await calendarManager.loadExternalCalendar(externalId);
+        Logger.api('loadExternalCalendar', { externalId }, result);
+        return result;
+      } catch (error) {
+        Logger.error(
+          'Failed to load external calendar',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    loadExternalCalendarWithOptions: async (
+      externalId: string,
+      options: Record<string, unknown> = {}
+    ) => {
+      try {
+        Logger.api('loadExternalCalendarWithOptions', { externalId, options });
+
+        // Input validation
+        if (typeof externalId !== 'string' || externalId.trim() === '') {
+          const error = new Error('External ID must be a non-empty string');
+          Logger.error('Invalid external ID parameter', error);
+          throw error;
+        }
+
+        // Convert options to LoadCalendarOptions
+        const loadOptions: Record<string, unknown> = {};
+        if (typeof options === 'object' && options !== null) {
+          if (typeof options.useCache === 'boolean') loadOptions.useCache = options.useCache;
+          if (typeof options.forceRefresh === 'boolean')
+            loadOptions.forceRefresh = options.forceRefresh;
+          if (typeof options.skipModuleCache === 'boolean')
+            loadOptions.skipModuleCache = options.skipModuleCache;
+          if (typeof options.timeout === 'number') loadOptions.timeout = options.timeout;
+          if (typeof options.headers === 'object' && options.headers !== null) {
+            loadOptions.headers = options.headers as Record<string, string>;
+          }
+        }
+
+        const result = await calendarManager.loadExternalCalendar(externalId, loadOptions);
+        Logger.api('loadExternalCalendarWithOptions', { externalId, options }, result);
+        return result;
+      } catch (error) {
+        Logger.error(
+          'Failed to load external calendar with options',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    getExternalSources: () => {
+      try {
+        Logger.api('getExternalSources');
+        const result = calendarManager.getExternalSources();
+        Logger.api('getExternalSources', undefined, result.length);
+        return result;
+      } catch (error) {
+        Logger.error(
+          'Failed to get external sources',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    addExternalSource: (source: unknown): void => {
+      try {
+        Logger.api('addExternalSource', { source });
+
+        // Input validation
+        if (!source || typeof source !== 'object') {
+          const error = new Error('Source must be a valid ExternalCalendarSource object');
+          Logger.error('Invalid source parameter', error);
+          throw error;
+        }
+
+        calendarManager.addExternalSource(source as any);
+        Logger.api('addExternalSource', { source }, 'success');
+      } catch (error) {
+        Logger.error(
+          'Failed to add external source',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    removeExternalSource: (externalId: string): void => {
+      try {
+        Logger.api('removeExternalSource', { externalId });
+
+        // Input validation
+        if (typeof externalId !== 'string' || externalId.trim() === '') {
+          const error = new Error('External ID must be a non-empty string');
+          Logger.error('Invalid external ID parameter', error);
+          throw error;
+        }
+
+        calendarManager.removeExternalSource(externalId);
+        Logger.api('removeExternalSource', { externalId }, 'success');
+      } catch (error) {
+        Logger.error(
+          'Failed to remove external source',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    updateExternalSource: (externalId: string, updates: unknown): void => {
+      try {
+        Logger.api('updateExternalSource', { externalId, updates });
+
+        // Input validation
+        if (typeof externalId !== 'string' || externalId.trim() === '') {
+          const error = new Error('External ID must be a non-empty string');
+          Logger.error('Invalid external ID parameter', error);
+          throw error;
+        }
+
+        if (!updates || typeof updates !== 'object') {
+          const error = new Error('Updates must be a valid object');
+          Logger.error('Invalid updates parameter', error);
+          throw error;
+        }
+
+        calendarManager.updateExternalSource(externalId, updates as any);
+        Logger.api('updateExternalSource', { externalId, updates }, 'success');
+      } catch (error) {
+        Logger.error(
+          'Failed to update external source',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    getExternalCacheStats: () => {
+      try {
+        Logger.api('getExternalCacheStats');
+        const result = calendarManager.getExternalCacheStats();
+        Logger.api('getExternalCacheStats', undefined, result);
+        return result;
+      } catch (error) {
+        Logger.error(
+          'Failed to get external cache stats',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    clearExternalCache: (): void => {
+      try {
+        Logger.api('clearExternalCache');
+        calendarManager.clearExternalCache();
+        Logger.api('clearExternalCache', undefined, 'success');
+      } catch (error) {
+        Logger.error(
+          'Failed to clear external cache',
+          error instanceof Error ? error : new Error(String(error))
+        );
+        throw error;
+      }
+    },
+
+    // Template Context Extensions API
+    widgets: {
+      /**
+       * Create a context extension API scoped to a specific module
+       */
+      createContextAPI: (moduleId: string) => {
+        try {
+          Logger.api('createContextAPI', { moduleId });
+
+          if (!moduleId || typeof moduleId !== 'string') {
+            throw new Error('Module ID must be a non-empty string');
+          }
+
+          const result = TemplateContextExtensions.createModuleAPI(moduleId);
+          Logger.api('createContextAPI', { moduleId }, 'success');
+          return result;
+        } catch (error) {
+          Logger.error(
+            'Failed to create context API',
+            error instanceof Error ? error : new Error(String(error))
+          );
+          throw error;
+        }
+      },
+
+      /**
+       * Get information about all registered context extensions
+       */
+      getRegisteredExtensions: () => {
+        try {
+          Logger.api('getRegisteredExtensions');
+          const result = TemplateContextExtensions.getRegisteredExtensions();
+          Logger.api('getRegisteredExtensions', undefined, `${result.length} extensions`);
+          return result;
+        } catch (error) {
+          Logger.error(
+            'Failed to get registered extensions',
+            error instanceof Error ? error : new Error(String(error))
+          );
+          throw error;
+        }
+      },
+
+      /**
+       * Get information about all registered context hooks
+       */
+      getRegisteredHooks: () => {
+        try {
+          Logger.api('getRegisteredHooks');
+          const result = TemplateContextExtensions.getRegisteredHooks();
+          Logger.api('getRegisteredHooks', undefined, `${result.length} hooks`);
+          return result;
+        } catch (error) {
+          Logger.error(
+            'Failed to get registered hooks',
+            error instanceof Error ? error : new Error(String(error))
+          );
+          throw error;
+        }
+      },
     },
   };
 

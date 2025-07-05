@@ -2,7 +2,7 @@
  * Test setup for Seasons & Stars
  */
 
-import { vi, beforeEach } from 'vitest';
+import { beforeEach } from 'vitest';
 
 // Mock Foundry globals
 (globalThis as any).game = {
