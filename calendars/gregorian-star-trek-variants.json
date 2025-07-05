@@ -207,34 +207,34 @@
           "ds9": "Stardate {{dateFmt:ds9-stardate}}",
           "voyager": "Stardate {{dateFmt:voyager-stardate}}",
           "enterprise": "Stardate {{dateFmt:enterprise-stardate}}",
-          "short": "{{month:abbr}} {{day}}",
-          "long": "{{weekday:name}}, {{month:name}} {{day:ordinal}}, {{year}}",
-          "date": "{{weekday:name}}, {{month:name}} {{day:ordinal}}, {{year}}",
+          "short": "{{ss-month:abbr}} {{ss-day}}",
+          "long": "{{ss-weekday:name}}, {{ss-month:name}} {{ss-day:ordinal}}, {{year}}",
+          "date": "{{ss-weekday:name}}, {{ss-month:name}} {{ss-day:ordinal}}, {{year}}",
           "time": "{{hour:pad}}:{{minute:pad}}:{{second:pad}} UTC",
-          "datetime": "{{dateFmt:date}} at {{dateFmt:time}}",
-          "official": "Federation Standard Date: {{month:name}} {{day:ordinal}}, {{year}}",
-          "command-log": "{{dateFmt:tng}} - {{dateFmt:federation}}",
-          "diplomatic": "{{dateFmt:federation}} ({{dateFmt:tng-stardate}})",
+          "datetime": "{{ss-dateFmt:date}} at {{ss-dateFmt:time}}",
+          "official": "Federation Standard Date: {{ss-month:name}} {{ss-day:ordinal}}, {{year}}",
+          "command-log": "{{ss-dateFmt:tng}} - {{ss-dateFmt:federation}}",
+          "diplomatic": "{{ss-dateFmt:federation}} ({{ss-dateFmt:tng-stardate}})",
           "variants": {
             "command": {
-              "short": "SD {{dateFmt:tng-stardate}}",
-              "long": "{{dateFmt:tng}} - {{dateFmt:federation}}"
+              "short": "SD {{ss-dateFmt:tng-stardate}}",
+              "long": "{{ss-dateFmt:tng}} - {{ss-dateFmt:federation}}"
             },
             "civilian": {
-              "short": "{{month:abbr}} {{day}}/{{year}}",
-              "long": "{{dateFmt:federation}} ({{dateFmt:starfleet}})"
+              "short": "{{ss-month:abbr}} {{ss-day}}/{{year}}",
+              "long": "{{ss-dateFmt:federation}} ({{ss-dateFmt:starfleet}})"
             },
             "temporal": {
-              "tos": "TOS Era: {{dateFmt:tos}}",
-              "tng": "TNG Era: {{dateFmt:tng}}",
-              "ds9": "DS9 Era: {{dateFmt:ds9}}",
-              "voyager": "VOY Era: {{dateFmt:voyager}}"
+              "tos": "TOS Era: {{ss-dateFmt:tos}}",
+              "tng": "TNG Era: {{ss-dateFmt:tng}}",
+              "ds9": "DS9 Era: {{ss-dateFmt:ds9}}",
+              "voyager": "VOY Era: {{ss-dateFmt:voyager}}"
             }
           },
           "widgets": {
-            "mini": "SD {{dateFmt:tng-stardate}}",
-            "main": "{{weekday:abbr}}, {{month:name}} {{day:ordinal}}",
-            "grid": "{{day}}"
+            "mini": "SD {{ss-dateFmt:tng-stardate}}",
+            "main": "{{ss-weekday:abbr}}, {{ss-month:name}} {{ss-day:ordinal}}",
+            "grid": "{{ss-day}}"
           }
         }
       }

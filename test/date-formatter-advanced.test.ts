@@ -233,10 +233,10 @@ describe('DateFormatter Advanced Tests', () => {
       const calendarWithDeepNesting: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          base: '{{year}}-{{month:pad}}-{{day:pad}}',
-          level1: 'L1: {{dateFmt:base}}',
-          level2: 'L2: {{dateFmt:level1}}',
-          level3: 'L3: {{dateFmt:level2}}',
+          base: '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}}',
+          level1: 'L1: {{ss-dateFmt:base}}',
+          level2: 'L2: {{ss-dateFmt:level1}}',
+          level3: 'L3: {{ss-dateFmt:level2}}',
         },
       };
 
@@ -263,8 +263,8 @@ describe('DateFormatter Advanced Tests', () => {
       const calendarWithMixedFormats: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          good: '{{year}}-{{month:pad}}-{{day:pad}}',
-          mixed: 'Good: {{dateFmt:good}}, Bad: {{dateFmt:nonexistent}}',
+          good: '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}}',
+          mixed: 'Good: {{ss-dateFmt:good}}, Bad: {{ss-dateFmt:nonexistent}}',
         },
       };
 
@@ -293,7 +293,7 @@ describe('DateFormatter Advanced Tests', () => {
     it('should handle month helper with invalid format', () => {
       // Act & Assert - Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const monthHelperCall = helperCalls.find(call => call[0] === 'month');
+      const monthHelperCall = helperCalls.find(call => call[0] === 'ss-month');
       const monthHelper = monthHelperCall?.[1];
 
       expect(monthHelper).toBeDefined();
@@ -303,7 +303,7 @@ describe('DateFormatter Advanced Tests', () => {
     it('should handle day helper with invalid format', () => {
       // Act & Assert - Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const dayHelperCall = helperCalls.find(call => call[0] === 'day');
+      const dayHelperCall = helperCalls.find(call => call[0] === 'ss-day');
       const dayHelper = dayHelperCall?.[1];
 
       expect(dayHelper).toBeDefined();
@@ -313,7 +313,7 @@ describe('DateFormatter Advanced Tests', () => {
     it('should handle weekday helper with invalid format', () => {
       // Act & Assert - Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const weekdayHelperCall = helperCalls.find(call => call[0] === 'weekday');
+      const weekdayHelperCall = helperCalls.find(call => call[0] === 'ss-weekday');
       const weekdayHelper = weekdayHelperCall?.[1];
 
       expect(weekdayHelper).toBeDefined();
@@ -323,7 +323,7 @@ describe('DateFormatter Advanced Tests', () => {
     it('should handle math helper with invalid operation', () => {
       // Act & Assert - Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const mathHelperCall = helperCalls.find(call => call[0] === 'math');
+      const mathHelperCall = helperCalls.find(call => call[0] === 'ss-math');
       const mathHelper = mathHelperCall?.[1];
 
       expect(mathHelper).toBeDefined();
@@ -333,7 +333,7 @@ describe('DateFormatter Advanced Tests', () => {
     it('should handle math helper with non-numeric value', () => {
       // Act & Assert - Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const mathHelperCall = helperCalls.find(call => call[0] === 'math');
+      const mathHelperCall = helperCalls.find(call => call[0] === 'ss-math');
       const mathHelper = mathHelperCall?.[1];
 
       expect(mathHelper).toBeDefined();
@@ -343,7 +343,7 @@ describe('DateFormatter Advanced Tests', () => {
     it('should handle math helper division by zero', () => {
       // Act & Assert - Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const mathHelperCall = helperCalls.find(call => call[0] === 'math');
+      const mathHelperCall = helperCalls.find(call => call[0] === 'ss-math');
       const mathHelper = mathHelperCall?.[1];
 
       expect(mathHelper).toBeDefined();
@@ -354,7 +354,7 @@ describe('DateFormatter Advanced Tests', () => {
     it('should handle math helper with all operations', () => {
       // Act & Assert - Test all math operations
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const mathHelperCall = helperCalls.find(call => call[0] === 'math');
+      const mathHelperCall = helperCalls.find(call => call[0] === 'ss-math');
       const mathHelper = mathHelperCall?.[1];
 
       expect(mathHelper).toBeDefined();
@@ -374,7 +374,7 @@ describe('DateFormatter Advanced Tests', () => {
     it('should handle stardate with various precision levels', () => {
       // Act & Assert - Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const stardateHelperCall = helperCalls.find(call => call[0] === 'stardate');
+      const stardateHelperCall = helperCalls.find(call => call[0] === 'ss-stardate');
       const stardateHelper = stardateHelperCall?.[1];
 
       expect(stardateHelper).toBeDefined();
@@ -400,7 +400,7 @@ describe('DateFormatter Advanced Tests', () => {
     it('should handle stardate with default values', () => {
       // Act & Assert - Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const stardateHelperCall = helperCalls.find(call => call[0] === 'stardate');
+      const stardateHelperCall = helperCalls.find(call => call[0] === 'ss-stardate');
       const stardateHelper = stardateHelperCall?.[1];
 
       expect(stardateHelper).toBeDefined();
@@ -414,7 +414,7 @@ describe('DateFormatter Advanced Tests', () => {
     it('should handle stardate with negative year offsets', () => {
       // Act & Assert - Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const stardateHelperCall = helperCalls.find(call => call[0] === 'stardate');
+      const stardateHelperCall = helperCalls.find(call => call[0] === 'ss-stardate');
       const stardateHelper = stardateHelperCall?.[1];
 
       expect(stardateHelper).toBeDefined();

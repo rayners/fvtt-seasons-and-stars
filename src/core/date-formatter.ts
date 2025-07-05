@@ -8,10 +8,23 @@ import type { SeasonsStarsCalendar } from '../types/calendar';
 export class DateFormatter {
   private calendar: SeasonsStarsCalendar;
   private templateCache: Map<string, Function> = new Map();
+  private static helpersRegistered: boolean = false;
 
   constructor(calendar: SeasonsStarsCalendar) {
     this.calendar = calendar;
-    this.registerCustomHelpers();
+    // Only register helpers once globally to avoid unnecessary re-registration
+    if (!DateFormatter.helpersRegistered) {
+      this.registerCustomHelpers();
+      DateFormatter.helpersRegistered = true;
+    }
+  }
+
+  /**
+   * Reset helper registration state (for testing purposes)
+   * @internal
+   */
+  static resetHelpersForTesting(): void {
+    DateFormatter.helpersRegistered = false;
   }
 
   /**
@@ -105,8 +118,8 @@ export class DateFormatter {
    * Preprocess template to resolve embedded format references
    */
   private preprocessEmbeddedFormats(date: CalendarDate, template: string): string {
-    // Match {{dateFmt:formatName}} patterns
-    const embeddedFormatRegex = /\{\{\s*dateFmt\s*:\s*([^}\s]+)\s*\}\}/g;
+    // Match {{ss-dateFmt:formatName}} patterns
+    const embeddedFormatRegex = /\{\{\s*ss-dateFmt\s*:\s*([^}\s]+)\s*\}\}/g;
 
     return template.replace(embeddedFormatRegex, (match, formatName) => {
       try {
@@ -205,8 +218,8 @@ export class DateFormatter {
     template: string,
     visited: Set<string>
   ): string {
-    // Match {{dateFmt:formatName}} patterns
-    const embeddedFormatRegex = /\{\{\s*dateFmt\s*:\s*([^}\s]+)\s*\}\}/g;
+    // Match {{ss-dateFmt:formatName}} patterns
+    const embeddedFormatRegex = /\{\{\s*ss-dateFmt\s*:\s*([^}\s]+)\s*\}\}/g;
 
     return template.replace(embeddedFormatRegex, (match, formatName) => {
       try {
@@ -276,7 +289,7 @@ export class DateFormatter {
    */
   private registerCustomHelpers(): void {
     // Day helper - supports ordinal and pad formats
-    Handlebars.registerHelper('day', (value: number, options: any) => {
+    Handlebars.registerHelper('ss-day', (value: number, options: any) => {
       const format = options.hash?.format;
 
       switch (format) {
@@ -290,7 +303,7 @@ export class DateFormatter {
     });
 
     // Month helper - supports name, abbr, and pad formats
-    Handlebars.registerHelper('month', (value: number, options: any) => {
+    Handlebars.registerHelper('ss-month', (value: number, options: any) => {
       const format = options.hash?.format;
 
       switch (format) {
@@ -306,7 +319,7 @@ export class DateFormatter {
     });
 
     // Weekday helper - supports name and abbr formats
-    Handlebars.registerHelper('weekday', (value: number, options: any) => {
+    Handlebars.registerHelper('ss-weekday', (value: number, options: any) => {
       const format = options.hash?.format;
 
       switch (format) {
@@ -319,16 +332,16 @@ export class DateFormatter {
       }
     });
 
-    // Format embedding helper - allows {{dateFmt:name}} syntax
+    // Format embedding helper - allows {{ss-dateFmt:name}} syntax
     // Note: This helper is mainly for documentation. The actual format embedding
     // is handled by preprocessing in the format() method to avoid circular issues.
-    Handlebars.registerHelper('dateFmt', (formatName: string, _options: any) => {
+    Handlebars.registerHelper('ss-dateFmt', (formatName: string, _options: any) => {
       // This should not be called in normal operation due to preprocessing
       return `[Unresolved: ${formatName}]`;
     });
 
     // Mathematical operations helper
-    Handlebars.registerHelper('math', (value: number, options: any) => {
+    Handlebars.registerHelper('ss-math', (value: number, options: any) => {
       const operation = options.hash?.op;
       const operand = options.hash?.value;
 
@@ -352,8 +365,44 @@ export class DateFormatter {
       }
     });
 
+    // Hour helper - supports pad format
+    Handlebars.registerHelper('ss-hour', (value: number, options: any) => {
+      const format = options.hash?.format;
+
+      switch (format) {
+        case 'pad':
+          return value.toString().padStart(2, '0');
+        default:
+          return value.toString();
+      }
+    });
+
+    // Minute helper - supports pad format
+    Handlebars.registerHelper('ss-minute', (value: number, options: any) => {
+      const format = options.hash?.format;
+
+      switch (format) {
+        case 'pad':
+          return value.toString().padStart(2, '0');
+        default:
+          return value.toString();
+      }
+    });
+
+    // Second helper - supports pad format
+    Handlebars.registerHelper('ss-second', (value: number, options: any) => {
+      const format = options.hash?.format;
+
+      switch (format) {
+        case 'pad':
+          return value.toString().padStart(2, '0');
+        default:
+          return value.toString();
+      }
+    });
+
     // Stardate calculation helper for sci-fi calendars
-    Handlebars.registerHelper('stardate', (year: number, options: any) => {
+    Handlebars.registerHelper('ss-stardate', (year: number, options: any) => {
       const prefix = options.hash?.prefix || '0';
       const baseYear = options.hash?.baseYear || year;
       const dayOfYear = options.hash?.dayOfYear || 1;

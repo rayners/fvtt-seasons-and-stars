@@ -120,11 +120,11 @@ describe('DateFormatter', () => {
       // Arrange - DateFormatter should register helpers on construction
 
       // Act & Assert
-      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('day', expect.any(Function));
+      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('ss-day', expect.any(Function));
 
       // Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const dayHelperCall = helperCalls.find(call => call[0] === 'day');
+      const dayHelperCall = helperCalls.find(call => call[0] === 'ss-day');
       const dayHelper = dayHelperCall?.[1];
 
       expect(dayHelper).toBeDefined();
@@ -139,11 +139,11 @@ describe('DateFormatter', () => {
       mockDate.month = 1; // January
 
       // Act & Assert
-      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('month', expect.any(Function));
+      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('ss-month', expect.any(Function));
 
       // Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const monthHelperCall = helperCalls.find(call => call[0] === 'month');
+      const monthHelperCall = helperCalls.find(call => call[0] === 'ss-month');
       const monthHelper = monthHelperCall?.[1];
 
       expect(monthHelper).toBeDefined();
@@ -157,11 +157,14 @@ describe('DateFormatter', () => {
       mockDate.weekday = 1; // Monday
 
       // Act & Assert
-      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('weekday', expect.any(Function));
+      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith(
+        'ss-weekday',
+        expect.any(Function)
+      );
 
       // Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const weekdayHelperCall = helperCalls.find(call => call[0] === 'weekday');
+      const weekdayHelperCall = helperCalls.find(call => call[0] === 'ss-weekday');
       const weekdayHelper = weekdayHelperCall?.[1];
 
       expect(weekdayHelper).toBeDefined();
@@ -172,11 +175,11 @@ describe('DateFormatter', () => {
 
     it('should register month:pad helper for zero-padded numbers', () => {
       // Act & Assert
-      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('month', expect.any(Function));
+      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('ss-month', expect.any(Function));
 
       // Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const monthHelperCall = helperCalls.find(call => call[0] === 'month');
+      const monthHelperCall = helperCalls.find(call => call[0] === 'ss-month');
       const monthHelper = monthHelperCall?.[1];
 
       expect(monthHelper).toBeDefined();
@@ -186,11 +189,11 @@ describe('DateFormatter', () => {
 
     it('should register day:pad helper for zero-padded day numbers', () => {
       // Act & Assert
-      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('day', expect.any(Function));
+      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('ss-day', expect.any(Function));
 
       // Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const dayHelperCall = helperCalls.find(call => call[0] === 'day');
+      const dayHelperCall = helperCalls.find(call => call[0] === 'ss-day');
       const dayHelper = dayHelperCall?.[1];
 
       expect(dayHelper).toBeDefined();
@@ -200,11 +203,14 @@ describe('DateFormatter', () => {
 
     it('should register dateFmt helper for embedding named formats', () => {
       // Act & Assert
-      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('dateFmt', expect.any(Function));
+      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith(
+        'ss-dateFmt',
+        expect.any(Function)
+      );
 
       // Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const dateFmtHelperCall = helperCalls.find(call => call[0] === 'dateFmt');
+      const dateFmtHelperCall = helperCalls.find(call => call[0] === 'ss-dateFmt');
       const dateFmtHelper = dateFmtHelperCall?.[1];
 
       expect(dateFmtHelper).toBeDefined();
@@ -312,8 +318,8 @@ describe('DateFormatter', () => {
       const calendarWithFormats: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          iso: '{{year}}-{{month:pad}}-{{day:pad}}',
-          long: 'Today is {{dateFmt:iso}} ({{weekday:name}})',
+          iso: '{{year}}-{{ss-month:pad}}-{{ss-day:pad}}',
+          long: 'Today is {{ss-dateFmt:iso}} ({{ss-weekday:name}})',
         },
       };
 
@@ -331,8 +337,12 @@ describe('DateFormatter', () => {
       // Assert
       expect(result).toBe('Today is 2024-01-15 (Monday)');
       // Should compile the embedded format first, then the processed template
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{year}}-{{month:pad}}-{{day:pad}}');
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('Today is 2024-01-15 ({{weekday:name}})');
+      expect(mockHandlebars.compile).toHaveBeenCalledWith(
+        '{{year}}-{{ss-month:pad}}-{{ss-day:pad}}'
+      );
+      expect(mockHandlebars.compile).toHaveBeenCalledWith(
+        'Today is 2024-01-15 ({{ss-weekday:name}})'
+      );
     });
 
     it('should handle nested format embedding', () => {
@@ -340,9 +350,9 @@ describe('DateFormatter', () => {
       const calendarWithFormats: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          iso: '{{year}}-{{month:pad}}-{{day:pad}}',
-          short: '{{dateFmt:iso}}',
-          full: 'Date: {{dateFmt:short}} Time: {{hour:pad}}:{{minute:pad}}',
+          iso: '{{year}}-{{ss-month:pad}}-{{ss-day:pad}}',
+          short: '{{ss-dateFmt:iso}}',
+          full: 'Date: {{ss-dateFmt:short}} Time: {{hour:pad}}:{{minute:pad}}',
         },
       };
 
@@ -366,7 +376,7 @@ describe('DateFormatter', () => {
       const calendarWithFormats: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          invalid: 'Date: {{dateFmt:nonexistent}}',
+          invalid: 'Date: {{ss-dateFmt:nonexistent}}',
         },
       };
 
@@ -391,11 +401,11 @@ describe('DateFormatter', () => {
 
     it('should register math:add helper for addition calculations', () => {
       // Act & Assert
-      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('math', expect.any(Function));
+      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('ss-math', expect.any(Function));
 
       // Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const mathHelperCall = helperCalls.find(call => call[0] === 'math');
+      const mathHelperCall = helperCalls.find(call => call[0] === 'ss-math');
       const mathHelper = mathHelperCall?.[1];
 
       expect(mathHelper).toBeDefined();
@@ -406,7 +416,7 @@ describe('DateFormatter', () => {
     it('should register math:multiply helper for multiplication calculations', () => {
       // Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const mathHelperCall = helperCalls.find(call => call[0] === 'math');
+      const mathHelperCall = helperCalls.find(call => call[0] === 'ss-math');
       const mathHelper = mathHelperCall?.[1];
 
       expect(mathHelper).toBeDefined();
@@ -417,7 +427,7 @@ describe('DateFormatter', () => {
     it('should register math:subtract helper for subtraction calculations', () => {
       // Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const mathHelperCall = helperCalls.find(call => call[0] === 'math');
+      const mathHelperCall = helperCalls.find(call => call[0] === 'ss-math');
       const mathHelper = mathHelperCall?.[1];
 
       expect(mathHelper).toBeDefined();
@@ -427,11 +437,14 @@ describe('DateFormatter', () => {
 
     it('should register stardate helper for stardate calculations', () => {
       // Act & Assert
-      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('stardate', expect.any(Function));
+      expect(mockHandlebars.registerHelper).toHaveBeenCalledWith(
+        'ss-stardate',
+        expect.any(Function)
+      );
 
       // Test the helper function directly
       const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const stardateHelperCall = helperCalls.find(call => call[0] === 'stardate');
+      const stardateHelperCall = helperCalls.find(call => call[0] === 'ss-stardate');
       const stardateHelper = stardateHelperCall?.[1];
 
       expect(stardateHelper).toBeDefined();
@@ -449,8 +462,8 @@ describe('DateFormatter', () => {
       const calendarWithStardate: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          tng: '{{stardate year prefix="47" baseYear=2024 dayOfYear=15}}',
-          tos: '{{math year op="subtract" value=1300}}.{{day}}',
+          tng: '{{ss-stardate year prefix="47" baseYear=2024 dayOfYear=15}}',
+          tos: '{{ss-math year op="subtract" value=1300}}.{{ss-day}}',
         },
       };
 
@@ -464,7 +477,7 @@ describe('DateFormatter', () => {
       // Assert
       expect(result).toBe('47015.0');
       expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{stardate year prefix="47" baseYear=2024 dayOfYear=15}}'
+        '{{ss-stardate year prefix="47" baseYear=2024 dayOfYear=15}}'
       );
     });
   });

@@ -115,9 +115,9 @@ export class CalendarDate implements ICalendarDate {
     // Add weekday if requested
     if (includeWeekday) {
       if (format === 'short') {
-        parts.push('{{weekday:abbr}}');
+        parts.push('{{ss-weekday:abbr}}');
       } else {
-        parts.push('{{weekday:name}}');
+        parts.push('{{ss-weekday:name}}');
       }
     }
 
@@ -125,9 +125,9 @@ export class CalendarDate implements ICalendarDate {
     if (format === 'numeric') {
       parts.push('{{month}}/{{day}}');
     } else if (format === 'short') {
-      parts.push('{{day}} {{month:abbr}}');
+      parts.push('{{day}} {{ss-month:abbr}}');
     } else {
-      parts.push('{{day:ordinal}} {{month:name}}');
+      parts.push('{{ss-day:ordinal}} {{ss-month:name}}');
     }
 
     // Add year if requested
@@ -137,7 +137,9 @@ export class CalendarDate implements ICalendarDate {
 
     // Add time if requested
     if (includeTime && this.time) {
-      parts.push('{{hour:pad}}:{{minute:pad}}:{{second:pad}}');
+      parts.push(
+        '{{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}}'
+      );
     }
 
     return parts.join(', ');
@@ -262,7 +264,10 @@ export class CalendarDate implements ICalendarDate {
     }
 
     // Fallback to template-based time format
-    return this.formatter.format(this, '{{hour:pad}}:{{minute:pad}}:{{second:pad}}');
+    return this.formatter.format(
+      this,
+      '{{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}}'
+    );
   }
 
   /**

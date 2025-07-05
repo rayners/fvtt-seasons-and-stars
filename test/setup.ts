@@ -3,6 +3,7 @@
  */
 
 import { vi, beforeEach } from 'vitest';
+import { DateFormatter } from '../src/core/date-formatter';
 
 // Mock Foundry globals
 (globalThis as any).game = {
@@ -233,3 +234,8 @@ export function setupPF2eEnvironment(
     },
   };
 }
+
+// Reset DateFormatter helper registration before each test
+beforeEach(() => {
+  DateFormatter.resetHelpersForTesting();
+});

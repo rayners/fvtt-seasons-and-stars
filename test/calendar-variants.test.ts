@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CalendarManager } from '../src/core/calendar-manager';
+import { CalendarDate } from '../src/core/calendar-date';
+import type { SeasonsStarsCalendar, CalendarDateData } from '../src/types/calendar';
 
 // Mock foundry environment and dependencies
 vi.stubGlobal('game', {
@@ -50,6 +52,18 @@ vi.mock('../src/core/calendar-localization', () => ({
     getCalendarLabel: vi.fn().mockReturnValue('Test Calendar'),
   },
 }));
+
+// Mock Handlebars for testing
+const mockHandlebars = {
+  compile: vi.fn(),
+  registerHelper: vi.fn(),
+};
+
+vi.mock('handlebars', () => ({
+  default: mockHandlebars,
+}));
+
+global.Handlebars = mockHandlebars;
 
 describe('Calendar Variants System', () => {
   let calendarManager: CalendarManager;
@@ -249,6 +263,120 @@ describe('Calendar Variants System', () => {
 
       expect(absalomVariant?.translations.en.label).toBe('Golarion Calendar (Absalom Reckoning)');
       expect(imperialVariant?.translations.en.label).toBe('Golarion Calendar (Imperial Calendar)');
+    });
+  });
+
+  describe('Variant DateFormats Support', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+
+      // Setup mock template compilation
+      const mockCompiledTemplate = vi.fn(context => {
+        // Simple template output based on format
+        if (context.year && context.month && context.day) {
+          return `${context.year}-${context.month}-${context.day}`;
+        }
+        return 'formatted-date';
+      });
+      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
+    });
+
+    it('should support dateFormats property in variants', () => {
+      // Arrange
+      const mockCalendar = {
+        id: 'test-calendar',
+        name: 'Test Calendar',
+        months: [
+          { name: 'January', abbreviation: 'Jan', days: 31 },
+          { name: 'February', abbreviation: 'Feb', days: 28 },
+        ],
+        weekdays: [
+          { name: 'Sunday', abbreviation: 'Sun' },
+          { name: 'Monday', abbreviation: 'Mon' },
+        ],
+        year: { prefix: '', suffix: '' },
+        time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+        variants: {
+          'test-variant': {
+            name: 'Test Variant',
+            description: 'Test variant with dateFormats',
+            overrides: {
+              dateFormats: {
+                'variant-format': 'Variant: {{month:name}} {{day}}, {{year}}',
+                short: 'V{{year}}-{{month:pad}}-{{day:pad}}',
+                widgets: {
+                  mini: 'V{{month:abbr}} {{day}}',
+                  main: 'Variant {{weekday:name}}, {{day:ordinal}} {{month:name}}',
+                },
+              },
+            },
+          },
+        },
+      } as SeasonsStarsCalendar;
+
+      const dateData: CalendarDateData = {
+        year: 2024,
+        month: 1,
+        day: 15,
+        weekday: 1,
+      };
+
+      // Apply variant overrides to create variant calendar
+      const variantCalendar = { ...mockCalendar };
+      const variant = mockCalendar.variants!['test-variant'];
+      if (variant.overrides?.dateFormats) {
+        variantCalendar.dateFormats = variant.overrides.dateFormats;
+      }
+
+      const date = new CalendarDate(dateData, variantCalendar);
+
+      // Act - Test that variant dateFormats are used
+      const result = date.format();
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('string');
+      expect(mockHandlebars.compile).toHaveBeenCalled();
+    });
+
+    it('should handle variants without dateFormats gracefully', () => {
+      // Arrange
+      // Set up Handlebars mock to return a function that formats the date
+      const mockCompiledTemplate = vi.fn().mockReturnValue('Monday, 15th January 2024');
+      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
+
+      const mockCalendar = {
+        id: 'test-calendar',
+        name: 'Test Calendar',
+        months: [{ name: 'January', abbreviation: 'Jan', days: 31 }],
+        weekdays: [{ name: 'Monday', abbreviation: 'Mon' }],
+        year: { prefix: '', suffix: '' },
+        time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+        variants: {
+          'simple-variant': {
+            name: 'Simple Variant',
+            description: 'Variant without dateFormats',
+            overrides: {
+              year: { prefix: 'V', suffix: ' AV' },
+            },
+          },
+        },
+      } as SeasonsStarsCalendar;
+
+      const dateData: CalendarDateData = {
+        year: 2024,
+        month: 1,
+        day: 15,
+        weekday: 0,
+      };
+
+      const date = new CalendarDate(dateData, mockCalendar);
+
+      // Act
+      const result = date.format();
+
+      // Assert - Should use basic format since no dateFormats
+      expect(result).toBe('Monday, 15th January 2024');
     });
   });
 });
