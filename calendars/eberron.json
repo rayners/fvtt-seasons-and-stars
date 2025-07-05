@@ -7,7 +7,7 @@
       "setting": "D&D Eberron"
     }
   },
-  
+
   "year": {
     "epoch": 0,
     "currentYear": 998,
@@ -15,11 +15,11 @@
     "suffix": " YK",
     "startDay": 0
   },
-  
+
   "leapYear": {
     "rule": "none"
   },
-  
+
   "months": [
     {
       "name": "Zarantyr",
@@ -94,7 +94,7 @@
       "description": "The Warding Month. Named after the mark of warding, representing protection, security, and the defense against hostile forces."
     }
   ],
-  
+
   "weekdays": [
     {
       "name": "Sul",
@@ -132,12 +132,42 @@
       "description": "Seventh day of the week, traditionally a day of rest and family time"
     }
   ],
-  
+
   "intercalary": [],
-  
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "iso": "{{year}}-{{ss-month:pad}}-{{ss-day:pad}}",
+    "short": "{{ss-month:abbr}} {{ss-day}}",
+    "long": "{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}} YK",
+    "date": "{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}} YK",
+    "time": "{{ss-hour:pad}}:{{ss-minute:pad}}:{{ss-second:pad}}",
+    "datetime": "{{ss-dateFmt:date}} at {{ss-dateFmt:time}}",
+    "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "formal": "The {{ss-day:ordinal}} day of {{ss-month:name}}, in the {{year}} year of the Kingdom",
+    "day-of-year": "Day {{dayOfYear}} of {{year}} YK",
+    "week-number": "Week {{ss-math dayOfYear op='divide' value=7}} of {{year}} YK",
+    "historical": "{{ss-math year op='subtract' value=894}} years since the Last War ended",
+    "treaty": "{{ss-dateFmt:date}} (Treaty of Thronehold +{{ss-math year op='subtract' value=996}})",
+    "variants": {
+      "dragonmarked": {
+        "short": "{{ss-month:name}} {{ss-day}}, {{year}} YK",
+        "long": "{{ss-dateFmt:date}} - {{ss-dateFmt:historical}}"
+      },
+      "common": {
+        "short": "{{ss-day}} {{ss-month:abbr}} {{year}}",
+        "long": "{{ss-dateFmt:formal}}"
+      }
+    },
+    "widgets": {
+      "mini": "{{ss-month:abbr}} {{ss-day}}",
+      "main": "{{ss-weekday:abbr}}, {{ss-day:ordinal}} {{ss-month:name}}",
+      "grid": "{{ss-day}}"
+    }
   }
 }
