@@ -147,7 +147,11 @@ export class DateFormatter {
       console.warn('[S&S] Date format template compilation failed:', error);
 
       // Notify user about the error
-      this.notifyTemplateError(template, error, formatName);
+      this.notifyTemplateError(
+        template,
+        error instanceof Error ? error : new Error(String(error)),
+        formatName
+      );
 
       // Fallback to basic format
       return this.getBasicFormat(date);

@@ -466,9 +466,9 @@ describe('DateFormatter Advanced Tests', () => {
 
       // Assert
       const templateContext = mockCompiledTemplate.mock.calls[0][0];
-      // calculateDayOfYear adds days from months[0] through months[month-2], then adds current day
-      // With month=99, it adds Jan(31) + Feb(28) + Mar(31) + Dec(31) + day(15) = 136
-      expect(templateContext.dayOfYear).toBe(136);
+      // With improved bounds checking, invalid month (99) now returns 1 (start of year fallback)
+      // This is the correct behavior - much better than returning undefined or NaN
+      expect(templateContext.dayOfYear).toBe(1);
     });
   });
 

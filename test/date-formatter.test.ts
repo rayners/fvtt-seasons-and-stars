@@ -578,17 +578,17 @@ describe('DateFormatter', () => {
       // Act & Assert - Should not crash and should handle gracefully
       expect(() => {
         const result1 = formatter.formatNamed(dateWithZeroMonth, 'dayOfYearTest');
-        expect(result1).toBe('15'); // Should be day value when month is invalid
+        expect(result1).toBe('1'); // With improved bounds checking, returns 1 (start of year fallback)
       }).not.toThrow();
 
       expect(() => {
         const result2 = formatter.formatNamed(dateWithNegativeMonth, 'dayOfYearTest');
-        expect(result2).toBe('15'); // Should be day value when month is invalid
+        expect(result2).toBe('1'); // With improved bounds checking, returns 1 (start of year fallback)
       }).not.toThrow();
 
       expect(() => {
         const result3 = formatter.formatNamed(dateWithOversizedMonth, 'dayOfYearTest');
-        expect(result3).toBe('15'); // Should be day value when month is invalid
+        expect(result3).toBe('1'); // With improved bounds checking, returns 1 (start of year fallback)
       }).not.toThrow();
     });
 
