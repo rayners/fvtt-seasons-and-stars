@@ -97,6 +97,39 @@ describe('Star Trek Calendar Formatting', () => {
             // Simple template processing for testing
             let result = template;
 
+            // Replace ss-dateFmt helper calls with embedded format results
+            result = result.replace(/\{\{ss-dateFmt:([^}]+)\}\}/g, (match, formatName) => {
+              // Get the format from the calendar's dateFormats
+              const dateFormats = starTrekCalendar.dateFormats;
+              if (dateFormats && dateFormats[formatName]) {
+                const embeddedTemplate = dateFormats[formatName];
+                // Recursively process the embedded template
+                let embeddedResult = embeddedTemplate;
+
+                // Handle ss-stardate in embedded templates
+                embeddedResult = embeddedResult.replace(
+                  /\{\{ss-stardate year prefix='(\d+)' baseYear=(\d+) dayOfYear=dayOfYear precision=(\d+)\}\}/g,
+                  (match, prefix, baseYear, precision) => {
+                    const stardateHelper = helpers['ss-stardate'];
+                    if (stardateHelper) {
+                      return stardateHelper(context.year, {
+                        hash: {
+                          prefix,
+                          baseYear: parseInt(baseYear),
+                          dayOfYear: context.dayOfYear,
+                          precision: parseInt(precision),
+                        },
+                      });
+                    }
+                    return match;
+                  }
+                );
+
+                return embeddedResult;
+              }
+              return match;
+            });
+
             // Replace simple helper calls with their results
             result = result.replace(
               /\{\{ss-stardate year prefix='(\d+)' baseYear=(\d+) dayOfYear=dayOfYear precision=(\d+)\}\}/g,
@@ -196,10 +229,10 @@ describe('Star Trek Calendar Formatting', () => {
 
       // Should not throw and should produce a proper combined format
       expect(() => {
-        date.format({ format: 'datetime' });
+        date.formatter.formatNamed(date, 'datetime');
       }).not.toThrow();
 
-      const result = date.format({ format: 'datetime' });
+      const result = date.formatter.formatNamed(date, 'datetime');
       // Should contain 'at' from the template
       expect(result).not.toBe('mock-template-result');
       expect(result).toContain(' at ');
@@ -212,10 +245,10 @@ describe('Star Trek Calendar Formatting', () => {
       );
 
       expect(() => {
-        date.format({ format: 'starfleet' });
+        date.formatter.formatNamed(date, 'starfleet');
       }).not.toThrow();
 
-      const result = date.format({ format: 'starfleet' });
+      const result = date.formatter.formatNamed(date, 'starfleet');
       expect(result).not.toBe('mock-template-result');
       expect(result).toContain('Stardate');
     });
