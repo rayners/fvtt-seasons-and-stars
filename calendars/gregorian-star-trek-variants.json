@@ -195,8 +195,8 @@
           "suffix": ""
         },
         "dateFormats": {
-          "federation": "{{month:abbr}} {{day}}, {{year}}",
-          "tos-stardate": "{{math year op='subtract' value=1300}}.{{dayOfYear}}",
+          "federation": "{{ss-month:abbr}} {{ss-day}}, {{year}}",
+          "tos-stardate": "{{ss-math year op='subtract' value=1300}}.{{dayOfYear}}",
           "tng-stardate": "{{stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear precision=1}}",
           "ds9-stardate": "{{stardate year prefix='52' baseYear=2375 dayOfYear=dayOfYear precision=1}}",
           "voyager-stardate": "{{stardate year prefix='53' baseYear=2376 dayOfYear=dayOfYear precision=1}}",

@@ -201,7 +201,7 @@ Seasons & Stars v0.5.0+ includes a powerful Handlebars-based formatting system w
 
 **Template Variables Available:**
 
-- `{{year}}`, `{{month}}`, `{{day}}`, `{{weekday}}` - Basic date components
+- `{{year}}`, `{{ss-month}}`, `{{ss-day}}`, `{{ss-weekday}}` - Basic date components
 - `{{dayOfYear}}` - Day of year (1-365)
 - `{{hour}}`, `{{minute}}`, `{{second}}` - Time components
 

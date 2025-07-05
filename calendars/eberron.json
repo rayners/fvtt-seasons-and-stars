@@ -143,12 +143,12 @@
 
   "dateFormats": {
     "iso": "{{year}}-{{s&s-month:pad}}-{{s&s-day:pad}}",
-    "short": "{{s&s-month:abbr}} {{day}}",
+    "short": "{{s&s-month:abbr}} {{ss-day}}",
     "long": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}} YK",
     "date": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}} YK",
     "time": "{{s&s-hour:pad}}:{{s&s-minute:pad}}:{{s&s-second:pad}}",
     "datetime": "{{s&s-dateFmt:date}} at {{s&s-dateFmt:time}}",
-    "brief": "{{day}}/{{month}}/{{year}}",
+    "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
     "formal": "The {{s&s-day:ordinal}} day of {{s&s-month:name}}, in the {{year}} year of the Kingdom",
     "day-of-year": "Day {{dayOfYear}} of {{year}} YK",
     "week-number": "Week {{s&s-math dayOfYear op='divide' value=7}} of {{year}} YK",
@@ -156,18 +156,18 @@
     "treaty": "{{s&s-dateFmt:date}} (Treaty of Thronehold +{{s&s-math year op='subtract' value=996}})",
     "variants": {
       "dragonmarked": {
-        "short": "{{s&s-month:name}} {{day}}, {{year}} YK",
+        "short": "{{s&s-month:name}} {{ss-day}}, {{year}} YK",
         "long": "{{s&s-dateFmt:date}} - {{s&s-dateFmt:historical}}"
       },
       "common": {
-        "short": "{{day}} {{s&s-month:abbr}} {{year}}",
+        "short": "{{ss-day}} {{s&s-month:abbr}} {{year}}",
         "long": "{{s&s-dateFmt:formal}}"
       }
     },
     "widgets": {
-      "mini": "{{s&s-month:abbr}} {{day}}",
+      "mini": "{{s&s-month:abbr}} {{ss-day}}",
       "main": "{{s&s-weekday:abbr}}, {{s&s-day:ordinal}} {{s&s-month:name}}",
-      "grid": "{{day}}"
+      "grid": "{{ss-day}}"
     }
   }
 }
