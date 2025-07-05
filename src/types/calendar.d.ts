@@ -49,10 +49,31 @@ export interface SeasonsStarsCalendar {
     secondsInMinute: number;
   };
 
+  // Date formatting templates using Handlebars syntax
+  dateFormats?: CalendarDateFormats;
+
   // Calendar Variants System
   variants?: {
     [variantId: string]: CalendarVariant;
   };
+}
+
+// Date formatting system interfaces
+export interface CalendarDateFormats {
+  // Named format templates - can be string or object with named variants
+  [formatName: string]: string | CalendarDateFormatVariants;
+  
+  // Widget-specific formats for different UI contexts
+  widgets?: {
+    mini?: string;
+    main?: string;
+    grid?: string;
+  };
+}
+
+export interface CalendarDateFormatVariants {
+  // Multiple named variants of a format (e.g., short/long versions)
+  [variantName: string]: string;
 }
 
 export interface CalendarMonth {

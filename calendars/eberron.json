@@ -139,5 +139,35 @@
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "iso": "{{year}}-{{month:pad}}-{{day:pad}}",
+    "short": "{{month:abbr}} {{day}}",
+    "long": "{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}} YK",
+    "date": "{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}} YK",
+    "time": "{{hour:pad}}:{{minute:pad}}:{{second:pad}}",
+    "datetime": "{{dateFmt:date}} at {{dateFmt:time}}",
+    "brief": "{{day}}/{{month}}/{{year}}",
+    "formal": "The {{day:ordinal}} day of {{month:name}}, in the {{year}} year of the Kingdom",
+    "day-of-year": "Day {{dayOfYear}} of {{year}} YK",
+    "week-number": "Week {{math dayOfYear op='divide' value=7}} of {{year}} YK",
+    "historical": "{{math year op='subtract' value=894}} years since the Last War ended",
+    "treaty": "{{dateFmt:date}} (Treaty of Thronehold +{{math year op='subtract' value=996}})",
+    "variants": {
+      "dragonmarked": {
+        "short": "{{month:name}} {{day}}, {{year}} YK",
+        "long": "{{dateFmt:date}} - {{dateFmt:historical}}"
+      },
+      "common": {
+        "short": "{{day}} {{month:abbr}} {{year}}",
+        "long": "{{dateFmt:formal}}"
+      }
+    },
+    "widgets": {
+      "mini": "{{month:abbr}} {{day}}",
+      "main": "{{weekday:abbr}}, {{day:ordinal}} {{month:name}}",
+      "grid": "{{day}}"
+    }
   }
 }

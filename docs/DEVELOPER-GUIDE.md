@@ -158,6 +158,89 @@ interface DateFormatOptions {
 }
 ```
 
+#### `formatDateNamed(date: CalendarDate, formatName: string, variant?: string)`
+
+**New in v0.5.0** - Format a date using named formats from the calendar's `dateFormats` configuration.
+
+```javascript
+const date = game.seasonsStars.api.getCurrentDate();
+
+// Use a named format from the calendar
+const stardate = game.seasonsStars.api.formatDateNamed(date, 'tng-stardate');
+// Returns: "47015.0"
+
+const diplomatic = game.seasonsStars.api.formatDateNamed(date, 'diplomatic');
+// Returns: "Jan 15, 2024 (47015.0)"
+
+// Use format variants
+const shortDate = game.seasonsStars.api.formatDateNamed(date, 'date', 'short');
+const longDate = game.seasonsStars.api.formatDateNamed(date, 'date', 'long');
+```
+
+#### `formatDateWidget(date: CalendarDate, widgetType: 'mini' | 'main' | 'grid')`
+
+**New in v0.5.0** - Format a date using widget-specific formats optimized for different UI contexts.
+
+```javascript
+const date = game.seasonsStars.api.getCurrentDate();
+
+// Widget-optimized formats
+const miniFormat = game.seasonsStars.api.formatDateWidget(date, 'mini');
+// Returns: "Jan 15" (compact)
+
+const mainFormat = game.seasonsStars.api.formatDateWidget(date, 'main');
+// Returns: "Mon, 15th January" (standard)
+
+const gridFormat = game.seasonsStars.api.formatDateWidget(date, 'grid');
+// Returns: "15" (minimal)
+```
+
+### Advanced Date Formatting
+
+Seasons & Stars v0.5.0+ includes a powerful Handlebars-based formatting system with mathematical operations and format embedding:
+
+**Template Variables Available:**
+- `{{year}}`, `{{month}}`, `{{day}}`, `{{weekday}}` - Basic date components
+- `{{dayOfYear}}` - Day of year (1-365)
+- `{{hour}}`, `{{minute}}`, `{{second}}` - Time components
+
+**Mathematical Operations:**
+```javascript
+// Calendar defines: "historical": "{{math year op='subtract' value=894}} years since the Last War"
+const historical = game.seasonsStars.api.formatDateNamed(date, 'historical');
+// Returns: "130 years since the Last War" (if current year is 1024)
+```
+
+**Format Embedding:**
+```javascript
+// Calendar defines:
+// "tng-stardate": "{{stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}"
+// "starfleet": "Stardate {{dateFmt:tng-stardate}}"
+// "command-log": "{{dateFmt:starfleet}} - {{dateFmt:federation}}"
+
+const complex = game.seasonsStars.api.formatDateNamed(date, 'command-log');
+// Returns: "Stardate 47015.0 - Jan 15, 2024"
+```
+
+**Custom Calendar Date Formats:**
+
+Define advanced formats in your calendar JSON:
+
+```json
+{
+  "dateFormats": {
+    "stardate": "{{stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}",
+    "mathematical": "Year {{math year op='add' value=1000}} of the Empire",
+    "embedded": "Today is {{dateFmt:stardate}} ({{dateFmt:federation}})",
+    "widgets": {
+      "mini": "SD {{dateFmt:stardate}}",
+      "main": "{{weekday:abbr}}, Day {{dayOfYear}}",
+      "grid": "{{day}}"
+    }
+  }
+}
+```
+
 ### Calendar Management
 
 #### `getActiveCalendar()`
