@@ -125,6 +125,86 @@ Complete reference for Seasons & Stars calendar format and external loading syst
 }
 ```
 
+#### Date Formatting Templates
+
+Seasons & Stars supports powerful date formatting using Handlebars templates with custom helpers:
+
+```json
+"dateFormats": {
+  "iso": "{{year}}-{{month:pad}}-{{day:pad}}",
+  "short": "{{month:abbr}} {{day}}",
+  "long": "{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}}",
+  "stardate": "{{stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}",
+  "historical": "{{math year op='subtract' value=894}} years since the Last War",
+  "widgets": {
+    "mini": "{{month:abbr}} {{day}}",
+    "main": "{{weekday:abbr}}, {{day:ordinal}} {{month:name}}",
+    "grid": "{{day}}"
+  }
+}
+```
+
+**Available Template Variables:**
+- `{{year}}` - Full year number
+- `{{month}}` - Month number (1-based)
+- `{{day}}` - Day number (1-based)
+- `{{weekday}}` - Weekday index (0-based)
+- `{{dayOfYear}}` - Day of year (1-based)
+- `{{hour}}`, `{{minute}}`, `{{second}}` - Time components
+
+**Built-in Helpers:**
+
+*Basic Formatting:*
+- `{{day:pad}}` - Zero-padded day (01, 02, etc.)
+- `{{day:ordinal}}` - Ordinal day (1st, 2nd, 3rd, etc.)
+- `{{month:pad}}` - Zero-padded month
+- `{{month:name}}` - Full month name
+- `{{month:abbr}}` - Month abbreviation
+- `{{weekday:name}}` - Full weekday name
+- `{{weekday:abbr}}` - Weekday abbreviation
+
+*Mathematical Operations:*
+- `{{math value op="add" value=100}}` - Addition
+- `{{math value op="subtract" value=50}}` - Subtraction
+- `{{math value op="multiply" value=2}}` - Multiplication
+- `{{math value op="divide" value=3}}` - Division
+- `{{math value op="modulo" value=7}}` - Modulo
+
+*Advanced Calculations:*
+- `{{stardate year prefix="47" baseYear=2370 dayOfYear=dayOfYear precision=1}}` - Star Trek stardates
+
+**Format Embedding:**
+
+Reference other formats within templates using `{{dateFmt:formatName}}`:
+
+```json
+{
+  "tng-stardate": "{{stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}",
+  "starfleet": "Stardate {{dateFmt:tng-stardate}}",
+  "command-log": "{{dateFmt:starfleet}} - {{dateFmt:federation}}"
+}
+```
+
+**Widget-Specific Formats:**
+
+The `widgets` property provides formats optimized for different UI contexts:
+- `mini` - Compact display for mini widget
+- `main` - Standard display for main widget
+- `grid` - Minimal display for calendar grid
+
+**Format Variants:**
+
+Supports named variants for complex formatting scenarios:
+
+```json
+{
+  "date": {
+    "short": "{{month:abbr}} {{day}}",
+    "long": "{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}}"
+  }
+}
+```
+
 ## External Calendar Loading
 
 Seasons & Stars supports loading calendars from multiple external sources using a universal protocol system.

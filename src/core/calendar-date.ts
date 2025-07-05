@@ -9,6 +9,7 @@ import type {
   DateFormatOptions,
 } from '../types/calendar';
 import { CalendarTimeUtils } from './calendar-time-utils';
+import { DateFormatter } from './date-formatter';
 
 export class CalendarDate implements ICalendarDate {
   year: number;
@@ -23,6 +24,7 @@ export class CalendarDate implements ICalendarDate {
   };
 
   private calendar: SeasonsStarsCalendar;
+  private formatter: DateFormatter;
 
   constructor(data: CalendarDateData, calendar: SeasonsStarsCalendar) {
     this.year = data.year;
@@ -32,10 +34,11 @@ export class CalendarDate implements ICalendarDate {
     this.intercalary = data.intercalary;
     this.time = data.time;
     this.calendar = calendar;
+    this.formatter = new DateFormatter(calendar);
   }
 
   /**
-   * Format the date for display
+   * Format the date for display using the new template-based system
    */
   format(options: DateFormatOptions = {}): string {
     const {
@@ -45,48 +48,117 @@ export class CalendarDate implements ICalendarDate {
       format = 'long',
     } = options;
 
-    const parts: string[] = [];
-
-    // Add weekday if requested and not an intercalary day
-    if (includeWeekday && !this.intercalary) {
-      const weekdayName = this.getWeekdayName(format);
-      parts.push(weekdayName);
+    // Try to use calendar's dateFormats first
+    const dateFormats = this.calendar.dateFormats;
+    
+    // Check for predefined formats in calendar
+    if (dateFormats) {
+      const formatName = this.getFormatNameFromOptions(options);
+      if (formatName && dateFormats[formatName]) {
+        return this.formatter.formatNamed(this, formatName);
+      }
     }
+
+    // Fallback to building a template based on options
+    const template = this.buildTemplateFromOptions(options);
+    return this.formatter.format(this, template);
+  }
+
+  /**
+   * Get a format name from calendar dateFormats based on options
+   */
+  private getFormatNameFromOptions(options: DateFormatOptions): string | null {
+    const { includeTime, format } = options;
+    
+    // Look for common format names based on options
+    const possibleNames = [];
+    
+    if (format === 'short') {
+      possibleNames.push('short', 'brief');
+    } else if (format === 'long') {
+      possibleNames.push('long', 'full', 'detailed');
+    } else if (format === 'numeric') {
+      possibleNames.push('numeric', 'iso', 'number');
+    }
+    
+    if (includeTime) {
+      possibleNames.unshift(...possibleNames.map(name => `${name}Time`));
+      possibleNames.unshift('datetime', 'timestamp');
+    }
+    
+    // Check if any of these formats exist in calendar
+    const dateFormats = this.calendar.dateFormats;
+    if (dateFormats) {
+      for (const name of possibleNames) {
+        if (dateFormats[name]) {
+          return name;
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Build a template string based on DateFormatOptions
+   */
+  private buildTemplateFromOptions(options: DateFormatOptions): string {
+    const {
+      includeTime = false,
+      includeWeekday = true,
+      includeYear = true,
+      format = 'long',
+    } = options;
+
+    const parts: string[] = [];
 
     // Handle intercalary days
     if (this.intercalary) {
-      parts.push(this.intercalary);
-    } else {
-      // Regular date formatting
-      const dayStr = this.getDayString(format);
-      const monthStr = this.getMonthName(format);
+      return this.intercalary;
+    }
 
-      if (format === 'numeric') {
-        parts.push(`${this.month}/${this.day}`);
+    // Add weekday if requested
+    if (includeWeekday) {
+      if (format === 'short') {
+        parts.push('{{weekday:abbr}}');
       } else {
-        parts.push(`${dayStr} ${monthStr}`);
+        parts.push('{{weekday:name}}');
       }
+    }
+
+    // Add day and month
+    if (format === 'numeric') {
+      parts.push('{{month}}/{{day}}');
+    } else if (format === 'short') {
+      parts.push('{{day}} {{month:abbr}}');
+    } else {
+      parts.push('{{day:ordinal}} {{month:name}}');
     }
 
     // Add year if requested
     if (includeYear) {
-      const yearStr = this.getYearString();
-      parts.push(yearStr);
+      parts.push('{{year}}');
     }
 
     // Add time if requested
     if (includeTime && this.time) {
-      const timeStr = this.getTimeString();
-      parts.push(timeStr);
+      parts.push('{{hour:pad}}:{{minute:pad}}:{{second:pad}}');
     }
 
     return parts.join(', ');
   }
 
   /**
-   * Get a short format string (for UI display)
+   * Get a short format string (for UI display) - tries widget.mini format first
    */
   toShortString(): string {
+    // Try widget.mini format first
+    const dateFormats = this.calendar.dateFormats;
+    if (dateFormats?.widgets?.mini) {
+      return this.formatter.formatWidget(this, 'mini');
+    }
+    
+    // Fallback to options-based format
     return this.format({
       includeTime: false,
       includeWeekday: false,
@@ -95,9 +167,16 @@ export class CalendarDate implements ICalendarDate {
   }
 
   /**
-   * Get a full format string (for detailed display)
+   * Get a full format string (for detailed display) - tries widget.main format first
    */
   toLongString(): string {
+    // Try widget.main format first
+    const dateFormats = this.calendar.dateFormats;
+    if (dateFormats?.widgets?.main) {
+      return this.formatter.formatWidget(this, 'main');
+    }
+    
+    // Fallback to options-based format
     return this.format({
       includeTime: true,
       includeWeekday: true,
@@ -107,9 +186,16 @@ export class CalendarDate implements ICalendarDate {
   }
 
   /**
-   * Get just the date portion (no time)
+   * Get just the date portion (no time) - prefers named formats
    */
   toDateString(): string {
+    // Try named 'date' format first
+    const dateFormats = this.calendar.dateFormats;
+    if (dateFormats?.date) {
+      return this.formatter.formatNamed(this, 'date');
+    }
+    
+    // Fallback to options-based format
     return this.format({
       includeTime: false,
       includeWeekday: true,
@@ -119,11 +205,19 @@ export class CalendarDate implements ICalendarDate {
   }
 
   /**
-   * Get just the time portion
+   * Get just the time portion - prefers named time format
    */
   toTimeString(): string {
     if (!this.time) return '';
-    return this.getTimeString();
+    
+    // Try named 'time' format first
+    const dateFormats = this.calendar.dateFormats;
+    if (dateFormats?.time) {
+      return this.formatter.formatNamed(this, 'time');
+    }
+    
+    // Fallback to template-based time format
+    return this.formatter.format(this, '{{hour:pad}}:{{minute:pad}}:{{second:pad}}');
   }
 
   /**

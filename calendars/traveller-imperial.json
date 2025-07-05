@@ -81,5 +81,22 @@
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "imperial": "{{day:pad}}-{{year}}",
+    "standard": "Day {{day:pad}} of {{year}}",
+    "long": "{{weekday:name}}, Day {{day}} of the year {{year}}",
+    "short": "{{day:pad}}/{{year}}",
+    "date": "{{weekday:name}}, Day {{day}} of {{year}}",
+    "time": "{{hour:pad}}:{{minute:pad}}:{{second:pad}}",
+    "datetime": "{{dateFmt:date}} at {{dateFmt:time}} Imperial Standard Time",
+    "administrative": "Imperial Date: {{year}}.{{day:pad}}",
+    "formal": "The {{day:ordinal}} day of the Imperial year {{year}}",
+    "widgets": {
+      "mini": "{{day:pad}}/{{year}}",
+      "main": "{{weekday:abbr}}, Day {{day}}",
+      "grid": "{{day}}"
+    }
   }
 }

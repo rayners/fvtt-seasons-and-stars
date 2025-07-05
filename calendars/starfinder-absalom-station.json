@@ -148,5 +148,23 @@
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "galactic": "{{year}}.{{month:pad}}.{{day:pad}} AG",
+    "pact": "{{month:abbr}} {{day}}, {{year}} AG",
+    "long": "{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}} AG",
+    "short": "{{month:abbr}} {{day}}",
+    "date": "{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}} AG",
+    "time": "{{hour:pad}}:{{minute:pad}}:{{second:pad}} GST",
+    "datetime": "{{dateFmt:date}} at {{dateFmt:time}}",
+    "standard": "{{day}}/{{month}}/{{year}} AG",
+    "formal": "The {{day:ordinal}} day of {{month:name}}, in the year {{year}} After the Gap",
+    "starship": "Stardate {{year}}.{{month:pad}}{{day:pad}}",
+    "widgets": {
+      "mini": "{{month:abbr}} {{day}}",
+      "main": "{{weekday:abbr}}, {{day:ordinal}} {{month:name}}",
+      "grid": "{{day}}"
+    }
   }
 }

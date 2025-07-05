@@ -468,6 +468,63 @@
           }
         }
       }
+    },
+    "dateFormats": {
+      "type": "object",
+      "description": "Handlebars-based date formatting templates for different display contexts",
+      "patternProperties": {
+        "^[a-zA-Z0-9-_]+$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500,
+              "description": "Handlebars template string for date formatting"
+            },
+            {
+              "type": "object",
+              "patternProperties": {
+                "^[a-zA-Z0-9-_]+$": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500,
+                  "description": "Named variant of the format"
+                }
+              },
+              "additionalProperties": false,
+              "description": "Object containing named format variants"
+            }
+          ]
+        }
+      },
+      "properties": {
+        "widgets": {
+          "type": "object",
+          "description": "Widget-specific date formats for different UI contexts",
+          "additionalProperties": false,
+          "properties": {
+            "mini": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Format for mini widget display"
+            },
+            "main": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300,
+              "description": "Format for main widget display"
+            },
+            "grid": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "description": "Format for calendar grid display"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
     }
   }
 }
