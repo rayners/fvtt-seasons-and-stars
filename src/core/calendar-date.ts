@@ -41,16 +41,9 @@ export class CalendarDate implements ICalendarDate {
    * Format the date for display using the new template-based system
    */
   format(options: DateFormatOptions = {}): string {
-    const {
-      includeTime = false,
-      includeWeekday = true,
-      includeYear = true,
-      format = 'long',
-    } = options;
-
     // Try to use calendar's dateFormats first
     const dateFormats = this.calendar.dateFormats;
-    
+
     // Check for predefined formats in calendar
     if (dateFormats) {
       const formatName = this.getFormatNameFromOptions(options);
@@ -69,10 +62,10 @@ export class CalendarDate implements ICalendarDate {
    */
   private getFormatNameFromOptions(options: DateFormatOptions): string | null {
     const { includeTime, format } = options;
-    
+
     // Look for common format names based on options
     const possibleNames = [];
-    
+
     if (format === 'short') {
       possibleNames.push('short', 'brief');
     } else if (format === 'long') {
@@ -80,12 +73,12 @@ export class CalendarDate implements ICalendarDate {
     } else if (format === 'numeric') {
       possibleNames.push('numeric', 'iso', 'number');
     }
-    
+
     if (includeTime) {
       possibleNames.unshift(...possibleNames.map(name => `${name}Time`));
       possibleNames.unshift('datetime', 'timestamp');
     }
-    
+
     // Check if any of these formats exist in calendar
     const dateFormats = this.calendar.dateFormats;
     if (dateFormats) {
@@ -95,7 +88,7 @@ export class CalendarDate implements ICalendarDate {
         }
       }
     }
-    
+
     return null;
   }
 
@@ -254,7 +247,7 @@ export class CalendarDate implements ICalendarDate {
    */
   toTimeString(): string {
     if (!this.time) return '';
-    
+
     // Try named 'time' format first
     const dateFormats = this.calendar.dateFormats;
     if (dateFormats?.time) {

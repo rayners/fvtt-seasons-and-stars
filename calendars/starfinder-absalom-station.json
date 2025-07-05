@@ -13,7 +13,7 @@
     "epochYear": 1,
     "currentYear": 4720
   },
-  
+
   "year": {
     "epoch": 1,
     "currentYear": 4720,
@@ -21,14 +21,14 @@
     "suffix": " AG",
     "startDay": 1
   },
-  
+
   "leapYear": {
     "rule": "custom",
     "interval": 4,
     "month": "Calistril",
     "extraDays": 1
   },
-  
+
   "months": [
     {
       "name": "Abadius",
@@ -103,7 +103,7 @@
       "description": "Named after Zon-Kuthon, the midnight lord. The darkest month in the void between stars."
     }
   ],
-  
+
   "weekdays": [
     {
       "name": "Moonday",
@@ -141,9 +141,9 @@
       "description": "A day of rest observed across diverse worlds and species"
     }
   ],
-  
+
   "intercalary": [],
-  
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
@@ -151,19 +151,19 @@
   },
 
   "dateFormats": {
-    "galactic": "{{year}}.{{month:pad}}.{{day:pad}} AG",
-    "pact": "{{month:abbr}} {{day}}, {{year}} AG",
-    "long": "{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}} AG",
-    "short": "{{month:abbr}} {{day}}",
-    "date": "{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}} AG",
-    "time": "{{hour:pad}}:{{minute:pad}}:{{second:pad}} GST",
-    "datetime": "{{dateFmt:date}} at {{dateFmt:time}}",
+    "galactic": "{{year}}.{{s&s-month:pad}}.{{s&s-day:pad}} AG",
+    "pact": "{{s&s-month:abbr}} {{day}}, {{year}} AG",
+    "long": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}} AG",
+    "short": "{{s&s-month:abbr}} {{day}}",
+    "date": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}} AG",
+    "time": "{{s&s-hour:pad}}:{{s&s-minute:pad}}:{{s&s-second:pad}} GST",
+    "datetime": "{{s&s-dateFmt:date}} at {{s&s-dateFmt:time}}",
     "standard": "{{day}}/{{month}}/{{year}} AG",
-    "formal": "The {{day:ordinal}} day of {{month:name}}, in the year {{year}} After the Gap",
-    "starship": "Stardate {{year}}.{{month:pad}}{{day:pad}}",
+    "formal": "The {{s&s-day:ordinal}} day of {{s&s-month:name}}, in the year {{year}} After the Gap",
+    "starship": "Stardate {{year}}.{{s&s-month:pad}}{{s&s-day:pad}}",
     "widgets": {
-      "mini": "{{month:abbr}} {{day}}",
-      "main": "{{weekday:abbr}}, {{day:ordinal}} {{month:name}}",
+      "mini": "{{s&s-month:abbr}} {{day}}",
+      "main": "{{s&s-weekday:abbr}}, {{s&s-day:ordinal}} {{s&s-month:name}}",
       "grid": "{{day}}"
     }
   }
