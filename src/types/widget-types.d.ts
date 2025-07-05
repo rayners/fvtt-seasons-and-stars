@@ -164,3 +164,56 @@ export interface ApplicationV2Window {
   resizable: boolean;
   id?: string;
 }
+
+// Template context extension types
+export interface ContextExtensionAPI {
+  /**
+   * Register an extension that adds data to widget template contexts
+   * @param extensionData Extension configuration
+   * @returns Extension ID for later cleanup
+   */
+  registerExtension(extensionData: {
+    id?: string;
+    priority?: number;
+    widgetTypes: string[];
+    extensionFunction: (context: any, widgetType: string, options?: any) => any | Promise<any>;
+    metadata: {
+      name: string;
+      description?: string;
+      version?: string;
+      author?: string;
+    };
+  }): string;
+
+  /**
+   * Register a hook that runs before or after context preparation
+   * @param hookData Hook configuration
+   * @returns Hook ID for later cleanup
+   */
+  registerHook(hookData: {
+    id?: string;
+    phase: 'before' | 'after';
+    widgetTypes?: string[];
+    hookFunction: (
+      context: any,
+      widgetType: string,
+      phase: string,
+      options?: any
+    ) => any | Promise<any> | void;
+  }): string;
+
+  /**
+   * Unregister an extension by ID
+   */
+  unregisterExtension(extensionId: string): boolean;
+
+  /**
+   * Unregister a hook by ID
+   */
+  unregisterHook(hookId: string): boolean;
+
+  /**
+   * Clean up all extensions and hooks for this module
+   */
+  cleanup(): void;
+}

@@ -12,6 +12,7 @@ import type {
 } from '../../types/external-calendar';
 import type { SeasonsStarsCalendar } from '../../types/calendar';
 import { Logger } from '../logger';
+import { devEnvironment } from '../dev-environment-detector';
 import {
   normalizeCalendarLocation,
   hasFileExtension,
@@ -279,30 +280,56 @@ export class LocalProtocolHandler implements ProtocolHandler {
 
     Logger.debug(`Normalized local file URL: ${fileUrl}`);
 
+    // Get development-aware headers
+    const devHeaders = devEnvironment.getDevHeaders();
+
     // Prepare fetch options
     const fetchOptions: RequestInit = {
       method: 'GET',
       headers: {
         Accept: 'application/json',
+        ...devHeaders,
         ...options.headers,
       },
     };
 
-    // Add timeout if specified
-    if (options.timeout) {
-      const controller = new AbortController();
-      setTimeout(() => controller.abort(), options.timeout);
-      fetchOptions.signal = controller.signal;
+    // Use development-aware timeout
+    const timeout = options.timeout || 10000; // Default 10 seconds for local files
+    const devTimeout = devEnvironment.getDevTimeout(timeout);
+
+    if (devTimeout !== timeout && devEnvironment.isDevelopment()) {
+      Logger.debug(`Using extended timeout for local file development: ${devTimeout}ms`);
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), devTimeout);
+    fetchOptions.signal = controller.signal;
+
+    // Enhanced logging for development mode
+    if (devEnvironment.isDevelopment()) {
+      Logger.debug(`Loading local calendar file in development mode: ${fileUrl}`, {
+        devMode: true,
+        originalPath: filePath,
+        normalizedUrl: fileUrl,
+        timeout: devTimeout,
+        cacheDisabled: devEnvironment.shouldDisableCaching(),
+      });
     }
 
     // Attempt to fetch the local file
     try {
-      return await fetch(fileUrl, fetchOptions);
+      const response = await fetch(fileUrl, fetchOptions);
+      clearTimeout(timeoutId);
+      return response;
     } catch (fetchError) {
+      clearTimeout(timeoutId);
+
       // Handle common local file access errors
       if (fetchError instanceof Error) {
         if (fetchError.name === 'AbortError') {
-          throw new Error(`Request timeout: Failed to load from ${fileUrl}`);
+          throw new Error(
+            `Request timeout: Failed to load from ${fileUrl} (timeout: ${devTimeout}ms)`
+          );
         }
         if (
           fetchError.message.includes('Failed to fetch') ||

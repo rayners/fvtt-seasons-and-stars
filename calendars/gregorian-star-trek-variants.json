@@ -8,7 +8,8 @@
   "translations": {
     "en": {
       "label": "Star Trek Calendar Variants",
-      "description": "Calendar variants for Star Trek gaming sessions"
+      "description": "Calendar variants for Star Trek gaming sessions",
+      "setting": "Star Trek"
     }
   },
   "variants": {

@@ -122,6 +122,8 @@ describe('ExternalCalendarRegistry', () => {
       expect(parsed).toEqual({
         protocol: 'mock',
         location: 'test://example',
+        namespace: 'test:/',
+        calendarId: 'example',
       });
     });
 
@@ -164,13 +166,17 @@ describe('ExternalCalendarRegistry', () => {
 
     it('should cache loaded calendars', async () => {
       // First load - should not be from cache
-      const result1: LoadCalendarResult =
-        await registry.loadExternalCalendar('mock:test://cacheable');
+      const result1: LoadCalendarResult = await registry.loadExternalCalendar(
+        'mock:test://cacheable',
+        { enableDevMode: false }
+      );
       expect(result1.fromCache).toBe(false);
 
       // Second load - should be from cache
-      const result2: LoadCalendarResult =
-        await registry.loadExternalCalendar('mock:test://cacheable');
+      const result2: LoadCalendarResult = await registry.loadExternalCalendar(
+        'mock:test://cacheable',
+        { enableDevMode: false }
+      );
       expect(result2.fromCache).toBe(true);
       expect(result2.calendar?.id).toBe(result1.calendar?.id);
     });
@@ -181,24 +187,29 @@ describe('ExternalCalendarRegistry', () => {
       registry.configure(config);
 
       // Load and cache
-      const result1 = await registry.loadExternalCalendar('mock:test://expires');
+      const result1 = await registry.loadExternalCalendar('mock:test://expires', {
+        enableDevMode: false,
+      });
       expect(result1.fromCache).toBe(false);
 
       // Wait for cache to expire
       await new Promise(resolve => setTimeout(resolve, 10));
 
       // Should reload from source
-      const result2 = await registry.loadExternalCalendar('mock:test://expires');
+      const result2 = await registry.loadExternalCalendar('mock:test://expires', {
+        enableDevMode: false,
+      });
       expect(result2.fromCache).toBe(false);
     });
 
     it('should force refresh when requested', async () => {
       // Load and cache
-      await registry.loadExternalCalendar('mock:test://forceable');
+      await registry.loadExternalCalendar('mock:test://forceable', { enableDevMode: false });
 
       // Force refresh should bypass cache
       const result = await registry.loadExternalCalendar('mock:test://forceable', {
         forceRefresh: true,
+        enableDevMode: false,
       });
       expect(result.fromCache).toBe(false);
     });
@@ -216,7 +227,7 @@ describe('ExternalCalendarRegistry', () => {
 
     it('should clear cache when requested', async () => {
       // Load and cache some data
-      await registry.loadExternalCalendar('mock:test://clearable');
+      await registry.loadExternalCalendar('mock:test://clearable', { enableDevMode: false });
 
       // Clear cache
       registry.clearCache();
@@ -334,18 +345,23 @@ describe('ExternalCalendarRegistry', () => {
         registry.registerHandler(prodHandler);
 
         // Load from production module - should cache normally
-        const result1 = await registry.loadExternalCalendar('module:test-prod-module/calendar');
+        const result1 = await registry.loadExternalCalendar('module:test-prod-module/calendar', {
+          enableDevMode: false,
+        });
         expect(result1.success).toBe(true);
         expect(result1.fromCache).toBe(false);
 
         // Load again - should come from cache
-        const result2 = await registry.loadExternalCalendar('module:test-prod-module/calendar');
+        const result2 = await registry.loadExternalCalendar('module:test-prod-module/calendar', {
+          enableDevMode: false,
+        });
         expect(result2.success).toBe(true);
         expect(result2.fromCache).toBe(true);
 
         // Load with skipModuleCache option - should skip cache
         const result3 = await registry.loadExternalCalendar('module:test-prod-module/calendar', {
           skipModuleCache: true,
+          enableDevMode: false,
         });
         expect(result3.success).toBe(true);
         expect(result3.fromCache).toBe(false); // Cache manually skipped
@@ -431,8 +447,12 @@ describe('ExternalCalendarRegistry', () => {
           registry.clearCache();
 
           // Load twice - second should come from cache for production versions
-          const result1 = await registry.loadExternalCalendar('module:version-test/calendar');
-          const result2 = await registry.loadExternalCalendar('module:version-test/calendar');
+          const result1 = await registry.loadExternalCalendar('module:version-test/calendar', {
+            enableDevMode: false,
+          });
+          const result2 = await registry.loadExternalCalendar('module:version-test/calendar', {
+            enableDevMode: false,
+          });
 
           expect(result1.fromCache).toBe(false);
           expect(result2.fromCache).toBe(true); // Should use cache for production version
@@ -456,15 +476,15 @@ describe('ExternalCalendarRegistry', () => {
       expect(appliedConfig.maxCacheSize).toBe(2);
 
       // Load 3 calendars (should evict the first one)
-      await registry.loadExternalCalendar('mock:test://first');
+      await registry.loadExternalCalendar('mock:test://first', { enableDevMode: false });
       const stats1 = registry.getCacheStats();
       expect(stats1.totalCached).toBe(1);
 
-      await registry.loadExternalCalendar('mock:test://second');
+      await registry.loadExternalCalendar('mock:test://second', { enableDevMode: false });
       const stats2 = registry.getCacheStats();
       expect(stats2.totalCached).toBe(2);
 
-      await registry.loadExternalCalendar('mock:test://third');
+      await registry.loadExternalCalendar('mock:test://third', { enableDevMode: false });
       const stats3 = registry.getCacheStats();
 
       // Debug: log current state
@@ -582,8 +602,8 @@ describe('ExternalCalendarRegistry', () => {
       registry.on('calendar-cached', eventSpy);
 
       // Load twice to trigger cache event on second load
-      await registry.loadExternalCalendar('mock:test://cache-events');
-      await registry.loadExternalCalendar('mock:test://cache-events');
+      await registry.loadExternalCalendar('mock:test://cache-events', { enableDevMode: false });
+      await registry.loadExternalCalendar('mock:test://cache-events', { enableDevMode: false });
 
       expect(eventSpy).toHaveBeenCalled();
     });
@@ -601,6 +621,108 @@ describe('ExternalCalendarRegistry', () => {
         calendarId: 'mock:test://error',
         error: 'Mock error',
       });
+    });
+  });
+
+  describe('LocalStorage Integration', () => {
+    beforeEach(() => {
+      // Clear localStorage before each test
+      if (typeof localStorage !== 'undefined') {
+        localStorage.clear();
+      }
+    });
+
+    afterEach(() => {
+      // Clean up localStorage after each test
+      if (typeof localStorage !== 'undefined') {
+        localStorage.clear();
+      }
+    });
+
+    it('should provide LocalStorage information', () => {
+      const storageInfo = registry.getLocalStorageInfo();
+
+      expect(storageInfo).toBeDefined();
+      expect(storageInfo.available).toBe(true);
+      expect(storageInfo.enabled).toBe(true);
+      expect(storageInfo.entryCount).toBe(0);
+      expect(storageInfo.size).toBe(0);
+    });
+
+    it('should configure LocalStorage settings', () => {
+      registry.configure({
+        enableLocalStorage: true,
+        localStoragePrefix: 'custom-prefix',
+        localStorageMaxSizeMB: 5,
+      });
+
+      const storageInfo = registry.getLocalStorageInfo();
+      expect(storageInfo.enabled).toBe(true);
+      expect(storageInfo.maxSize).toBe(5 * 1024 * 1024);
+    });
+
+    it('should disable LocalStorage when configured', () => {
+      registry.configure({
+        enableLocalStorage: false,
+      });
+
+      const storageInfo = registry.getLocalStorageInfo();
+      expect(storageInfo.enabled).toBe(false);
+    });
+
+    it('should allow manual LocalStorage cleanup', () => {
+      // This should not throw an error
+      expect(() => {
+        registry.cleanupLocalStorage();
+      }).not.toThrow();
+    });
+
+    it('should persist cached external calendars to LocalStorage', async () => {
+      registry.registerHandler({
+        protocol: 'https',
+        canHandle: () => true,
+        loadCalendar: async () => mockCalendar,
+      });
+
+      // Use useCache: true and enableDevMode: false to force caching
+      const result = await registry.loadExternalCalendar(
+        'https:calendars.example.org/standard.json',
+        {
+          useCache: true,
+          enableDevMode: false,
+        }
+      );
+      expect(result.success).toBe(true);
+      expect(result.fromCache).toBe(false); // First load should not be from cache
+
+      // Check memory cache first
+      const cacheStats = registry.getCacheStats();
+      expect(cacheStats.totalCached).toBe(1);
+
+      // Check that it was persisted to LocalStorage
+      const storageInfo = registry.getLocalStorageInfo();
+      expect(storageInfo.entryCount).toBe(1);
+      expect(storageInfo.size).toBeGreaterThan(0);
+
+      // Create a new registry instance to test loading from storage
+      const newRegistry = new ExternalCalendarRegistry();
+      newRegistry.registerHandler({
+        protocol: 'https',
+        canHandle: () => true,
+        loadCalendar: async () => ({ ...mockCalendar, id: 'should-not-be-called' }),
+      });
+
+      // Should load from cache without hitting the handler
+      const cachedResult = await newRegistry.loadExternalCalendar(
+        'https:calendars.example.org/standard.json',
+        {
+          useCache: true,
+          enableDevMode: false,
+        }
+      );
+      expect(cachedResult.success).toBe(true);
+      expect(cachedResult.fromCache).toBe(true);
+      expect(cachedResult.calendar?.id).toBe(mockCalendar.id); // Should have original calendar, not the replacement
     });
   });
 });

@@ -15,6 +15,16 @@ declare global {
   interface Window {
     gc?: () => void; // Chrome garbage collection (when enabled with --enable-precise-memory-info)
   }
+
+  // Handlebars types for template compilation
+  namespace Handlebars {
+    function compile(source: string): HandlebarsTemplateDelegate;
+    function registerHelper(name: string, helper: Function): void;
+  }
+
+  interface HandlebarsTemplateDelegate {
+    (context: any): string;
+  }
 }
 
 // =============================================================================
@@ -256,7 +266,8 @@ interface Module {
   active: boolean;
   version?: string;
   path?: string; // Module path for file loading
-  manifest?: {    // Module manifest data
+  manifest?: {
+    // Module manifest data
     version?: string;
     [key: string]: unknown;
   };
@@ -522,6 +533,7 @@ declare namespace DialogV2 {
     content?: string;
     label?: string;
     default?: string;
+    ok?: string;
     callback?: Function;
     modal?: boolean;
     rejectClose?: boolean;

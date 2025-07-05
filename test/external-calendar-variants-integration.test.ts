@@ -71,11 +71,7 @@ describe('External Calendar Variants Integration', () => {
       { name: 'Second', days: 30 },
       { name: 'Third', days: 30 },
     ],
-    weekdays: [
-      { name: 'Oneday' },
-      { name: 'Twoday' },
-      { name: 'Threeday' },
-    ],
+    weekdays: [{ name: 'Oneday' }, { name: 'Twoday' }, { name: 'Threeday' }],
     year: { epoch: 1000, suffix: ' EC', currentYear: 1000 },
     time: {
       hoursInDay: 24,
@@ -128,7 +124,7 @@ describe('External Calendar Variants Integration', () => {
     },
   };
 
-  // Test calendar without variants  
+  // Test calendar without variants
   const externalCalendarWithoutVariants: SeasonsStarsCalendar = {
     id: 'external-simple-calendar',
     translations: {
@@ -141,10 +137,7 @@ describe('External Calendar Variants Integration', () => {
       { name: 'Alpha', days: 25 },
       { name: 'Beta', days: 25 },
     ],
-    weekdays: [
-      { name: 'Workday' },
-      { name: 'Restday' },
-    ],
+    weekdays: [{ name: 'Workday' }, { name: 'Restday' }],
     year: { epoch: 2000, suffix: ' SC', currentYear: 2000 },
     time: {
       hoursInDay: 24,
@@ -164,21 +157,7 @@ describe('External Calendar Variants Integration', () => {
     mockFetch.mockImplementation((url: string | Request) => {
       const urlString = typeof url === 'string' ? url : url.url;
 
-      if (urlString.includes('with-variants.json')) {
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          headers: new Headers({ 'content-type': 'application/json' }),
-          json: () => Promise.resolve(externalCalendarWithVariants),
-        } as Response);
-      } else if (urlString.includes('without-variants.json')) {
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          headers: new Headers({ 'content-type': 'application/json' }),
-          json: () => Promise.resolve(externalCalendarWithoutVariants),
-        } as Response);
-      } else if (urlString.includes('api.github.com')) {
+      if (urlString.includes('api.github.com')) {
         // Mock GitHub API response - check for both with-variants and without-variants
         const calendarContent = urlString.includes('with-variants')
           ? externalCalendarWithVariants
@@ -194,6 +173,20 @@ describe('External Calendar Variants Integration', () => {
               sha: 'abc123',
             }),
         } as Response);
+      } else if (urlString.includes('with-variants.json')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve(externalCalendarWithVariants),
+        } as Response);
+      } else if (urlString.includes('without-variants.json')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve(externalCalendarWithoutVariants),
+        } as Response);
       }
 
       return Promise.resolve({
@@ -205,11 +198,11 @@ describe('External Calendar Variants Integration', () => {
     // Create a fresh CalendarManager instance for each test
     calendarManager = new CalendarManager();
     await calendarManager.initialize();
-    
+
     // Clear any calendars that might have been loaded
     calendarManager.calendars.clear();
     calendarManager.engines.clear();
-    
+
     // Clear external calendar cache
     calendarManager.clearExternalCache();
   });
@@ -391,7 +384,7 @@ describe('External Calendar Variants Integration', () => {
       calendarManager.calendars.clear();
       calendarManager.engines.clear();
       calendarManager.clearExternalCache();
-      
+
       // Load via GitHub protocol
       const result = await calendarManager.loadExternalCalendar(
         'github:example-user/example-repo/calendars/with-variants.json'
@@ -401,9 +394,21 @@ describe('External Calendar Variants Integration', () => {
 
       // Should have base calendar + 3 variants = 4 total
       expect(calendarManager.calendars.size).toBe(4);
-      expect(calendarManager.calendars.has('external-custom-calendar(winter-theme)')).toBe(true);
-      expect(calendarManager.calendars.has('external-custom-calendar(summer-theme)')).toBe(true);
-      expect(calendarManager.calendars.has('external-custom-calendar(merchant-theme)')).toBe(true);
+      expect(
+        calendarManager.calendars.has(
+          'example-user/example-repo/calendars/external-custom-calendar(winter-theme)'
+        )
+      ).toBe(true);
+      expect(
+        calendarManager.calendars.has(
+          'example-user/example-repo/calendars/external-custom-calendar(summer-theme)'
+        )
+      ).toBe(true);
+      expect(
+        calendarManager.calendars.has(
+          'example-user/example-repo/calendars/external-custom-calendar(merchant-theme)'
+        )
+      ).toBe(true);
     });
 
     it('should handle external calendar variants across multiple external sources', async () => {
@@ -419,9 +424,15 @@ describe('External Calendar Variants Integration', () => {
       expect(calendarManager.calendars.size).toBe(5);
 
       // Check both sources loaded correctly
+      // HTTPS source (no namespace): external-custom-calendar and variants
       expect(calendarManager.calendars.has('external-custom-calendar')).toBe(true);
       expect(calendarManager.calendars.has('external-custom-calendar(winter-theme)')).toBe(true);
-      expect(calendarManager.calendars.has('external-simple-calendar')).toBe(true);
+      // GitHub source (with namespace): example-user/example-repo/calendars/external-simple-calendar
+      expect(
+        calendarManager.calendars.has(
+          'example-user/example-repo/calendars/external-simple-calendar'
+        )
+      ).toBe(true);
     });
   });
 
@@ -437,6 +448,7 @@ describe('External Calendar Variants Integration', () => {
           },
           'good-variant': {
             name: 'Good Variant',
+            description: 'A valid variant with all required fields',
             overrides: { year: { suffix: ' GOOD' } },
           },
         },
@@ -470,8 +482,8 @@ describe('External Calendar Variants Integration', () => {
       const brokenVariantsCalendar = {
         ...externalCalendarWithVariants,
         variants: {
-          'broken1': {}, // Missing name and overrides
-          'broken2': { name: 'Broken' }, // Missing overrides
+          broken1: {}, // Missing name and overrides
+          broken2: { name: 'Broken' }, // Missing overrides
         },
       };
 
@@ -497,17 +509,19 @@ describe('External Calendar Variants Integration', () => {
 
   describe('External Calendar Variant Cache Integration', () => {
     it('should cache external calendars with their expanded variants', async () => {
-      // Load external calendar with variants
+      // Load external calendar with variants (disable dev mode to enable caching)
       await calendarManager.loadExternalCalendar(
-        'https://example.com/calendars/with-variants.json'
+        'https://example.com/calendars/with-variants.json',
+        { enableDevMode: false }
       );
 
       // Clear fetch mock to ensure cache is used
       mockFetch.mockClear();
 
-      // Load same calendar again - should use cache
+      // Load same calendar again - should use cache (disable dev mode to ensure caching)
       const result = await calendarManager.loadExternalCalendar(
-        'https://example.com/calendars/with-variants.json'
+        'https://example.com/calendars/with-variants.json',
+        { enableDevMode: false }
       );
 
       expect(result).toBe(true);

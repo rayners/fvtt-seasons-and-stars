@@ -30,6 +30,10 @@ export interface ExternalCalendarSource {
   protocol: CalendarProtocol;
   /** Location within the protocol (URL path, module path, etc.) */
   location: CalendarLocation;
+  /** Extracted namespace from the location (e.g., 'rayners', 'github.com/user/repo') */
+  namespace?: string;
+  /** Extracted calendar ID from the location */
+  calendarId?: string;
   /** Human-readable label for this source */
   label?: string;
   /** Description of this calendar source */
@@ -94,6 +98,8 @@ export interface LoadCalendarOptions {
   forceRefresh?: boolean;
   /** Skip caching for module calendars (useful for development) */
   skipModuleCache?: boolean;
+  /** Enable development mode behaviors (auto-detected if not specified) */
+  enableDevMode?: boolean;
   /** Timeout for the request in milliseconds */
   timeout?: number;
   /** Additional headers for the request */
@@ -146,6 +152,12 @@ export interface ExternalCalendarConfig {
   autoUpdate?: boolean;
   /** How often to check for updates (milliseconds) */
   updateInterval?: number;
+  /** Whether to enable LocalStorage persistence for cache */
+  enableLocalStorage?: boolean;
+  /** Prefix for LocalStorage keys */
+  localStoragePrefix?: string;
+  /** Maximum LocalStorage size in MB */
+  localStorageMaxSizeMB?: number;
 }
 
 /**
@@ -223,15 +235,3 @@ export interface CalendarIndexEntry {
     [key: string]: any;
   };
 }
-
-/**
- * GitHub repository calendar index structure (alias for backward compatibility)
- * @deprecated Use CalendarCollectionIndex instead
- */
-export type GitHubRepositoryIndex = CalendarCollectionIndex;
-
-/**
- * Calendar entry in GitHub repository index (alias for backward compatibility)
- * @deprecated Use CalendarIndexEntry instead
- */
-export type GitHubCalendarEntry = CalendarIndexEntry;

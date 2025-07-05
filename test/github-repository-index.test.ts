@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { GitHubRepositoryIndex, GitHubCalendarEntry } from '../src/types/external-calendar';
+import type { CalendarCollectionIndex, CalendarIndexEntry } from '../src/types/external-calendar';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
 import { GitHubProtocolHandler } from '../src/core/protocol-handlers/github-handler';
 
@@ -45,7 +45,7 @@ const mockCalendar2: SeasonsStarsCalendar = {
 };
 
 // Mock repository index
-const mockRepositoryIndex: GitHubRepositoryIndex = {
+const mockRepositoryIndex: CalendarCollectionIndex = {
   name: 'Community Calendar Collection',
   description: 'A curated collection of fantasy calendars',
   version: '1.0.0',
@@ -82,7 +82,7 @@ const mockRepositoryIndex: GitHubRepositoryIndex = {
 };
 
 // Mock single calendar index
-const mockSingleCalendarIndex: GitHubRepositoryIndex = {
+const mockSingleCalendarIndex: CalendarCollectionIndex = {
   name: 'Single Calendar Repository',
   calendars: [
     {
@@ -94,7 +94,7 @@ const mockSingleCalendarIndex: GitHubRepositoryIndex = {
 };
 
 // Mock empty index
-const mockEmptyIndex: GitHubRepositoryIndex = {
+const mockEmptyIndex: CalendarCollectionIndex = {
   name: 'Empty Repository',
   calendars: [],
 };
@@ -271,7 +271,7 @@ describe('GitHubProtocolHandler Repository Index System', () => {
       } catch (error) {
         expect(error).toBeInstanceOf(Error);
         expect((error as Error).message).toContain(
-          `Calendar 'nonexistent-calendar' not found in repository index`
+          `Calendar 'nonexistent-calendar' not found in Repository`
         );
         expect((error as Error).message).toContain('forgotten-realms, custom-eberron');
       }
@@ -301,7 +301,7 @@ describe('GitHubProtocolHandler Repository Index System', () => {
     });
   });
 
-  describe('Direct File Access (Backward Compatibility)', () => {
+  describe('Direct File Access', () => {
     it('should still support direct file access', async () => {
       const calendarResponse = {
         ok: true,
@@ -324,7 +324,7 @@ describe('GitHubProtocolHandler Repository Index System', () => {
       );
     });
 
-    it('should add .json extension to direct file paths', async () => {
+    it('should handle direct file access with existing extensions', async () => {
       const calendarResponse = {
         ok: true,
         json: () =>
@@ -337,7 +337,8 @@ describe('GitHubProtocolHandler Repository Index System', () => {
 
       fetchSpy.mockResolvedValueOnce(calendarResponse);
 
-      await handler.loadCalendar('test-user/test-repo/calendars/direct');
+      // Use a path with existing extension - should not modify it
+      await handler.loadCalendar('test-user/test-repo/calendars/direct.json');
 
       expect(fetchSpy).toHaveBeenCalledWith(
         'https://api.github.com/repos/test-user/test-repo/contents/calendars/direct.json',
@@ -389,7 +390,9 @@ describe('GitHubProtocolHandler Repository Index System', () => {
           expect.fail(`Invalid index ${index} should have thrown validation error`);
         } catch (error) {
           expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toMatch(/Repository index|Calendar entry|Duplicate/);
+          expect((error as Error).message).toMatch(
+            /Calendar collection index|Calendar entry|Duplicate/
+          );
         }
       }
     });

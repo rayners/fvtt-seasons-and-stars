@@ -131,20 +131,21 @@ Seasons & Stars supports powerful date formatting using Handlebars templates wit
 
 ```json
 "dateFormats": {
-  "iso": "{{year}}-{{month:pad}}-{{day:pad}}",
-  "short": "{{month:abbr}} {{day}}",
-  "long": "{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}}",
-  "stardate": "{{stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}",
-  "historical": "{{math year op='subtract' value=894}} years since the Last War",
+  "iso": "{{year}}-{{s&s-month:pad}}-{{s&s-day:pad}}",
+  "short": "{{s&s-month:abbr}} {{day}}",
+  "long": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}}",
+  "stardate": "{{s&s-stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}",
+  "historical": "{{s&s-math year op='subtract' value=894}} years since the Last War",
   "widgets": {
-    "mini": "{{month:abbr}} {{day}}",
-    "main": "{{weekday:abbr}}, {{day:ordinal}} {{month:name}}",
+    "mini": "{{s&s-month:abbr}} {{day}}",
+    "main": "{{s&s-weekday:abbr}}, {{s&s-day:ordinal}} {{s&s-month:name}}",
     "grid": "{{day}}"
   }
 }
 ```
 
 **Available Template Variables:**
+
 - `{{year}}` - Full year number
 - `{{month}}` - Month number (1-based)
 - `{{day}}` - Day number (1-based)
@@ -154,40 +155,44 @@ Seasons & Stars supports powerful date formatting using Handlebars templates wit
 
 **Built-in Helpers:**
 
-*Basic Formatting:*
-- `{{day:pad}}` - Zero-padded day (01, 02, etc.)
-- `{{day:ordinal}}` - Ordinal day (1st, 2nd, 3rd, etc.)
-- `{{month:pad}}` - Zero-padded month
-- `{{month:name}}` - Full month name
-- `{{month:abbr}}` - Month abbreviation
-- `{{weekday:name}}` - Full weekday name
-- `{{weekday:abbr}}` - Weekday abbreviation
+_Basic Formatting:_
 
-*Mathematical Operations:*
-- `{{math value op="add" value=100}}` - Addition
-- `{{math value op="subtract" value=50}}` - Subtraction
-- `{{math value op="multiply" value=2}}` - Multiplication
-- `{{math value op="divide" value=3}}` - Division
-- `{{math value op="modulo" value=7}}` - Modulo
+- `{{s&s-day:pad}}` - Zero-padded day (01, 02, etc.)
+- `{{s&s-day:ordinal}}` - Ordinal day (1st, 2nd, 3rd, etc.)
+- `{{s&s-month:pad}}` - Zero-padded month
+- `{{s&s-month:name}}` - Full month name
+- `{{s&s-month:abbr}}` - Month abbreviation
+- `{{s&s-weekday:name}}` - Full weekday name
+- `{{s&s-weekday:abbr}}` - Weekday abbreviation
 
-*Advanced Calculations:*
-- `{{stardate year prefix="47" baseYear=2370 dayOfYear=dayOfYear precision=1}}` - Star Trek stardates
+_Mathematical Operations:_
+
+- `{{s&s-math value op="add" value=100}}` - Addition
+- `{{s&s-math value op="subtract" value=50}}` - Subtraction
+- `{{s&s-math value op="multiply" value=2}}` - Multiplication
+- `{{s&s-math value op="divide" value=3}}` - Division
+- `{{s&s-math value op="modulo" value=7}}` - Modulo
+
+_Advanced Calculations:_
+
+- `{{s&s-stardate year prefix="47" baseYear=2370 dayOfYear=dayOfYear precision=1}}` - Star Trek stardates
 
 **Format Embedding:**
 
-Reference other formats within templates using `{{dateFmt:formatName}}`:
+Reference other formats within templates using `{{s&s-dateFmt:formatName}}`:
 
 ```json
 {
-  "tng-stardate": "{{stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}",
-  "starfleet": "Stardate {{dateFmt:tng-stardate}}",
-  "command-log": "{{dateFmt:starfleet}} - {{dateFmt:federation}}"
+  "tng-stardate": "{{s&s-stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}",
+  "starfleet": "Stardate {{s&s-dateFmt:tng-stardate}}",
+  "command-log": "{{s&s-dateFmt:starfleet}} - {{s&s-dateFmt:federation}}"
 }
 ```
 
 **Widget-Specific Formats:**
 
 The `widgets` property provides formats optimized for different UI contexts:
+
 - `mini` - Compact display for mini widget
 - `main` - Standard display for main widget
 - `grid` - Minimal display for calendar grid
@@ -199,8 +204,8 @@ Supports named variants for complex formatting scenarios:
 ```json
 {
   "date": {
-    "short": "{{month:abbr}} {{day}}",
-    "long": "{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}}"
+    "short": "{{s&s-month:abbr}} {{day}}",
+    "long": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}}"
   }
 }
 ```

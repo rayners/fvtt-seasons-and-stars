@@ -200,23 +200,26 @@ const gridFormat = game.seasonsStars.api.formatDateWidget(date, 'grid');
 Seasons & Stars v0.5.0+ includes a powerful Handlebars-based formatting system with mathematical operations and format embedding:
 
 **Template Variables Available:**
+
 - `{{year}}`, `{{month}}`, `{{day}}`, `{{weekday}}` - Basic date components
 - `{{dayOfYear}}` - Day of year (1-365)
 - `{{hour}}`, `{{minute}}`, `{{second}}` - Time components
 
 **Mathematical Operations:**
+
 ```javascript
-// Calendar defines: "historical": "{{math year op='subtract' value=894}} years since the Last War"
+// Calendar defines: "historical": "{{s&s-math year op='subtract' value=894}} years since the Last War"
 const historical = game.seasonsStars.api.formatDateNamed(date, 'historical');
 // Returns: "130 years since the Last War" (if current year is 1024)
 ```
 
 **Format Embedding:**
+
 ```javascript
 // Calendar defines:
-// "tng-stardate": "{{stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}"
-// "starfleet": "Stardate {{dateFmt:tng-stardate}}"
-// "command-log": "{{dateFmt:starfleet}} - {{dateFmt:federation}}"
+// "tng-stardate": "{{s&s-stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}"
+// "starfleet": "Stardate {{s&s-dateFmt:tng-stardate}}"
+// "command-log": "{{s&s-dateFmt:starfleet}} - {{s&s-dateFmt:federation}}"
 
 const complex = game.seasonsStars.api.formatDateNamed(date, 'command-log');
 // Returns: "Stardate 47015.0 - Jan 15, 2024"
@@ -229,12 +232,12 @@ Define advanced formats in your calendar JSON:
 ```json
 {
   "dateFormats": {
-    "stardate": "{{stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}",
-    "mathematical": "Year {{math year op='add' value=1000}} of the Empire",
-    "embedded": "Today is {{dateFmt:stardate}} ({{dateFmt:federation}})",
+    "stardate": "{{s&s-stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear}}",
+    "mathematical": "Year {{s&s-math year op='add' value=1000}} of the Empire",
+    "embedded": "Today is {{s&s-dateFmt:stardate}} ({{s&s-dateFmt:federation}})",
     "widgets": {
-      "mini": "SD {{dateFmt:stardate}}",
-      "main": "{{weekday:abbr}}, Day {{dayOfYear}}",
+      "mini": "SD {{s&s-dateFmt:stardate}}",
+      "main": "{{s&s-weekday:abbr}}, Day {{dayOfYear}}",
       "grid": "{{day}}"
     }
   }

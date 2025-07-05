@@ -108,10 +108,7 @@ describe('External Calendar Settings and API Integration', () => {
       { name: 'First', days: 30 },
       { name: 'Second', days: 30 },
     ],
-    weekdays: [
-      { name: 'Workday' },
-      { name: 'Restday' },
-    ],
+    weekdays: [{ name: 'Workday' }, { name: 'Restday' }],
     year: { epoch: 1000, suffix: ' TC', currentYear: 1000 },
     time: {
       hoursInDay: 24,
@@ -132,7 +129,11 @@ describe('External Calendar Settings and API Integration', () => {
     mockFetch.mockImplementation((url: string | Request) => {
       const urlString = typeof url === 'string' ? url : url.url;
 
-      if (urlString.includes('test1.json') || urlString.includes('test2.json') || urlString.includes('test3.json')) {
+      if (
+        urlString.includes('test1.json') ||
+        urlString.includes('test2.json') ||
+        urlString.includes('test3.json')
+      ) {
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -160,7 +161,7 @@ describe('External Calendar Settings and API Integration', () => {
 
     calendarManager = new CalendarManager();
     await calendarManager.initialize();
-    
+
     // Clear any calendars that might have been loaded
     calendarManager.calendars.clear();
     calendarManager.engines.clear();
@@ -211,8 +212,14 @@ describe('External Calendar Settings and API Integration', () => {
       expect(loadedSources).toHaveLength(2); // Only 2 enabled sources
       expect(loadedSources).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ protocol: 'https', location: 'example.com/calendars/test1.json' }),
-          expect.objectContaining({ protocol: 'github', location: 'user/repo/calendars/test2.json' }),
+          expect.objectContaining({
+            protocol: 'https',
+            location: 'example.com/calendars/test1.json',
+          }),
+          expect.objectContaining({
+            protocol: 'github',
+            location: 'user/repo/calendars/test2.json',
+          }),
         ])
       );
     });
@@ -228,7 +235,10 @@ describe('External Calendar Settings and API Integration', () => {
       // Should have loaded 2 calendars (only enabled sources) - both point to same test calendar
       // Since both enabled sources return the same calendar data, we only get 1 unique calendar loaded
       expect(newCalendarManager.calendars.size).toBe(1);
-      expect(newCalendarManager.calendars.has('test-external-calendar')).toBe(true);
+      // The calendar gets a namespaced ID: namespace/original-id
+      expect(newCalendarManager.calendars.has('example.com/calendars/test-external-calendar')).toBe(
+        true
+      );
     });
 
     it('should update settings when external sources are modified', async () => {
@@ -326,10 +336,9 @@ describe('External Calendar Settings and API Integration', () => {
       expect(mockAPI.removeExternalSource).toHaveBeenCalledWith('https:example.com/test.json');
 
       mockAPI.updateExternalSource('https:example.com/test.json', { enabled: false });
-      expect(mockAPI.updateExternalSource).toHaveBeenCalledWith(
-        'https:example.com/test.json',
-        { enabled: false }
-      );
+      expect(mockAPI.updateExternalSource).toHaveBeenCalledWith('https:example.com/test.json', {
+        enabled: false,
+      });
 
       mockAPI.getExternalCacheStats();
       expect(mockAPI.getExternalCacheStats).toHaveBeenCalled();
@@ -340,14 +349,18 @@ describe('External Calendar Settings and API Integration', () => {
 
     it('should provide access to CalendarManager external methods', async () => {
       // Test CalendarManager methods directly
-      const result = await calendarManager.loadExternalCalendar('https:example.com/calendars/test1.json');
+      const result = await calendarManager.loadExternalCalendar(
+        'https:example.com/calendars/test1.json'
+      );
       expect(result).toBe(true);
 
       calendarManager.addExternalSource(testExternalSources[0]);
       const sources = calendarManager.getExternalSources();
       expect(sources).toHaveLength(1);
 
-      calendarManager.updateExternalSource('https:example.com/calendars/test1.json', { enabled: false });
+      calendarManager.updateExternalSource('https:example.com/calendars/test1.json', {
+        enabled: false,
+      });
       const updatedSources = calendarManager.getExternalSources();
       expect(updatedSources[0].enabled).toBe(false);
 
@@ -402,7 +415,16 @@ describe('External Calendar Settings and API Integration', () => {
       expect(mockSettings.set).toHaveBeenCalledWith(
         'seasons-and-stars',
         'externalCalendarSources',
-        expect.arrayContaining([source])
+        expect.arrayContaining([
+          expect.objectContaining({
+            protocol: 'https',
+            location: 'example.com/calendars/programmatic.json',
+            label: 'Programmatic Calendar',
+            description: 'Calendar added via API',
+            enabled: true,
+            trusted: true,
+          }),
+        ])
       );
     });
 
@@ -418,10 +440,14 @@ describe('External Calendar Settings and API Integration', () => {
 
       // Add and immediately load
       calendarManager.addExternalSource(source);
-      const result = await calendarManager.loadExternalCalendar('https:example.com/calendars/test1.json');
+      const result = await calendarManager.loadExternalCalendar(
+        'https:example.com/calendars/test1.json'
+      );
 
       expect(result).toBe(true);
-      expect(calendarManager.calendars.has('test-external-calendar')).toBe(true);
+      expect(calendarManager.calendars.has('example.com/calendars/test-external-calendar')).toBe(
+        true
+      );
     });
 
     it('should handle multiple programmatic registrations', async () => {
@@ -452,7 +478,26 @@ describe('External Calendar Settings and API Integration', () => {
       // Verify all were added
       const allSources = calendarManager.getExternalSources();
       expect(allSources).toHaveLength(2);
-      expect(allSources).toEqual(expect.arrayContaining(sources));
+      expect(allSources).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            protocol: 'https',
+            location: 'example.com/cal1.json',
+            label: 'Calendar 1',
+            description: 'First calendar',
+            enabled: true,
+            trusted: true,
+          }),
+          expect.objectContaining({
+            protocol: 'github',
+            location: 'user/repo/cal2.json',
+            label: 'Calendar 2',
+            description: 'Second calendar',
+            enabled: true,
+            trusted: false,
+          }),
+        ])
+      );
     });
 
     it('should allow updating external sources after registration', async () => {
@@ -476,7 +521,9 @@ describe('External Calendar Settings and API Integration', () => {
 
       // Verify updates
       const sources = calendarManager.getExternalSources();
-      const updatedSource = sources.find(s => s.location === 'example.com/calendars/updatable.json');
+      const updatedSource = sources.find(
+        s => s.location === 'example.com/calendars/updatable.json'
+      );
 
       expect(updatedSource).toEqual(
         expect.objectContaining({
@@ -556,7 +603,7 @@ describe('External Calendar Settings and API Integration', () => {
 
       // Adding source should still work, but warning should be logged
       const source = testExternalSources[0];
-      
+
       // This should not throw, but should handle the settings error gracefully
       calendarManager.addExternalSource(source);
 
@@ -577,13 +624,15 @@ describe('External Calendar Settings and API Integration', () => {
       const availableCalendars = calendarManager.getAllCalendars();
       const calendarIds = availableCalendars.map(cal => cal.id);
 
-      expect(calendarIds).toContain('test-external-calendar');
-      expect(availableCalendars.find(cal => cal.id === 'test-external-calendar')).toEqual(
+      expect(calendarIds).toContain('example.com/calendars/test-external-calendar');
+      expect(
+        availableCalendars.find(cal => cal.id === 'example.com/calendars/test-external-calendar')
+      ).toEqual(
         expect.objectContaining({
-          id: 'test-external-calendar',
+          id: 'example.com/calendars/test-external-calendar',
           translations: expect.objectContaining({
             en: expect.objectContaining({
-              label: 'Test External Calendar',
+              label: 'Test External Calendar (Source: example.com/calendars)',
             }),
           }),
         })
@@ -595,12 +644,14 @@ describe('External Calendar Settings and API Integration', () => {
       await calendarManager.loadExternalCalendar('https:example.com/calendars/test1.json');
 
       // Set as active
-      const success = await calendarManager.setActiveCalendar('test-external-calendar');
+      const success = await calendarManager.setActiveCalendar(
+        'example.com/calendars/test-external-calendar'
+      );
       expect(success).toBe(true);
 
       // Verify it's active
       const activeCalendar = calendarManager.getActiveCalendar();
-      expect(activeCalendar?.id).toBe('test-external-calendar');
+      expect(activeCalendar?.id).toBe('example.com/calendars/test-external-calendar');
     });
   });
 });

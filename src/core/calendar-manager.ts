@@ -4,6 +4,7 @@
 
 import type { SeasonsStarsCalendar, CalendarVariant } from '../types/calendar';
 import type { ExternalCalendarSource, LoadCalendarOptions } from '../types/external-calendar';
+import type { CalendarRegistrationHookData } from '../types/foundry-extensions';
 import { CalendarEngine } from './calendar-engine';
 import { TimeConverter } from './time-converter';
 import { CalendarValidator } from './calendar-validator';
@@ -93,8 +94,11 @@ export class CalendarManager {
     // Then, load external variant files
     await this.loadExternalVariantFiles();
 
-    // Finally, load configured external calendar sources
+    // Next, load configured external calendar sources
     await this.loadConfiguredExternalSources();
+
+    // Finally, fire hook for external calendar registration
+    await this.fireCalendarRegistrationHook();
   }
 
   /**
@@ -700,12 +704,58 @@ export class CalendarManager {
       const result = await this.externalRegistry.loadExternalCalendar(externalId, options);
 
       if (result.success && result.calendar) {
+        // Generate a unique calendar ID using namespace information
+        const originalCalendarId = result.calendar.id;
+        const parsed = this.externalRegistry.parseExternalCalendarId(externalId);
+
+        // Only apply namespacing if there's actually a namespace to avoid breaking existing behavior
+        let finalCalendarId = originalCalendarId;
+        let namespacedCalendar = result.calendar;
+
+        if (parsed.namespace) {
+          const namespacedCalendarId = this.externalRegistry.generateUniqueCalendarId(
+            externalId,
+            originalCalendarId
+          );
+
+          // Check for ID conflicts and resolve them
+          const existingIds = new Set(this.calendars.keys());
+          finalCalendarId = this.externalRegistry.resolveCalendarIdConflict(
+            namespacedCalendarId,
+            existingIds
+          );
+
+          // Create a copy of the calendar with the namespaced ID
+          namespacedCalendar = {
+            ...result.calendar,
+            id: finalCalendarId,
+          };
+
+          // Update calendar translations to show namespace information
+          const namespaceDisplay = this.externalRegistry.getNamespaceDisplayName(externalId);
+          if (namespaceDisplay && namespacedCalendar.translations) {
+            for (const translation of Object.values(namespacedCalendar.translations)) {
+              if (translation.label && !translation.label.includes(namespaceDisplay)) {
+                translation.label = `${translation.label} (${namespaceDisplay})`;
+              }
+            }
+          }
+
+          Logger.debug(
+            `Applied namespace to calendar: ${originalCalendarId} -> ${finalCalendarId}`
+          );
+        } else {
+          Logger.debug(
+            `No namespace detected for external calendar: ${externalId}, using original ID: ${originalCalendarId}`
+          );
+        }
+
         // Load the calendar into the manager
-        const loaded = this.loadCalendar(result.calendar);
+        const loaded = this.loadCalendar(namespacedCalendar);
 
         if (loaded) {
           Logger.info(
-            `Successfully loaded external calendar: ${result.calendar.id} from ${externalId}`
+            `Successfully loaded external calendar: ${finalCalendarId} from ${externalId}`
           );
           return true;
         } else {
@@ -831,5 +881,50 @@ export class CalendarManager {
    */
   getExternalRegistry(): ExternalCalendarRegistry | null {
     return this.externalRegistry;
+  }
+
+  /**
+   * Fire hook for external calendar registration
+   * Allows other modules to register calendars via the hook system
+   */
+  private async fireCalendarRegistrationHook(): Promise<void> {
+    Logger.debug('Firing calendar registration hook');
+
+    // Create addCalendar function that other modules can use
+    const addCalendar = (calendarData: SeasonsStarsCalendar) => {
+      try {
+        // Basic input validation
+        if (!calendarData || typeof calendarData !== 'object' || !calendarData.id) {
+          Logger.error('Invalid calendar data provided to hook registration');
+          return false;
+        }
+
+        Logger.debug(`Adding calendar via hook: ${calendarData.id}`);
+
+        // Validate and load the calendar
+        const success = this.loadCalendar(calendarData);
+
+        if (success) {
+          Logger.info(`Successfully registered calendar via hook: ${calendarData.id}`);
+        } else {
+          Logger.error(`Failed to register calendar via hook: ${calendarData.id}`);
+        }
+
+        return success;
+      } catch (error) {
+        const calendarId = calendarData?.id || 'unknown';
+        Logger.error(`Error registering calendar via hook: ${calendarId}`, error as Error);
+        return false;
+      }
+    };
+
+    // Fire the hook with the addCalendar function
+    try {
+      const hookData: CalendarRegistrationHookData = { addCalendar };
+      Hooks.callAll('seasons-stars:loadCalendars', hookData);
+      Logger.debug('Calendar registration hook fired successfully');
+    } catch (error) {
+      Logger.error('Error firing calendar registration hook', error as Error);
+    }
   }
 }

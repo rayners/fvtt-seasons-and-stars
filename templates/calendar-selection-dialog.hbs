@@ -7,7 +7,7 @@
       <div class="form-fields">
         <div class="input-grid calendar-selection-grid" style="--grid-cols: 2;">
           {{#each calendars}}
-          <div class="calendar-card ui-control {{#if isCurrent}}active{{/if}} {{#if isSelected}}picked{{/if}} {{#if isVariant}}variant{{/if}} {{#if hierarchyLevel}}hierarchy-level-{{hierarchyLevel}}{{/if}}" 
+          <div class="calendar-card ui-control {{#if isCurrent}}active{{/if}} {{#if isSelected}}picked{{/if}} {{#if isVariant}}variant{{/if}} {{#if isExternal}}external{{/if}} {{#if hierarchyLevel}}hierarchy-level-{{hierarchyLevel}}{{/if}}" 
                data-action="selectCalendar"
                data-calendar-id="{{id}}" 
                title="{{description}}">
@@ -20,6 +20,11 @@
                     <i class="fas fa-code-branch"></i>
                   </span>
                   {{/if}}
+                  {{#if isExternal}}
+                  <span class="external-indicator">
+                    <i class="fas fa-cloud-download-alt"></i>
+                  </span>
+                  {{/if}}
                   {{label}}
                 </h4>
                 {{#if setting}}
@@ -27,6 +32,9 @@
                 {{/if}}
                 {{#if variantInfo}}
                 <span class="variant-info">{{variantInfo}}</span>
+                {{/if}}
+                {{#if namespaceInfo}}
+                <span class="namespace-info">{{namespaceInfo}}</span>
                 {{/if}}
               </div>
               {{#if isCurrent}}

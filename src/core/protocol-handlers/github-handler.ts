@@ -277,7 +277,7 @@ export class GitHubProtocolHandler implements ProtocolHandler {
 
     if (!response.ok) {
       if (response.status === 404) {
-        throw new Error(`Calendar file not found: ${owner}/${repo}/${filePath}`);
+        throw new Error(`Repository or file not found: ${response.status} ${response.statusText}`);
       } else if (response.status === 403) {
         const rateLimitRemaining = response.headers.get('x-ratelimit-remaining');
         if (rateLimitRemaining === '0') {

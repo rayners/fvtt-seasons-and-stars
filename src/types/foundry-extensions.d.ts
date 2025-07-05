@@ -7,6 +7,7 @@
 
 import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
 import type { SeasonsStarsIntegration } from './bridge-interfaces';
+import type { ContextExtensionAPI } from './widget-types';
 
 // Extend the Game interface to include S&S specific properties
 declare global {
@@ -75,6 +76,71 @@ export interface SeasonsStarsAPI {
   updateExternalSource(externalId: string, updates: unknown): void;
   getExternalCacheStats(): unknown;
   clearExternalCache(): void;
+
+  // Template Context Extensions API
+  widgets?: {
+    /**
+     * Create a context extension API scoped to a specific module.
+     * This provides automatic cleanup when the module is disabled.
+     *
+     * @param moduleId The ID of the module registering extensions
+     * @returns A scoped API for registering context extensions and hooks
+     *
+     * @example
+     * ```typescript
+     * // In an external module
+     * const contextAPI = game.seasonsStars.api.widgets.createContextAPI('my-module');
+     *
+     * // Register extension to add weather data to all widgets
+     * contextAPI.registerExtension({
+     *   priority: 10,
+     *   widgetTypes: ['*'],
+     *   extensionFunction: (context) => ({
+     *     ...context,
+     *     weather: game.myModule.getCurrentWeather()
+     *   }),
+     *   metadata: {
+     *     name: 'Weather Integration',
+     *     description: 'Adds weather data to S&S widgets'
+     *   }
+     * });
+     * ```
+     */
+    createContextAPI(moduleId: string): ContextExtensionAPI;
+
+    /**
+     * Get information about all registered context extensions.
+     * Useful for debugging and module compatibility checking.
+     */
+    getRegisteredExtensions(): Array<{
+      id: string;
+      moduleId: string;
+      priority: number;
+      widgetTypes: string[];
+      metadata: {
+        name: string;
+        description?: string;
+        version?: string;
+        author?: string;
+      };
+    }>;
+
+    /**
+     * Get information about all registered context hooks.
+     * Useful for debugging hook execution order.
+     */
+    getRegisteredHooks(): Array<{
+      id: string;
+      moduleId: string;
+      phase: 'before' | 'after';
+      widgetTypes: string[];
+    }>;
+  };
+}
+
+// Hook event data interfaces
+export interface CalendarRegistrationHookData {
+  addCalendar: (calendarData: SeasonsStarsCalendar) => boolean;
 }
 
 // Type guard functions (implementations in type-guards.ts)

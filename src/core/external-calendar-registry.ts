@@ -15,6 +15,7 @@ import type {
 } from '../types/external-calendar';
 import { ExternalCalendarCache } from './external-calendar-cache';
 import { Logger } from './logger';
+import { devEnvironment, DevEnvironmentDetector } from './dev-environment-detector';
 
 type EventListener = (event: ExternalCalendarEvent) => void;
 
@@ -74,10 +75,16 @@ export class ExternalCalendarRegistry {
 
   /**
    * Parse external calendar ID into protocol and location
+   * Supports multiple namespace formats:
+   * - protocol:namespace/calendar-id (slash-separated namespace)
+   * - protocol:namespace:calendar-id (colon-separated namespace)
+   * - protocol:github.com/user/repo/calendar-id (URL-based namespace)
    */
   parseExternalCalendarId(externalId: ExternalCalendarId): {
     protocol: CalendarProtocol;
     location: CalendarLocation;
+    namespace?: string;
+    calendarId?: string;
   } {
     const colonIndex = externalId.indexOf(':');
 
@@ -87,10 +94,172 @@ export class ExternalCalendarRegistry {
       );
     }
 
+    const protocol = externalId.substring(0, colonIndex);
+    const locationPart = externalId.substring(colonIndex + 1);
+
+    // Parse namespace from location part
+    const parsedLocation = this.parseLocationWithNamespace(locationPart);
+
     return {
-      protocol: externalId.substring(0, colonIndex),
-      location: externalId.substring(colonIndex + 1),
+      protocol,
+      location: locationPart,
+      namespace: parsedLocation.namespace,
+      calendarId: parsedLocation.calendarId,
     };
+  }
+
+  /**
+   * Parse location part to extract namespace and calendar ID
+   * Supports multiple namespace formats:
+   * - namespace/calendar-id (slash-separated)
+   * - namespace:calendar-id (colon-separated)
+   * - github.com/user/repo/calendar-id (URL-based)
+   */
+  private parseLocationWithNamespace(location: CalendarLocation): {
+    namespace?: string;
+    calendarId?: string;
+  } {
+    // Check for slash-separated namespace (most common)
+    const slashIndex = location.indexOf('/');
+    if (slashIndex > 0 && slashIndex < location.length - 1) {
+      // Handle URL-based namespaces (e.g., github.com/user/repo/calendar-id)
+      if (location.includes('://') || location.includes('.com/') || location.includes('.org/')) {
+        // This is likely a URL-based namespace
+        const lastSlashIndex = location.lastIndexOf('/');
+        if (lastSlashIndex > slashIndex) {
+          return {
+            namespace: location.substring(0, lastSlashIndex),
+            calendarId: location.substring(lastSlashIndex + 1),
+          };
+        }
+      }
+
+      // For multi-part paths like user/repo/calendar.json, find the last slash
+      // to get the calendar filename, and use everything before as namespace
+      const lastSlashIndex = location.lastIndexOf('/');
+      if (lastSlashIndex > slashIndex) {
+        // Multiple slashes - use last slash to separate calendar from namespace
+        return {
+          namespace: location.substring(0, lastSlashIndex),
+          calendarId: location.substring(lastSlashIndex + 1),
+        };
+      } else {
+        // Simple namespace/calendar-id format
+        return {
+          namespace: location.substring(0, slashIndex),
+          calendarId: location.substring(slashIndex + 1),
+        };
+      }
+    }
+
+    // Check for colon-separated namespace
+    const colonIndex = location.indexOf(':');
+    if (colonIndex > 0 && colonIndex < location.length - 1) {
+      return {
+        namespace: location.substring(0, colonIndex),
+        calendarId: location.substring(colonIndex + 1),
+      };
+    }
+
+    // No namespace found - this is a simple calendar ID
+    return {
+      namespace: undefined,
+      calendarId: location,
+    };
+  }
+
+  /**
+   * Generate a unique calendar ID from external source information
+   * Uses namespace to reduce collision likelihood
+   */
+  generateUniqueCalendarId(externalId: ExternalCalendarId, baseCalendarId: string): string {
+    const parsed = this.parseExternalCalendarId(externalId);
+
+    // If there's a namespace, use it as a prefix
+    if (parsed.namespace) {
+      // Convert namespace to a safe identifier format
+      const safeNamespace = this.sanitizeNamespace(parsed.namespace);
+      return `${safeNamespace}/${baseCalendarId}`;
+    }
+
+    // No namespace - use the original calendar ID
+    return baseCalendarId;
+  }
+
+  /**
+   * Convert namespace to a safe identifier format
+   * Handles different namespace formats consistently
+   */
+  private sanitizeNamespace(namespace: string): string {
+    // Remove protocols and common domains for cleaner namespaces
+    let sanitized = namespace
+      .replace(/^https?:\/\//, '')
+      .replace(/^github\.com\//, 'gh/')
+      .replace(/^gitlab\.com\//, 'gl/')
+      .replace(/\.git$/, '');
+
+    // Replace invalid characters with safe alternatives
+    sanitized = sanitized
+      .replace(/[^a-zA-Z0-9\-._/]/g, '-') // Replace invalid chars with hyphens
+      .replace(/\/+/g, '/') // Collapse multiple slashes
+      .replace(/^\/|\/$/g, ''); // Remove leading/trailing slashes
+
+    return sanitized;
+  }
+
+  /**
+   * Check if a namespaced calendar ID would conflict with existing calendars
+   * Returns the calendar ID to use (may be modified to avoid conflicts)
+   */
+  resolveCalendarIdConflict(proposedId: string, existingCalendarIds: Set<string>): string {
+    let resolvedId = proposedId;
+    let counter = 1;
+
+    // Keep incrementing counter until we find a unique ID
+    while (existingCalendarIds.has(resolvedId)) {
+      resolvedId = `${proposedId}-${counter}`;
+      counter++;
+    }
+
+    if (resolvedId !== proposedId) {
+      Logger.warn(`Calendar ID conflict resolved: ${proposedId} -> ${resolvedId}`);
+    }
+
+    return resolvedId;
+  }
+
+  /**
+   * Extract namespace from an external calendar ID for display purposes
+   */
+  getNamespaceDisplayName(externalId: ExternalCalendarId): string | null {
+    const parsed = this.parseExternalCalendarId(externalId);
+
+    if (!parsed.namespace) {
+      return null;
+    }
+
+    // Convert technical namespaces to user-friendly display names
+    let displayName = parsed.namespace;
+
+    // Handle common patterns based on original namespace before sanitization
+    if (displayName.startsWith('github.com/')) {
+      // Extract user/repo from github.com/user/repo
+      const userRepo = displayName.substring('github.com/'.length);
+      displayName = `GitHub: ${userRepo}`;
+    } else if (displayName.startsWith('gitlab.com/')) {
+      // Extract user/repo from gitlab.com/user/repo
+      const userRepo = displayName.substring('gitlab.com/'.length);
+      displayName = `GitLab: ${userRepo}`;
+    } else if (displayName.startsWith('gh/')) {
+      displayName = `GitHub: ${displayName.substring(3)}`;
+    } else if (displayName.startsWith('gl/')) {
+      displayName = `GitLab: ${displayName.substring(3)}`;
+    } else {
+      // Generic namespace - just add prefix
+      displayName = `Source: ${displayName}`;
+    }
+
+    return displayName;
   }
 
   /**
@@ -112,10 +281,10 @@ export class ExternalCalendarRegistry {
       }
 
       // Check cache first (unless force refresh or development workflows)
-      // Skip caching for local files and development modules to support development workflows
+      // Skip caching for local files, development modules, and localhost environments
       const skipCache = this.shouldSkipCache(protocol, location, options);
       if (skipCache) {
-        const reason = protocol === 'local' ? 'local file' : 'module development mode';
+        const reason = this.getCacheSkipReason(protocol, location, options);
         Logger.debug(`Skipping cache for ${reason}: ${location} (development mode)`);
       }
       if (!options.forceRefresh && options.useCache !== false && !skipCache) {
@@ -194,15 +363,38 @@ export class ExternalCalendarRegistry {
       s => `${s.protocol}:${s.location}` === externalId
     );
 
-    if (existingIndex >= 0) {
-      // Update existing source
-      this.externalSources[existingIndex] = { ...this.externalSources[existingIndex], ...source };
-    } else {
-      // Add new source
-      this.externalSources.push({ enabled: true, trusted: false, ...source });
+    // Parse namespace information if not already provided
+    let parsedLocation: { namespace?: string; calendarId?: string } = {
+      namespace: undefined,
+      calendarId: undefined,
+    };
+    if (source.location) {
+      parsedLocation = this.parseLocationWithNamespace(source.location);
     }
 
-    Logger.debug(`Added external calendar source: ${externalId}`);
+    const enrichedSource = {
+      enabled: true,
+      trusted: false,
+      ...source,
+      namespace: source.namespace || parsedLocation.namespace,
+      calendarId: source.calendarId || parsedLocation.calendarId,
+    };
+
+    if (existingIndex >= 0) {
+      // Update existing source
+      this.externalSources[existingIndex] = {
+        ...this.externalSources[existingIndex],
+        ...enrichedSource,
+      };
+    } else {
+      // Add new source
+      this.externalSources.push(enrichedSource);
+    }
+
+    Logger.debug(
+      `Added external calendar source: ${externalId}` +
+        (enrichedSource.namespace ? ` (namespace: ${enrichedSource.namespace})` : '')
+    );
   }
 
   /**
@@ -256,13 +448,27 @@ export class ExternalCalendarRegistry {
     this.config = { ...this.config, ...config };
 
     // Apply cache configuration
-    if (config.maxCacheSize !== undefined || config.defaultCacheDuration !== undefined) {
+    if (
+      config.maxCacheSize !== undefined ||
+      config.defaultCacheDuration !== undefined ||
+      config.enableLocalStorage !== undefined ||
+      config.localStoragePrefix !== undefined ||
+      config.localStorageMaxSizeMB !== undefined
+    ) {
       this.cache.configure({
         maxSize: config.maxCacheSize !== undefined ? config.maxCacheSize : this.config.maxCacheSize,
         defaultTtl:
           config.defaultCacheDuration !== undefined
             ? config.defaultCacheDuration
             : this.config.defaultCacheDuration,
+        enableLocalStorage:
+          config.enableLocalStorage !== undefined ? config.enableLocalStorage : true,
+        localStoragePrefix:
+          config.localStoragePrefix !== undefined
+            ? config.localStoragePrefix
+            : 'fvtt-seasons-stars-cache',
+        localStorageMaxSizeMB:
+          config.localStorageMaxSizeMB !== undefined ? config.localStorageMaxSizeMB : 10,
       });
     }
 
@@ -281,6 +487,20 @@ export class ExternalCalendarRegistry {
    */
   getCacheStats() {
     return this.cache.getStats();
+  }
+
+  /**
+   * Get LocalStorage cache information
+   */
+  getLocalStorageInfo() {
+    return this.cache.getLocalStorageInfo();
+  }
+
+  /**
+   * Manually trigger LocalStorage cleanup
+   */
+  cleanupLocalStorage(): void {
+    this.cache.cleanupLocalStorageManually();
   }
 
   /**
@@ -303,6 +523,16 @@ export class ExternalCalendarRegistry {
       return true;
     }
 
+    // Skip caching if dev mode is explicitly enabled
+    if (options.enableDevMode === true) {
+      return true;
+    }
+
+    // Skip caching if we're in a development environment, unless explicitly disabled
+    if (options.enableDevMode === undefined && devEnvironment.shouldDisableCaching()) {
+      return true;
+    }
+
     // Skip caching for modules if explicitly requested
     if (protocol === 'module' && options.skipModuleCache) {
       return true;
@@ -313,6 +543,48 @@ export class ExternalCalendarRegistry {
       return this.isModuleDevelopmentVersion(location);
     }
 
+    // Skip caching for URLs that appear to be development URLs
+    if ((protocol === 'https' || protocol === 'http') && this.isDevUrl(location)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Get a human-readable reason for why caching was skipped
+   */
+  private getCacheSkipReason(
+    protocol: CalendarProtocol,
+    location: CalendarLocation,
+    options?: LoadCalendarOptions
+  ): string {
+    if (protocol === 'local') {
+      return 'local file';
+    }
+    if (options?.enableDevMode) {
+      return 'explicitly enabled development mode';
+    }
+    if (devEnvironment.shouldDisableCaching()) {
+      return 'localhost/development environment';
+    }
+    if (protocol === 'module' && this.isModuleDevelopmentVersion(location)) {
+      return 'module development version';
+    }
+    if ((protocol === 'https' || protocol === 'http') && this.isDevUrl(location)) {
+      return 'development URL';
+    }
+    return 'development mode';
+  }
+
+  /**
+   * Check if a URL appears to be a development URL
+   */
+  private isDevUrl(location: CalendarLocation): boolean {
+    // For external calendar locations that are actually URLs within the location string
+    if (location.includes('://')) {
+      return DevEnvironmentDetector.isDevUrl(location);
+    }
     return false;
   }
 
@@ -399,6 +671,20 @@ export class ExternalCalendarRegistry {
         }
       });
     }
+  }
+
+  /**
+   * Get development environment information (useful for debugging)
+   */
+  getDevEnvironmentInfo() {
+    return devEnvironment.getEnvironmentInfo();
+  }
+
+  /**
+   * Check if currently in development mode
+   */
+  isInDevelopmentMode(): boolean {
+    return devEnvironment.isDevelopment();
   }
 
   /**

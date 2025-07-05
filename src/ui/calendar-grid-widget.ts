@@ -7,6 +7,7 @@ import { CalendarWidgetManager } from './widget-manager';
 import { CalendarDate } from '../core/calendar-date';
 import { DateFormatter } from '../core/date-formatter';
 import { Logger } from '../core/logger';
+import { TemplateContextExtensions } from '../core/template-context-extensions';
 import type { NoteCategories } from '../core/note-categories';
 import type { CreateNoteData } from '../core/notes-manager';
 import type {
@@ -111,23 +112,37 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Prepare rendering context for template
    */
   async _prepareContext(options = {}): Promise<Record<string, unknown>> {
-    const context = await super._prepareContext(options);
+    const baseContext = await super._prepareContext(options);
 
     const manager = game.seasonsStars?.manager as CalendarManagerInterface;
 
     if (!manager) {
-      return Object.assign(context, {
+      const errorContext = Object.assign(baseContext, {
         error: 'Calendar manager not initialized',
+        calendar: null,
+        currentDate: null,
+        formattedDate: 'Not Available',
+        isGM: game.user?.isGM || false,
       });
+
+      // Process through extensions even for error states
+      return await TemplateContextExtensions.processContext(errorContext, 'grid', options);
     }
 
     const activeCalendar = manager.getActiveCalendar();
     const currentDate = manager.getCurrentDate();
 
     if (!activeCalendar || !currentDate) {
-      return Object.assign(context, {
+      const errorContext = Object.assign(baseContext, {
         error: 'No active calendar',
+        calendar: null,
+        currentDate: null,
+        formattedDate: 'No Calendar Active',
+        isGM: game.user?.isGM || false,
       });
+
+      // Process through extensions even for error states
+      return await TemplateContextExtensions.processContext(errorContext, 'grid', options);
     }
 
     const calendarInfo = CalendarLocalization.getLocalizedCalendarInfo(activeCalendar);
@@ -148,10 +163,17 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       uiHint = 'Click dates to view details.';
     }
 
-    return Object.assign(context, {
+    // Use DateFormatter for consistent formatting
+    const formatter = new DateFormatter(activeCalendar);
+
+    const context = Object.assign(baseContext, {
       calendar: calendarInfo,
       viewDate: this.viewDate,
       currentDate: currentDate.toObject(),
+      formattedDate:
+        formatter.formatWidget(currentDate, 'main') ||
+        currentDate.toLongString?.() ||
+        'Current Date', // Add formattedDate for consistency
       monthData: monthData,
       monthName: activeCalendar.months[this.viewDate.month - 1]?.name || 'Unknown',
       monthDescription: activeCalendar.months[this.viewDate.month - 1]?.description,
@@ -165,6 +187,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         description: wd.description,
       })),
     });
+
+    // Process context through extensions system
+    return await TemplateContextExtensions.processContext(context, 'grid', options);
   }
 
   /**
@@ -823,40 +848,26 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
     // Create a simple input dialog
     const currentYear = this.viewDate.year;
-    const newYear = await new Promise<number | null>(resolve => {
-      new Dialog({
-        title: 'Set Year',
-        content: `
-          <form>
-            <div class="form-group">
-              <label>Enter Year:</label>
-              <input type="number" name="year" value="${currentYear}" min="1" max="99999" step="1" autofocus />
-            </div>
-          </form>
-        `,
-        buttons: {
-          ok: {
-            icon: '<i class="fas fa-check"></i>',
-            label: 'Set Year',
-            callback: (html: JQuery) => {
-              const yearInput = html.find('input[name="year"]').val() as string;
-              const year = parseInt(yearInput);
-              if (!isNaN(year) && year > 0) {
-                resolve(year);
-              } else {
-                ui.notifications?.error('Please enter a valid year');
-                resolve(null);
-              }
-            },
-          },
-          cancel: {
-            icon: '<i class="fas fa-times"></i>',
-            label: 'Cancel',
-            callback: () => resolve(null),
-          },
-        },
-        default: 'ok',
-      }).render(true);
+    const newYear = await foundry.applications.api.DialogV2.prompt({
+      content: `
+        <form>
+          <div class="form-group">
+            <label>Enter Year:</label>
+            <input type="number" name="year" value="${currentYear}" min="1" max="99999" step="1" autofocus />
+          </div>
+        </form>
+      `,
+      ok: (event: Event, button: HTMLElement, html: HTMLElement) => {
+        const yearInput = html.querySelector('input[name="year"]') as HTMLInputElement;
+        const year = parseInt(yearInput.value);
+        if (!isNaN(year) && year > 0) {
+          return year;
+        } else {
+          ui.notifications?.error('Please enter a valid year');
+          return false;
+        }
+      },
+      rejectClose: false,
     });
 
     if (newYear !== null) {
@@ -1025,8 +1036,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Combine predefined and existing tags for autocompletion
       const allAvailableTags = Array.from(new Set([...predefinedTags, ...existingTags]));
 
-      new Dialog({
-        title: `Create Note`,
+      new foundry.applications.api.DialogV2({
+        window: {
+          title: `Create Note`,
+        },
         content: `
           <style>
             .seasons-stars-note-form {
@@ -1235,12 +1248,13 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             }
           </style>
         `,
-        buttons: {
-          create: {
-            icon: '<i class="fas fa-plus"></i>',
+        buttons: [
+          {
+            action: 'create',
+            icon: 'fas fa-plus',
             label: 'Create Note',
-            callback: (html: JQuery) => {
-              const form = html.find('form')[0] as HTMLFormElement;
+            callback: (event: Event, button: HTMLElement, html: HTMLElement) => {
+              const form = html.querySelector('form') as HTMLFormElement;
               const formData = new FormData(form);
 
               const title = formData.get('title') as string;
@@ -1274,19 +1288,23 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               });
             },
           },
-          cancel: {
-            icon: '<i class="fas fa-times"></i>',
+          {
+            action: 'cancel',
+            icon: 'fas fa-times',
             label: 'Cancel',
             callback: () => resolve(null),
           },
-        },
+        ],
         default: 'create',
-        resizable: true,
-        render: (html: JQuery) => {
+        position: {
+          width: 600,
+        },
+        render: (event: Event, html: HTMLElement) => {
+          const $html = $(html);
           // Add click handlers for tag suggestions
-          html.find('.tag-suggestion').on('click', function () {
+          $html.find('.tag-suggestion').on('click', function () {
             const tag = $(this).data('tag');
-            const tagsInput = html.find('input[name="tags"]');
+            const tagsInput = $html.find('input[name="tags"]');
             const currentTags = tagsInput.val() as string;
 
             if (currentTags) {
@@ -1298,7 +1316,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           });
 
           // Update category select styling based on selection
-          html.find('.category-select').on('change', function () {
+          $html.find('.category-select').on('change', function () {
             const selectedCat = categories.getCategory($(this).val() as string);
             if (selectedCat) {
               $(this).css('border-left', `4px solid ${selectedCat.color}`);
@@ -1306,8 +1324,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           });
 
           // Tag autocompletion functionality
-          const tagsInput = html.find('input[name="tags"]');
-          const autocompleteDropdown = html.find('.tag-autocomplete-dropdown');
+          const tagsInput = $html.find('input[name="tags"]');
+          const autocompleteDropdown = $html.find('.tag-autocomplete-dropdown');
           let selectedIndex = -1;
 
           // Smart tag matching function
@@ -1479,7 +1497,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           });
 
           // Trigger initial styling
-          html.find('.category-select').trigger('change');
+          $html.find('.category-select').trigger('change');
         },
       }).render(true);
     });
@@ -1600,8 +1618,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       .join('');
 
     return new Promise(resolve => {
-      new Dialog({
-        title: `Notes for ${dateDisplayStr}`,
+      new foundry.applications.api.DialogV2({
+        window: {
+          title: `Notes for ${dateDisplayStr}`,
+        },
         content: `
           <style>
             .notes-selection {
@@ -1647,17 +1667,19 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             ${notesList}
           </div>
         `,
-        buttons: {
-          cancel: {
-            icon: '<i class="fas fa-times"></i>',
+        buttons: [
+          {
+            action: 'cancel',
+            icon: 'fas fa-times',
             label: 'Cancel',
             callback: () => resolve(),
           },
-        },
+        ],
         default: 'cancel',
-        render: (html: JQuery) => {
+        render: (event: Event, html: HTMLElement) => {
+          const $html = $(html);
           // Add click handlers for note items
-          html.find('.note-item').on('click', function () {
+          $html.find('.note-item').on('click', function () {
             const noteIndex = parseInt($(this).data('index'));
             const note = notes[noteIndex];
             if (note && note.sheet) {

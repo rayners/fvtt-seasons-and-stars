@@ -25,6 +25,7 @@ import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
+import { TemplateContextExtensions } from './core/template-context-extensions';
 import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
@@ -1286,6 +1287,68 @@ export function setupAPI(): void {
         );
         throw error;
       }
+    },
+
+    // Template Context Extensions API
+    widgets: {
+      /**
+       * Create a context extension API scoped to a specific module
+       */
+      createContextAPI: (moduleId: string) => {
+        try {
+          Logger.api('createContextAPI', { moduleId });
+
+          if (!moduleId || typeof moduleId !== 'string') {
+            throw new Error('Module ID must be a non-empty string');
+          }
+
+          const result = TemplateContextExtensions.createModuleAPI(moduleId);
+          Logger.api('createContextAPI', { moduleId }, 'success');
+          return result;
+        } catch (error) {
+          Logger.error(
+            'Failed to create context API',
+            error instanceof Error ? error : new Error(String(error))
+          );
+          throw error;
+        }
+      },
+
+      /**
+       * Get information about all registered context extensions
+       */
+      getRegisteredExtensions: () => {
+        try {
+          Logger.api('getRegisteredExtensions');
+          const result = TemplateContextExtensions.getRegisteredExtensions();
+          Logger.api('getRegisteredExtensions', undefined, `${result.length} extensions`);
+          return result;
+        } catch (error) {
+          Logger.error(
+            'Failed to get registered extensions',
+            error instanceof Error ? error : new Error(String(error))
+          );
+          throw error;
+        }
+      },
+
+      /**
+       * Get information about all registered context hooks
+       */
+      getRegisteredHooks: () => {
+        try {
+          Logger.api('getRegisteredHooks');
+          const result = TemplateContextExtensions.getRegisteredHooks();
+          Logger.api('getRegisteredHooks', undefined, `${result.length} hooks`);
+          return result;
+        } catch (error) {
+          Logger.error(
+            'Failed to get registered hooks',
+            error instanceof Error ? error : new Error(String(error))
+          );
+          throw error;
+        }
+      },
     },
   };
 

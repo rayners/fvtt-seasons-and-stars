@@ -5,131 +5,95 @@
 import { Logger } from '../core/logger';
 import type { ExternalCalendarSource } from '../types/external-calendar';
 
-export class ExternalCalendarSourcesDialog extends Dialog {
+export class ExternalCalendarSourcesDialog extends foundry.applications.api.HandlebarsApplicationMixin(
+  foundry.applications.api.ApplicationV2
+) {
   private sources: ExternalCalendarSource[] = [];
   private calendarManager: any; // Will be properly typed when CalendarManager is available
+  private showAddForm: boolean = false;
 
   constructor() {
-    const content = ExternalCalendarSourcesDialog.generateContent();
-    
-    super({
-      title: 'External Calendar Sources',
-      content,
-      buttons: {
-        save: {
-          label: 'Save Changes',
-          callback: (html: HTMLElement) => this.saveChanges(html),
-        },
-        cancel: {
-          label: 'Cancel',
-          callback: () => {},
-        },
-        add: {
-          label: 'Add Source',
-          callback: (html: HTMLElement) => this.showAddSourceForm(html),
-        },
-      },
-      default: 'save',
-      render: (html: HTMLElement) => this.activateListeners(html),
-    }, {
-      width: 600,
-      height: 500,
-      resizable: true,
-      classes: ['external-calendar-sources-dialog'],
-    });
-
+    super();
     this.loadCurrentSources();
   }
 
-  static generateContent(): string {
-    return `
-      <div class="external-calendar-sources">
-        <div class="sources-header">
-          <p>Configure external calendar sources for loading custom calendars from various protocols.</p>
-          <p class="warning"><i class="fas fa-exclamation-triangle"></i> Only trusted sources should be enabled. Untrusted sources are cached but not automatically loaded.</p>
-        </div>
-        
-        <div class="sources-list">
-          <table class="sources-table">
-            <thead>
-              <tr>
-                <th>Enabled</th>
-                <th>Protocol</th>
-                <th>Location</th>
-                <th>Label</th>
-                <th>Trusted</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody class="sources-tbody">
-              <!-- Sources will be populated here -->
-            </tbody>
-          </table>
-        </div>
+  static DEFAULT_OPTIONS = {
+    id: 'external-calendar-sources-dialog',
+    classes: ['seasons-stars', 'external-calendar-sources-dialog'],
+    tag: 'div',
+    window: {
+      frame: true,
+      positioned: true,
+      title: 'External Calendar Sources',
+      icon: 'fa-solid fa-globe',
+      minimizable: false,
+      resizable: true,
+    },
+    position: {
+      width: 600,
+      height: 500,
+    },
+    actions: {
+      save: ExternalCalendarSourcesDialog.prototype._onSave,
+      cancel: ExternalCalendarSourcesDialog.prototype._onCancel,
+      addSource: ExternalCalendarSourcesDialog.prototype._onAddSource,
+      confirmAddSource: ExternalCalendarSourcesDialog.prototype._onConfirmAddSource,
+      cancelAddSource: ExternalCalendarSourcesDialog.prototype._onCancelAddSource,
+      editSource: ExternalCalendarSourcesDialog.prototype._onEditSource,
+      removeSource: ExternalCalendarSourcesDialog.prototype._onRemoveSource,
+      testSource: ExternalCalendarSourcesDialog.prototype._onTestSource,
+      toggleEnabled: ExternalCalendarSourcesDialog.prototype._onToggleEnabled,
+      toggleTrusted: ExternalCalendarSourcesDialog.prototype._onToggleTrusted,
+      updateProtocol: ExternalCalendarSourcesDialog.prototype._onUpdateProtocol,
+    },
+  };
 
-        <div class="add-source-form" style="display: none;">
-          <h3>Add New External Calendar Source</h3>
-          <div class="form-group">
-            <label for="source-protocol">Protocol:</label>
-            <select id="source-protocol" name="protocol">
-              <option value="https">HTTPS</option>
-              <option value="github">GitHub</option>
-              <option value="module">Module</option>
-              <option value="local">Local</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label for="source-location">Location:</label>
-            <input type="text" id="source-location" name="location" placeholder="example.com/calendar.json">
-            <div class="location-help">
-              <small>
-                <strong>HTTPS:</strong> example.com/calendar.json<br>
-                <strong>GitHub:</strong> user/repo/path/calendar.json<br>
-                <strong>Module:</strong> module-name/calendars/calendar.json<br>
-                <strong>Local:</strong> path/to/calendar.json
-              </small>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label for="source-label">Label:</label>
-            <input type="text" id="source-label" name="label" placeholder="My Custom Calendar">
-          </div>
-          
-          <div class="form-group">
-            <label for="source-description">Description:</label>
-            <textarea id="source-description" name="description" placeholder="Description of this calendar source"></textarea>
-          </div>
-          
-          <div class="form-group checkbox-group">
-            <label class="checkbox">
-              <input type="checkbox" id="source-enabled" name="enabled" checked>
-              <span>Enabled (automatically load this source)</span>
-            </label>
-          </div>
-          
-          <div class="form-group checkbox-group">
-            <label class="checkbox">
-              <input type="checkbox" id="source-trusted" name="trusted">
-              <span>Trusted (load immediately without caching delay)</span>
-            </label>
-          </div>
-          
-          <div class="form-buttons">
-            <button type="button" class="confirm-add-source">Add Source</button>
-            <button type="button" class="cancel-add-source">Cancel</button>
-          </div>
-        </div>
-      </div>
-    `;
+  static PARTS = {
+    main: {
+      id: 'main',
+      template: 'modules/seasons-and-stars/templates/external-calendar-sources-dialog.hbs',
+    },
+  };
+
+  /** @override */
+  async _prepareContext(_options = {}): Promise<any> {
+    const context = await super._prepareContext(_options);
+
+    const protocols = [
+      { value: 'https', label: 'HTTPS' },
+      { value: 'github', label: 'GitHub' },
+      { value: 'module', label: 'Module' },
+      { value: 'local', label: 'Local' },
+    ];
+
+    const placeholders = {
+      https: 'example.com/calendars/my-calendar.json',
+      github: 'username/repository/path/to/calendar.json',
+      module: 'module-name/calendars/calendar.json',
+      local: 'data/calendars/local-calendar.json',
+    };
+
+    return Object.assign(context, {
+      sources: this.sources.map((source, index) => ({
+        ...source,
+        index,
+        truncatedLocation: this.truncateLocation(source.location),
+      })),
+      protocols,
+      placeholders,
+      showAddForm: this.showAddForm,
+    });
   }
 
   private async loadCurrentSources(): Promise<void> {
     try {
       // Get current sources from settings
-      const settingsSources = game.settings?.get('seasons-and-stars', 'externalCalendarSources') as ExternalCalendarSource[] || [];
-      
+      const settingsSources =
+        (game.settings?.get(
+          'seasons-and-stars',
+          'externalCalendarSources'
+        ) as ExternalCalendarSource[]) || [];
+
       // Get sources from calendar manager if available
       this.calendarManager = game.seasonsStars?.manager;
       if (this.calendarManager && this.calendarManager.getExternalSources) {
@@ -137,7 +101,7 @@ export class ExternalCalendarSourcesDialog extends Dialog {
       } else {
         this.sources = settingsSources;
       }
-      
+
       Logger.debug(`Loaded ${this.sources.length} external calendar sources for configuration`);
     } catch (error) {
       Logger.error('Failed to load external calendar sources', error as Error);
@@ -145,104 +109,98 @@ export class ExternalCalendarSourcesDialog extends Dialog {
     }
   }
 
-  private activateListeners(html: HTMLElement): void {
-    // Populate sources table
-    this.populateSourcesTable(html);
-    
-    // Add source button
-    html.querySelector('.add-source-button')?.addEventListener('click', () => {
-      this.showAddSourceForm(html);
-    });
-    
-    // Confirm add source
-    html.querySelector('.confirm-add-source')?.addEventListener('click', () => {
-      this.confirmAddSource(html);
-    });
-    
-    // Cancel add source
-    html.querySelector('.cancel-add-source')?.addEventListener('click', () => {
-      this.hideAddSourceForm(html);
-    });
-    
-    // Protocol change handler for location help text
-    const protocolSelect = html.querySelector('#source-protocol') as HTMLSelectElement;
-    protocolSelect?.addEventListener('change', () => {
-      this.updateLocationHelp(html);
-    });
+  /**
+   * Action handler for save button
+   */
+  async _onSave(_event: Event, _target: HTMLElement): Promise<void> {
+    await this.saveChanges();
   }
 
-  private populateSourcesTable(html: HTMLElement): void {
-    const tbody = html.querySelector('.sources-tbody') as HTMLTableSectionElement;
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    if (this.sources.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="no-sources">No external calendar sources configured</td></tr>';
-      return;
-    }
-    
-    this.sources.forEach((source, index) => {
-      const row = document.createElement('tr');
-      row.dataset.sourceIndex = index.toString();
-      
-      row.innerHTML = `
-        <td>
-          <input type="checkbox" class="source-enabled" ${source.enabled ? 'checked' : ''}>
-        </td>
-        <td class="protocol-cell">${source.protocol}</td>
-        <td class="location-cell" title="${source.location}">${this.truncateLocation(source.location)}</td>
-        <td class="label-cell" title="${source.label || ''}">${source.label || '<em>Unlabeled</em>'}</td>
-        <td>
-          <input type="checkbox" class="source-trusted" ${source.trusted ? 'checked' : ''}>
-        </td>
-        <td class="actions-cell">
-          <button type="button" class="edit-source" title="Edit source">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button type="button" class="remove-source" title="Remove source">
-            <i class="fas fa-trash"></i>
-          </button>
-          <button type="button" class="test-source" title="Test connection">
-            <i class="fas fa-plug"></i>
-          </button>
-        </td>
-      `;
-      
-      tbody.appendChild(row);
-      
-      // Add event listeners for this row
-      this.addRowEventListeners(row, index);
-    });
+  /**
+   * Action handler for cancel button
+   */
+  async _onCancel(_event: Event, _target: HTMLElement): Promise<void> {
+    this.close();
   }
 
-  private addRowEventListeners(row: HTMLTableRowElement, index: number): void {
-    // Enabled checkbox
-    const enabledCheckbox = row.querySelector('.source-enabled') as HTMLInputElement;
-    enabledCheckbox?.addEventListener('change', () => {
-      this.sources[index].enabled = enabledCheckbox.checked;
-    });
-    
-    // Trusted checkbox
-    const trustedCheckbox = row.querySelector('.source-trusted') as HTMLInputElement;
-    trustedCheckbox?.addEventListener('change', () => {
-      this.sources[index].trusted = trustedCheckbox.checked;
-    });
-    
-    // Edit button
-    row.querySelector('.edit-source')?.addEventListener('click', () => {
-      this.editSource(index);
-    });
-    
-    // Remove button
-    row.querySelector('.remove-source')?.addEventListener('click', () => {
-      this.removeSource(index);
-    });
-    
-    // Test button
-    row.querySelector('.test-source')?.addEventListener('click', () => {
-      this.testSource(index);
-    });
+  /**
+   * Action handler for add source button
+   */
+  async _onAddSource(_event: Event, _target: HTMLElement): Promise<void> {
+    this.showAddSourceForm();
+  }
+
+  /**
+   * Action handler for confirm add source button
+   */
+  async _onConfirmAddSource(_event: Event, _target: HTMLElement): Promise<void> {
+    await this.confirmAddSource();
+  }
+
+  /**
+   * Action handler for cancel add source button
+   */
+  async _onCancelAddSource(_event: Event, _target: HTMLElement): Promise<void> {
+    this.hideAddSourceForm();
+  }
+
+  /**
+   * Action handler for edit source button
+   */
+  async _onEditSource(event: Event, target: HTMLElement): Promise<void> {
+    const index = parseInt(target.dataset.index || '0');
+    this.editSource(index);
+  }
+
+  /**
+   * Action handler for remove source button
+   */
+  async _onRemoveSource(_event: Event, target: HTMLElement): Promise<void> {
+    const index = parseInt(target.dataset.index || '0');
+    await this.removeSource(index);
+  }
+
+  /**
+   * Action handler for test source button
+   */
+  async _onTestSource(event: Event, target: HTMLElement): Promise<void> {
+    const index = parseInt(target.dataset.index || '0');
+    await this.testSource(index);
+  }
+
+  /**
+   * Action handler for toggling enabled state
+   */
+  async _onToggleEnabled(event: Event, target: HTMLElement): Promise<void> {
+    const index = parseInt(target.dataset.index || '0');
+    const checkbox = target as HTMLInputElement;
+    this.sources[index].enabled = checkbox.checked;
+  }
+
+  /**
+   * Action handler for toggling trusted state
+   */
+  async _onToggleTrusted(event: Event, target: HTMLElement): Promise<void> {
+    const index = parseInt(target.dataset.index || '0');
+    const checkbox = target as HTMLInputElement;
+    this.sources[index].trusted = checkbox.checked;
+  }
+
+  /**
+   * Action handler for protocol change
+   */
+  async _onUpdateProtocol(_event: Event, _target: HTMLElement): Promise<void> {
+    this.updateLocationHelp();
+  }
+
+  private showAddSourceForm(): void {
+    this.showAddForm = true;
+    this.render();
+  }
+
+  private hideAddSourceForm(): void {
+    this.showAddForm = false;
+    this.render();
   }
 
   private truncateLocation(location: string): string {
@@ -250,71 +208,48 @@ export class ExternalCalendarSourcesDialog extends Dialog {
     return location.substring(0, 37) + '...';
   }
 
-  private showAddSourceForm(html: HTMLElement): void {
-    const form = html.querySelector('.add-source-form') as HTMLElement;
-    if (form) {
-      form.style.display = 'block';
-    }
-  }
+  private updateLocationHelp(): void {
+    const protocolSelect = this.element?.querySelector('#source-protocol') as HTMLSelectElement;
+    const locationInput = this.element?.querySelector('#source-location') as HTMLInputElement;
 
-  private hideAddSourceForm(html: HTMLElement): void {
-    const form = html.querySelector('.add-source-form') as HTMLElement;
-    if (form) {
-      form.style.display = 'none';
-      this.clearAddSourceForm(html);
-    }
-  }
+    if (!protocolSelect || !locationInput) return;
 
-  private clearAddSourceForm(html: HTMLElement): void {
-    const form = html.querySelector('.add-source-form') as HTMLElement;
-    if (!form) return;
-    
-    (form.querySelector('#source-location') as HTMLInputElement).value = '';
-    (form.querySelector('#source-label') as HTMLInputElement).value = '';
-    (form.querySelector('#source-description') as HTMLTextAreaElement).value = '';
-    (form.querySelector('#source-enabled') as HTMLInputElement).checked = true;
-    (form.querySelector('#source-trusted') as HTMLInputElement).checked = false;
-  }
-
-  private updateLocationHelp(html: HTMLElement): void {
-    const protocol = (html.querySelector('#source-protocol') as HTMLSelectElement)?.value;
-    const locationInput = html.querySelector('#source-location') as HTMLInputElement;
-    
-    if (!protocol || !locationInput) return;
-    
     const placeholders = {
-      'https': 'example.com/calendars/my-calendar.json',
-      'github': 'username/repository/path/to/calendar.json',
-      'module': 'module-name/calendars/calendar.json',
-      'local': 'data/calendars/local-calendar.json'
+      https: 'example.com/calendars/my-calendar.json',
+      github: 'username/repository/path/to/calendar.json',
+      module: 'module-name/calendars/calendar.json',
+      local: 'data/calendars/local-calendar.json',
     };
-    
-    locationInput.placeholder = placeholders[protocol as keyof typeof placeholders] || 'Enter location...';
+
+    locationInput.placeholder =
+      placeholders[protocolSelect.value as keyof typeof placeholders] || 'Enter location...';
   }
 
-  private confirmAddSource(html: HTMLElement): void {
+  private async confirmAddSource(): Promise<void> {
     try {
-      const form = html.querySelector('.add-source-form') as HTMLElement;
+      const form = this.element?.querySelector('.add-source-form') as HTMLElement;
       if (!form) return;
-      
+
       const protocol = (form.querySelector('#source-protocol') as HTMLSelectElement).value;
       const location = (form.querySelector('#source-location') as HTMLInputElement).value.trim();
       const label = (form.querySelector('#source-label') as HTMLInputElement).value.trim();
-      const description = (form.querySelector('#source-description') as HTMLTextAreaElement).value.trim();
+      const description = (
+        form.querySelector('#source-description') as HTMLTextAreaElement
+      ).value.trim();
       const enabled = (form.querySelector('#source-enabled') as HTMLInputElement).checked;
       const trusted = (form.querySelector('#source-trusted') as HTMLInputElement).checked;
-      
+
       // Validation
       if (!location) {
         ui.notifications?.error('Location is required');
         return;
       }
-      
+
       if (!label) {
         ui.notifications?.error('Label is required');
         return;
       }
-      
+
       // Check for duplicates
       const externalId = `${protocol}:${location}`;
       const existing = this.sources.find(s => `${s.protocol}:${s.location}` === externalId);
@@ -322,7 +257,7 @@ export class ExternalCalendarSourcesDialog extends Dialog {
         ui.notifications?.error('A source with this protocol and location already exists');
         return;
       }
-      
+
       // Create new source
       const newSource: ExternalCalendarSource = {
         protocol: protocol as any,
@@ -332,13 +267,11 @@ export class ExternalCalendarSourcesDialog extends Dialog {
         enabled,
         trusted,
       };
-      
+
       this.sources.push(newSource);
-      this.populateSourcesTable(html);
-      this.hideAddSourceForm(html);
-      
+      this.hideAddSourceForm();
+
       Logger.info(`Added external calendar source: ${externalId}`);
-      
     } catch (error) {
       Logger.error('Failed to add external calendar source', error as Error);
       ui.notifications?.error('Failed to add external calendar source');
@@ -347,50 +280,39 @@ export class ExternalCalendarSourcesDialog extends Dialog {
 
   private editSource(_index: number): void {
     // TODO: Implement edit functionality - for now, users can modify enabled/trusted inline
-    ui.notifications?.info('Edit functionality coming soon. You can currently modify enabled/trusted status directly in the table.');
+    ui.notifications?.info(
+      'Edit functionality coming soon. You can currently modify enabled/trusted status directly in the table.'
+    );
   }
 
-  private removeSource(index: number): void {
+  private async removeSource(index: number): Promise<void> {
     const source = this.sources[index];
     if (!source) return;
-    
-    new Dialog({
-      title: 'Remove External Calendar Source',
+
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
       content: `<p>Are you sure you want to remove the external calendar source:</p><p><strong>${source.label}</strong> (${source.protocol}:${source.location})</p>`,
-      buttons: {
-        yes: {
-          label: 'Yes, Remove',
-          callback: () => {
-            this.sources.splice(index, 1);
-            const html = document.querySelector('.external-calendar-sources-dialog .window-content') as HTMLElement;
-            if (html) {
-              this.populateSourcesTable(html);
-            }
-            Logger.info(`Removed external calendar source: ${source.protocol}:${source.location}`);
-          },
-        },
-        no: {
-          label: 'Cancel',
-          callback: () => {},
-        },
-      },
-      default: 'no',
-    }).render(true);
+    });
+
+    if (confirmed) {
+      this.sources.splice(index, 1);
+      this.render();
+      Logger.info(`Removed external calendar source: ${source.protocol}:${source.location}`);
+    }
   }
 
   private async testSource(index: number): Promise<void> {
     const source = this.sources[index];
     if (!source) return;
-    
+
     try {
       const externalId = `${source.protocol}:${source.location}`;
-      
+
       ui.notifications?.info(`Testing external calendar source: ${source.label}`);
-      
+
       // Test the source using the calendar manager
       if (this.calendarManager && this.calendarManager.loadExternalCalendar) {
         const result = await this.calendarManager.loadExternalCalendar(externalId);
-        
+
         if (result) {
           ui.notifications?.info(`✓ Successfully tested external calendar source: ${source.label}`);
         } else {
@@ -399,20 +321,22 @@ export class ExternalCalendarSourcesDialog extends Dialog {
       } else {
         ui.notifications?.warn('Calendar manager not available for testing');
       }
-      
     } catch (error) {
-      Logger.error(`Failed to test external calendar source: ${source.protocol}:${source.location}`, error as Error);
+      Logger.error(
+        `Failed to test external calendar source: ${source.protocol}:${source.location}`,
+        error as Error
+      );
       ui.notifications?.error(`✗ Test failed for external calendar source: ${source.label}`);
     }
   }
 
-  private async saveChanges(_html: HTMLElement): Promise<void> {
+  private async saveChanges(): Promise<void> {
     try {
       Logger.debug(`Saving ${this.sources.length} external calendar sources`);
-      
+
       // Save to settings
       await game.settings?.set('seasons-and-stars', 'externalCalendarSources', this.sources);
-      
+
       // Update calendar manager if available
       if (this.calendarManager) {
         // Clear existing sources and re-add updated ones
@@ -421,16 +345,15 @@ export class ExternalCalendarSourcesDialog extends Dialog {
           const externalId = `${existing.protocol}:${existing.location}`;
           this.calendarManager.removeExternalSource(externalId);
         }
-        
+
         // Add updated sources
         for (const source of this.sources) {
           this.calendarManager.addExternalSource(source);
         }
       }
-      
+
       ui.notifications?.info(`Saved ${this.sources.length} external calendar source(s)`);
       Logger.info(`Successfully saved external calendar sources configuration`);
-      
     } catch (error) {
       Logger.error('Failed to save external calendar sources', error as Error);
       ui.notifications?.error('Failed to save external calendar sources configuration');
