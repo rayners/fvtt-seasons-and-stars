@@ -367,37 +367,70 @@ export class DateFormatter {
 
     // Hour helper - supports pad format
     Handlebars.registerHelper('ss-hour', (value: number, options: any) => {
+      // If value is not provided explicitly, use context
+      let hourValue = value;
+      if (value === undefined || value === null) {
+        hourValue = options?.data?.root?.hour;
+      }
+
+      // Handle still undefined/null values gracefully
+      if (hourValue === undefined || hourValue === null) {
+        return '0';
+      }
+
       const format = options.hash?.format;
 
       switch (format) {
         case 'pad':
-          return value.toString().padStart(2, '0');
+          return hourValue.toString().padStart(2, '0');
         default:
-          return value.toString();
+          return hourValue.toString();
       }
     });
 
     // Minute helper - supports pad format
     Handlebars.registerHelper('ss-minute', (value: number, options: any) => {
+      // If value is not provided explicitly, use context
+      let minuteValue = value;
+      if (value === undefined || value === null) {
+        minuteValue = options?.data?.root?.minute;
+      }
+
+      // Handle still undefined/null values gracefully
+      if (minuteValue === undefined || minuteValue === null) {
+        return '0';
+      }
+
       const format = options.hash?.format;
 
       switch (format) {
         case 'pad':
-          return value.toString().padStart(2, '0');
+          return minuteValue.toString().padStart(2, '0');
         default:
-          return value.toString();
+          return minuteValue.toString();
       }
     });
 
     // Second helper - supports pad format
     Handlebars.registerHelper('ss-second', (value: number, options: any) => {
+      // If value is not provided explicitly, use context
+      let secondValue = value;
+      if (value === undefined || value === null) {
+        secondValue = options?.data?.root?.second;
+      }
+
+      // Handle still undefined/null values gracefully
+      if (secondValue === undefined || secondValue === null) {
+        return '0';
+      }
+
       const format = options.hash?.format;
 
       switch (format) {
         case 'pad':
-          return value.toString().padStart(2, '0');
+          return secondValue.toString().padStart(2, '0');
         default:
-          return value.toString();
+          return secondValue.toString();
       }
     });
 
