@@ -210,7 +210,7 @@
           "short": "{{ss-month:abbr}} {{ss-day}}",
           "long": "{{ss-weekday:name}}, {{ss-month:name}} {{ss-day:ordinal}}, {{year}}",
           "date": "{{ss-weekday:name}}, {{ss-month:name}} {{ss-day:ordinal}}, {{year}}",
-          "time": "{{ss-hour format='pad'}}:{{ss-minute format='pad'}}:{{ss-second format='pad'}} UTC",
+          "time": "{{ss-hour:pad}}:{{ss-minute:pad}}:{{ss-second:pad}} UTC",
           "datetime": "{{ss-dateFmt:date}} at {{ss-dateFmt:time}}",
           "official": "Federation Standard Date: {{ss-month:name}} {{ss-day:ordinal}}, {{year}}",
           "command-log": "{{ss-dateFmt:tng}} - {{ss-dateFmt:federation}}",
