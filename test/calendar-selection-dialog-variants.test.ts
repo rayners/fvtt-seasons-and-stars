@@ -192,9 +192,6 @@ describe('Calendar Selection Dialog - Variants Support', () => {
   });
 
   it('should generate proper variant info from variant IDs', async () => {
-    const context = await dialog._prepareContext();
-    const calendarsData = context.calendars;
-
     const testCases = [
       { id: 'calendar(simple-name)', expected: 'Variant: Simple Name' },
       { id: 'calendar(multi-word-name)', expected: 'Variant: Multi Word Name' },

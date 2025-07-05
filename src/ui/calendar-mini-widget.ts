@@ -6,6 +6,7 @@ import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
+import { DateFormatter } from '../core/date-formatter';
 import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
@@ -86,8 +87,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Check if SmallTime is available and active
     const hasSmallTime = SmallTimeUtils.isSmallTimeAvailable();
 
+    // Use DateFormatter with widget-specific formats
+    const formatter = new DateFormatter(activeCalendar);
+
     return Object.assign(context, {
-      shortDate: currentDate.toDateString(),
+      shortDate: formatter.formatWidget(currentDate, 'mini') || currentDate.toDateString(),
       hasSmallTime: hasSmallTime,
       showTimeControls: !hasSmallTime && (game.user?.isGM || false),
       isGM: game.user?.isGM || false,
@@ -97,7 +101,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         description: activeCalendar.description,
       },
       currentDate: currentDate.toObject(),
-      formattedDate: currentDate.toLongString(),
+      formattedDate: formatter.formatWidget(currentDate, 'main') || currentDate.toLongString(),
     }) as MiniWidgetContext;
   }
 

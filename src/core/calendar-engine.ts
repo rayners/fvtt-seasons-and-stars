@@ -456,7 +456,7 @@ export class CalendarEngine {
     }
 
     // Find month and day within the year
-    let month = 1;
+    let month;
     const monthLengths = this.getMonthLengths(year);
     const intercalaryDays = this.getIntercalaryDays(year);
 

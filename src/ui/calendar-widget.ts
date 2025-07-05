@@ -6,6 +6,7 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarSelectionDialog } from './calendar-selection-dialog';
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
+import { DateFormatter } from '../core/date-formatter';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -88,12 +89,15 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Check if SmallTime is available and active
     const hasSmallTime = this.detectSmallTime();
 
+    // Use DateFormatter with widget-specific formats
+    const formatter = new DateFormatter(activeCalendar);
+
     return Object.assign(context, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
-      formattedDate: currentDate.toLongString(),
-      shortDate: currentDate.toDateString(),
-      timeString: currentDate.toTimeString(),
+      formattedDate: formatter.formatWidget(currentDate, 'main') || currentDate.toLongString(),
+      shortDate: formatter.formatNamed(currentDate, 'date') || currentDate.toDateString(),
+      timeString: formatter.formatNamed(currentDate, 'time') || currentDate.toTimeString(),
       isGM: game.user?.isGM || false,
       canAdvanceTime: game.user?.isGM || false,
       hasSmallTime: hasSmallTime,

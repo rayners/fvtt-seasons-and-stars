@@ -5,6 +5,7 @@
 import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarWidgetManager } from './widget-manager';
 import { CalendarDate } from '../core/calendar-date';
+import { DateFormatter } from '../core/date-formatter';
 import { Logger } from '../core/logger';
 import type { NoteCategories } from '../core/note-categories';
 import type { CreateNoteData } from '../core/notes-manager';
@@ -945,16 +946,36 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Format date using calendar system
       const manager = game.seasonsStars?.manager as CalendarManagerInterface;
       const activeCalendar = manager?.getActiveCalendar();
-      let dateDisplayStr = `${safeDate.year}-${safeDate.month.toString().padStart(2, '0')}-${safeDate.day.toString().padStart(2, '0')}`;
+      let dateDisplayStr;
       let calendarInfo = '';
 
       if (activeCalendar) {
-        const monthName =
-          activeCalendar.months[safeDate.month - 1]?.name || `Month ${safeDate.month}`;
-        const yearPrefix = activeCalendar.year?.prefix || '';
-        const yearSuffix = activeCalendar.year?.suffix || '';
-        dateDisplayStr = `${safeDate.day} ${monthName}, ${yearPrefix}${safeDate.year}${yearSuffix}`;
+        try {
+          // Create CalendarDate instance for formatting
+          const safeDateWithWeekday = {
+            ...safeDate,
+            weekday: 0, // Default weekday, not critical for display formatting
+          };
+          const calendarDate = new CalendarDate(safeDateWithWeekday, activeCalendar);
+          const formatter = new DateFormatter(activeCalendar);
+
+          // Use formatter for consistent date display
+          dateDisplayStr =
+            formatter.formatNamed(calendarDate, 'long') ||
+            formatter.format(calendarDate, '{{day}} {{month:name}}, {{year}}') ||
+            `${safeDate.day} ${activeCalendar.months[safeDate.month - 1]?.name || `Month ${safeDate.month}`}, ${activeCalendar.year?.prefix || ''}${safeDate.year}${activeCalendar.year?.suffix || ''}`;
+        } catch {
+          // Fallback to manual formatting if DateFormatter fails
+          const monthName =
+            activeCalendar.months[safeDate.month - 1]?.name || `Month ${safeDate.month}`;
+          const yearPrefix = activeCalendar.year?.prefix || '';
+          const yearSuffix = activeCalendar.year?.suffix || '';
+          dateDisplayStr = `${safeDate.day} ${monthName}, ${yearPrefix}${safeDate.year}${yearSuffix}`;
+        }
+
         calendarInfo = `<div style="text-align: center; margin-bottom: 16px; padding: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; font-weight: 600; color: var(--color-text-dark-primary);">${dateDisplayStr}</div>`;
+      } else {
+        dateDisplayStr = `${safeDate.year}-${safeDate.month.toString().padStart(2, '0')}-${safeDate.day.toString().padStart(2, '0')}`;
       }
 
       // Build category options from the categories system
@@ -1528,13 +1549,35 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
   ): Promise<void> {
     const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     const activeCalendar = manager?.getActiveCalendar();
-    let dateDisplayStr = `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
+    let dateDisplayStr;
 
     if (activeCalendar) {
-      const monthName = activeCalendar.months[date.month - 1]?.name || `Month ${date.month}`;
-      const yearPrefix = activeCalendar.year?.prefix || '';
-      const yearSuffix = activeCalendar.year?.suffix || '';
-      dateDisplayStr = `${date.day} ${monthName}, ${yearPrefix}${date.year}${yearSuffix}`;
+      try {
+        // Create CalendarDate instance for formatting
+        const safeDate = {
+          year: date.year,
+          month: date.month,
+          day: date.day,
+          weekday: date.weekday || 0,
+          time: date.time || { hour: 0, minute: 0, second: 0 },
+        };
+        const calendarDate = new CalendarDate(safeDate, activeCalendar);
+        const formatter = new DateFormatter(activeCalendar);
+
+        // Use formatter for consistent date display
+        dateDisplayStr =
+          formatter.formatNamed(calendarDate, 'long') ||
+          formatter.format(calendarDate, '{{day}} {{month:name}}, {{year}}') ||
+          `${date.day} ${activeCalendar.months[date.month - 1]?.name || `Month ${date.month}`}, ${activeCalendar.year?.prefix || ''}${date.year}${activeCalendar.year?.suffix || ''}`;
+      } catch {
+        // Fallback to manual formatting if DateFormatter fails
+        const monthName = activeCalendar.months[date.month - 1]?.name || `Month ${date.month}`;
+        const yearPrefix = activeCalendar.year?.prefix || '';
+        const yearSuffix = activeCalendar.year?.suffix || '';
+        dateDisplayStr = `${date.day} ${monthName}, ${yearPrefix}${date.year}${yearSuffix}`;
+      }
+    } else {
+      dateDisplayStr = `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
     }
 
     const notesList = notes

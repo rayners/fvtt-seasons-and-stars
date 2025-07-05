@@ -7,13 +7,13 @@ import type { SeasonsStarsCalendar } from '../types/calendar';
 
 export class DateFormatter {
   private calendar: SeasonsStarsCalendar;
-  private templateCache: Map<string, Function> = new Map();
+  private templateCache: Map<string, HandlebarsTemplateDelegate> = new Map();
   private handlebarsAvailable: boolean;
 
   constructor(calendar: SeasonsStarsCalendar) {
     this.calendar = calendar;
     this.handlebarsAvailable = this.checkHandlebarsAvailability();
-    
+
     if (this.handlebarsAvailable) {
       this.registerCustomHelpers();
     }
@@ -37,10 +37,10 @@ export class DateFormatter {
     try {
       // Preprocess template to resolve embedded formats
       const processedTemplate = this.preprocessEmbeddedFormats(date, template);
-      
+
       // Check cache first for performance
       let compiledTemplate = this.templateCache.get(processedTemplate);
-      
+
       if (!compiledTemplate) {
         // Use Foundry's global Handlebars to compile template
         compiledTemplate = Handlebars.compile(processedTemplate);
@@ -49,10 +49,11 @@ export class DateFormatter {
 
       // Prepare context data for template
       const context = this.prepareTemplateContext(date);
-      
+
       // Execute template with context
       return compiledTemplate(context);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('[S&S] Date format template compilation failed:', error);
       // Fallback to basic format
       return this.getBasicFormat(date);
@@ -64,13 +65,13 @@ export class DateFormatter {
    */
   formatNamed(date: CalendarDate, formatName: string, variant?: string): string {
     const dateFormats = this.calendar.dateFormats;
-    
+
     if (!dateFormats) {
       return this.getBasicFormat(date);
     }
 
     const format = dateFormats[formatName];
-    
+
     if (!format) {
       return this.getBasicFormat(date);
     }
@@ -80,13 +81,13 @@ export class DateFormatter {
       if (variant && format[variant]) {
         return this.format(date, format[variant]);
       }
-      
+
       // If no variant specified, try 'default' or first available
       const defaultFormat = format.default || Object.values(format)[0];
       if (defaultFormat) {
         return this.format(date, defaultFormat);
       }
-      
+
       return this.getBasicFormat(date);
     }
 
@@ -103,13 +104,13 @@ export class DateFormatter {
    */
   formatWidget(date: CalendarDate, widgetType: 'mini' | 'main' | 'grid'): string {
     const dateFormats = this.calendar.dateFormats;
-    
+
     if (!dateFormats?.widgets) {
       return this.getBasicFormat(date);
     }
 
     const widgetFormat = dateFormats.widgets[widgetType];
-    
+
     if (!widgetFormat) {
       return this.getBasicFormat(date);
     }
@@ -123,13 +124,14 @@ export class DateFormatter {
   private preprocessEmbeddedFormats(date: CalendarDate, template: string): string {
     // Match {{dateFmt:formatName}} patterns
     const embeddedFormatRegex = /\{\{\s*dateFmt\s*:\s*([^}\s]+)\s*\}\}/g;
-    
+
     return template.replace(embeddedFormatRegex, (match, formatName) => {
       try {
         // Recursively format the embedded format
         const embeddedResult = this.formatNamedRecursive(date, formatName, new Set());
         return embeddedResult;
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn(`[S&S] Failed to resolve embedded format '${formatName}':`, error);
         // Fallback to basic format for this embedded piece
         return this.getBasicFormat(date);
@@ -140,23 +142,28 @@ export class DateFormatter {
   /**
    * Format named with circular reference protection
    */
-  private formatNamedRecursive(date: CalendarDate, formatName: string, visited: Set<string>): string {
+  private formatNamedRecursive(
+    date: CalendarDate,
+    formatName: string,
+    visited: Set<string>
+  ): string {
     // Prevent circular references
     if (visited.has(formatName)) {
+      // eslint-disable-next-line no-console
       console.warn(`[S&S] Circular reference detected in format '${formatName}'`);
       return this.getBasicFormat(date);
     }
-    
+
     visited.add(formatName);
-    
+
     const dateFormats = this.calendar.dateFormats;
-    
+
     if (!dateFormats) {
       return this.getBasicFormat(date);
     }
 
     const format = dateFormats[formatName];
-    
+
     if (!format) {
       return this.getBasicFormat(date);
     }
@@ -168,7 +175,7 @@ export class DateFormatter {
       if (defaultFormat) {
         return this.formatRecursive(date, defaultFormat, visited);
       }
-      
+
       return this.getBasicFormat(date);
     }
 
@@ -187,10 +194,10 @@ export class DateFormatter {
     try {
       // Preprocess template to resolve embedded formats with visited set
       const processedTemplate = this.preprocessEmbeddedFormatsRecursive(date, template, visited);
-      
+
       // Check cache first for performance
       let compiledTemplate = this.templateCache.get(processedTemplate);
-      
+
       if (!compiledTemplate) {
         // Use Foundry's global Handlebars to compile template
         compiledTemplate = Handlebars.compile(processedTemplate);
@@ -199,10 +206,11 @@ export class DateFormatter {
 
       // Prepare context data for template
       const context = this.prepareTemplateContext(date);
-      
+
       // Execute template with context
       return compiledTemplate(context);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('[S&S] Date format template compilation failed:', error);
       // Fallback to basic format
       return this.getBasicFormat(date);
@@ -212,16 +220,21 @@ export class DateFormatter {
   /**
    * Preprocess template with visited set for circular reference protection
    */
-  private preprocessEmbeddedFormatsRecursive(date: CalendarDate, template: string, visited: Set<string>): string {
+  private preprocessEmbeddedFormatsRecursive(
+    date: CalendarDate,
+    template: string,
+    visited: Set<string>
+  ): string {
     // Match {{dateFmt:formatName}} patterns
     const embeddedFormatRegex = /\{\{\s*dateFmt\s*:\s*([^}\s]+)\s*\}\}/g;
-    
+
     return template.replace(embeddedFormatRegex, (match, formatName) => {
       try {
         // Recursively format the embedded format with visited set
         const embeddedResult = this.formatNamedRecursive(date, formatName, new Set(visited));
         return embeddedResult;
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn(`[S&S] Failed to resolve embedded format '${formatName}':`, error);
         // Fallback to basic format for this embedded piece
         return this.getBasicFormat(date);
@@ -232,7 +245,7 @@ export class DateFormatter {
   /**
    * Prepare template context with date data
    */
-  private prepareTemplateContext(date: CalendarDate): Record<string, any> {
+  private prepareTemplateContext(date: CalendarDate): Record<string, unknown> {
     return {
       year: date.year,
       month: date.month,
@@ -250,7 +263,7 @@ export class DateFormatter {
    */
   private calculateDayOfYear(date: CalendarDate): number {
     let dayOfYear = 0;
-    
+
     // Add days from completed months
     for (let i = 0; i < date.month - 1; i++) {
       const month = this.calendar.months[i];
@@ -258,10 +271,10 @@ export class DateFormatter {
         dayOfYear += month.days;
       }
     }
-    
+
     // Add current day
     dayOfYear += date.day;
-    
+
     return dayOfYear;
   }
 
@@ -277,97 +290,118 @@ export class DateFormatter {
    */
   private registerCustomHelpers(): void {
     // Day helper - supports ordinal and pad formats
-    Handlebars.registerHelper('day', (value: number, options: any) => {
-      const format = options.hash?.format;
-      
-      switch (format) {
-        case 'ordinal':
-          return this.addOrdinalSuffix(value);
-        case 'pad':
-          return value.toString().padStart(2, '0');
-        default:
-          return value.toString();
+    Handlebars.registerHelper(
+      'day',
+      (value: number, options: { hash?: Record<string, unknown> }) => {
+        const format = options.hash?.format;
+
+        switch (format) {
+          case 'ordinal':
+            return this.addOrdinalSuffix(value);
+          case 'pad':
+            return value.toString().padStart(2, '0');
+          default:
+            return value.toString();
+        }
       }
-    });
+    );
 
     // Month helper - supports name, abbr, and pad formats
-    Handlebars.registerHelper('month', (value: number, options: any) => {
-      const format = options.hash?.format;
-      
-      switch (format) {
-        case 'name':
-          return this.getMonthName(value);
-        case 'abbr':
-          return this.getMonthAbbreviation(value);
-        case 'pad':
-          return value.toString().padStart(2, '0');
-        default:
-          return value.toString();
+    Handlebars.registerHelper(
+      'month',
+      (value: number, options: { hash?: Record<string, unknown> }) => {
+        const format = options.hash?.format;
+
+        switch (format) {
+          case 'name':
+            return this.getMonthName(value);
+          case 'abbr':
+            return this.getMonthAbbreviation(value);
+          case 'pad':
+            return value.toString().padStart(2, '0');
+          default:
+            return value.toString();
+        }
       }
-    });
+    );
 
     // Weekday helper - supports name and abbr formats
-    Handlebars.registerHelper('weekday', (value: number, options: any) => {
-      const format = options.hash?.format;
-      
-      switch (format) {
-        case 'name':
-          return this.getWeekdayName(value);
-        case 'abbr':
-          return this.getWeekdayAbbreviation(value);
-        default:
-          return value.toString();
+    Handlebars.registerHelper(
+      'weekday',
+      (value: number, options: { hash?: Record<string, unknown> }) => {
+        const format = options.hash?.format;
+
+        switch (format) {
+          case 'name':
+            return this.getWeekdayName(value);
+          case 'abbr':
+            return this.getWeekdayAbbreviation(value);
+          default:
+            return value.toString();
+        }
       }
-    });
+    );
 
     // Format embedding helper - allows {{dateFmt:name}} syntax
     // Note: This helper is mainly for documentation. The actual format embedding
     // is handled by preprocessing in the format() method to avoid circular issues.
-    Handlebars.registerHelper('dateFmt', (formatName: string, options: any) => {
-      // This should not be called in normal operation due to preprocessing
-      return `[Unresolved: ${formatName}]`;
-    });
+    Handlebars.registerHelper(
+      'dateFmt',
+      (formatName: string, _options: { hash?: Record<string, unknown> }) => {
+        // This should not be called in normal operation due to preprocessing
+        return `[Unresolved: ${formatName}]`;
+      }
+    );
 
     // Mathematical operations helper
-    Handlebars.registerHelper('math', (value: number, options: any) => {
-      const operation = options.hash?.op;
-      const operand = options.hash?.value;
-      
-      if (typeof operand !== 'number') {
-        return value;
-      }
-      
-      switch (operation) {
-        case 'add':
-          return value + operand;
-        case 'subtract':
-          return value - operand;
-        case 'multiply':
-          return value * operand;
-        case 'divide':
-          return operand !== 0 ? value / operand : value;
-        case 'modulo':
-          return operand !== 0 ? value % operand : value;
-        default:
+    Handlebars.registerHelper(
+      'math',
+      (value: number, options: { hash?: Record<string, unknown> }) => {
+        const operation = options.hash?.op;
+        const operand = options.hash?.value;
+
+        if (typeof operand !== 'number') {
           return value;
+        }
+
+        switch (operation) {
+          case 'add':
+            return value + operand;
+          case 'subtract':
+            return value - operand;
+          case 'multiply':
+            return value * operand;
+          case 'divide':
+            return operand !== 0 ? value / operand : value;
+          case 'modulo':
+            return operand !== 0 ? value % operand : value;
+          default:
+            return value;
+        }
       }
-    });
+    );
 
     // Stardate calculation helper for sci-fi calendars
-    Handlebars.registerHelper('stardate', (year: number, options: any) => {
-      const prefix = options.hash?.prefix || '0';
-      const baseYear = options.hash?.baseYear || year;
-      const dayOfYear = options.hash?.dayOfYear || 1;
-      const precision = options.hash?.precision || 1;
-      
-      // Calculate stardate: prefix + (year - baseYear) + dayOfYear
-      // Format: XXYYYY.P where XX is era prefix, YYYY is year offset + day, P is precision
-      const yearOffset = year - baseYear;
-      const stardatePrefix = parseInt(prefix) + yearOffset;
-      const paddedDayOfYear = dayOfYear.toString().padStart(3, '0');
-      
-      return `${stardatePrefix}${paddedDayOfYear}.${precision > 0 ? '0'.repeat(precision) : ''}`.replace(/\.$/, '.0');
-    });
+    Handlebars.registerHelper(
+      'stardate',
+      (year: number, options: { hash?: Record<string, unknown> }) => {
+        const prefix = options.hash?.prefix || '0';
+        const baseYear = options.hash?.baseYear || year;
+        const dayOfYear = options.hash?.dayOfYear || 1;
+        const precision = options.hash?.precision || 1;
+
+        // Calculate stardate: prefix + (year - baseYear) + dayOfYear
+        // Format: XXYYYY.P where XX is era prefix, YYYY is year offset + day, P is precision
+        const yearOffset = year - baseYear;
+        const stardatePrefix = parseInt(prefix) + yearOffset;
+        const paddedDayOfYear = dayOfYear.toString().padStart(3, '0');
+
+        return `${stardatePrefix}${paddedDayOfYear}.${precision > 0 ? '0'.repeat(precision) : ''}`.replace(
+          /\.$/,
+          '.0'
+        );
+      }
+    );
   }
 
   /**
@@ -377,7 +411,7 @@ export class DateFormatter {
     if (day >= 11 && day <= 13) {
       return `${day}th`;
     }
-    
+
     const lastDigit = day % 10;
     switch (lastDigit) {
       case 1:

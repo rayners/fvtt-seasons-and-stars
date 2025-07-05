@@ -140,7 +140,6 @@ describe('TimeConverter - CompatibilityManager Integration', () => {
 
       // Simulate a world time update
       const newTime = 86400; // 1 day
-      const delta = 86400;
 
       // Call the private method via the time converter's public interface
       // We'll trigger this indirectly by calling getCurrentDate after setting worldTime
