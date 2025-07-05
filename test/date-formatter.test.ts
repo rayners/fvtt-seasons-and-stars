@@ -481,4 +481,160 @@ describe('DateFormatter', () => {
       );
     });
   });
+
+  describe('Type Safety Edge Cases', () => {
+    it('should handle non-string template values gracefully', () => {
+      // Arrange - Create calendar with malformed dateFormat containing non-string value
+      const calendarWithMalformedFormat = {
+        ...mockCalendar,
+        dateFormats: {
+          malformed: {
+            variant1: 123, // This is a number, not a string!
+            variant2: null, // This is null!
+            variant3: undefined, // This is undefined!
+            variant4: { nested: 'object' }, // This is an object!
+          },
+        },
+      };
+
+      formatter = new DateFormatter(calendarWithMalformedFormat);
+
+      // Act & Assert - Should not throw TypeError and should fallback gracefully
+      expect(() => {
+        const result1 = formatter.formatNamed(mockDate, 'malformed', 'variant1');
+        expect(result1).toBe('Monday, 15th January 2024'); // Should fallback to basic format
+      }).not.toThrow();
+
+      expect(() => {
+        const result2 = formatter.formatNamed(mockDate, 'malformed', 'variant2');
+        expect(result2).toBe('Monday, 15th January 2024'); // Should fallback to basic format
+      }).not.toThrow();
+
+      expect(() => {
+        const result3 = formatter.formatNamed(mockDate, 'malformed', 'variant3');
+        expect(result3).toBe('Monday, 15th January 2024'); // Should fallback to basic format
+      }).not.toThrow();
+
+      expect(() => {
+        const result4 = formatter.formatNamed(mockDate, 'malformed', 'variant4');
+        expect(result4).toBe('Monday, 15th January 2024'); // Should fallback to basic format
+      }).not.toThrow();
+    });
+
+    it('should handle non-string format value when no variant specified', () => {
+      // Arrange - Calendar with non-string as first format value
+      const calendarWithMalformedFormat = {
+        ...mockCalendar,
+        dateFormats: {
+          malformed: {
+            first: 42, // Number as first value
+            second: 'valid {{year}}-{{month}}-{{day}}',
+          },
+        },
+      };
+
+      formatter = new DateFormatter(calendarWithMalformedFormat);
+
+      // Act & Assert - Should not crash when Object.values()[0] returns number
+      expect(() => {
+        const result = formatter.formatNamed(mockDate, 'malformed'); // No variant specified
+        expect(result).toBe('Monday, 15th January 2024'); // Should fallback to basic format
+      }).not.toThrow();
+    });
+
+    it('should handle invalid month values in calculateDayOfYear gracefully', () => {
+      // Arrange - Calendar with date containing invalid month values
+      const calendarForBoundsTest = {
+        ...mockCalendar,
+        dateFormats: {
+          dayOfYearTest: '{{dayOfYear}}',
+        },
+      };
+
+      formatter = new DateFormatter(calendarForBoundsTest);
+
+      // Test with month = 0 (invalid, should be 1-based)
+      const dateWithZeroMonth = {
+        ...mockDate,
+        month: 0,
+      };
+
+      // Test with negative month
+      const dateWithNegativeMonth = {
+        ...mockDate,
+        month: -1,
+      };
+
+      // Test with month greater than calendar months length
+      const dateWithOversizedMonth = {
+        ...mockDate,
+        month: 15, // Calendar only has 2 months
+      };
+
+      // Mock compiled template to return the dayOfYear value
+      const mockCompiledTemplate = vi.fn(context => context.dayOfYear.toString());
+      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
+
+      // Act & Assert - Should not crash and should handle gracefully
+      expect(() => {
+        const result1 = formatter.formatNamed(dateWithZeroMonth, 'dayOfYearTest');
+        expect(result1).toBe('15'); // Should be day value when month is invalid
+      }).not.toThrow();
+
+      expect(() => {
+        const result2 = formatter.formatNamed(dateWithNegativeMonth, 'dayOfYearTest');
+        expect(result2).toBe('15'); // Should be day value when month is invalid
+      }).not.toThrow();
+
+      expect(() => {
+        const result3 = formatter.formatNamed(dateWithOversizedMonth, 'dayOfYearTest');
+        expect(result3).toBe('15'); // Should be day value when month is invalid
+      }).not.toThrow();
+    });
+
+    it('should cache compiled templates without size limits', () => {
+      // Arrange
+      formatter = new DateFormatter(mockCalendar);
+
+      // Mock compiled template that just returns the template as-is for this test
+      const mockCompiledTemplate = vi.fn(context => 'test-result');
+      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
+
+      // Act - Add templates to verify caching behavior
+      // In real usage, calendars have ~10-25 formats, far below memory concerns
+      for (let i = 0; i <= 50; i++) {
+        const uniqueTemplate = `{{year}}-{{month}}-{{day}}-${i}`;
+        formatter.format(mockDate, uniqueTemplate);
+      }
+
+      // Assert - Simple cache behavior: each unique template compiled once
+      const totalCompileCalls = mockHandlebars.compile.mock.calls.length;
+
+      // With simple cache, each unique template compiles exactly once
+      expect(totalCompileCalls).toBe(51); // 0 through 50 = 51 templates
+
+      // Test that repeated calls use cache
+      formatter.format(mockDate, '{{year}}-{{month}}-{{day}}-0');
+      expect(mockHandlebars.compile.mock.calls.length).toBe(51); // No additional compile
+    });
+
+    it('should handle large numbers of templates gracefully', () => {
+      // Arrange - Test that simple cache works with many templates
+      formatter = new DateFormatter(mockCalendar);
+      const mockCompiledTemplate = vi.fn(context => 'cached-result');
+      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
+
+      // Act - Use many templates (still far below real memory concerns)
+      expect(() => {
+        for (let i = 0; i < 200; i++) {
+          const template = `Template number ${i}: {{year}}-{{month}}-{{day}}`;
+          const result = formatter.format(mockDate, template);
+          expect(result).toBe('cached-result');
+        }
+      }).not.toThrow();
+
+      // Assert - Should complete without errors, each template compiled once
+      expect(mockHandlebars.compile).toHaveBeenCalledTimes(200);
+    });
+  });
 });

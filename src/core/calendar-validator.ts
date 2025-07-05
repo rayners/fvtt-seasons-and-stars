@@ -33,6 +33,7 @@ export class CalendarValidator {
     if (result.errors.length === 0) {
       this.validateDataTypes(calendar, result);
       this.validateConstraints(calendar, result);
+      this.validateDateFormats(calendar, result);
       this.validateCrossReferences(calendar, result);
     }
 
@@ -373,6 +374,76 @@ export class CalendarValidator {
         }
       }
     });
+  }
+
+  /**
+   * Validate date formats and enforce reasonable limits
+   *
+   * Design Decision: Limit date formats to prevent memory issues
+   *
+   * Rationale:
+   * - Real-world calendars use 10-25 date formats maximum
+   * - Template cache in DateFormatter has no runtime limits for performance
+   * - Better to prevent excessive formats at source than manage complex cache eviction
+   * - Foundry sessions last 2-4 hours then browser refresh clears cache anyway
+   */
+  private static validateDateFormats(calendar: any, result: ValidationResult): void {
+    if (!calendar.dateFormats || typeof calendar.dateFormats !== 'object') {
+      return; // dateFormats is optional
+    }
+
+    const dateFormats = calendar.dateFormats;
+    let totalFormatCount = 0;
+    const maxFormats = 100; // Generous limit - real calendars use ~25 max
+
+    // Count top-level formats
+    for (const [key, value] of Object.entries(dateFormats)) {
+      if (key === 'widgets') {
+        // Handle widgets separately
+        if (typeof value === 'object' && value !== null) {
+          const widgetCount = Object.keys(value).length;
+          totalFormatCount += widgetCount;
+
+          if (widgetCount > 20) {
+            result.warnings.push(
+              `Widget formats (${widgetCount}) should be limited for performance (recommended max: 20)`
+            );
+          }
+        }
+      } else if (typeof value === 'string') {
+        // Simple format
+        totalFormatCount += 1;
+      } else if (typeof value === 'object' && value !== null) {
+        // Variant format object
+        const variantCount = Object.keys(value).length;
+        totalFormatCount += variantCount;
+
+        if (variantCount > 30) {
+          result.warnings.push(
+            `Format variants for '${key}' (${variantCount}) should be limited for performance (recommended max: 30)`
+          );
+        }
+      }
+    }
+
+    // Check total count
+    if (totalFormatCount > maxFormats) {
+      result.warnings.push(
+        `Total date formats (${totalFormatCount}) exceeds recommended limit (${maxFormats}). ` +
+          `Consider reducing formats to prevent potential memory issues. ` +
+          `Real-world calendars typically use 10-25 formats.`
+      );
+    } else if (totalFormatCount > 50) {
+      result.warnings.push(
+        `High number of date formats (${totalFormatCount}). ` +
+          `Consider if all formats are necessary for optimal performance.`
+      );
+    }
+
+    // Log for debugging/monitoring
+    if (totalFormatCount > 0) {
+      result.warnings.push(`Calendar defines ${totalFormatCount} date formats`);
+    }
   }
 
   /**

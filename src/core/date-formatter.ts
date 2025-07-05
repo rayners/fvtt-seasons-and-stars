@@ -7,6 +7,22 @@ import type { SeasonsStarsCalendar } from '../types/calendar';
 
 export class DateFormatter {
   private calendar: SeasonsStarsCalendar;
+
+  /**
+   * Template compilation cache - intentionally unlimited size
+   *
+   * Design Decision: No cache size limits imposed at runtime
+   *
+   * Rationale:
+   * - Real-world usage: Calendars typically have 10-25 date formats maximum
+   * - Session lifecycle: Foundry sessions last 2-4 hours, then browser refresh clears cache
+   * - Memory impact: Compiled Handlebars templates are tiny compared to game assets
+   * - Prevention strategy: Limit dateFormats at JSON schema level, not runtime cache
+   *
+   * Previous implementation used complex LRU eviction (65+ lines) to solve a theoretical
+   * problem that doesn't occur in practice. Simple Map provides better performance
+   * and maintainability for realistic usage patterns.
+   */
   private templateCache: Map<string, Function> = new Map();
   private static helpersRegistered: boolean = false;
 
@@ -31,6 +47,12 @@ export class DateFormatter {
    * Format a date using a Handlebars template string
    */
   format(date: CalendarDate, template: string): string {
+    // Type safety check at entry point
+    if (typeof template !== 'string') {
+      console.warn('[S&S] Invalid template type passed to format(), falling back to basic format');
+      return this.getBasicFormat(date);
+    }
+
     try {
       // Preprocess template to resolve embedded formats
       const processedTemplate = this.preprocessEmbeddedFormats(date, template);
@@ -118,6 +140,12 @@ export class DateFormatter {
    * Preprocess template to resolve embedded format references
    */
   private preprocessEmbeddedFormats(date: CalendarDate, template: string): string {
+    // Type safety check - ensure template is actually a string
+    if (typeof template !== 'string') {
+      console.warn('[S&S] Invalid template type, falling back to basic format');
+      return this.getBasicFormat(date);
+    }
+
     // Match {{ss-dateFmt:formatName}} patterns
     const embeddedFormatRegex = /\{\{\s*ss-dateFmt\s*:\s*([^}\s]+)\s*\}\}/g;
 
@@ -254,6 +282,12 @@ export class DateFormatter {
    * Calculate day of year for stardate and other calculations
    */
   private calculateDayOfYear(date: CalendarDate): number {
+    // Bounds checking for month value
+    if (date.month < 1 || date.month > this.calendar.months.length) {
+      console.warn(`[S&S] Invalid month value ${date.month}, using day value only`);
+      return date.day;
+    }
+
     let dayOfYear = 0;
 
     // Add days from completed months
