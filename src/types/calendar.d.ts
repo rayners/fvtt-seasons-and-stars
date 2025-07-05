@@ -62,7 +62,7 @@ export interface SeasonsStarsCalendar {
 export interface CalendarDateFormats {
   // Named format templates - can be string or object with named variants
   [formatName: string]: string | CalendarDateFormatVariants;
-  
+
   // Widget-specific formats for different UI contexts
   widgets?: {
     mini?: string;
