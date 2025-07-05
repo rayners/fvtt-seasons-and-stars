@@ -25,6 +25,7 @@ export class DateFormatter {
    */
   private templateCache: Map<string, Function> = new Map();
   private static helpersRegistered: boolean = false;
+  private static notifiedErrors: Set<string> = new Set(); // Throttle repeated notifications
 
   constructor(calendar: SeasonsStarsCalendar) {
     this.calendar = calendar;
@@ -41,12 +42,89 @@ export class DateFormatter {
    */
   static resetHelpersForTesting(): void {
     DateFormatter.helpersRegistered = false;
+    DateFormatter.notifiedErrors.clear();
+  }
+
+  /**
+   * Show user notification for template compilation errors
+   */
+  private notifyTemplateError(template: string, error: Error, formatName?: string): void {
+    // Create error key for throttling
+    const errorKey = `${this.calendar.id}:${formatName || 'template'}:${error.message}`;
+
+    // Don't spam the same error repeatedly
+    if (DateFormatter.notifiedErrors.has(errorKey)) {
+      return;
+    }
+
+    DateFormatter.notifiedErrors.add(errorKey);
+
+    // Check if we're in development or production mode
+    const isDevelopment = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
+
+    // Only show notifications if ui.notifications is available (in Foundry)
+    if (typeof ui !== 'undefined' && ui.notifications) {
+      if (formatName && this.calendar.id) {
+        // Calendar-specific format error
+        const calendarName = this.calendar.name || this.calendar.id;
+        if (isDevelopment) {
+          ui.notifications.warn(
+            `Calendar "${calendarName}" has syntax errors in "${formatName}" format: ${error.message}`
+          );
+        } else {
+          ui.notifications.warn(
+            `Calendar "${calendarName}" has a date format error. Using fallback format.`
+          );
+        }
+      } else {
+        // Generic template error
+        if (isDevelopment) {
+          ui.notifications.warn(`Date format template has syntax errors: ${error.message}`);
+        } else {
+          ui.notifications.warn('Date format template has syntax errors. Using fallback format.');
+        }
+      }
+
+      // Provide helpful hints for common errors
+      if (isDevelopment && error.message.includes('quote')) {
+        ui.notifications.warn(
+          'Hint: Use double quotes in format helpers, e.g., {{ss-hour format="pad"}} not {{ss-hour format=\'pad\'}}'
+        );
+      }
+    }
   }
 
   /**
    * Format a date using a Handlebars template string
    */
   format(date: CalendarDate, template: string): string {
+    return this.formatWithContext(date, template);
+  }
+
+  /**
+   * Compile and cache a template, or retrieve from cache
+   */
+  private compileAndCacheTemplate(processedTemplate: string): Function {
+    let compiledTemplate = this.templateCache.get(processedTemplate);
+
+    if (!compiledTemplate) {
+      // Use Foundry's global Handlebars to compile template
+      compiledTemplate = Handlebars.compile(processedTemplate);
+      this.templateCache.set(processedTemplate, compiledTemplate);
+    }
+
+    return compiledTemplate;
+  }
+
+  /**
+   * Format a date using a Handlebars template string with error context
+   */
+  private formatWithContext(
+    date: CalendarDate,
+    template: string,
+    formatName?: string,
+    visited: Set<string> = new Set()
+  ): string {
     // Type safety check at entry point
     if (typeof template !== 'string') {
       console.warn('[S&S] Invalid template type passed to format(), falling back to basic format');
@@ -54,17 +132,11 @@ export class DateFormatter {
     }
 
     try {
-      // Preprocess template to resolve embedded formats
-      const processedTemplate = this.preprocessEmbeddedFormats(date, template);
+      // Preprocess template to resolve embedded formats with visited set
+      const processedTemplate = this.preprocessEmbeddedFormats(date, template, visited);
 
-      // Check cache first for performance
-      let compiledTemplate = this.templateCache.get(processedTemplate);
-
-      if (!compiledTemplate) {
-        // Use Foundry's global Handlebars to compile template
-        compiledTemplate = Handlebars.compile(processedTemplate);
-        this.templateCache.set(processedTemplate, compiledTemplate);
-      }
+      // Use consolidated template caching
+      const compiledTemplate = this.compileAndCacheTemplate(processedTemplate);
 
       // Prepare context data for template
       const context = this.prepareTemplateContext(date);
@@ -73,6 +145,10 @@ export class DateFormatter {
       return compiledTemplate(context);
     } catch (error) {
       console.warn('[S&S] Date format template compilation failed:', error);
+
+      // Notify user about the error
+      this.notifyTemplateError(template, error, formatName);
+
       // Fallback to basic format
       return this.getBasicFormat(date);
     }
@@ -81,94 +157,11 @@ export class DateFormatter {
   /**
    * Format a date using a named format from calendar dateFormats
    */
-  formatNamed(date: CalendarDate, formatName: string, variant?: string): string {
-    const dateFormats = this.calendar.dateFormats;
-
-    if (!dateFormats) {
-      return this.getBasicFormat(date);
-    }
-
-    const format = dateFormats[formatName];
-
-    if (!format) {
-      return this.getBasicFormat(date);
-    }
-
-    // Handle format variants (format as object)
-    if (typeof format === 'object' && !Array.isArray(format)) {
-      if (variant && format[variant]) {
-        return this.format(date, format[variant]);
-      }
-
-      // If no variant specified, try 'default' or first available
-      const defaultFormat = format.default || Object.values(format)[0];
-      if (defaultFormat) {
-        return this.format(date, defaultFormat);
-      }
-
-      return this.getBasicFormat(date);
-    }
-
-    // Handle simple string format
-    if (typeof format === 'string') {
-      return this.format(date, format);
-    }
-
-    return this.getBasicFormat(date);
-  }
-
-  /**
-   * Format a date using widget-specific format from calendar dateFormats
-   */
-  formatWidget(date: CalendarDate, widgetType: 'mini' | 'main' | 'grid'): string {
-    const dateFormats = this.calendar.dateFormats;
-
-    if (!dateFormats?.widgets) {
-      return this.getBasicFormat(date);
-    }
-
-    const widgetFormat = dateFormats.widgets[widgetType];
-
-    if (!widgetFormat) {
-      return this.getBasicFormat(date);
-    }
-
-    return this.format(date, widgetFormat);
-  }
-
-  /**
-   * Preprocess template to resolve embedded format references
-   */
-  private preprocessEmbeddedFormats(date: CalendarDate, template: string): string {
-    // Type safety check - ensure template is actually a string
-    if (typeof template !== 'string') {
-      console.warn('[S&S] Invalid template type, falling back to basic format');
-      return this.getBasicFormat(date);
-    }
-
-    // Match {{ss-dateFmt:formatName}} patterns
-    const embeddedFormatRegex = /\{\{\s*ss-dateFmt\s*:\s*([^}\s]+)\s*\}\}/g;
-
-    return template.replace(embeddedFormatRegex, (match, formatName) => {
-      try {
-        // Recursively format the embedded format
-        const embeddedResult = this.formatNamedRecursive(date, formatName, new Set());
-        return embeddedResult;
-      } catch (error) {
-        console.warn(`[S&S] Failed to resolve embedded format '${formatName}':`, error);
-        // Fallback to basic format for this embedded piece
-        return this.getBasicFormat(date);
-      }
-    });
-  }
-
-  /**
-   * Format named with circular reference protection
-   */
-  private formatNamedRecursive(
+  formatNamed(
     date: CalendarDate,
     formatName: string,
-    visited: Set<string>
+    variant?: string,
+    visited: Set<string> = new Set()
   ): string {
     // Prevent circular references
     if (visited.has(formatName)) {
@@ -192,10 +185,14 @@ export class DateFormatter {
 
     // Handle format variants (format as object)
     if (typeof format === 'object' && !Array.isArray(format)) {
-      // For recursive calls, use 'default' or first available variant
+      if (variant && format[variant]) {
+        return this.formatWithContext(date, format[variant], `${formatName}:${variant}`, visited);
+      }
+
+      // If no variant specified, try 'default' or first available
       const defaultFormat = format.default || Object.values(format)[0];
       if (defaultFormat) {
-        return this.formatRecursive(date, defaultFormat, visited);
+        return this.formatWithContext(date, defaultFormat, formatName, visited);
       }
 
       return this.getBasicFormat(date);
@@ -203,49 +200,45 @@ export class DateFormatter {
 
     // Handle simple string format
     if (typeof format === 'string') {
-      return this.formatRecursive(date, format, visited);
+      return this.formatWithContext(date, format, formatName, visited);
     }
 
     return this.getBasicFormat(date);
   }
 
   /**
-   * Format with circular reference protection
+   * Format a date using widget-specific format from calendar dateFormats
    */
-  private formatRecursive(date: CalendarDate, template: string, visited: Set<string>): string {
-    try {
-      // Preprocess template to resolve embedded formats with visited set
-      const processedTemplate = this.preprocessEmbeddedFormatsRecursive(date, template, visited);
+  formatWidget(date: CalendarDate, widgetType: 'mini' | 'main' | 'grid'): string {
+    const dateFormats = this.calendar.dateFormats;
 
-      // Check cache first for performance
-      let compiledTemplate = this.templateCache.get(processedTemplate);
-
-      if (!compiledTemplate) {
-        // Use Foundry's global Handlebars to compile template
-        compiledTemplate = Handlebars.compile(processedTemplate);
-        this.templateCache.set(processedTemplate, compiledTemplate);
-      }
-
-      // Prepare context data for template
-      const context = this.prepareTemplateContext(date);
-
-      // Execute template with context
-      return compiledTemplate(context);
-    } catch (error) {
-      console.warn('[S&S] Date format template compilation failed:', error);
-      // Fallback to basic format
+    if (!dateFormats?.widgets) {
       return this.getBasicFormat(date);
     }
+
+    const widgetFormat = dateFormats.widgets[widgetType];
+
+    if (!widgetFormat) {
+      return this.getBasicFormat(date);
+    }
+
+    return this.formatWithContext(date, widgetFormat, `widgets.${widgetType}`);
   }
 
   /**
-   * Preprocess template with visited set for circular reference protection
+   * Preprocess template to resolve embedded format references
    */
-  private preprocessEmbeddedFormatsRecursive(
+  private preprocessEmbeddedFormats(
     date: CalendarDate,
     template: string,
-    visited: Set<string>
+    visited: Set<string> = new Set()
   ): string {
+    // Type safety check - ensure template is actually a string
+    if (typeof template !== 'string') {
+      console.warn('[S&S] Invalid template type, falling back to basic format');
+      return this.getBasicFormat(date);
+    }
+
     // Match {{ss-dateFmt:formatName}} patterns
     const embeddedFormatRegex = /\{\{\s*ss-dateFmt\s*:\s*([^}\s]+)\s*\}\}/g;
 
@@ -260,6 +253,18 @@ export class DateFormatter {
         return this.getBasicFormat(date);
       }
     });
+  }
+
+  /**
+   * Format named with circular reference protection
+   */
+  private formatNamedRecursive(
+    date: CalendarDate,
+    formatName: string,
+    visited: Set<string>
+  ): string {
+    // Use the consolidated formatNamed method with the visited set
+    return this.formatNamed(date, formatName, undefined, visited);
   }
 
   /**
