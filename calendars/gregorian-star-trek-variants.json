@@ -184,14 +184,58 @@
     },
     "federation-standard": {
       "name": "Federation Standard Calendar",
-      "description": "United Federation of Planets standard calendar",
+      "description": "United Federation of Planets standard calendar with comprehensive stardate formatting",
+      "default": false,
       "config": {
         "yearOffset": 2161
       },
       "overrides": {
         "year": {
           "prefix": "",
-          "suffix": " F.S."
+          "suffix": ""
+        },
+        "dateFormats": {
+          "federation": "{{month:abbr}} {{day}}, {{year}}",
+          "tos-stardate": "{{math year op='subtract' value=1300}}.{{dayOfYear}}",
+          "tng-stardate": "{{stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear precision=1}}",
+          "ds9-stardate": "{{stardate year prefix='52' baseYear=2375 dayOfYear=dayOfYear precision=1}}",
+          "voyager-stardate": "{{stardate year prefix='53' baseYear=2376 dayOfYear=dayOfYear precision=1}}",
+          "enterprise-stardate": "{{stardate year prefix='0' baseYear=2151 dayOfYear=dayOfYear precision=2}}",
+          "starfleet": "Stardate {{dateFmt:tng-stardate}}",
+          "tos": "Stardate {{dateFmt:tos-stardate}}",
+          "tng": "Stardate {{dateFmt:tng-stardate}}",
+          "ds9": "Stardate {{dateFmt:ds9-stardate}}",
+          "voyager": "Stardate {{dateFmt:voyager-stardate}}",
+          "enterprise": "Stardate {{dateFmt:enterprise-stardate}}",
+          "short": "{{month:abbr}} {{day}}",
+          "long": "{{weekday:name}}, {{month:name}} {{day:ordinal}}, {{year}}",
+          "date": "{{weekday:name}}, {{month:name}} {{day:ordinal}}, {{year}}",
+          "time": "{{hour:pad}}:{{minute:pad}}:{{second:pad}} UTC",
+          "datetime": "{{dateFmt:date}} at {{dateFmt:time}}",
+          "official": "Federation Standard Date: {{month:name}} {{day:ordinal}}, {{year}}",
+          "command-log": "{{dateFmt:tng}} - {{dateFmt:federation}}",
+          "diplomatic": "{{dateFmt:federation}} ({{dateFmt:tng-stardate}})",
+          "variants": {
+            "command": {
+              "short": "SD {{dateFmt:tng-stardate}}",
+              "long": "{{dateFmt:tng}} - {{dateFmt:federation}}"
+            },
+            "civilian": {
+              "short": "{{month:abbr}} {{day}}/{{year}}",
+              "long": "{{dateFmt:federation}} ({{dateFmt:starfleet}})"
+            },
+            "temporal": {
+              "tos": "TOS Era: {{dateFmt:tos}}",
+              "tng": "TNG Era: {{dateFmt:tng}}",
+              "ds9": "DS9 Era: {{dateFmt:ds9}}",
+              "voyager": "VOY Era: {{dateFmt:voyager}}"
+            }
+          },
+          "widgets": {
+            "mini": "SD {{dateFmt:tng-stardate}}",
+            "main": "{{weekday:abbr}}, {{month:name}} {{day:ordinal}}",
+            "grid": "{{day}}"
+          }
         }
       }
     }

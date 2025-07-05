@@ -199,12 +199,6 @@ describe('DateFormatter', () => {
     });
 
     it('should register dateFmt helper for embedding named formats', () => {
-      // Arrange
-      const mockFormats = {
-        iso: '{{year}}-{{month:pad}}-{{day:pad}}',
-        short: '{{month:abbr}} {{day}}',
-      };
-
       // Act & Assert
       expect(mockHandlebars.registerHelper).toHaveBeenCalledWith('dateFmt', expect.any(Function));
 
@@ -214,7 +208,9 @@ describe('DateFormatter', () => {
       const dateFmtHelper = dateFmtHelperCall?.[1];
 
       expect(dateFmtHelper).toBeDefined();
-      // This will be tested more thoroughly when format embedding is implemented
+
+      // Test the helper returns placeholder for unresolved formats
+      expect(dateFmtHelper('test-format', {})).toBe('[Unresolved: test-format]');
     });
   });
 

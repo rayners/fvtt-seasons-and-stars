@@ -49,6 +49,13 @@ import { vi, beforeEach } from 'vitest';
 // Mock ApplicationV2 directly for imports
 (globalThis as any).ApplicationV2 = (globalThis as any).foundry.applications.api.ApplicationV2;
 
+// Basic Handlebars mock for tests that don't set up their own
+// Individual test files can override this with more specific mocks
+(globalThis as any).Handlebars = {
+  compile: vi.fn().mockReturnValue(vi.fn().mockReturnValue('mock-template-result')),
+  registerHelper: vi.fn(),
+};
+
 /**
  * Set up basic Foundry environment for testing
  */

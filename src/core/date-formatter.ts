@@ -8,26 +8,10 @@ import type { SeasonsStarsCalendar } from '../types/calendar';
 export class DateFormatter {
   private calendar: SeasonsStarsCalendar;
   private templateCache: Map<string, Function> = new Map();
-  private handlebarsAvailable: boolean;
 
   constructor(calendar: SeasonsStarsCalendar) {
     this.calendar = calendar;
-    this.handlebarsAvailable = this.checkHandlebarsAvailability();
-
-    if (this.handlebarsAvailable) {
-      this.registerCustomHelpers();
-    }
-  }
-
-  /**
-   * Check if Handlebars is available (for test environments)
-   */
-  private checkHandlebarsAvailability(): boolean {
-    try {
-      return typeof Handlebars !== 'undefined' && typeof Handlebars.compile === 'function';
-    } catch {
-      return false;
-    }
+    this.registerCustomHelpers();
   }
 
   /**
