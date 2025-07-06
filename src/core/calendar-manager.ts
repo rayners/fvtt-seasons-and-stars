@@ -483,6 +483,29 @@ export class CalendarManager {
           }
         }
       }
+
+      // Apply dateFormats overrides
+      if (variant.overrides.dateFormats) {
+        // Deep merge dateFormats to preserve base calendar formats while adding variant-specific ones
+        variantCalendar.dateFormats = {
+          ...variantCalendar.dateFormats,
+          ...variant.overrides.dateFormats,
+          // Merge nested objects like widgets
+          ...(variantCalendar.dateFormats?.widgets || variant.overrides.dateFormats?.widgets
+            ? {
+                widgets: {
+                  ...variantCalendar.dateFormats?.widgets,
+                  ...variant.overrides.dateFormats?.widgets,
+                },
+              }
+            : {}),
+        };
+      }
+
+      // Apply moon overrides
+      if (variant.overrides.moons !== undefined) {
+        variantCalendar.moons = variant.overrides.moons;
+      }
     }
 
     return variantCalendar;

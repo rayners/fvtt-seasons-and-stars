@@ -6,6 +6,7 @@
 import { CalendarLocalization } from '../core/calendar-localization';
 import { Logger } from '../core/logger';
 import { CalendarTimeUtils } from '../core/calendar-time-utils';
+import { CalendarDate } from '../core/calendar-date';
 import type { SeasonsStarsCalendar } from '../types/calendar';
 
 export class CalendarSelectionDialog extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -105,12 +106,16 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       // Generate sample date for preview
       const sampleDate = this.generateSampleDate(calendar);
 
+      // Generate mini widget preview
+      const miniPreview = this.generateMiniWidgetPreview(calendar);
+
       return {
         id,
         label,
         description,
         setting,
         sampleDate,
+        miniPreview,
         isCurrent: id === this.currentCalendarId,
         isSelected: id === this.selectedCalendarId,
         isVariant,
@@ -361,19 +366,63 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     const weekdayIndex = (dayOffset - 1) % calendar.weekdays.length;
     const weekday = calendar.weekdays[weekdayIndex];
 
-    // Format using calendar's translation
-    const monthLabel = CalendarLocalization.getCalendarTranslation(
-      calendar,
-      `months.${month.id || month.name}`,
-      month.name
-    );
-    const weekdayLabel = CalendarLocalization.getCalendarTranslation(
-      calendar,
-      `weekdays.${weekday.id || weekday.name}`,
-      weekday.name
-    );
+    // Create a proper CalendarDate object and use the calendar's dateFormats
+    const calendarDate = {
+      year: year,
+      month: monthIndex + 1, // CalendarDate expects 1-based months
+      day: day,
+      weekday: weekdayIndex,
+      time: { hour: 12, minute: 0, second: 0 }, // Use noon for preview
+    };
 
-    return `${weekdayLabel}, ${monthLabel} ${day}, ${year}`;
+    try {
+      // Use CalendarDate's formatting which respects the calendar's dateFormats
+      const calendarDateInstance = new CalendarDate(calendarDate, calendar);
+      return calendarDateInstance.toLongString();
+    } catch (error) {
+      Logger.warn('Failed to use calendar date formatting, falling back to manual format:', error);
+
+      // Fallback to manual formatting if CalendarDate fails
+      const monthLabel = CalendarLocalization.getCalendarTranslation(
+        calendar,
+        `months.${month.id || month.name}`,
+        month.name
+      );
+      const weekdayLabel = CalendarLocalization.getCalendarTranslation(
+        calendar,
+        `weekdays.${weekday.id || weekday.name}`,
+        weekday.name
+      );
+
+      return `${weekdayLabel}, ${monthLabel} ${day}, ${year}`;
+    }
+  }
+
+  /**
+   * Generate mini widget preview for calendar selection
+   */
+  private generateMiniWidgetPreview(calendar: SeasonsStarsCalendar): string {
+    // Create a sample CalendarDate to demonstrate mini widget formatting
+    const sampleDate = {
+      year: 2370,
+      month: 1,
+      day: 15,
+      weekday: 1,
+      time: { hour: 12, minute: 0, second: 0 },
+    };
+
+    try {
+      // Create CalendarDate instance and use toShortString()
+      const calendarDateInstance = new CalendarDate(sampleDate, calendar);
+      return calendarDateInstance.toShortString();
+    } catch (error) {
+      Logger.warn('Failed to generate mini widget preview, using fallback:', error);
+
+      // Fallback to basic format
+      const monthName = calendar.months?.[0]?.abbreviation || calendar.months?.[0]?.name || 'Jan';
+      const yearString = calendar.year?.prefix + sampleDate.year + (calendar.year?.suffix || '');
+      return `${sampleDate.day} ${monthName} ${yearString}`;
+    }
   }
 
   /**

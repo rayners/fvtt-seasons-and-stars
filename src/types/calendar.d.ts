@@ -187,6 +187,7 @@ export interface CalendarDateData {
 export interface CalendarDate extends CalendarDateData {
   // Methods available on CalendarDate class instances
   toObject(): CalendarDateData;
+  toShortString(): string;
   toLongString(): string;
   toDateString(): string;
   toTimeString(): string;
@@ -225,6 +226,8 @@ export interface CalendarVariant {
     weekdays?: {
       [weekdayName: string]: Partial<CalendarWeekday>;
     };
+    moons?: CalendarMoon[];
+    dateFormats?: CalendarDateFormats;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
