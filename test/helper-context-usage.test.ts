@@ -42,7 +42,7 @@ describe('Helper Context Usage', () => {
   it('should use context for time helpers without explicit parameters', () => {
     // Test template that uses context-based helpers (no explicit parameters)
     const template =
-      '{{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}}';
+      '{{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}}';
 
     // Act - formatter should use real Handlebars compilation and execution
     const result = formatter.format(mockDate, template);
@@ -67,7 +67,7 @@ describe('Helper Context Usage', () => {
     // Test with a date that has no time component
     const dateWithoutTime = { ...mockDate, time: undefined };
     const template =
-      '{{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}}';
+      '{{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}}';
 
     // Act - helpers should handle undefined time gracefully
     const result = formatter.format(dateWithoutTime as CalendarDate, template);

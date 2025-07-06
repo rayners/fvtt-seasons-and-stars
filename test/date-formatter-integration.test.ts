@@ -49,26 +49,27 @@ describe('DateFormatter Integration Tests', () => {
       time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
       dateFormats: {
         // Test basic helper functionality
-        'test-day-ordinal': '{{ss-day day format="ordinal"}}',
-        'test-day-pad': '{{ss-day day format="pad"}}',
-        'test-month-name': '{{ss-month month format="name"}}',
-        'test-month-abbr': '{{ss-month month format="abbr"}}',
-        'test-weekday-name': '{{ss-weekday weekday format="name"}}',
+        'test-day-ordinal': '{{ss-day format="ordinal"}}',
+        'test-day-pad': '{{ss-day format="pad"}}',
+        'test-month-name': '{{ss-month format="name"}}',
+        'test-month-abbr': '{{ss-month format="abbr"}}',
+        'test-weekday-name': '{{ss-weekday format="name"}}',
         'test-math-subtract': '{{ss-math year op="subtract" value=100}}',
         'test-math-add': '{{ss-math dayOfYear op="add" value=50}}',
-        'test-time-pad': '{{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}',
+        'test-time-pad': '{{ss-hour format="pad"}}:{{ss-minute format="pad"}}',
 
         // Test format embedding
-        'test-embed-simple': 'Date: {{ss-dateFmt:test-day-ordinal}} {{ss-dateFmt:test-month-name}}',
+        'test-embed-simple':
+          'Date: {{ss-dateFmt formatName="test-day-ordinal"}} {{ss-dateFmt formatName="test-month-name"}}',
         'test-embed-complex':
-          '{{ss-dateFmt:test-weekday-name}}, {{ss-dateFmt:test-embed-simple}} {{year}} CE',
+          '{{ss-dateFmt formatName="test-weekday-name"}}, {{ss-dateFmt formatName="test-embed-simple"}} {{year}} CE',
 
         // Test real-world scenarios
-        'iso-format': '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}}',
+        'iso-format': '{{year}}-{{ss-month format="pad"}}-{{ss-day format="pad"}}',
         'full-date':
-          '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}} CE',
+          '{{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} {{year}} CE',
         'time-format':
-          '{{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}}',
+          '{{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}}',
       },
     } as SeasonsStarsCalendar;
 

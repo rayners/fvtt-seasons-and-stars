@@ -135,12 +135,19 @@ describe('Production Error Notifications', () => {
     });
   });
 
-  describe('Development Mode Detection', () => {
-    it('should show detailed notifications in development mode', () => {
-      // RED: Should provide more detailed errors when in development mode
-      // Mock development mode (this will need to be implemented)
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'development';
+  describe('Debug Mode Detection', () => {
+    it('should show detailed notifications in debug mode', () => {
+      // Mock debug mode enabled via game settings
+      global.game = {
+        settings: {
+          get: vi.fn().mockImplementation((module: string, setting: string) => {
+            if (module === 'seasons-and-stars' && setting === 'debugMode') {
+              return true; // Debug mode enabled
+            }
+            return false;
+          }),
+        },
+      } as any;
 
       const invalidTemplate = '{{ss-unknown-helper}}';
 
@@ -150,19 +157,24 @@ describe('Production Error Notifications', () => {
 
       formatter.format(mockDate, invalidTemplate);
 
-      // Should show detailed error in development mode
+      // Should show detailed error in debug mode
       expect(mockNotifications.warn).toHaveBeenCalledWith(
         expect.stringMatching(/unknown.*helper.*ss-unknown-helper/i)
       );
-
-      // Restore original env
-      process.env.NODE_ENV = originalEnv;
     });
 
-    it('should show minimal notifications in production mode', () => {
-      // GREEN: Should provide less detailed errors in production to avoid confusion
-      const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
+    it('should show minimal notifications in normal mode', () => {
+      // Mock debug mode disabled via game settings
+      global.game = {
+        settings: {
+          get: vi.fn().mockImplementation((module: string, setting: string) => {
+            if (module === 'seasons-and-stars' && setting === 'debugMode') {
+              return false; // Debug mode disabled
+            }
+            return false;
+          }),
+        },
+      } as any;
 
       const invalidTemplate = '{{ss-broken}}';
 
@@ -172,18 +184,15 @@ describe('Production Error Notifications', () => {
 
       formatter.format(mockDate, invalidTemplate);
 
-      // Should show minimal error in production mode
+      // Should show minimal error in normal mode
       expect(mockNotifications.warn).toHaveBeenCalledWith(
         expect.stringMatching(/date format.*error/i)
       );
 
-      // Should NOT include technical details in production
+      // Should NOT include technical details in normal mode
       expect(mockNotifications.warn).not.toHaveBeenCalledWith(
         expect.stringMatching(/ss-broken|helper.*not.*found/i)
       );
-
-      // Restore original env
-      process.env.NODE_ENV = originalEnv;
     });
   });
 });

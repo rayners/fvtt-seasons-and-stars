@@ -202,9 +202,9 @@ describe('Widget Format Integration Tests', () => {
         dateFormats: {
           ...mockCalendar.dateFormats,
           widgets: {
-            mini: '{{ss-month month format="abbr"}} {{ss-day day}}',
-            main: '{{ss-weekday weekday format="abbr"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} ({{ss-dateFmt:iso}})',
-            grid: '{{ss-day day format="pad"}}',
+            mini: '{{ss-month format="abbr"}} {{ss-day}}',
+            main: '{{ss-weekday format="abbr"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} ({{ss-dateFmt formatName="iso"}})',
+            grid: '{{ss-day format="pad"}}',
           },
         },
       };

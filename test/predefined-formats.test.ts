@@ -36,38 +36,38 @@ describe('Predefined Formats Usage', () => {
       time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
       dateFormats: {
         // Basic formats using correct helper parameter syntax
-        short: '{{ss-month month format="abbr"}} {{ss-day day}}',
-        long: '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}}',
-        numeric: '{{ss-month month}}/{{ss-day day}}/{{year}}',
+        short: '{{ss-month format="abbr"}} {{ss-day}}',
+        long: '{{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} {{year}}',
+        numeric: '{{ss-month}}/{{ss-day}}/{{year}}',
 
         // Time-related formats
         shortTime:
-          '{{ss-month month format="abbr"}} {{ss-day day}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}',
+          '{{ss-month format="abbr"}} {{ss-day}} {{ss-hour format="pad"}}:{{ss-minute format="pad"}}',
         longTime:
-          '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}}',
+          '{{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} {{year}} {{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}}',
         datetime:
-          '{{ss-month month format="name"}} {{ss-day day}}, {{year}} at {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}',
+          '{{ss-month format="name"}} {{ss-day}}, {{year}} at {{ss-hour format="pad"}}:{{ss-minute format="pad"}}',
         timestamp:
-          '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}}',
+          '{{year}}-{{ss-month format="pad"}}-{{ss-day format="pad"}} {{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}}',
 
         // Widget formats
         widgets: {
-          mini: '{{ss-month month format="abbr"}} {{ss-day day}}',
-          main: '{{ss-weekday weekday format="abbr"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}}',
-          grid: '{{ss-day day}}/{{ss-month month}}',
+          mini: '{{ss-month format="abbr"}} {{ss-day}}',
+          main: '{{ss-weekday format="abbr"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}}',
+          grid: '{{ss-day}}/{{ss-month}}',
         },
 
         // Complex scenarios
         detailed:
-          '{{ss-weekday weekday format="name"}}, the {{ss-day day format="ordinal"}} day of {{ss-month month format="name"}}, {{year}}',
-        brief: '{{ss-month month format="abbr"}} {{ss-day day}}/{{year}}',
+          '{{ss-weekday format="name"}}, the {{ss-day format="ordinal"}} day of {{ss-month format="name"}}, {{year}}',
+        brief: '{{ss-month format="abbr"}} {{ss-day}}/{{year}}',
 
         // Format variants (object style)
         date: {
-          short: '{{ss-month month format="abbr"}} {{ss-day day}}',
-          long: '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}}',
-          iso: '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}}',
-          default: '{{ss-month month format="name"}} {{ss-day day}}, {{year}}',
+          short: '{{ss-month format="abbr"}} {{ss-day}}',
+          long: '{{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} {{year}}',
+          iso: '{{year}}-{{ss-month format="pad"}}-{{ss-day format="pad"}}',
+          default: '{{ss-month format="name"}} {{ss-day}}, {{year}}',
         },
       },
     } as SeasonsStarsCalendar;
@@ -212,14 +212,14 @@ describe('Predefined Formats Usage', () => {
       const calendarWithMultipleFormats: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          short: '{{ss-month month format="abbr"}} {{ss-day day}}',
-          brief: '{{ss-month month format="abbr"}} {{ss-day day}}/{{year}}', // Alternative short format
+          short: '{{ss-month format="abbr"}} {{ss-day}}',
+          brief: '{{ss-month format="abbr"}} {{ss-day}}/{{year}}', // Alternative short format
           shortTime:
-            '{{ss-month month format="abbr"}} {{ss-day day}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}',
-          long: '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}}',
-          full: '{{ss-weekday weekday format="name"}}, the {{ss-day day format="ordinal"}} day of {{ss-month month format="name"}}, {{year}}', // Alternative long format
+            '{{ss-month format="abbr"}} {{ss-day}} {{ss-hour format="pad"}}:{{ss-minute format="pad"}}',
+          long: '{{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} {{year}}',
+          full: '{{ss-weekday format="name"}}, the {{ss-day format="ordinal"}} day of {{ss-month format="name"}}, {{year}}', // Alternative long format
           detailed:
-            '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}', // Alternative long time
+            '{{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} {{year}} {{ss-hour format="pad"}}:{{ss-minute format="pad"}}', // Alternative long time
         },
       };
 
@@ -241,10 +241,10 @@ describe('Predefined Formats Usage', () => {
       const calendarWithAlternativeNames: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          brief: '{{ss-month month format="abbr"}} {{ss-day day}}', // Alternative to 'short'
+          brief: '{{ss-month format="abbr"}} {{ss-day}}', // Alternative to 'short'
           detailed:
-            '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}}', // Alternative to 'long'
-          number: '{{ss-month month}}/{{ss-day day}}/{{year}}', // Alternative to 'numeric'
+            '{{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} {{year}}', // Alternative to 'long'
+          number: '{{ss-month}}/{{ss-day}}/{{year}}', // Alternative to 'numeric'
         },
       };
 
@@ -272,7 +272,7 @@ describe('Predefined Formats Usage', () => {
         ...mockCalendar,
         dateFormats: {
           // Only has formats that don't match the requested options
-          custom: '{{ss-month month format="name"}} {{year}}',
+          custom: '{{ss-month format="name"}} {{year}}',
         },
       };
 
@@ -355,9 +355,9 @@ describe('Predefined Formats Usage', () => {
       const calendarWithPriority: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          short: '{{ss-month month format="abbr"}} {{ss-day day}}', // Exact match
-          shortFormat: '{{ss-month month format="abbr"}} {{ss-day day}}/{{year}}', // Partial match
-          brief: '{{ss-month month}} {{ss-day day}}', // Alternative match
+          short: '{{ss-month format="abbr"}} {{ss-day}}', // Exact match
+          shortFormat: '{{ss-month format="abbr"}} {{ss-day}}/{{year}}', // Partial match
+          brief: '{{ss-month}} {{ss-day}}', // Alternative match
         },
       };
 
@@ -375,13 +375,13 @@ describe('Predefined Formats Usage', () => {
       const calendarWithTimeFormats: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          short: '{{ss-month month format="abbr"}} {{ss-day day}}',
+          short: '{{ss-month format="abbr"}} {{ss-day}}',
           shortTime:
-            '{{ss-month month format="abbr"}} {{ss-day day}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}', // Preferred time format
+            '{{ss-month format="abbr"}} {{ss-day}} {{ss-hour format="pad"}}:{{ss-minute format="pad"}}', // Preferred time format
           datetime:
-            '{{ss-month month format="abbr"}} {{ss-day day}} at {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}', // Alternative time format
+            '{{ss-month format="abbr"}} {{ss-day}} at {{ss-hour format="pad"}}:{{ss-minute format="pad"}}', // Alternative time format
           timestamp:
-            '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}}', // Generic time format
+            '{{year}}-{{ss-month format="pad"}}-{{ss-day format="pad"}} {{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}}', // Generic time format
         },
       };
 

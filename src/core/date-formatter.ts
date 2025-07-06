@@ -108,25 +108,39 @@ export class DateFormatter {
 
     DateFormatter.notifiedErrors.add(errorKey);
 
-    // Check if we're in development or production mode
-    const isDevelopment = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
+    // Check if debug mode is enabled (use debug setting instead of NODE_ENV)
+    const isDebugEnabled =
+      typeof game !== 'undefined' && game.settings?.get('seasons-and-stars', 'debugMode') === true;
 
-    // Only show UI notifications in development mode or for serious errors that require user action
-    // Built-in calendars should never trigger user-visible warnings during normal operation
-    if (typeof ui !== 'undefined' && ui.notifications && isDevelopment) {
+    // Show UI notifications for template errors
+    if (typeof ui !== 'undefined' && ui.notifications) {
       if (formatName && this.calendar.id) {
-        // Calendar-specific format error (development only)
+        // Calendar-specific format error
         const calendarName = this.calendar.name || this.calendar.id;
-        ui.notifications.warn(
-          `Calendar "${calendarName}" has syntax errors in "${formatName}" format: ${error.message}`
-        );
+        if (isDebugEnabled) {
+          // Detailed error in debug mode
+          ui.notifications.warn(
+            `Calendar "${calendarName}" has syntax errors in "${formatName}" format: ${error.message}`
+          );
+        } else {
+          // Simple error in normal mode
+          ui.notifications.warn(
+            `Calendar "${calendarName}" has a date format error. Using fallback format.`
+          );
+        }
       } else {
-        // Generic template error (development only)
-        ui.notifications.warn(`Date format template has syntax errors: ${error.message}`);
+        // Generic template error
+        if (isDebugEnabled) {
+          // Detailed error in debug mode
+          ui.notifications.warn(`Date format template has syntax errors: ${error.message}`);
+        } else {
+          // Simple error in normal mode
+          ui.notifications.warn('Date format template has syntax errors. Using fallback format.');
+        }
       }
 
-      // Provide helpful hints for common errors (development only)
-      if (error.message.includes('quote')) {
+      // Provide helpful hints for common errors (debug mode only)
+      if (isDebugEnabled && error.message.includes('quote')) {
         ui.notifications.warn(
           'Hint: Use double quotes in format helpers, e.g., {{ss-hour format="pad"}} not {{ss-hour format=\'pad\'}}'
         );
@@ -632,16 +646,9 @@ export class DateFormatter {
           ? args[0]
           : options?.data?.root?.hour;
 
-      // Handle undefined/null values gracefully
-      // If value comes from context and is undefined, return empty string (let Handlebars handle it)
+      // Handle undefined/null values gracefully - default to 0 for proper time formatting
       if (hourValue === undefined || hourValue === null) {
-        // If an explicit value was passed but is null/undefined, default to 0
-        if (args.length > 1) {
-          hourValue = 0;
-        } else {
-          // Value from context is undefined, return empty string
-          return '';
-        }
+        hourValue = 0;
       }
 
       const format = options?.hash?.format;
@@ -665,16 +672,9 @@ export class DateFormatter {
           ? args[0]
           : options?.data?.root?.minute;
 
-      // Handle undefined/null values gracefully
-      // If value comes from context and is undefined, return empty string (let Handlebars handle it)
+      // Handle undefined/null values gracefully - default to 0 for proper time formatting
       if (minuteValue === undefined || minuteValue === null) {
-        // If an explicit value was passed but is null/undefined, default to 0
-        if (args.length > 1) {
-          minuteValue = 0;
-        } else {
-          // Value from context is undefined, return empty string
-          return '';
-        }
+        minuteValue = 0;
       }
 
       const format = options?.hash?.format;
@@ -698,16 +698,9 @@ export class DateFormatter {
           ? args[0]
           : options?.data?.root?.second;
 
-      // Handle undefined/null values gracefully
-      // If value comes from context and is undefined, return empty string (let Handlebars handle it)
+      // Handle undefined/null values gracefully - default to 0 for proper time formatting
       if (secondValue === undefined || secondValue === null) {
-        // If an explicit value was passed but is null/undefined, default to 0
-        if (args.length > 1) {
-          secondValue = 0;
-        } else {
-          // Value from context is undefined, return empty string
-          return '';
-        }
+        secondValue = 0;
       }
 
       const format = options?.hash?.format;

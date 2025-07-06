@@ -301,11 +301,11 @@ describe('Calendar Variants System', () => {
             description: 'Test variant with dateFormats',
             overrides: {
               dateFormats: {
-                'variant-format': 'Variant: {{month:name}} {{day}}, {{year}}',
-                short: 'V{{year}}-{{month:pad}}-{{day:pad}}',
+                'variant-format': 'Variant: {{ss-month format="name"}} {{ss-day}}, {{year}}',
+                short: 'V{{year}}-{{ss-month format="pad"}}-{{ss-day format="pad"}}',
                 widgets: {
-                  mini: 'V{{month:abbr}} {{day}}',
-                  main: 'Variant {{weekday:name}}, {{day:ordinal}} {{month:name}}',
+                  mini: 'V{{ss-month format="abbr"}} {{ss-day}}',
+                  main: 'Variant {{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}}',
                 },
               },
             },

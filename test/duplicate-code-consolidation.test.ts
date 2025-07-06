@@ -33,7 +33,7 @@ describe('Duplicate Code Consolidation', () => {
       time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
       dateFormats: {
         short: '{{ss-month format="name"}} {{ss-day}}',
-        nested: '{{ss-dateFmt:short}}, {{year}}', // Uses embedded format
+        nested: '{{ss-dateFmt formatName="short"}}, {{year}}', // Uses embedded format
       },
     } as SeasonsStarsCalendar;
 
@@ -72,7 +72,7 @@ describe('Duplicate Code Consolidation', () => {
 
     it('should cache templates consistently across regular and recursive calls', () => {
       // RED: Test will fail until caching logic is unified
-      const template = '{{ss-dateFmt:short}}'; // This will use recursive preprocessing
+      const template = '{{ss-dateFmt formatName="short"}}'; // This will use recursive preprocessing
 
       const mockCompiledTemplate = vi.fn().mockReturnValue('January 15');
       mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
@@ -89,7 +89,7 @@ describe('Duplicate Code Consolidation', () => {
   describe('Preprocessing Logic Consolidation', () => {
     it('should use single preprocessing method for both regular and recursive cases', () => {
       // RED: Test will fail until preprocessing methods are consolidated
-      const templateWithEmbedded = 'Date: {{ss-dateFmt:short}}';
+      const templateWithEmbedded = 'Date: {{ss-dateFmt formatName="short"}}';
 
       const mockCompiledTemplate = vi.fn().mockReturnValue('Date: January 15');
       mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
@@ -106,8 +106,8 @@ describe('Duplicate Code Consolidation', () => {
       const circularCalendar: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          format1: '{{ss-dateFmt:format2}}',
-          format2: '{{ss-dateFmt:format1}}', // Circular reference
+          format1: '{{ss-dateFmt formatName="format2"}}',
+          format2: '{{ss-dateFmt formatName="format1"}}', // Circular reference
         },
       };
 
@@ -194,7 +194,7 @@ describe('Duplicate Code Consolidation', () => {
   describe('Consolidated Method Signatures', () => {
     it('should support optional visited parameter for circular reference protection', () => {
       // RED: Test will fail until method signatures are consolidated
-      const templateWithEmbedded = '{{ss-dateFmt:short}}';
+      const templateWithEmbedded = '{{ss-dateFmt formatName="short"}}';
 
       const mockCompiledTemplate = vi.fn().mockReturnValue('January 15');
       mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);

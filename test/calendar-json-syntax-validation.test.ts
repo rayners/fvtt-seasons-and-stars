@@ -61,7 +61,7 @@ describe('Calendar JSON Syntax Validation', () => {
     it('should succeed with correct double quote syntax', () => {
       // GREEN: This should work with proper double quotes and correct helper syntax
       const validTemplate =
-        '{{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}} UTC';
+        '{{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}} UTC';
 
       const result = formatter.format(mockDate, validTemplate);
 
@@ -113,7 +113,7 @@ describe('Calendar JSON Syntax Validation', () => {
         dateFormats: {
           // This should compile and execute successfully
           'good-time':
-            '{{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}} UTC',
+            '{{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}} UTC',
         },
       };
 
