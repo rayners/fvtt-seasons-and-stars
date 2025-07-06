@@ -50,33 +50,33 @@ describe('CalendarDate Formatting', () => {
       ...mockCalendar,
       dateFormats: {
         // Basic formats
-        short: '{{month:abbr}} {{day}}',
-        long: '{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}}',
-        iso: '{{year}}-{{month:pad}}-{{day:pad}}',
+        short: '{{ss-month format="abbr"}} {{ss-day}}',
+        long: '{{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} {{year}}',
+        iso: '{{year}}-{{ss-month format="pad"}}-{{ss-day format="pad"}}',
 
         // Widget formats
         widgets: {
-          mini: '{{month:abbr}} {{day}}',
-          main: '{{weekday:abbr}}, {{day:ordinal}} {{month:name}}',
-          grid: '{{day}}/{{month}}/{{year}}',
+          mini: '{{ss-month format="abbr"}} {{ss-day}}',
+          main: '{{ss-weekday format="abbr"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}}',
+          grid: '{{ss-day}}/{{ss-month}}/{{year}}',
         },
 
         // Time formats
-        time: '{{hour:pad}}:{{minute:pad}}:{{second:pad}}',
-        datetime: '{{dateFmt:long}} {{dateFmt:time}}',
+        time: '{{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}}',
+        datetime: '{{ss-dateFmt formatName="long"}} {{ss-dateFmt formatName="time"}}',
 
         // Complex formats with embedding
-        formal: 'On {{dateFmt:long}} at {{dateFmt:time}}',
+        formal: 'On {{ss-dateFmt formatName="long"}} at {{ss-dateFmt formatName="time"}}',
 
         // Variant formats (object style)
         date: {
-          short: '{{month:abbr}} {{day}}',
-          long: '{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}}',
-          default: '{{month:name}} {{day}}, {{year}}',
+          short: '{{ss-month format="abbr"}} {{ss-day}}',
+          long: '{{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} {{year}}',
+          default: '{{ss-month format="name"}} {{ss-day}}, {{year}}',
         },
 
         // Calendar-specific formats
-        fantasy: '{{day:ordinal}} day of {{month:name}}, {{year:prefix}}{{year}}{{year:suffix}}',
+        fantasy: '{{ss-day format="ordinal"}} day of {{ss-month format="name"}}, {{year}}',
       },
     } as SeasonsStarsCalendar;
 

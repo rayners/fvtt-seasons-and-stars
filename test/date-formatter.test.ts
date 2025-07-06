@@ -257,7 +257,7 @@ describe('DateFormatter', () => {
   });
 
   describe('Format Embedding', () => {
-    it('should support embedding named formats with {{dateFmt:name}}', () => {
+    it('should support embedding named formats with {{ss-dateFmt "name"}}', () => {
       // Arrange
       const calendarWithFormats: SeasonsStarsCalendar = {
         ...mockCalendar,

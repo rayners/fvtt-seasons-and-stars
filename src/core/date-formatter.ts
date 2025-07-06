@@ -548,7 +548,7 @@ export class DateFormatter {
       }
     });
 
-    // Format embedding helper - allows both {{ss-dateFmt:name}} and {{ss-dateFmt formatName="name"}} syntax
+    // Format embedding helper - use {{ss-dateFmt formatName="name"}} syntax
     // Note: This helper is mainly for documentation. The actual format embedding
     // is handled by preprocessing in the format() method to avoid circular issues.
     Handlebars.registerHelper('ss-dateFmt', function (this: any, ...args: any[]) {
