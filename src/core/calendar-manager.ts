@@ -98,7 +98,7 @@ export class CalendarManager {
 
     // Warn about potential issues
     if (validation.warnings.length > 0) {
-      Logger.warn(`Calendar warnings for ${calendarData.id}: ${validation.warnings.join(', ')}`);
+      Logger.debug(`Calendar info for ${calendarData.id}: ${validation.warnings.join(', ')}`);
     }
 
     // Store the base calendar

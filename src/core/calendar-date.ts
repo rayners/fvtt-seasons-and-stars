@@ -44,7 +44,7 @@ export class CalendarDate implements ICalendarDate {
       this.calendar = calendar;
       this.formatter = new DateFormatter(calendar);
     } catch (error) {
-      console.error('[S&S] Error creating CalendarDate:', error);
+      console.debug('[S&S] Error creating CalendarDate:', error);
       throw error;
     }
   }
@@ -180,7 +180,7 @@ export class CalendarDate implements ICalendarDate {
         format: 'short',
       });
     } catch (error) {
-      console.warn('[S&S] Error formatting short date string:', error);
+      console.debug('[S&S] Error formatting short date string:', error);
       return `${this.day} ${this.getMonthName('short')} ${this.getYearString()}`;
     }
   }
@@ -214,7 +214,7 @@ export class CalendarDate implements ICalendarDate {
         format: 'long',
       });
     } catch (error) {
-      console.warn('[S&S] Error formatting long date string:', error);
+      console.debug('[S&S] Error formatting long date string:', error);
       const weekdayName = this.getWeekdayName('long');
       const monthName = this.getMonthName('long');
       const dayOrdinal = this.getDayString('long');
@@ -252,7 +252,7 @@ export class CalendarDate implements ICalendarDate {
         format: 'long',
       });
     } catch (error) {
-      console.warn('[S&S] Error formatting date string:', error);
+      console.debug('[S&S] Error formatting date string:', error);
       const weekdayName = this.getWeekdayName('long');
       const monthName = this.getMonthName('long');
       const dayOrdinal = this.getDayString('long');
@@ -292,7 +292,7 @@ export class CalendarDate implements ICalendarDate {
     try {
       const weekday = this.calendar.weekdays?.[this.weekday];
       if (!weekday) {
-        console.warn(`[S&S] Invalid weekday index: ${this.weekday}`);
+        console.debug(`[S&S] Invalid weekday index: ${this.weekday}`);
         return 'Unknown';
       }
 
@@ -302,7 +302,7 @@ export class CalendarDate implements ICalendarDate {
 
       return weekday.name || 'Unknown';
     } catch (error) {
-      console.warn('[S&S] Error getting weekday name:', error);
+      console.debug('[S&S] Error getting weekday name:', error);
       return 'Unknown';
     }
   }
@@ -314,7 +314,7 @@ export class CalendarDate implements ICalendarDate {
     try {
       const month = this.calendar.months?.[this.month - 1];
       if (!month) {
-        console.warn(`[S&S] Invalid month index: ${this.month}`);
+        console.debug(`[S&S] Invalid month index: ${this.month}`);
         return 'Unknown';
       }
 
@@ -324,7 +324,7 @@ export class CalendarDate implements ICalendarDate {
 
       return month.name || 'Unknown';
     } catch (error) {
-      console.warn('[S&S] Error getting month name:', error);
+      console.debug('[S&S] Error getting month name:', error);
       return 'Unknown';
     }
   }
@@ -335,7 +335,7 @@ export class CalendarDate implements ICalendarDate {
   private getDayString(format: 'short' | 'long' | 'numeric'): string {
     try {
       if (typeof this.day !== 'number' || this.day < 1) {
-        console.warn(`[S&S] Invalid day value: ${this.day}`);
+        console.debug(`[S&S] Invalid day value: ${this.day}`);
         return '1';
       }
 
@@ -350,7 +350,7 @@ export class CalendarDate implements ICalendarDate {
 
       return this.day.toString();
     } catch (error) {
-      console.warn('[S&S] Error formatting day string:', error);
+      console.debug('[S&S] Error formatting day string:', error);
       return '1';
     }
   }
@@ -361,14 +361,14 @@ export class CalendarDate implements ICalendarDate {
   private getYearString(): string {
     try {
       if (typeof this.year !== 'number') {
-        console.warn(`[S&S] Invalid year value: ${this.year}`);
+        console.debug(`[S&S] Invalid year value: ${this.year}`);
         return '1';
       }
 
       const { prefix = '', suffix = '' } = this.calendar.year || {};
       return `${prefix}${this.year}${suffix}`.trim();
     } catch (error) {
-      console.warn('[S&S] Error formatting year string:', error);
+      console.debug('[S&S] Error formatting year string:', error);
       return this.year?.toString() || '1';
     }
   }
@@ -384,7 +384,7 @@ export class CalendarDate implements ICalendarDate {
 
       // Validate time components
       if (typeof hour !== 'number' || typeof minute !== 'number' || typeof second !== 'number') {
-        console.warn(`[S&S] Invalid time components:`, { hour, minute, second });
+        console.debug(`[S&S] Invalid time components:`, { hour, minute, second });
         return '00:00:00';
       }
 
@@ -395,7 +395,7 @@ export class CalendarDate implements ICalendarDate {
 
       return `${hourStr}:${minuteStr}:${secondStr}`;
     } catch (error) {
-      console.warn('[S&S] Error formatting time string:', error);
+      console.debug('[S&S] Error formatting time string:', error);
       return '00:00:00';
     }
   }
@@ -406,12 +406,12 @@ export class CalendarDate implements ICalendarDate {
   private addOrdinalSuffix(num: number): string {
     try {
       if (typeof num !== 'number' || num < 1) {
-        console.warn(`[S&S] Invalid number for ordinal suffix: ${num}`);
+        console.debug(`[S&S] Invalid number for ordinal suffix: ${num}`);
         return '1st';
       }
       return CalendarTimeUtils.addOrdinalSuffix(num);
     } catch (error) {
-      console.warn('[S&S] Error adding ordinal suffix:', error);
+      console.debug('[S&S] Error adding ordinal suffix:', error);
       return `${num || 1}th`;
     }
   }
@@ -439,7 +439,7 @@ export class CalendarDate implements ICalendarDate {
   compareTo(other: CalendarDateData): number {
     try {
       if (!other || typeof other !== 'object') {
-        console.warn('[S&S] Invalid date data provided for comparison:', other);
+        console.debug('[S&S] Invalid date data provided for comparison:', other);
         return 0;
       }
 
@@ -456,7 +456,7 @@ export class CalendarDate implements ICalendarDate {
 
       return 0;
     } catch (error) {
-      console.warn('[S&S] Error comparing dates:', error);
+      console.debug('[S&S] Error comparing dates:', error);
       return 0;
     }
   }

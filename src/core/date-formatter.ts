@@ -111,31 +111,22 @@ export class DateFormatter {
     // Check if we're in development or production mode
     const isDevelopment = typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
 
-    // Only show notifications if ui.notifications is available (in Foundry)
-    if (typeof ui !== 'undefined' && ui.notifications) {
+    // Only show UI notifications in development mode or for serious errors that require user action
+    // Built-in calendars should never trigger user-visible warnings during normal operation
+    if (typeof ui !== 'undefined' && ui.notifications && isDevelopment) {
       if (formatName && this.calendar.id) {
-        // Calendar-specific format error
+        // Calendar-specific format error (development only)
         const calendarName = this.calendar.name || this.calendar.id;
-        if (isDevelopment) {
-          ui.notifications.warn(
-            `Calendar "${calendarName}" has syntax errors in "${formatName}" format: ${error.message}`
-          );
-        } else {
-          ui.notifications.warn(
-            `Calendar "${calendarName}" has a date format error. Using fallback format.`
-          );
-        }
+        ui.notifications.warn(
+          `Calendar "${calendarName}" has syntax errors in "${formatName}" format: ${error.message}`
+        );
       } else {
-        // Generic template error
-        if (isDevelopment) {
-          ui.notifications.warn(`Date format template has syntax errors: ${error.message}`);
-        } else {
-          ui.notifications.warn('Date format template has syntax errors. Using fallback format.');
-        }
+        // Generic template error (development only)
+        ui.notifications.warn(`Date format template has syntax errors: ${error.message}`);
       }
 
-      // Provide helpful hints for common errors
-      if (isDevelopment && error.message.includes('quote')) {
+      // Provide helpful hints for common errors (development only)
+      if (error.message.includes('quote')) {
         ui.notifications.warn(
           'Hint: Use double quotes in format helpers, e.g., {{ss-hour format="pad"}} not {{ss-hour format=\'pad\'}}'
         );
@@ -176,7 +167,7 @@ export class DateFormatter {
   ): string {
     // Type safety check at entry point
     if (typeof template !== 'string') {
-      console.warn('[S&S] Invalid template type passed to format(), falling back to basic format');
+      console.debug('[S&S] Invalid template type passed to format(), falling back to basic format');
       return this.getBasicFormat(date);
     }
 
@@ -195,7 +186,7 @@ export class DateFormatter {
 
       // Validate template output - detect malformed templates that produce empty/invalid output
       if (this.isInvalidTemplateOutput(result, template)) {
-        console.warn('[S&S] Template produced invalid output, falling back to basic format:', {
+        console.debug('[S&S] Template produced invalid output, falling back to basic format:', {
           template,
           result,
         });
@@ -204,7 +195,7 @@ export class DateFormatter {
 
       return result;
     } catch (error) {
-      console.warn('[S&S] Date format template compilation failed:', error);
+      console.debug('[S&S] Date format template compilation failed:', error);
 
       // Notify user about the error
       this.notifyTemplateError(
@@ -234,7 +225,7 @@ export class DateFormatter {
 
     // Prevent circular references - check before adding to visited
     if (visited.has(formatName)) {
-      console.warn(`[S&S] Circular reference detected in format '${formatName}'`);
+      console.debug(`[S&S] Circular reference detected in format '${formatName}'`);
       return this.getBasicFormat(date);
     }
 
@@ -278,7 +269,9 @@ export class DateFormatter {
 
     // Pre-analyze for circular references in this format's embedded references
     if (this.containsCircularReference(formatString, formatName, visited)) {
-      console.warn(`[S&S] Format '${formatName}' contains circular references, using basic format`);
+      console.debug(
+        `[S&S] Format '${formatName}' contains circular references, using basic format`
+      );
       return this.getBasicFormat(date);
     }
 
@@ -318,7 +311,7 @@ export class DateFormatter {
   ): string {
     // Type safety check - ensure template is actually a string
     if (typeof template !== 'string') {
-      console.warn('[S&S] Invalid template type, falling back to basic format');
+      console.debug('[S&S] Invalid template type, falling back to basic format');
       return this.getBasicFormat(date);
     }
 
@@ -333,7 +326,7 @@ export class DateFormatter {
           // Use whichever format name was captured (colon, parameter, or quoted syntax)
           const formatName = colonFormatName || paramFormatName || quotedFormatName;
           if (!formatName) {
-            console.warn(`[S&S] Could not extract format name from: ${match}`);
+            console.debug(`[S&S] Could not extract format name from: ${match}`);
             return this.getBasicFormat(date);
           }
 
@@ -348,7 +341,7 @@ export class DateFormatter {
           const embeddedResult = this.formatNamedRecursive(date, formatName, visited);
           return embeddedResult;
         } catch (error) {
-          console.warn(
+          console.debug(
             `[S&S] Failed to resolve embedded format '${colonFormatName || paramFormatName || quotedFormatName}':`,
             error
           );
@@ -392,9 +385,16 @@ export class DateFormatter {
    * Calculate day of year for stardate and other calculations
    */
   private calculateDayOfYear(date: CalendarDate): number {
-    // Bounds checking for month value
-    if (date.month < 1 || date.month > this.calendar.months.length) {
-      console.warn(`[S&S] Invalid month value ${date.month}, using start of year fallback`);
+    // Bounds checking for month value - only warn for severely out-of-range values
+    // Built-in calendars (like Traveller Imperial with 1 month) should not trigger warnings
+    if (
+      date.month < 1 ||
+      (this.calendar.months.length > 0 && date.month > this.calendar.months.length)
+    ) {
+      // Only log as debug for legitimate edge cases, no user-visible warnings
+      console.debug(
+        `[S&S] Month value ${date.month} outside calendar range (1-${this.calendar.months.length}), using start of year fallback`
+      );
       // Return 1 to indicate start of year, which is more meaningful than raw day value
       // This prevents confusing calculations in stardate helpers and other features
       return 1;

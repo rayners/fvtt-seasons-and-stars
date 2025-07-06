@@ -440,9 +440,11 @@ export class CalendarValidator {
       );
     }
 
-    // Log for debugging/monitoring
-    if (totalFormatCount > 0) {
-      result.warnings.push(`Calendar defines ${totalFormatCount} date formats`);
+    // Log for debugging/monitoring - only warn for excessive format counts
+    if (totalFormatCount > 100) {
+      result.warnings.push(
+        `Calendar defines ${totalFormatCount} date formats (consider reducing for performance)`
+      );
     }
   }
 
@@ -572,31 +574,11 @@ export class CalendarValidator {
   static validateWithHelp(calendar: any): ValidationResult {
     const result = this.validate(calendar);
 
-    // Add helpful warnings for common issues
-    if (calendar.year?.epoch === undefined) {
-      result.warnings.push('Year epoch not specified, defaulting to 0');
-    }
+    // Only warn for potential problems, not normal configurations
+    // These are optional fields with sensible defaults and shouldn't trigger warnings
 
-    if (calendar.year?.currentYear === undefined) {
-      result.warnings.push('Current year not specified, defaulting to 1');
-    }
-
-    if (!calendar.time) {
-      result.warnings.push('Time configuration not specified, using 24-hour day');
-    }
-
-    if (!calendar.leapYear) {
-      result.warnings.push('Leap year configuration not specified, no leap years will occur');
-    }
-
-    // Check for commonly forgotten fields
-    if (Array.isArray(calendar.months)) {
-      calendar.months.forEach((month: any, index: number) => {
-        if (!month.abbreviation) {
-          result.warnings.push(`Month ${index + 1} (${month.name}) has no abbreviation`);
-        }
-      });
-    }
+    // Only warn for critical missing fields that could cause functionality issues
+    // Month abbreviations are optional and have automatic fallbacks
 
     return result;
   }
