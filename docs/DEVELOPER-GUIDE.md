@@ -160,7 +160,7 @@ interface DateFormatOptions {
 
 #### `formatDateNamed(date: CalendarDate, formatName: string, variant?: string)`
 
-**New in v0.5.0** - Format a date using named formats from the calendar's `dateFormats` configuration.
+**New in v0.6.0** - Format a date using named formats from the calendar's `dateFormats` configuration.
 
 ```javascript
 const date = game.seasonsStars.api.getCurrentDate();
@@ -179,7 +179,7 @@ const longDate = game.seasonsStars.api.formatDateNamed(date, 'date', 'long');
 
 #### `formatDateWidget(date: CalendarDate, widgetType: 'mini' | 'main' | 'grid')`
 
-**New in v0.5.0** - Format a date using widget-specific formats optimized for different UI contexts.
+**New in v0.6.0** - Format a date using widget-specific formats optimized for different UI contexts.
 
 ```javascript
 const date = game.seasonsStars.api.getCurrentDate();
