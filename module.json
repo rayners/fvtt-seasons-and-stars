@@ -24,9 +24,9 @@
   "packs": [],
   "languages": [
     {
-        "lang": "de",
-        "name": "Deutsch",
-        "path": "languages/de.json"
+      "lang": "de",
+      "name": "Deutsch",
+      "path": "languages/de.json"
     },
     {
       "lang": "en",
