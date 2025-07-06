@@ -4,8 +4,12 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import Handlebars from 'handlebars';
 import { DateFormatter } from '../src/core/date-formatter';
 import type { SeasonsStarsCalendar, ICalendarDate } from '../src/types/calendar';
+
+// Use REAL Handlebars for widget integration testing
+global.Handlebars = Handlebars;
 
 describe('Widget Format Integration Tests', () => {
   let mockCalendar: SeasonsStarsCalendar;
@@ -13,6 +17,9 @@ describe('Widget Format Integration Tests', () => {
   let testDate: ICalendarDate;
 
   beforeEach(() => {
+    // Reset Handlebars helpers before each test
+    DateFormatter.resetHelpersForTesting();
+
     // Create comprehensive test calendar with all widget formats
     mockCalendar = {
       id: 'test-widget-calendar',
@@ -49,14 +56,14 @@ describe('Widget Format Integration Tests', () => {
       },
       dateFormats: {
         widgets: {
-          mini: '{{ss-month:abbr}} {{ss-day}}',
-          main: '{{ss-weekday:abbr}}, {{ss-day:ordinal}} {{ss-month:name}}',
-          grid: '{{ss-day}}',
+          mini: '{{ss-month month format="abbr"}} {{ss-day day}}',
+          main: '{{ss-weekday weekday format="abbr"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}}',
+          grid: '{{ss-day day}}',
         },
         // Add other format categories for completeness
-        iso: '{{year}}-{{ss-month:pad}}-{{ss-day:pad}}',
-        short: '{{ss-month:abbr}} {{ss-day}}',
-        long: '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}}',
+        iso: '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}}',
+        short: '{{ss-month month format="abbr"}} {{ss-day day}}',
+        long: '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}}',
       },
     };
 
@@ -66,6 +73,7 @@ describe('Widget Format Integration Tests', () => {
       year: 2024,
       month: 1, // January (1-based)
       day: 15,
+      weekday: 0, // Monday (0-based in the weekdays array)
     };
   });
 
@@ -92,7 +100,7 @@ describe('Widget Format Integration Tests', () => {
       const calendarNoWidgets = {
         ...mockCalendar,
         dateFormats: {
-          iso: '{{year}}-{{ss-month:pad}}-{{ss-day:pad}}',
+          iso: '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}}',
           // No widgets section
         },
       };
@@ -118,8 +126,8 @@ describe('Widget Format Integration Tests', () => {
           ...mockCalendar.dateFormats,
           widgets: {
             mini: '', // Empty format
-            main: '{{ss-weekday:abbr}}, {{ss-day:ordinal}} {{ss-month:name}}',
-            grid: '{{ss-day}}',
+            main: '{{ss-weekday weekday format="abbr"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}}',
+            grid: '{{ss-day day}}',
           },
         },
       };
@@ -139,11 +147,11 @@ describe('Widget Format Integration Tests', () => {
         id: 'alternate-test-calendar',
         dateFormats: {
           widgets: {
-            mini: '{{ss-day}}/{{ss-month}}',
-            main: '{{ss-month:name}} {{ss-day}}, {{year}}',
-            grid: '{{ss-day:pad}}',
+            mini: '{{ss-day day}}/{{ss-month month}}',
+            main: '{{ss-month month format="name"}} {{ss-day day}}, {{year}}',
+            grid: '{{ss-day day format="pad"}}',
           },
-          iso: '{{year}}-{{ss-month:pad}}-{{ss-day:pad}}',
+          iso: '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}}',
         },
       };
 
@@ -194,9 +202,9 @@ describe('Widget Format Integration Tests', () => {
         dateFormats: {
           ...mockCalendar.dateFormats,
           widgets: {
-            mini: '{{ss-month:abbr}} {{ss-day}}',
-            main: '{{ss-weekday:abbr}}, {{ss-day:ordinal}} {{ss-month:name}} ({{ss-dateFmt:iso}})',
-            grid: '{{ss-day:pad}}',
+            mini: '{{ss-month month format="abbr"}} {{ss-day day}}',
+            main: '{{ss-weekday weekday format="abbr"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} ({{ss-dateFmt:iso}})',
+            grid: '{{ss-day day format="pad"}}',
           },
         },
       };

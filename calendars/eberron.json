@@ -151,9 +151,9 @@
     "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
     "formal": "The {{ss-day:ordinal}} day of {{ss-month:name}}, in the {{year}} year of the Kingdom",
     "day-of-year": "Day {{dayOfYear}} of {{year}} YK",
-    "week-number": "Week {{ss-math dayOfYear op='divide' value=7}} of {{year}} YK",
-    "historical": "{{ss-math year op='subtract' value=894}} years since the Last War ended",
-    "treaty": "{{ss-dateFmt:date}} (Treaty of Thronehold +{{ss-math year op='subtract' value=996}})",
+    "week-number": "Week {{ss-math dayOfYear op=\"divide\" value=7}} of {{year}} YK",
+    "historical": "{{ss-math year op=\"subtract\" value=894}} years since the Last War ended",
+    "treaty": "{{ss-dateFmt:date}} (Treaty of Thronehold +{{ss-math year op=\"subtract\" value=996}})",
     "variants": {
       "dragonmarked": {
         "short": "{{ss-month:name}} {{ss-day}}, {{year}} YK",
