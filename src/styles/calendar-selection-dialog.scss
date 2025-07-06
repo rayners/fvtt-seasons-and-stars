@@ -180,29 +180,44 @@
         color: var(--color-text-light-6);
       }
 
-      .sample-preview {
-        // Use native form styling
-        background: var(--color-bg-secondary);
-        border: 1px solid var(--color-border-light-secondary);
-        border-radius: 3px;
-        padding: 0.5rem;
+      .preview-section {
         margin-top: auto;
+        
+        .sample-preview, 
+        .mini-preview {
+          // Use native form styling
+          background: var(--color-bg-secondary);
+          border: 1px solid var(--color-border-light-secondary);
+          border-radius: 3px;
+          padding: 0.5rem;
+          margin-bottom: 0.5rem;
 
-        label {
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: var(--color-text-light-7);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin-bottom: 0.25rem;
-          display: block;
+          label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-text-light-7);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+            display: block;
+          }
+
+          .sample-date,
+          .mini-format {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--color-text-light-primary);
+            font-weight: 500;
+          }
         }
-
-        .sample-date {
-          font-family: var(--font-mono);
-          font-size: 0.85rem;
-          color: var(--color-text-light-primary);
-          font-weight: 500;
+        
+        .mini-preview {
+          border-color: var(--color-warm-3);
+          
+          .mini-format {
+            color: var(--color-warm-1);
+            font-weight: 600;
+          }
         }
       }
     }

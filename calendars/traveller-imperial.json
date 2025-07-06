@@ -7,7 +7,7 @@
       "setting": "Traveller RPG"
     }
   },
-  
+
   "year": {
     "epoch": 0,
     "currentYear": 1000,
@@ -15,11 +15,11 @@
     "suffix": "",
     "startDay": 0
   },
-  
+
   "leapYear": {
     "rule": "none"
   },
-  
+
   "months": [
     {
       "name": "Year",
@@ -28,7 +28,7 @@
       "description": "The standard Imperial year consists of exactly 364 days, numbered sequentially from 001 to 364 for administrative efficiency across the vast reaches of the Third Imperium. This standardization allows for consistent scheduling and coordination across thousands of worlds with vastly different orbital periods."
     }
   ],
-  
+
   "weekdays": [
     {
       "name": "Wonday",
@@ -66,7 +66,7 @@
       "description": "Seventh day of the Imperial week, traditionally a day of rest and personal pursuits across the Imperium"
     }
   ],
-  
+
   "intercalary": [
     {
       "name": "Holiday",
@@ -76,10 +76,27 @@
       "description": "The Imperial Holiday marks the transition between years, serving as a universal celebration and administrative reset point across all worlds of the Third Imperium. This single day allows for synchronized Imperial-wide activities and provides a standardized reference point for interstellar coordination."
     }
   ],
-  
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "imperial": "{{ss-day format=\"pad\"}}-{{year}}",
+    "standard": "Day {{ss-day format=\"pad\"}} of {{year}}",
+    "long": "{{ss-weekday format=\"name\"}}, Day {{ss-day}} of the year {{year}}",
+    "short": "{{ss-day format=\"pad\"}}/{{year}}",
+    "date": "{{ss-weekday format=\"name\"}}, Day {{ss-day}} of {{year}}",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt formatName=\"date\"}} at {{ss-dateFmt formatName=\"time\"}} Imperial Standard Time",
+    "administrative": "Imperial Date: {{year}}.{{ss-day format=\"pad\"}}",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of the Imperial year {{year}}",
+    "widgets": {
+      "mini": "{{ss-day format=\"pad\"}}/{{year}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, Day {{ss-day}}",
+      "grid": "{{ss-day}}"
+    }
   }
 }

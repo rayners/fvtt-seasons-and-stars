@@ -7,7 +7,7 @@
       "setting": "D&D Eberron"
     }
   },
-  
+
   "year": {
     "epoch": 0,
     "currentYear": 998,
@@ -15,11 +15,11 @@
     "suffix": " YK",
     "startDay": 0
   },
-  
+
   "leapYear": {
     "rule": "none"
   },
-  
+
   "months": [
     {
       "name": "Zarantyr",
@@ -94,7 +94,7 @@
       "description": "The Warding Month. Named after the mark of warding, representing protection, security, and the defense against hostile forces."
     }
   ],
-  
+
   "weekdays": [
     {
       "name": "Sul",
@@ -132,12 +132,42 @@
       "description": "Seventh day of the week, traditionally a day of rest and family time"
     }
   ],
-  
+
   "intercalary": [],
-  
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "iso": "{{year}}-{{ss-month format=\"pad\"}}-{{ss-day format=\"pad\"}}",
+    "short": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} YK",
+    "date": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} YK",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt formatName=\"date\"}} at {{ss-dateFmt formatName=\"time\"}}",
+    "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, in the {{year}} year of the Kingdom",
+    "day-of-year": "Day {{dayOfYear}} of {{year}} YK",
+    "week-number": "Week {{ss-math dayOfYear op=\"divide\" value=7}} of {{year}} YK",
+    "historical": "{{ss-math year op=\"subtract\" value=894}} years since the Last War ended",
+    "treaty": "{{ss-dateFmt formatName=\"date\"}} (Treaty of Thronehold +{{ss-math year op=\"subtract\" value=996}})",
+    "variants": {
+      "dragonmarked": {
+        "short": "{{ss-month format=\"name\"}} {{ss-day}}, {{year}} YK",
+        "long": "{{ss-dateFmt formatName=\"date\"}} - {{ss-dateFmt formatName=\"historical\"}}"
+      },
+      "common": {
+        "short": "{{ss-day}} {{ss-month format=\"abbr\"}} {{year}}",
+        "long": "{{ss-dateFmt formatName=\"formal\"}}"
+      }
+    },
+    "widgets": {
+      "mini": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}"
+    }
   }
 }

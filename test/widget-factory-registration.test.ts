@@ -11,13 +11,17 @@ import { CalendarWidget } from '../src/ui/calendar-widget';
 import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../src/ui/calendar-grid-widget';
 
-// Mock Logger since module.ts uses it for debug logging
+// Mock the logger module with simple vi.fn() mocks
 vi.mock('../src/core/logger', () => ({
   Logger: {
     debug: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
+    api: vi.fn(),
+    integration: vi.fn(),
+    critical: vi.fn(),
+    timing: vi.fn((label, fn) => fn()),
   },
 }));
 

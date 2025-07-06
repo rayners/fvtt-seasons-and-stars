@@ -376,7 +376,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         }
       } catch (error) {
         // Silently handle moon calculation errors to avoid breaking calendar display
-        console.warn('Error calculating moon phases for date:', dayDate, error);
+        console.debug('Error calculating moon phases for date:', dayDate, error);
       }
 
       currentWeek.push({

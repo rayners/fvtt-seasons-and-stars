@@ -33,6 +33,7 @@ export class CalendarValidator {
     if (result.errors.length === 0) {
       this.validateDataTypes(calendar, result);
       this.validateConstraints(calendar, result);
+      this.validateDateFormats(calendar, result);
       this.validateCrossReferences(calendar, result);
     }
 
@@ -376,6 +377,78 @@ export class CalendarValidator {
   }
 
   /**
+   * Validate date formats and enforce reasonable limits
+   *
+   * Design Decision: Limit date formats to prevent memory issues
+   *
+   * Rationale:
+   * - Real-world calendars use 10-25 date formats maximum
+   * - Template cache in DateFormatter has no runtime limits for performance
+   * - Better to prevent excessive formats at source than manage complex cache eviction
+   * - Foundry sessions last 2-4 hours then browser refresh clears cache anyway
+   */
+  private static validateDateFormats(calendar: any, result: ValidationResult): void {
+    if (!calendar.dateFormats || typeof calendar.dateFormats !== 'object') {
+      return; // dateFormats is optional
+    }
+
+    const dateFormats = calendar.dateFormats;
+    let totalFormatCount = 0;
+    const maxFormats = 100; // Generous limit - real calendars use ~25 max
+
+    // Count top-level formats
+    for (const [key, value] of Object.entries(dateFormats)) {
+      if (key === 'widgets') {
+        // Handle widgets separately
+        if (typeof value === 'object' && value !== null) {
+          const widgetCount = Object.keys(value).length;
+          totalFormatCount += widgetCount;
+
+          if (widgetCount > 20) {
+            result.warnings.push(
+              `Widget formats (${widgetCount}) should be limited for performance (recommended max: 20)`
+            );
+          }
+        }
+      } else if (typeof value === 'string') {
+        // Simple format
+        totalFormatCount += 1;
+      } else if (typeof value === 'object' && value !== null) {
+        // Variant format object
+        const variantCount = Object.keys(value).length;
+        totalFormatCount += variantCount;
+
+        if (variantCount > 30) {
+          result.warnings.push(
+            `Format variants for '${key}' (${variantCount}) should be limited for performance (recommended max: 30)`
+          );
+        }
+      }
+    }
+
+    // Check total count
+    if (totalFormatCount > maxFormats) {
+      result.warnings.push(
+        `Total date formats (${totalFormatCount}) exceeds recommended limit (${maxFormats}). ` +
+          `Consider reducing formats to prevent potential memory issues. ` +
+          `Real-world calendars typically use 10-25 formats.`
+      );
+    } else if (totalFormatCount > 50) {
+      result.warnings.push(
+        `High number of date formats (${totalFormatCount}). ` +
+          `Consider if all formats are necessary for optimal performance.`
+      );
+    }
+
+    // Log for debugging/monitoring - only warn for excessive format counts
+    if (totalFormatCount > 100) {
+      result.warnings.push(
+        `Calendar defines ${totalFormatCount} date formats (consider reducing for performance)`
+      );
+    }
+  }
+
+  /**
    * Validate data constraints and ranges
    */
   private static validateConstraints(calendar: any, result: ValidationResult): void {
@@ -501,31 +574,11 @@ export class CalendarValidator {
   static validateWithHelp(calendar: any): ValidationResult {
     const result = this.validate(calendar);
 
-    // Add helpful warnings for common issues
-    if (calendar.year?.epoch === undefined) {
-      result.warnings.push('Year epoch not specified, defaulting to 0');
-    }
+    // Only warn for potential problems, not normal configurations
+    // These are optional fields with sensible defaults and shouldn't trigger warnings
 
-    if (calendar.year?.currentYear === undefined) {
-      result.warnings.push('Current year not specified, defaulting to 1');
-    }
-
-    if (!calendar.time) {
-      result.warnings.push('Time configuration not specified, using 24-hour day');
-    }
-
-    if (!calendar.leapYear) {
-      result.warnings.push('Leap year configuration not specified, no leap years will occur');
-    }
-
-    // Check for commonly forgotten fields
-    if (Array.isArray(calendar.months)) {
-      calendar.months.forEach((month: any, index: number) => {
-        if (!month.abbreviation) {
-          result.warnings.push(`Month ${index + 1} (${month.name}) has no abbreviation`);
-        }
-      });
-    }
+    // Only warn for critical missing fields that could cause functionality issues
+    // Month abbreviations are optional and have automatic fallbacks
 
     return result;
   }

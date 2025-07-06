@@ -98,7 +98,7 @@ export class CalendarManager {
 
     // Warn about potential issues
     if (validation.warnings.length > 0) {
-      Logger.warn(`Calendar warnings for ${calendarData.id}: ${validation.warnings.join(', ')}`);
+      Logger.debug(`Calendar info for ${calendarData.id}: ${validation.warnings.join(', ')}`);
     }
 
     // Store the base calendar
@@ -482,6 +482,29 @@ export class CalendarManager {
             Object.assign(variantCalendar.weekdays[weekdayIndex], weekdayOverrides);
           }
         }
+      }
+
+      // Apply dateFormats overrides
+      if (variant.overrides.dateFormats) {
+        // Deep merge dateFormats to preserve base calendar formats while adding variant-specific ones
+        variantCalendar.dateFormats = {
+          ...variantCalendar.dateFormats,
+          ...variant.overrides.dateFormats,
+          // Merge nested objects like widgets
+          ...(variantCalendar.dateFormats?.widgets || variant.overrides.dateFormats?.widgets
+            ? {
+                widgets: {
+                  ...variantCalendar.dateFormats?.widgets,
+                  ...variant.overrides.dateFormats?.widgets,
+                },
+              }
+            : {}),
+        };
+      }
+
+      // Apply moon overrides
+      if (variant.overrides.moons !== undefined) {
+        variantCalendar.moons = variant.overrides.moons;
       }
     }
 

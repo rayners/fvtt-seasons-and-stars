@@ -87,7 +87,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const hasSmallTime = SmallTimeUtils.isSmallTimeAvailable();
 
     return Object.assign(context, {
-      shortDate: currentDate.toDateString(),
+      shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
       showTimeControls: !hasSmallTime && (game.user?.isGM || false),
       isGM: game.user?.isGM || false,

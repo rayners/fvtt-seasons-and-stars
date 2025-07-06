@@ -17,13 +17,16 @@
       "description": "Earth-based stardate calendar for Star Trek campaigns",
       "default": true,
       "config": {
-        "yearOffset": 2323
+        "yearOffset": 0
       },
       "overrides": {
         "year": {
+          "epoch": 0,
+          "currentYear": 2370,
           "prefix": "Stardate ",
           "suffix": ""
-        }
+        },
+        "moons": []
       }
     },
     "vulcan-calendar": {
@@ -37,6 +40,7 @@
           "prefix": "",
           "suffix": " V.S."
         },
+        "moons": [],
         "months": {
           "January": {
             "name": "T'Keth",
@@ -100,6 +104,7 @@
           "prefix": "",
           "suffix": " K.Y."
         },
+        "moons": [],
         "months": {
           "January": {
             "name": "Maktag",
@@ -184,14 +189,61 @@
     },
     "federation-standard": {
       "name": "Federation Standard Calendar",
-      "description": "United Federation of Planets standard calendar",
+      "description": "United Federation of Planets standard calendar with comprehensive stardate formatting",
+      "default": false,
       "config": {
-        "yearOffset": 2161
+        "yearOffset": 0
       },
       "overrides": {
         "year": {
+          "epoch": 0,
+          "currentYear": 2370,
           "prefix": "",
-          "suffix": " F.S."
+          "suffix": ""
+        },
+        "moons": [],
+        "dateFormats": {
+          "federation": "{{ss-month format=\"abbr\"}} {{ss-day}}, {{year}}",
+          "tos-stardate": "{{ss-math year op=\"subtract\" value=1300}}.{{dayOfYear}}",
+          "tng-stardate": "{{ss-stardate year prefix=\"47\" baseYear=2370 dayOfYear=dayOfYear precision=1}}",
+          "ds9-stardate": "{{ss-stardate year prefix=\"52\" baseYear=2375 dayOfYear=dayOfYear precision=1}}",
+          "voyager-stardate": "{{ss-stardate year prefix=\"53\" baseYear=2376 dayOfYear=dayOfYear precision=1}}",
+          "enterprise-stardate": "{{ss-stardate year prefix=\"0\" baseYear=2151 dayOfYear=dayOfYear precision=2}}",
+          "starfleet": "Stardate {{ss-dateFmt formatName=\"tng-stardate\"}}",
+          "tos": "Stardate {{ss-dateFmt formatName=\"tos-stardate\"}}",
+          "tng": "Stardate {{ss-dateFmt formatName=\"tng-stardate\"}}",
+          "ds9": "Stardate {{ss-dateFmt formatName=\"ds9-stardate\"}}",
+          "voyager": "Stardate {{ss-dateFmt formatName=\"voyager-stardate\"}}",
+          "enterprise": "Stardate {{ss-dateFmt formatName=\"enterprise-stardate\"}}",
+          "short": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+          "long": "{{ss-weekday format=\"name\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}}, {{year}}",
+          "date": "{{ss-weekday format=\"name\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}}, {{year}}",
+          "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}} UTC",
+          "datetime": "{{ss-dateFmt formatName=\"date\"}} at {{ss-dateFmt formatName=\"time\"}}",
+          "official": "Federation Standard Date: {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}}, {{year}}",
+          "command-log": "{{ss-dateFmt formatName=\"tng\"}} - {{ss-dateFmt formatName=\"federation\"}}",
+          "diplomatic": "{{ss-dateFmt formatName=\"federation\"}} ({{ss-dateFmt formatName=\"tng-stardate\"}})",
+          "variants": {
+            "command": {
+              "short": "SD {{ss-dateFmt formatName=\"tng-stardate\"}}",
+              "long": "{{ss-dateFmt formatName=\"tng\"}} - {{ss-dateFmt formatName=\"federation\"}}"
+            },
+            "civilian": {
+              "short": "{{ss-month format=\"abbr\"}} {{ss-day}}/{{year}}",
+              "long": "{{ss-dateFmt formatName=\"federation\"}} ({{ss-dateFmt formatName=\"starfleet\"}})"
+            },
+            "temporal": {
+              "tos": "TOS Era: {{ss-dateFmt formatName=\"tos\"}}",
+              "tng": "TNG Era: {{ss-dateFmt formatName=\"tng\"}}",
+              "ds9": "DS9 Era: {{ss-dateFmt formatName=\"ds9\"}}",
+              "voyager": "VOY Era: {{ss-dateFmt formatName=\"voyager\"}}"
+            }
+          },
+          "widgets": {
+            "mini": "SD {{ss-dateFmt formatName=\"tng-stardate\"}}",
+            "main": "{{ss-weekday format=\"abbr\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}}",
+            "grid": "{{ss-day}}"
+          }
         }
       }
     }

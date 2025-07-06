@@ -13,7 +13,8 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Convenient Defaults**: Gregorian calendars can initialize with current date/time
 - **Module Integration**: Clean APIs for weather modules and other integrations via compatibility bridges
 - **SmallTime Integration**: Seamless positioning and visual consistency with enhanced styling
-- **15 Built-in Calendars**: Switch between Gregorian, fantasy calendars (D&D, PF2e, Critical Role, etc.), and custom formats based on official game sources
+- **16 Built-in Calendars**: Switch between Gregorian, fantasy calendars (D&D, PF2e, Critical Role, etc.), sci-fi calendars (Star Trek, Starfinder, Traveller), and custom formats based on official game sources
+- **Advanced Date Formatting**: Handlebars-based templates with mathematical operations, format embedding, and era-specific calculations (like Star Trek stardates)
 - **Calendar Variants System**: Cultural and regional calendar variations (e.g., Golarion has Absalom Reckoning, Imperial, Varisian, and Earth Historical variants)
 
 ### ✅ **Notes System (Basic Creation)**
