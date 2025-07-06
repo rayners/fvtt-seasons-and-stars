@@ -53,8 +53,19 @@ describe('Production Error Notifications', () => {
   });
 
   describe('Template Compilation Error Notifications', () => {
-    it('should show user notification when template compilation fails', () => {
-      // RED: This test will fail until we add user notifications for template errors
+    it('should log to console only when template compilation fails (debug mode disabled)', () => {
+      // Mock debug mode disabled (default)
+      global.game = {
+        settings: {
+          get: vi.fn().mockImplementation((module: string, setting: string) => {
+            if (module === 'seasons-and-stars' && setting === 'debugMode') {
+              return false; // Debug mode disabled
+            }
+            return false;
+          }),
+        },
+      } as any;
+
       const invalidTemplate = '{{invalid syntax}}';
 
       // Mock template compilation failure
@@ -62,20 +73,29 @@ describe('Production Error Notifications', () => {
         throw new Error('Invalid template syntax: Unexpected token');
       });
 
-      // Format should still work (fallback) but should notify user
+      // Format should still work (fallback) but should NOT show UI notifications
       const result = formatter.format(mockDate, invalidTemplate);
 
       // Should fall back to basic format
       expect(result).toContain('Sunday, 15th January 2024');
 
-      // Should notify user about the syntax error
-      expect(mockNotifications.warn).toHaveBeenCalledWith(
-        expect.stringContaining('Date format template has syntax errors')
-      );
+      // Should NOT notify user via UI in production mode
+      expect(mockNotifications.warn).not.toHaveBeenCalled();
     });
 
-    it('should show specific notification for calendar format syntax errors', () => {
-      // RED: Should notify users when their calendar JSON has format errors
+    it('should log specific errors for calendar format syntax errors (debug mode disabled)', () => {
+      // Mock debug mode disabled
+      global.game = {
+        settings: {
+          get: vi.fn().mockImplementation((module: string, setting: string) => {
+            if (module === 'seasons-and-stars' && setting === 'debugMode') {
+              return false; // Debug mode disabled
+            }
+            return false;
+          }),
+        },
+      } as any;
+
       const calendarWithBadFormat: SeasonsStarsCalendar = {
         ...mockCalendar,
         id: 'star-trek-calendar',
@@ -95,14 +115,23 @@ describe('Production Error Notifications', () => {
       const badFormatter = new DateFormatter(calendarWithBadFormat);
       badFormatter.formatNamed(mockDate, 'time');
 
-      // Should show calendar-specific error notification (production mode)
-      expect(mockNotifications.warn).toHaveBeenCalledWith(
-        'Calendar "Star Trek Calendar" has a date format error. Using fallback format.'
-      );
+      // Should NOT show UI notifications in production mode
+      expect(mockNotifications.warn).not.toHaveBeenCalled();
     });
 
-    it('should not spam notifications for repeated errors', () => {
-      // RED: Should throttle repeated error notifications
+    it('should not spam console logs for repeated errors', () => {
+      // Mock debug mode disabled
+      global.game = {
+        settings: {
+          get: vi.fn().mockImplementation((module: string, setting: string) => {
+            if (module === 'seasons-and-stars' && setting === 'debugMode') {
+              return false; // Debug mode disabled
+            }
+            return false;
+          }),
+        },
+      } as any;
+
       const invalidTemplate = '{{broken template';
 
       mockHandlebars.compile.mockImplementation(() => {
@@ -114,12 +143,23 @@ describe('Production Error Notifications', () => {
       formatter.format(mockDate, invalidTemplate);
       formatter.format(mockDate, invalidTemplate);
 
-      // Should only notify once (or have reasonable throttling)
-      expect(mockNotifications.warn).toHaveBeenCalledTimes(1);
+      // Should not show UI notifications in production mode
+      expect(mockNotifications.warn).not.toHaveBeenCalled();
     });
 
-    it('should include helpful context in error notifications', () => {
-      // RED: Error notifications should help users fix the problem
+    it('should log helpful context in console (debug mode disabled)', () => {
+      // Mock debug mode disabled
+      global.game = {
+        settings: {
+          get: vi.fn().mockImplementation((module: string, setting: string) => {
+            if (module === 'seasons-and-stars' && setting === 'debugMode') {
+              return false; // Debug mode disabled
+            }
+            return false;
+          }),
+        },
+      } as any;
+
       const invalidTemplate = '{{ss-hour format=invalid}}';
 
       mockHandlebars.compile.mockImplementation(() => {
@@ -128,10 +168,8 @@ describe('Production Error Notifications', () => {
 
       formatter.format(mockDate, invalidTemplate);
 
-      // Should provide minimal error message in production mode
-      expect(mockNotifications.warn).toHaveBeenCalledWith(
-        'Date format template has syntax errors. Using fallback format.'
-      );
+      // Should NOT show UI notifications in production mode
+      expect(mockNotifications.warn).not.toHaveBeenCalled();
     });
   });
 
@@ -163,7 +201,7 @@ describe('Production Error Notifications', () => {
       );
     });
 
-    it('should show minimal notifications in normal mode', () => {
+    it('should not show notifications in normal mode', () => {
       // Mock debug mode disabled via game settings
       global.game = {
         settings: {
@@ -184,15 +222,8 @@ describe('Production Error Notifications', () => {
 
       formatter.format(mockDate, invalidTemplate);
 
-      // Should show minimal error in normal mode
-      expect(mockNotifications.warn).toHaveBeenCalledWith(
-        expect.stringMatching(/date format.*error/i)
-      );
-
-      // Should NOT include technical details in normal mode
-      expect(mockNotifications.warn).not.toHaveBeenCalledWith(
-        expect.stringMatching(/ss-broken|helper.*not.*found/i)
-      );
+      // Should NOT show any UI notifications in normal mode
+      expect(mockNotifications.warn).not.toHaveBeenCalled();
     });
   });
 });

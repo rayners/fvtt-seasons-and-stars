@@ -95,7 +95,7 @@ export class DateFormatter {
   }
 
   /**
-   * Show user notification for template compilation errors
+   * Handle template compilation errors with appropriate user feedback
    */
   private notifyTemplateError(template: string, error: Error, formatName?: string): void {
     // Create error key for throttling
@@ -112,38 +112,38 @@ export class DateFormatter {
     const isDebugEnabled =
       typeof game !== 'undefined' && game.settings?.get('seasons-and-stars', 'debugMode') === true;
 
-    // Show UI notifications for template errors
-    if (typeof ui !== 'undefined' && ui.notifications) {
-      if (formatName && this.calendar.id) {
-        // Calendar-specific format error
-        const calendarName = this.calendar.name || this.calendar.id;
-        if (isDebugEnabled) {
-          // Detailed error in debug mode
+    if (isDebugEnabled) {
+      // Debug mode: Show UI notifications with detailed information
+      if (typeof ui !== 'undefined' && ui.notifications) {
+        if (formatName && this.calendar.id) {
+          // Calendar-specific format error
+          const calendarName = this.calendar.name || this.calendar.id;
           ui.notifications.warn(
             `Calendar "${calendarName}" has syntax errors in "${formatName}" format: ${error.message}`
           );
         } else {
-          // Simple error in normal mode
+          // Generic template error
+          ui.notifications.warn(`Date format template has syntax errors: ${error.message}`);
+        }
+
+        // Provide helpful hints for common errors (debug mode only)
+        if (error.message.includes('quote')) {
           ui.notifications.warn(
-            `Calendar "${calendarName}" has a date format error. Using fallback format.`
+            'Hint: Use double quotes in format helpers, e.g., {{ss-hour format="pad"}} not {{ss-hour format=\'pad\'}}'
           );
         }
+      }
+    } else {
+      // Production mode: Only log to console (no UI notifications)
+      if (formatName && this.calendar.id) {
+        // Calendar-specific format error
+        const calendarName = this.calendar.name || this.calendar.id;
+        console.warn(
+          `[S&S] Calendar "${calendarName}" has syntax errors in "${formatName}" format: ${error.message}`
+        );
       } else {
         // Generic template error
-        if (isDebugEnabled) {
-          // Detailed error in debug mode
-          ui.notifications.warn(`Date format template has syntax errors: ${error.message}`);
-        } else {
-          // Simple error in normal mode
-          ui.notifications.warn('Date format template has syntax errors. Using fallback format.');
-        }
-      }
-
-      // Provide helpful hints for common errors (debug mode only)
-      if (isDebugEnabled && error.message.includes('quote')) {
-        ui.notifications.warn(
-          'Hint: Use double quotes in format helpers, e.g., {{ss-hour format="pad"}} not {{ss-hour format=\'pad\'}}'
-        );
+        console.warn(`[S&S] Date format template has syntax errors: ${error.message}`);
       }
     }
   }
