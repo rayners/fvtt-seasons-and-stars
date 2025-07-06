@@ -375,7 +375,7 @@ export class DateFormatter {
   private registerCustomHelpers(): void {
     // Day helper - supports ordinal and pad formats
     Handlebars.registerHelper('ss-day', (value: number, options: any) => {
-      const format = options.hash?.format;
+      const format = options?.hash?.format;
 
       switch (format) {
         case 'ordinal':
@@ -389,7 +389,7 @@ export class DateFormatter {
 
     // Month helper - supports name, abbr, and pad formats
     Handlebars.registerHelper('ss-month', (value: number, options: any) => {
-      const format = options.hash?.format;
+      const format = options?.hash?.format;
 
       switch (format) {
         case 'name':
@@ -405,7 +405,7 @@ export class DateFormatter {
 
     // Weekday helper - supports name and abbr formats
     Handlebars.registerHelper('ss-weekday', (value: number, options: any) => {
-      const format = options.hash?.format;
+      const format = options?.hash?.format;
 
       switch (format) {
         case 'name':
@@ -429,8 +429,8 @@ export class DateFormatter {
 
     // Mathematical operations helper
     Handlebars.registerHelper('ss-math', (value: number, options: any) => {
-      const operation = options.hash?.op;
-      const operand = options.hash?.value;
+      const operation = options?.hash?.op;
+      const operand = options?.hash?.value;
 
       if (typeof operand !== 'number') {
         return value;
@@ -465,7 +465,7 @@ export class DateFormatter {
         hourValue = 0;
       }
 
-      const format = options.hash?.format;
+      const format = options?.hash?.format;
 
       switch (format) {
         case 'pad':
@@ -488,7 +488,7 @@ export class DateFormatter {
         minuteValue = 0;
       }
 
-      const format = options.hash?.format;
+      const format = options?.hash?.format;
 
       switch (format) {
         case 'pad':
@@ -511,7 +511,7 @@ export class DateFormatter {
         secondValue = 0;
       }
 
-      const format = options.hash?.format;
+      const format = options?.hash?.format;
 
       switch (format) {
         case 'pad':
@@ -523,10 +523,10 @@ export class DateFormatter {
 
     // Stardate calculation helper for sci-fi calendars
     Handlebars.registerHelper('ss-stardate', (year: number, options: any) => {
-      const prefix = options.hash?.prefix || '0';
-      const baseYear = options.hash?.baseYear || year;
-      const dayOfYear = options.hash?.dayOfYear || 1;
-      const precision = options.hash?.precision || 1;
+      const prefix = options?.hash?.prefix || '0';
+      const baseYear = options?.hash?.baseYear || year;
+      const dayOfYear = options?.hash?.dayOfYear || 1;
+      const precision = options?.hash?.precision || 1;
 
       // Calculate stardate: prefix + (year - baseYear) + dayOfYear
       // Format: XXYYYY.P where XX is era prefix, YYYY is year offset + day, P is precision
