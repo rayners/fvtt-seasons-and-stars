@@ -471,6 +471,25 @@ function registerSettings(): void {
     default: null,
   });
 
+  // External calendar settings
+  game.settings.register('seasons-and-stars', 'seasons-stars.external-calendars', {
+    name: 'External Calendar Cache',
+    hint: 'Internal cache storage for external calendars',
+    scope: 'world',
+    config: false, // Hidden from config UI
+    type: Object,
+    default: {},
+  });
+
+  game.settings.register('seasons-and-stars', 'seasons-stars.external-sources', {
+    name: 'External Calendar Sources',
+    hint: 'Configuration for external calendar sources',
+    scope: 'world',
+    config: false, // Hidden from config UI
+    type: Array,
+    default: [],
+  });
+
   // Development and debugging settings (last for developers)
   game.settings.register('seasons-and-stars', 'debugMode', {
     name: 'Debug Mode',
@@ -1067,6 +1086,125 @@ export function setupAPI(): void {
           'Failed to get season info',
           error instanceof Error ? error : new Error(String(error))
         );
+        throw error;
+      }
+    },
+
+    // External Calendar Loading Methods
+    loadCalendarFromUrl: async (url: string, options?: { validate?: boolean; cache?: boolean }) => {
+      return APIWrapper.wrapAPIMethod(
+        'loadCalendarFromUrl',
+        { url, options },
+        params => {
+          APIWrapper.validateString(params.url, 'URL');
+        },
+        () => calendarManager.loadCalendarFromUrl(url, options)
+      );
+    },
+
+    loadCalendarCollection: async (url: string, options?: { validate?: boolean; cache?: boolean }) => {
+      return APIWrapper.wrapAPIMethod(
+        'loadCalendarCollection',
+        { url, options },
+        params => {
+          APIWrapper.validateString(params.url, 'URL');
+        },
+        () => calendarManager.loadCalendarCollection(url, options)
+      );
+    },
+
+    addExternalSource: (source: { name: string; url: string; enabled: boolean; type: 'calendar' | 'collection' | 'variants' }): string => {
+      try {
+        Logger.api('addExternalSource', { source });
+        
+        if (!source || typeof source !== 'object') {
+          throw new Error('Source must be a valid object');
+        }
+        APIWrapper.validateString(source.name, 'Source name');
+        APIWrapper.validateString(source.url, 'Source URL');
+        if (typeof source.enabled !== 'boolean') {
+          throw new Error('Source enabled must be a boolean');
+        }
+        if (!['calendar', 'collection', 'variants'].includes(source.type)) {
+          throw new Error('Source type must be calendar, collection, or variants');
+        }
+        
+        const result = calendarManager.addExternalSource(source);
+        Logger.api('addExternalSource', { source }, result);
+        return result;
+      } catch (error) {
+        Logger.error('Failed to add external source', error instanceof Error ? error : new Error(String(error)));
+        throw error;
+      }
+    },
+
+    removeExternalSource: (sourceId: string): boolean => {
+      try {
+        Logger.api('removeExternalSource', { sourceId });
+        APIWrapper.validateString(sourceId, 'Source ID');
+        
+        const result = calendarManager.removeExternalSource(sourceId);
+        Logger.api('removeExternalSource', { sourceId }, result);
+        return result;
+      } catch (error) {
+        Logger.error('Failed to remove external source', error instanceof Error ? error : new Error(String(error)));
+        throw error;
+      }
+    },
+
+    getExternalSources: () => {
+      try {
+        Logger.api('getExternalSources');
+        const result = calendarManager.getExternalSources();
+        Logger.api('getExternalSources', undefined, result.length);
+        return result;
+      } catch (error) {
+        Logger.error('Failed to get external sources', error instanceof Error ? error : new Error(String(error)));
+        throw error;
+      }
+    },
+
+    getExternalSource: (sourceId: string) => {
+      try {
+        Logger.api('getExternalSource', { sourceId });
+        APIWrapper.validateString(sourceId, 'Source ID');
+        
+        const result = calendarManager.getExternalSource(sourceId);
+        Logger.api('getExternalSource', { sourceId }, result ? 'found' : 'not found');
+        return result;
+      } catch (error) {
+        Logger.error('Failed to get external source', error instanceof Error ? error : new Error(String(error)));
+        throw error;
+      }
+    },
+
+    refreshExternalCalendar: async (sourceId: string) => {
+      return APIWrapper.wrapAPIMethod(
+        'refreshExternalCalendar',
+        { sourceId },
+        params => {
+          APIWrapper.validateString(params.sourceId, 'Source ID');
+        },
+        () => calendarManager.refreshExternalCalendar(sourceId)
+      );
+    },
+
+    refreshAllExternalCalendars: async () => {
+      return APIWrapper.wrapAPIMethod(
+        'refreshAllExternalCalendars',
+        {},
+        () => {},
+        () => calendarManager.refreshAllExternalCalendars()
+      );
+    },
+
+    clearExternalCalendarCache: (): void => {
+      try {
+        Logger.api('clearExternalCalendarCache');
+        calendarManager.clearExternalCalendarCache();
+        Logger.api('clearExternalCalendarCache', undefined, 'success');
+      } catch (error) {
+        Logger.error('Failed to clear external calendar cache', error instanceof Error ? error : new Error(String(error)));
         throw error;
       }
     },

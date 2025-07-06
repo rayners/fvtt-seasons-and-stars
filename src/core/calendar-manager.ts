@@ -8,6 +8,7 @@ import { TimeConverter } from './time-converter';
 import { CalendarValidator } from './calendar-validator';
 import { CalendarDate } from './calendar-date';
 import { CalendarLocalization } from './calendar-localization';
+import { CalendarLoader, type ExternalCalendarSource, type LoadResult } from './calendar-loader';
 import { Logger } from './logger';
 import { BUILT_IN_CALENDARS } from '../generated/calendar-list';
 
@@ -16,6 +17,7 @@ export class CalendarManager {
   public engines: Map<string, CalendarEngine> = new Map();
   private timeConverter: TimeConverter | null = null;
   private activeCalendarId: string | null = null;
+  private calendarLoader: CalendarLoader = new CalendarLoader();
 
   /**
    * Initialize the calendar manager
@@ -605,5 +607,210 @@ export class CalendarManager {
 
       Logger.debug(`Created external calendar variant: ${variantCalendarId}`);
     }
+  }
+
+  // External Calendar Loading Methods
+
+  /**
+   * Load a calendar from an external URL
+   */
+  async loadCalendarFromUrl(url: string, options?: { validate?: boolean; cache?: boolean }): Promise<LoadResult> {
+    Logger.info(`Loading calendar from URL: ${url}`);
+
+    const result = await this.calendarLoader.loadFromUrl(url, {
+      validate: options?.validate !== false,
+      cache: options?.cache !== false
+    });
+
+    if (result.success && result.calendar) {
+      // Load the calendar into the manager
+      const loadSuccess = this.loadCalendar(result.calendar);
+      if (!loadSuccess) {
+        return {
+          ...result,
+          success: false,
+          error: 'Calendar loaded from URL but failed validation in CalendarManager'
+        };
+      }
+
+      // Update source status if this was from a registered source
+      const sources = this.calendarLoader.getSources();
+      const matchingSource = sources.find(s => s.url === url);
+      if (matchingSource) {
+        this.calendarLoader.updateSourceStatus(matchingSource.id, true);
+      }
+
+      Logger.info(`Successfully loaded external calendar: ${result.calendar.id}`);
+    } else if (result.error) {
+      // Update source status if this was from a registered source
+      const sources = this.calendarLoader.getSources();
+      const matchingSource = sources.find(s => s.url === url);
+      if (matchingSource) {
+        this.calendarLoader.updateSourceStatus(matchingSource.id, false, result.error);
+      }
+
+      Logger.error(`Failed to load calendar from URL: ${result.error}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Load multiple calendars from a collection URL
+   */
+  async loadCalendarCollection(url: string, options?: { validate?: boolean; cache?: boolean }): Promise<LoadResult[]> {
+    Logger.info(`Loading calendar collection from URL: ${url}`);
+
+    const results = await this.calendarLoader.loadCollection(url, {
+      validate: options?.validate !== false,
+      cache: options?.cache !== false
+    });
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const result of results) {
+      if (result.success && result.calendar) {
+        const loadSuccess = this.loadCalendar(result.calendar);
+        if (loadSuccess) {
+          successCount++;
+        } else {
+          result.success = false;
+          result.error = 'Calendar loaded from collection but failed validation in CalendarManager';
+          errorCount++;
+        }
+      } else {
+        errorCount++;
+      }
+    }
+
+    Logger.info(`Collection load completed: ${successCount} successful, ${errorCount} failed`);
+    return results;
+  }
+
+  /**
+   * Add an external calendar source
+   */
+  addExternalSource(source: Omit<ExternalCalendarSource, 'id'>): string {
+    const sourceId = this.calendarLoader.addSource(source);
+    Logger.info(`Added external calendar source: ${source.name} (${sourceId})`);
+    return sourceId;
+  }
+
+  /**
+   * Remove an external calendar source and its calendars
+   */
+  removeExternalSource(sourceId: string): boolean {
+    const source = this.calendarLoader.getSource(sourceId);
+    if (!source) {
+      Logger.warn(`External source not found: ${sourceId}`);
+      return false;
+    }
+
+    // Remove any calendars loaded from this source
+    // Note: This is a simple implementation - in practice, we'd need to track
+    // which calendars came from which sources
+    this.calendarLoader.clearCacheForUrl(source.url);
+
+    const success = this.calendarLoader.removeSource(sourceId);
+    if (success) {
+      Logger.info(`Removed external calendar source: ${source.name}`);
+    }
+
+    return success;
+  }
+
+  /**
+   * Get all external calendar sources
+   */
+  getExternalSources(): ExternalCalendarSource[] {
+    return this.calendarLoader.getSources();
+  }
+
+  /**
+   * Get an external calendar source by ID
+   */
+  getExternalSource(sourceId: string): ExternalCalendarSource | undefined {
+    return this.calendarLoader.getSource(sourceId);
+  }
+
+  /**
+   * Refresh a calendar from an external source
+   */
+  async refreshExternalCalendar(sourceId: string): Promise<LoadResult> {
+    const source = this.calendarLoader.getSource(sourceId);
+    if (!source) {
+      return {
+        success: false,
+        error: `External source not found: ${sourceId}`
+      };
+    }
+
+    if (!source.enabled) {
+      return {
+        success: false,
+        error: `External source is disabled: ${source.name}`
+      };
+    }
+
+    // Clear cache for this URL to force fresh load
+    this.calendarLoader.clearCacheForUrl(source.url);
+
+    // Load based on source type
+    if (source.type === 'collection') {
+      const results = await this.loadCalendarCollection(source.url);
+      // Return summary result for collection
+      const successCount = results.filter(r => r.success).length;
+      
+      return {
+        success: successCount > 0,
+        error: successCount === 0 ? 'All calendars in collection failed to load' : undefined,
+        sourceUrl: source.url
+      };
+    } else {
+      return await this.loadCalendarFromUrl(source.url);
+    }
+  }
+
+  /**
+   * Refresh all enabled external sources
+   */
+  async refreshAllExternalCalendars(): Promise<{ [sourceId: string]: LoadResult }> {
+    const sources = this.calendarLoader.getSources().filter(s => s.enabled);
+    const results: { [sourceId: string]: LoadResult } = {};
+
+    Logger.info(`Refreshing ${sources.length} external calendar sources`);
+
+    for (const source of sources) {
+      try {
+        results[source.id] = await this.refreshExternalCalendar(source.id);
+      } catch (error) {
+        results[source.id] = {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          sourceUrl: source.url
+        };
+      }
+    }
+
+    const successCount = Object.values(results).filter(r => r.success).length;
+    Logger.info(`External calendar refresh completed: ${successCount}/${sources.length} successful`);
+
+    return results;
+  }
+
+  /**
+   * Clear external calendar cache
+   */
+  clearExternalCalendarCache(): void {
+    this.calendarLoader.clearCache();
+    Logger.info('Cleared external calendar cache');
+  }
+
+  /**
+   * Get the CalendarLoader instance for advanced operations
+   */
+  getCalendarLoader(): CalendarLoader {
+    return this.calendarLoader;
   }
 }
