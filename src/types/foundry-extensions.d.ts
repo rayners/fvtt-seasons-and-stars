@@ -8,6 +8,7 @@
 import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
 import type { SeasonsStarsIntegration } from './bridge-interfaces';
 import type { ContextExtensionAPI } from './widget-types';
+import type { ProtocolHandler } from './external-calendar';
 
 // Extend the Game interface to include S&S specific properties
 declare global {
@@ -144,6 +145,18 @@ export interface SeasonsStarsAPI {
 // Hook event data interfaces
 export interface CalendarRegistrationHookData {
   addCalendar: (calendarData: SeasonsStarsCalendar) => boolean;
+}
+
+export interface ProtocolHandlerRegistrationHookData {
+  registerHandler: (handler: ProtocolHandlerLike) => boolean;
+}
+
+// Support both full ProtocolHandler classes and simple functions
+export type ProtocolHandlerLike = ProtocolHandler | SimpleProtocolHandler;
+
+export interface SimpleProtocolHandler {
+  protocol: string;
+  loadCalendar: (location: string) => Promise<SeasonsStarsCalendar>;
 }
 
 // Type guard functions (implementations in type-guards.ts)

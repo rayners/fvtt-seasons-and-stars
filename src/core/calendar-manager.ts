@@ -4,7 +4,11 @@
 
 import type { SeasonsStarsCalendar, CalendarVariant } from '../types/calendar';
 import type { ExternalCalendarSource, LoadCalendarOptions } from '../types/external-calendar';
-import type { CalendarRegistrationHookData } from '../types/foundry-extensions';
+import type { 
+  CalendarRegistrationHookData, 
+  ProtocolHandlerRegistrationHookData,
+  ProtocolHandlerLike 
+} from '../types/foundry-extensions';
 import { CalendarEngine } from './calendar-engine';
 import { TimeConverter } from './time-converter';
 import { CalendarValidator } from './calendar-validator';
@@ -14,9 +18,8 @@ import { Logger } from './logger';
 import { BUILT_IN_CALENDARS } from '../generated/calendar-list';
 import { ExternalCalendarRegistry } from './external-calendar-registry';
 import { HttpsProtocolHandler } from './protocol-handlers/https-handler';
-import { GitHubProtocolHandler } from './protocol-handlers/github-handler';
 import { ModuleProtocolHandler } from './protocol-handlers/module-handler';
-import { LocalProtocolHandler } from './protocol-handlers/local-handler';
+import { normalizeProtocolHandler } from './protocol-handler-wrapper';
 
 export class CalendarManager {
   public calendars: Map<string, SeasonsStarsCalendar> = new Map();
@@ -68,6 +71,9 @@ export class CalendarManager {
 
     // Initialize external calendar system
     this.initializeExternalRegistry();
+
+    // Fire hook for external protocol handler registration
+    await this.fireProtocolHandlerRegistrationHook();
 
     // First, load all base calendars (excluding external variant files)
     for (const calendarId of builtInCalendars) {
@@ -645,13 +651,13 @@ export class CalendarManager {
 
     this.externalRegistry = new ExternalCalendarRegistry();
 
-    // Register all protocol handlers
+    // Register core protocol handlers only
+    // Essential protocols that are part of the core functionality
     this.externalRegistry.registerHandler(new HttpsProtocolHandler());
-    this.externalRegistry.registerHandler(new GitHubProtocolHandler());
     this.externalRegistry.registerHandler(new ModuleProtocolHandler());
-    this.externalRegistry.registerHandler(new LocalProtocolHandler());
 
-    Logger.info('External calendar registry initialized with 4 protocol handlers');
+    Logger.info('External calendar registry initialized with 2 core protocol handlers');
+    Logger.debug('Additional protocol handlers will be registered via hooks');
   }
 
   /**
@@ -948,6 +954,60 @@ export class CalendarManager {
       Logger.debug('Calendar registration hook fired successfully');
     } catch (error) {
       Logger.error('Error firing calendar registration hook', error as Error);
+    }
+  }
+
+  /**
+   * Fire hook for external protocol handler registration
+   * Allows other modules to register custom protocol handlers
+   */
+  private async fireProtocolHandlerRegistrationHook(): Promise<void> {
+    if (!this.externalRegistry) {
+      Logger.warn('External registry not initialized, skipping protocol handler registration hook');
+      return;
+    }
+
+    Logger.debug('Firing protocol handler registration hook');
+
+    // Create registerHandler function that other modules can use
+    const registerHandler = (handler: ProtocolHandlerLike) => {
+      try {
+        // Basic input validation
+        if (!handler || typeof handler !== 'object' || !handler.protocol) {
+          Logger.error('Invalid protocol handler provided to hook registration');
+          return false;
+        }
+
+        Logger.debug(`Registering protocol handler via hook: ${handler.protocol}`);
+
+        // Normalize the handler (convert simple handlers to full ProtocolHandler interface)
+        const normalizedHandler = normalizeProtocolHandler(handler);
+
+        // Check if protocol is already registered
+        if (this.externalRegistry!.hasHandler(normalizedHandler.protocol)) {
+          Logger.warn(`Protocol ${normalizedHandler.protocol} already registered, skipping`);
+          return false;
+        }
+
+        // Register the handler
+        this.externalRegistry!.registerHandler(normalizedHandler);
+
+        Logger.info(`Successfully registered protocol handler via hook: ${normalizedHandler.protocol}`);
+        return true;
+      } catch (error) {
+        const protocol = handler?.protocol || 'unknown';
+        Logger.error(`Error registering protocol handler via hook: ${protocol}`, error as Error);
+        return false;
+      }
+    };
+
+    // Fire the hook with the registerHandler function
+    try {
+      const hookData: ProtocolHandlerRegistrationHookData = { registerHandler };
+      Hooks.callAll('seasons-stars:registerCalendarLoaders', hookData);
+      Logger.debug('Protocol handler registration hook fired successfully');
+    } catch (error) {
+      Logger.error('Error firing protocol handler registration hook', error as Error);
     }
   }
 }
