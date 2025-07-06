@@ -17,7 +17,7 @@ const __dirname = path.dirname(__filename);
 /**
  * Main validation function
  */
-function validateAllCalendars(): void {
+async function validateAllCalendars(): Promise<void> {
   const calendarsDir = path.join(__dirname, '..', 'calendars');
 
   console.log('🗓️  Validating all built-in calendars using CalendarValidator...\n');
@@ -40,7 +40,7 @@ function validateAllCalendars(): void {
 
       try {
         const calendarData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-        const result = CalendarValidator.validateWithHelp(calendarData);
+        const result = await CalendarValidator.validate(calendarData);
 
         if (result.isValid) {
           console.log(`✅ ${file}`);
@@ -91,4 +91,7 @@ function validateAllCalendars(): void {
 }
 
 // Run the validation
-validateAllCalendars();
+validateAllCalendars().catch(error => {
+  console.error('❌ Validation script failed:', error);
+  process.exit(1);
+});
