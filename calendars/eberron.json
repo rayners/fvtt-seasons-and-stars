@@ -142,32 +142,32 @@
   },
 
   "dateFormats": {
-    "iso": "{{year}}-{{s&s-month:pad}}-{{s&s-day:pad}}",
-    "short": "{{s&s-month:abbr}} {{day}}",
-    "long": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}} YK",
-    "date": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}} YK",
-    "time": "{{s&s-hour:pad}}:{{s&s-minute:pad}}:{{s&s-second:pad}}",
-    "datetime": "{{s&s-dateFmt:date}} at {{s&s-dateFmt:time}}",
-    "brief": "{{day}}/{{month}}/{{year}}",
-    "formal": "The {{s&s-day:ordinal}} day of {{s&s-month:name}}, in the {{year}} year of the Kingdom",
+    "iso": "{{year}}-{{ss-month format=\"pad\"}}-{{ss-day format=\"pad\"}}",
+    "short": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} YK",
+    "date": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} YK",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt formatName=\"date\"}} at {{ss-dateFmt formatName=\"time\"}}",
+    "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, in the {{year}} year of the Kingdom",
     "day-of-year": "Day {{dayOfYear}} of {{year}} YK",
-    "week-number": "Week {{s&s-math dayOfYear op='divide' value=7}} of {{year}} YK",
-    "historical": "{{s&s-math year op='subtract' value=894}} years since the Last War ended",
-    "treaty": "{{s&s-dateFmt:date}} (Treaty of Thronehold +{{s&s-math year op='subtract' value=996}})",
+    "week-number": "Week {{ss-math dayOfYear op=\"divide\" value=7}} of {{year}} YK",
+    "historical": "{{ss-math year op=\"subtract\" value=894}} years since the Last War ended",
+    "treaty": "{{ss-dateFmt formatName=\"date\"}} (Treaty of Thronehold +{{ss-math year op=\"subtract\" value=996}})",
     "variants": {
       "dragonmarked": {
-        "short": "{{s&s-month:name}} {{day}}, {{year}} YK",
-        "long": "{{s&s-dateFmt:date}} - {{s&s-dateFmt:historical}}"
+        "short": "{{ss-month format=\"name\"}} {{ss-day}}, {{year}} YK",
+        "long": "{{ss-dateFmt formatName=\"date\"}} - {{ss-dateFmt formatName=\"historical\"}}"
       },
       "common": {
-        "short": "{{day}} {{s&s-month:abbr}} {{year}}",
-        "long": "{{s&s-dateFmt:formal}}"
+        "short": "{{ss-day}} {{ss-month format=\"abbr\"}} {{year}}",
+        "long": "{{ss-dateFmt formatName=\"formal\"}}"
       }
     },
     "widgets": {
-      "mini": "{{s&s-month:abbr}} {{day}}",
-      "main": "{{s&s-weekday:abbr}}, {{s&s-day:ordinal}} {{s&s-month:name}}",
-      "grid": "{{day}}"
+      "mini": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}"
     }
   }
 }

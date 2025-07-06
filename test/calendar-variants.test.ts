@@ -1,5 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Use real TestLogger instead of mocks for better testing
+import { TestLogger } from './utils/test-logger';
+vi.mock('../src/core/logger', () => ({
+  Logger: TestLogger,
+}));
+
 import { CalendarManager } from '../src/core/calendar-manager';
+import { CalendarDate } from '../src/core/calendar-date';
+import type { SeasonsStarsCalendar, CalendarDateData } from '../src/types/calendar';
 
 // Mock foundry environment and dependencies
 vi.stubGlobal('game', {
@@ -16,16 +25,6 @@ vi.stubGlobal('Hooks', {
 // Mock the built-in calendars list to be empty
 vi.mock('../src/generated/calendar-list', () => ({
   BUILT_IN_CALENDARS: [],
-}));
-
-// Mock Logger
-vi.mock('../src/core/logger', () => ({
-  Logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
 }));
 
 // Mock CalendarValidator
@@ -51,11 +50,24 @@ vi.mock('../src/core/calendar-localization', () => ({
   },
 }));
 
+// Mock Handlebars for testing
+const mockHandlebars = {
+  compile: vi.fn(),
+  registerHelper: vi.fn(),
+};
+
+vi.mock('handlebars', () => ({
+  default: mockHandlebars,
+}));
+
+global.Handlebars = mockHandlebars;
+
 describe('Calendar Variants System', () => {
   let calendarManager: CalendarManager;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    TestLogger.clearLogs();
 
     // Create a real CalendarManager instance
     calendarManager = new CalendarManager();
@@ -249,6 +261,121 @@ describe('Calendar Variants System', () => {
 
       expect(absalomVariant?.translations.en.label).toBe('Golarion Calendar (Absalom Reckoning)');
       expect(imperialVariant?.translations.en.label).toBe('Golarion Calendar (Imperial Calendar)');
+    });
+  });
+
+  describe('Variant DateFormats Support', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      TestLogger.clearLogs();
+
+      // Setup mock template compilation
+      const mockCompiledTemplate = vi.fn(context => {
+        // Simple template output based on format
+        if (context.year && context.month && context.day) {
+          return `${context.year}-${context.month}-${context.day}`;
+        }
+        return 'formatted-date';
+      });
+      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
+    });
+
+    it('should support dateFormats property in variants', () => {
+      // Arrange
+      const mockCalendar = {
+        id: 'test-calendar',
+        name: 'Test Calendar',
+        months: [
+          { name: 'January', abbreviation: 'Jan', days: 31 },
+          { name: 'February', abbreviation: 'Feb', days: 28 },
+        ],
+        weekdays: [
+          { name: 'Sunday', abbreviation: 'Sun' },
+          { name: 'Monday', abbreviation: 'Mon' },
+        ],
+        year: { prefix: '', suffix: '' },
+        time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+        variants: {
+          'test-variant': {
+            name: 'Test Variant',
+            description: 'Test variant with dateFormats',
+            overrides: {
+              dateFormats: {
+                'variant-format': 'Variant: {{ss-month format="name"}} {{ss-day}}, {{year}}',
+                short: 'V{{year}}-{{ss-month format="pad"}}-{{ss-day format="pad"}}',
+                widgets: {
+                  mini: 'V{{ss-month format="abbr"}} {{ss-day}}',
+                  main: 'Variant {{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}}',
+                },
+              },
+            },
+          },
+        },
+      } as SeasonsStarsCalendar;
+
+      const dateData: CalendarDateData = {
+        year: 2024,
+        month: 1,
+        day: 15,
+        weekday: 1,
+      };
+
+      // Apply variant overrides to create variant calendar
+      const variantCalendar = { ...mockCalendar };
+      const variant = mockCalendar.variants!['test-variant'];
+      if (variant.overrides?.dateFormats) {
+        variantCalendar.dateFormats = variant.overrides.dateFormats;
+      }
+
+      const date = new CalendarDate(dateData, variantCalendar);
+
+      // Act - Test that variant dateFormats are used
+      const result = date.format();
+
+      // Assert
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('string');
+      expect(mockHandlebars.compile).toHaveBeenCalled();
+    });
+
+    it('should handle variants without dateFormats gracefully', () => {
+      // Arrange
+      // Set up Handlebars mock to return a function that formats the date
+      const mockCompiledTemplate = vi.fn().mockReturnValue('Monday, 15th January 2024');
+      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
+
+      const mockCalendar = {
+        id: 'test-calendar',
+        name: 'Test Calendar',
+        months: [{ name: 'January', abbreviation: 'Jan', days: 31 }],
+        weekdays: [{ name: 'Monday', abbreviation: 'Mon' }],
+        year: { prefix: '', suffix: '' },
+        time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+        variants: {
+          'simple-variant': {
+            name: 'Simple Variant',
+            description: 'Variant without dateFormats',
+            overrides: {
+              year: { prefix: 'V', suffix: ' AV' },
+            },
+          },
+        },
+      } as SeasonsStarsCalendar;
+
+      const dateData: CalendarDateData = {
+        year: 2024,
+        month: 1,
+        day: 15,
+        weekday: 0,
+      };
+
+      const date = new CalendarDate(dateData, mockCalendar);
+
+      // Act
+      const result = date.format();
+
+      // Assert - Should use basic format since no dateFormats
+      expect(result).toBe('Monday, 15th January 2024');
     });
   });
 });

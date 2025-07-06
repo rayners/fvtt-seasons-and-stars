@@ -1359,13 +1359,16 @@ export function setupAPI(): void {
       manager: calendarManager,
       notes: notesManager,
       categories: noteCategories, // Will be available by this point since ready runs after init
-      integration: SeasonsStarsIntegration.detect(),
+      integration: null, // Will be set after the object is fully created
       compatibilityManager, // Expose for debugging and external access
       // Expose warning state functions for debugging and external access
       resetSeasonsWarningState,
       getSeasonsWarningState,
       setSeasonsWarningState,
     };
+
+    // Set integration after game.seasonsStars is fully assigned
+    game.seasonsStars.integration = SeasonsStarsIntegration.detect();
   }
 
   // Expose API to window for debugging

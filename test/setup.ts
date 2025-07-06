@@ -2,7 +2,8 @@
  * Test setup for Seasons & Stars
  */
 
-import { beforeEach } from 'vitest';
+import { vi, beforeEach } from 'vitest';
+import { DateFormatter } from '../src/core/date-formatter';
 
 // Mock Foundry globals
 (globalThis as any).game = {
@@ -48,6 +49,13 @@ import { beforeEach } from 'vitest';
 
 // Mock ApplicationV2 directly for imports
 (globalThis as any).ApplicationV2 = (globalThis as any).foundry.applications.api.ApplicationV2;
+
+// Basic Handlebars mock for tests that don't set up their own
+// Individual test files can override this with more specific mocks
+(globalThis as any).Handlebars = {
+  compile: vi.fn().mockReturnValue(vi.fn().mockReturnValue('mock-template-result')),
+  registerHelper: vi.fn(),
+};
 
 /**
  * Set up basic Foundry environment for testing
@@ -226,3 +234,8 @@ export function setupPF2eEnvironment(
     },
   };
 }
+
+// Reset DateFormatter helper registration before each test
+beforeEach(() => {
+  DateFormatter.resetHelpersForTesting();
+});
