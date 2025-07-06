@@ -28,6 +28,7 @@ import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
+import { protocolHandlers } from './core/protocol-handler';
 import type {
   ErrorsAndEchoesAPI,
   ExtendedNotesManager,
@@ -1102,7 +1103,10 @@ export function setupAPI(): void {
       );
     },
 
-    loadCalendarCollection: async (url: string, options?: { validate?: boolean; cache?: boolean }) => {
+    loadCalendarCollection: async (
+      url: string,
+      options?: { validate?: boolean; cache?: boolean }
+    ) => {
       return APIWrapper.wrapAPIMethod(
         'loadCalendarCollection',
         { url, options },
@@ -1113,10 +1117,15 @@ export function setupAPI(): void {
       );
     },
 
-    addExternalSource: (source: { name: string; url: string; enabled: boolean; type: 'calendar' | 'collection' | 'variants' }): string => {
+    addExternalSource: (source: {
+      name: string;
+      url: string;
+      enabled: boolean;
+      type: 'calendar' | 'collection' | 'variants';
+    }): string => {
       try {
         Logger.api('addExternalSource', { source });
-        
+
         if (!source || typeof source !== 'object') {
           throw new Error('Source must be a valid object');
         }
@@ -1128,12 +1137,15 @@ export function setupAPI(): void {
         if (!['calendar', 'collection', 'variants'].includes(source.type)) {
           throw new Error('Source type must be calendar, collection, or variants');
         }
-        
+
         const result = calendarManager.addExternalSource(source);
         Logger.api('addExternalSource', { source }, result);
         return result;
       } catch (error) {
-        Logger.error('Failed to add external source', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to add external source',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -1142,12 +1154,15 @@ export function setupAPI(): void {
       try {
         Logger.api('removeExternalSource', { sourceId });
         APIWrapper.validateString(sourceId, 'Source ID');
-        
+
         const result = calendarManager.removeExternalSource(sourceId);
         Logger.api('removeExternalSource', { sourceId }, result);
         return result;
       } catch (error) {
-        Logger.error('Failed to remove external source', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to remove external source',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -1159,7 +1174,10 @@ export function setupAPI(): void {
         Logger.api('getExternalSources', undefined, result.length);
         return result;
       } catch (error) {
-        Logger.error('Failed to get external sources', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to get external sources',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -1168,12 +1186,15 @@ export function setupAPI(): void {
       try {
         Logger.api('getExternalSource', { sourceId });
         APIWrapper.validateString(sourceId, 'Source ID');
-        
+
         const result = calendarManager.getExternalSource(sourceId);
         Logger.api('getExternalSource', { sourceId }, result ? 'found' : 'not found');
         return result;
       } catch (error) {
-        Logger.error('Failed to get external source', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to get external source',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -1204,7 +1225,10 @@ export function setupAPI(): void {
         calendarManager.clearExternalCalendarCache();
         Logger.api('clearExternalCalendarCache', undefined, 'success');
       } catch (error) {
-        Logger.error('Failed to clear external calendar cache', error instanceof Error ? error : new Error(String(error)));
+        Logger.error(
+          'Failed to clear external calendar cache',
+          error instanceof Error ? error : new Error(String(error))
+        );
         throw error;
       }
     },
@@ -1219,6 +1243,7 @@ export function setupAPI(): void {
       categories: noteCategories, // Will be available by this point since ready runs after init
       integration: null, // Will be set after the object is fully created
       compatibilityManager, // Expose for debugging and external access
+      protocolHandlers, // Expose protocol handler system for external modules
       // Expose warning state functions for debugging and external access
       resetSeasonsWarningState,
       getSeasonsWarningState,
@@ -1235,6 +1260,7 @@ export function setupAPI(): void {
     manager: calendarManager,
     notes: notesManager,
     integration: SeasonsStarsIntegration.detect() || null,
+    protocolHandlers,
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,

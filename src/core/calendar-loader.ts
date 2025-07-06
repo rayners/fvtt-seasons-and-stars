@@ -1,6 +1,6 @@
 /**
  * CalendarLoader - Handles loading calendars from external URLs and local sources
- * 
+ *
  * Extends the existing calendar loading system to support:
  * - URL-based calendar loading with validation
  * - Caching and error handling
@@ -10,6 +10,7 @@
 
 import { Logger } from './logger';
 import { CalendarValidator, type ValidationResult } from './calendar-validator';
+import { protocolHandlers } from './protocol-handler';
 import type { SeasonsStarsCalendar } from '../types/calendar';
 
 export interface LoaderOptions {
@@ -62,7 +63,7 @@ export class CalendarLoader {
   private static readonly DEFAULT_TIMEOUT = 10000; // 10 seconds
   private static readonly CACHE_KEY = 'seasons-stars.external-calendars';
   private static readonly SOURCES_KEY = 'seasons-stars.external-sources';
-  
+
   private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
   private sources = new Map<string, ExternalCalendarSource>();
 
@@ -72,18 +73,27 @@ export class CalendarLoader {
   }
 
   /**
-   * Load a calendar from a URL
+   * Load a calendar from a URL or protocol URL
    */
   async loadFromUrl(url: string, options: LoaderOptions = {}): Promise<LoadResult> {
     Logger.debug(`CalendarLoader: Loading calendar from URL: ${url}`);
 
-    // Validate URL format
+    // Check if this is a custom protocol URL (not HTTP/HTTPS)
+    const protocolResult = protocolHandlers.parseUrl(url);
+    if (protocolResult && !['http', 'https'].includes(protocolResult.protocol)) {
+      Logger.debug(
+        `CalendarLoader: Detected custom protocol URL, delegating to protocol handler: ${protocolResult.protocol}`
+      );
+      return await protocolHandlers.load(url, options);
+    }
+
+    // Validate URL format for HTTP/HTTPS URLs
     const urlValidation = this.validateUrl(url);
     if (!urlValidation.valid) {
       return {
         success: false,
         error: urlValidation.error,
-        sourceUrl: url
+        sourceUrl: url,
       };
     }
 
@@ -96,7 +106,7 @@ export class CalendarLoader {
           success: true,
           calendar: cached,
           fromCache: true,
-          sourceUrl: url
+          sourceUrl: url,
         };
       }
     }
@@ -106,10 +116,10 @@ export class CalendarLoader {
       const response = await this.fetchWithTimeout(url, {
         timeout: options.timeout || CalendarLoader.DEFAULT_TIMEOUT,
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
           'Content-Type': 'application/json',
-          ...options.headers
-        }
+          ...options.headers,
+        },
       });
 
       if (!response.ok) {
@@ -127,7 +137,7 @@ export class CalendarLoader {
             success: false,
             error: `Calendar validation failed: ${validation.errors.join(', ')}`,
             validation,
-            sourceUrl: url
+            sourceUrl: url,
           };
         }
       }
@@ -143,17 +153,16 @@ export class CalendarLoader {
         calendar: calendarData,
         validation,
         fromCache: false,
-        sourceUrl: url
+        sourceUrl: url,
       };
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       Logger.error(`CalendarLoader: Failed to load calendar from ${url}`, error as Error);
-      
+
       return {
         success: false,
         error: errorMessage,
-        sourceUrl: url
+        sourceUrl: url,
       };
     }
   }
@@ -166,7 +175,7 @@ export class CalendarLoader {
 
     const collectionResult = await this.loadFromUrl(url, {
       ...options,
-      validate: false // Don't validate collection structure with calendar schema
+      validate: false, // Don't validate collection structure with calendar schema
     });
 
     if (!collectionResult.success || !collectionResult.calendar) {
@@ -174,14 +183,16 @@ export class CalendarLoader {
     }
 
     const collection = collectionResult.calendar as any;
-    
+
     // Validate collection structure
     if (!collection.calendars || !Array.isArray(collection.calendars)) {
-      return [{
-        success: false,
-        error: 'Invalid collection format: missing or invalid calendars array',
-        sourceUrl: url
-      }];
+      return [
+        {
+          success: false,
+          error: 'Invalid collection format: missing or invalid calendars array',
+          sourceUrl: url,
+        },
+      ];
     }
 
     // Load each calendar in the collection
@@ -191,7 +202,7 @@ export class CalendarLoader {
         results.push({
           success: false,
           error: `Calendar entry missing URL: ${JSON.stringify(calendarEntry)}`,
-          sourceUrl: url
+          sourceUrl: url,
         });
         continue;
       }
@@ -212,12 +223,12 @@ export class CalendarLoader {
     const id = this.generateSourceId(source.name);
     const fullSource: ExternalCalendarSource = {
       ...source,
-      id
+      id,
     };
-    
+
     this.sources.set(id, fullSource);
     this.saveSourcesToStorage();
-    
+
     Logger.info(`CalendarLoader: Added external source: ${fullSource.name} (${fullSource.url})`);
     return id;
   }
@@ -233,10 +244,10 @@ export class CalendarLoader {
 
     this.sources.delete(id);
     this.saveSourcesToStorage();
-    
+
     // Clear related cache entries
     this.clearCacheForUrl(source.url);
-    
+
     Logger.info(`CalendarLoader: Removed external source: ${source.name}`);
     return true;
   }
@@ -299,25 +310,27 @@ export class CalendarLoader {
   private validateUrl(url: string): { valid: boolean; error?: string } {
     try {
       const parsed = new URL(url);
-      
+
       // Only allow HTTP/HTTPS protocols
       if (!['http:', 'https:'].includes(parsed.protocol)) {
         return {
           valid: false,
-          error: `Unsupported protocol: ${parsed.protocol}. Only HTTP and HTTPS are allowed.`
+          error: `Unsupported protocol: ${parsed.protocol}. Only HTTP and HTTPS are allowed.`,
         };
       }
 
       // Recommend HTTPS for security
       if (parsed.protocol === 'http:' && parsed.hostname !== 'localhost') {
-        Logger.warn(`CalendarLoader: Non-HTTPS URL detected: ${url}. HTTPS is recommended for security.`);
+        Logger.warn(
+          `CalendarLoader: Non-HTTPS URL detected: ${url}. HTTPS is recommended for security.`
+        );
       }
 
       return { valid: true };
     } catch (error) {
       return {
         valid: false,
-        error: `Invalid URL format: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Invalid URL format: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
@@ -325,7 +338,10 @@ export class CalendarLoader {
   /**
    * Fetch with timeout support
    */
-  private async fetchWithTimeout(url: string, options: { timeout: number; headers?: Record<string, string> }): Promise<Response> {
+  private async fetchWithTimeout(
+    url: string,
+    options: { timeout: number; headers?: Record<string, string> }
+  ): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), options.timeout);
 
@@ -333,7 +349,7 @@ export class CalendarLoader {
       const response = await fetch(url, {
         signal: controller.signal,
         headers: options.headers,
-        mode: 'cors'
+        mode: 'cors',
       });
       clearTimeout(timeoutId);
       return response;
@@ -362,15 +378,19 @@ export class CalendarLoader {
    * Generate a unique source ID
    */
   private generateSourceId(name: string): string {
-    const base = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+    const base = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
     let id = base;
     let counter = 1;
-    
+
     while (this.sources.has(id)) {
       id = `${base}-${counter}`;
       counter++;
     }
-    
+
     return id;
   }
 
@@ -396,11 +416,12 @@ export class CalendarLoader {
   /**
    * Cache calendar data
    */
-  private setCached(url: string, data: any, ttlMs: number = 3600000): void { // Default 1 hour TTL
+  private setCached(url: string, data: any, ttlMs: number = 3600000): void {
+    // Default 1 hour TTL
     this.cache.set(url, {
       data,
       timestamp: Date.now(),
-      ttl: ttlMs
+      ttl: ttlMs,
     });
     this.saveCacheToStorage();
   }

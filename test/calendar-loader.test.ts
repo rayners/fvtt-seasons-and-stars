@@ -13,12 +13,12 @@ global.fetch = mockFetch;
 // Mock game.settings
 const mockSettings = {
   get: vi.fn(),
-  set: vi.fn()
+  set: vi.fn(),
 };
 
 // @ts-expect-error - Mocking global game object
 global.game = {
-  settings: mockSettings
+  settings: mockSettings,
 };
 
 // Sample calendar data for testing
@@ -27,12 +27,12 @@ const sampleCalendar: SeasonsStarsCalendar = {
   translations: {
     en: {
       label: 'Test Calendar',
-      description: 'A test calendar for unit tests'
-    }
+      description: 'A test calendar for unit tests',
+    },
   },
   months: [
     { name: 'January', days: 31 },
-    { name: 'February', days: 28 }
+    { name: 'February', days: 28 },
   ],
   weekdays: [
     { name: 'Monday' },
@@ -41,8 +41,8 @@ const sampleCalendar: SeasonsStarsCalendar = {
     { name: 'Thursday' },
     { name: 'Friday' },
     { name: 'Saturday' },
-    { name: 'Sunday' }
-  ]
+    { name: 'Sunday' },
+  ],
 };
 
 const sampleCollection = {
@@ -52,14 +52,14 @@ const sampleCollection = {
     {
       id: 'calendar-1',
       name: 'Calendar 1',
-      url: 'https://example.com/calendar1.json'
+      url: 'https://example.com/calendar1.json',
     },
     {
       id: 'calendar-2',
       name: 'Calendar 2',
-      url: './calendar2.json'
-    }
-  ]
+      url: './calendar2.json',
+    },
+  ],
 };
 
 describe('CalendarLoader', () => {
@@ -80,7 +80,7 @@ describe('CalendarLoader', () => {
     it('should accept valid HTTP URLs', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(sampleCalendar)
+        json: () => Promise.resolve(sampleCalendar),
       });
 
       const result = await loader.loadFromUrl('http://localhost:3000/calendar.json');
@@ -90,7 +90,7 @@ describe('CalendarLoader', () => {
     it('should accept valid HTTPS URLs', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(sampleCalendar)
+        json: () => Promise.resolve(sampleCalendar),
       });
 
       const result = await loader.loadFromUrl('https://example.com/calendar.json');
@@ -100,7 +100,7 @@ describe('CalendarLoader', () => {
     it('should reject invalid protocols', async () => {
       const result = await loader.loadFromUrl('ftp://example.com/calendar.json');
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Unsupported protocol');
+      expect(result.error).toContain('No handler registered for protocol');
     });
 
     it('should reject malformed URLs', async () => {
@@ -114,11 +114,11 @@ describe('CalendarLoader', () => {
     it('should successfully load valid calendar from URL', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(sampleCalendar)
+        json: () => Promise.resolve(sampleCalendar),
       });
 
       const result = await loader.loadFromUrl('https://example.com/calendar.json');
-      
+
       expect(result.success).toBe(true);
       expect(result.calendar).toEqual(sampleCalendar);
       expect(result.fromCache).toBe(false);
@@ -129,11 +129,11 @@ describe('CalendarLoader', () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 404,
-        statusText: 'Not Found'
+        statusText: 'Not Found',
       });
 
       const result = await loader.loadFromUrl('https://example.com/missing.json');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toContain('HTTP 404: Not Found');
     });
@@ -142,7 +142,7 @@ describe('CalendarLoader', () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
       const result = await loader.loadFromUrl('https://example.com/calendar.json');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toContain('Network error');
     });
@@ -150,11 +150,11 @@ describe('CalendarLoader', () => {
     it('should handle invalid JSON gracefully', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.reject(new Error('Invalid JSON'))
+        json: () => Promise.reject(new Error('Invalid JSON')),
       });
 
       const result = await loader.loadFromUrl('https://example.com/invalid.json');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toContain('Invalid JSON');
     });
@@ -169,39 +169,39 @@ describe('CalendarLoader', () => {
     it('should include custom headers', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(sampleCalendar)
+        json: () => Promise.resolve(sampleCalendar),
       });
 
       await loader.loadFromUrl('https://example.com/calendar.json', {
         headers: {
-          'Authorization': 'Bearer token123',
-          'Custom-Header': 'value'
-        }
+          Authorization: 'Bearer token123',
+          'Custom-Header': 'value',
+        },
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://example.com/calendar.json',
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Authorization': 'Bearer token123',
-            'Custom-Header': 'value'
-          })
+            Authorization: 'Bearer token123',
+            'Custom-Header': 'value',
+          }),
         })
       );
     });
 
     it('should skip validation when requested', async () => {
       const invalidCalendar = { id: 'invalid', missingRequired: true };
-      
+
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(invalidCalendar)
+        json: () => Promise.resolve(invalidCalendar),
       });
 
-      const result = await loader.loadFromUrl('https://example.com/invalid.json', { 
-        validate: false 
+      const result = await loader.loadFromUrl('https://example.com/invalid.json', {
+        validate: false,
       });
-      
+
       expect(result.success).toBe(true);
       expect(result.calendar).toEqual(invalidCalendar);
     });
@@ -212,22 +212,22 @@ describe('CalendarLoader', () => {
       // Mock collection fetch
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(sampleCollection)
+        json: () => Promise.resolve(sampleCollection),
       });
 
       // Mock individual calendar fetches
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ ...sampleCalendar, id: 'calendar-1' })
+        json: () => Promise.resolve({ ...sampleCalendar, id: 'calendar-1' }),
       });
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ ...sampleCalendar, id: 'calendar-2' })
+        json: () => Promise.resolve({ ...sampleCalendar, id: 'calendar-2' }),
       });
 
       const results = await loader.loadCollection('https://example.com/collection.json');
-      
+
       expect(results).toHaveLength(2);
       expect(results[0].success).toBe(true);
       expect(results[0].calendar?.id).toBe('calendar-1');
@@ -238,21 +238,21 @@ describe('CalendarLoader', () => {
     it('should handle relative URLs in collections', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(sampleCollection)
+        json: () => Promise.resolve(sampleCollection),
       });
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ ...sampleCalendar, id: 'calendar-1' })
+        json: () => Promise.resolve({ ...sampleCalendar, id: 'calendar-1' }),
       });
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ ...sampleCalendar, id: 'calendar-2' })
+        json: () => Promise.resolve({ ...sampleCalendar, id: 'calendar-2' }),
       });
 
       await loader.loadCollection('https://example.com/collection.json');
-      
+
       // Verify that relative URL was resolved correctly
       expect(mockFetch).toHaveBeenCalledWith(
         'https://example.com/calendar2.json',
@@ -262,14 +262,14 @@ describe('CalendarLoader', () => {
 
     it('should handle invalid collection format', async () => {
       const invalidCollection = { id: 'invalid', missingCalendars: true };
-      
+
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(invalidCollection)
+        json: () => Promise.resolve(invalidCollection),
       });
 
       const results = await loader.loadCollection('https://example.com/invalid-collection.json');
-      
+
       expect(results).toHaveLength(1);
       expect(results[0].success).toBe(false);
       expect(results[0].error).toContain('Invalid collection format');
@@ -282,11 +282,11 @@ describe('CalendarLoader', () => {
         name: 'Test Source',
         url: 'https://example.com/calendar.json',
         enabled: true,
-        type: 'calendar'
+        type: 'calendar',
       });
 
       expect(sourceId).toBe('test-source');
-      
+
       const source = loader.getSource(sourceId);
       expect(source).toBeDefined();
       expect(source?.name).toBe('Test Source');
@@ -298,14 +298,14 @@ describe('CalendarLoader', () => {
         name: 'Duplicate Name',
         url: 'https://example.com/calendar1.json',
         enabled: true,
-        type: 'calendar'
+        type: 'calendar',
       });
 
       const id2 = loader.addSource({
         name: 'Duplicate Name',
         url: 'https://example.com/calendar2.json',
         enabled: true,
-        type: 'calendar'
+        type: 'calendar',
       });
 
       expect(id1).toBe('duplicate-name');
@@ -317,11 +317,11 @@ describe('CalendarLoader', () => {
         name: 'Test Source',
         url: 'https://example.com/calendar.json',
         enabled: true,
-        type: 'calendar'
+        type: 'calendar',
       });
 
       expect(loader.getSource(sourceId)).toBeDefined();
-      
+
       const removed = loader.removeSource(sourceId);
       expect(removed).toBe(true);
       expect(loader.getSource(sourceId)).toBeUndefined();
@@ -332,17 +332,17 @@ describe('CalendarLoader', () => {
         name: 'Test Source',
         url: 'https://example.com/calendar.json',
         enabled: true,
-        type: 'calendar'
+        type: 'calendar',
       });
 
       loader.updateSourceStatus(sourceId, true);
-      
+
       const source = loader.getSource(sourceId);
       expect(source?.lastLoaded).toBeDefined();
       expect(source?.lastError).toBeUndefined();
 
       loader.updateSourceStatus(sourceId, false, 'Test error');
-      
+
       const updatedSource = loader.getSource(sourceId);
       expect(updatedSource?.lastError).toBe('Test error');
     });
@@ -352,14 +352,14 @@ describe('CalendarLoader', () => {
         name: 'Source 1',
         url: 'https://example.com/cal1.json',
         enabled: true,
-        type: 'calendar'
+        type: 'calendar',
       });
 
       loader.addSource({
         name: 'Source 2',
         url: 'https://example.com/cal2.json',
         enabled: false,
-        type: 'collection'
+        type: 'collection',
       });
 
       const sources = loader.getSources();
@@ -373,7 +373,7 @@ describe('CalendarLoader', () => {
     it('should cache successful loads', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve(sampleCalendar)
+        json: () => Promise.resolve(sampleCalendar),
       });
 
       // First load
@@ -392,7 +392,7 @@ describe('CalendarLoader', () => {
     it('should respect cache disable option', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve(sampleCalendar)
+        json: () => Promise.resolve(sampleCalendar),
       });
 
       // Load without caching
@@ -406,38 +406,38 @@ describe('CalendarLoader', () => {
     it('should clear cache', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve(sampleCalendar)
+        json: () => Promise.resolve(sampleCalendar),
       });
 
       // Load and cache
       await loader.loadFromUrl('https://example.com/calendar.json');
-      
+
       // Clear cache
       loader.clearCache();
-      
+
       // Next load should fetch again
       await loader.loadFromUrl('https://example.com/calendar.json');
-      
+
       expect(mockFetch).toHaveBeenCalledTimes(2);
     });
 
     it('should clear cache for specific URL', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve(sampleCalendar)
+        json: () => Promise.resolve(sampleCalendar),
       });
 
       // Load multiple URLs
       await loader.loadFromUrl('https://example.com/calendar1.json');
       await loader.loadFromUrl('https://example.com/calendar2.json');
-      
+
       // Clear cache for one URL
       loader.clearCacheForUrl('https://example.com/calendar1.json');
-      
+
       // Verify one is cached, other is not
       const result1 = await loader.loadFromUrl('https://example.com/calendar1.json');
       const result2 = await loader.loadFromUrl('https://example.com/calendar2.json');
-      
+
       expect(result1.fromCache).toBe(false);
       expect(result2.fromCache).toBe(true);
     });
