@@ -94,21 +94,21 @@ const simpleCalendar: SeasonsStarsCalendar = {
 };
 
 describe('CalendarValidator', () => {
-  it('should validate gregorian calendar', () => {
-    const result = CalendarValidator.validate(gregorianCalendar);
+  it('should validate gregorian calendar', async () => {
+    const result = await CalendarValidator.validate(gregorianCalendar);
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
   });
 
-  it('should validate simple calendar', () => {
-    const result = CalendarValidator.validate(simpleCalendar);
+  it('should validate simple calendar', async () => {
+    const result = await CalendarValidator.validate(simpleCalendar);
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
   });
 
-  it('should reject invalid calendar', () => {
+  it('should reject invalid calendar', async () => {
     const invalid = { id: 'test' }; // Missing required fields
-    const result = CalendarValidator.validate(invalid);
+    const result = await CalendarValidator.validate(invalid);
     expect(result.isValid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
   });
@@ -336,8 +336,8 @@ describe('CalendarEngine - Multi-Day Intercalary Periods', () => {
     engine = new CalendarEngine(intercalaryTestCalendar);
   });
 
-  it('should validate calendar with multi-day intercalary periods', () => {
-    const result = CalendarValidator.validate(intercalaryTestCalendar);
+  it('should validate calendar with multi-day intercalary periods', async () => {
+    const result = await CalendarValidator.validate(intercalaryTestCalendar);
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
   });
@@ -432,7 +432,7 @@ describe('CalendarEngine - Real Calendar Integration Tests', () => {
     const greyhawkData = JSON.parse(fs.readFileSync(greyhawkPath, 'utf8'));
 
     // Validate the calendar
-    const result = CalendarValidator.validate(greyhawkData);
+    const result = await CalendarValidator.validate(greyhawkData);
     expect(result.isValid).toBe(true);
 
     // Test the engine with real data
@@ -452,7 +452,7 @@ describe('CalendarEngine - Real Calendar Integration Tests', () => {
     const darkSunData = JSON.parse(fs.readFileSync(darkSunPath, 'utf8'));
 
     // Validate the calendar
-    const result = CalendarValidator.validate(darkSunData);
+    const result = await CalendarValidator.validate(darkSunData);
     expect(result.isValid).toBe(true);
 
     // Test the engine with real data
