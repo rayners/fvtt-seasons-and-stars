@@ -197,7 +197,7 @@ const gridFormat = game.seasonsStars.api.formatDateWidget(date, 'grid');
 
 ### Advanced Date Formatting
 
-Seasons & Stars v0.5.0+ includes a powerful Handlebars-based formatting system with mathematical operations and format embedding:
+Seasons & Stars includes a powerful [Handlebars-based formatting system](https://handlebarsjs.com/) with mathematical operations and format embedding:
 
 **Template Variables Available:**
 
