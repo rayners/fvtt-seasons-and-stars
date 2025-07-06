@@ -4,18 +4,20 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import Handlebars from 'handlebars';
 import { DateFormatter } from '../src/core/date-formatter';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
+
+// Use REAL Handlebars for Star Trek helper testing
+global.Handlebars = Handlebars;
 
 describe('Star Trek Helpers Functionality', () => {
   let formatter: DateFormatter;
   let mockCalendar: SeasonsStarsCalendar;
-  let capturedHelpers: Record<string, Function> = {};
 
   beforeEach(() => {
     // Reset helper registration
     DateFormatter.resetHelpersForTesting();
-    capturedHelpers = {};
 
     // Mock calendar
     mockCalendar = {
@@ -32,21 +34,18 @@ describe('Star Trek Helpers Functionality', () => {
       time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
     } as SeasonsStarsCalendar;
 
-    // Mock Handlebars to capture helper registrations
-    global.Handlebars = {
-      compile: () => () => 'mock-result',
-      registerHelper: (name: string, helper: Function) => {
-        capturedHelpers[name] = helper;
-      },
-    };
-
-    // Create formatter to register helpers
+    // Create formatter to register helpers with real Handlebars
     formatter = new DateFormatter(mockCalendar);
   });
 
+  // Helper function to get registered helper from Handlebars
+  function getHelper(name: string): Function {
+    return (Handlebars as any).helpers[name];
+  }
+
   describe('Stardate Helper', () => {
     it('should calculate TNG era stardate correctly', () => {
-      const stardateHelper = capturedHelpers['ss-stardate'];
+      const stardateHelper = getHelper('ss-stardate');
       expect(stardateHelper).toBeDefined();
 
       // Test TNG era: year 2370, day 15 of year, prefix 47
@@ -64,7 +63,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should calculate DS9 era stardate correctly', () => {
-      const stardateHelper = capturedHelpers['ss-stardate'];
+      const stardateHelper = getHelper('ss-stardate');
 
       // Test DS9 era: year 2375, day 161 of year, prefix 52
       const result = stardateHelper(2375, {
@@ -81,7 +80,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should calculate Enterprise era stardate with higher precision', () => {
-      const stardateHelper = capturedHelpers['ss-stardate'];
+      const stardateHelper = getHelper('ss-stardate');
 
       // Test Enterprise era: year 2151, day 95 of year, prefix 0, precision 2
       const result = stardateHelper(2151, {
@@ -98,7 +97,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should handle year offsets correctly', () => {
-      const stardateHelper = capturedHelpers['ss-stardate'];
+      const stardateHelper = getHelper('ss-stardate');
 
       // Test year offset: year 2371 (one year after base 2370)
       const result = stardateHelper(2371, {
@@ -117,7 +116,7 @@ describe('Star Trek Helpers Functionality', () => {
 
   describe('Time Helpers', () => {
     it('should format hour with padding', () => {
-      const hourHelper = capturedHelpers['ss-hour'];
+      const hourHelper = getHelper('ss-hour');
       expect(hourHelper).toBeDefined();
 
       // Test single digit with padding
@@ -134,7 +133,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should format minute with padding', () => {
-      const minuteHelper = capturedHelpers['ss-minute'];
+      const minuteHelper = getHelper('ss-minute');
       expect(minuteHelper).toBeDefined();
 
       // Test single digit with padding
@@ -147,7 +146,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should format second with padding', () => {
-      const secondHelper = capturedHelpers['ss-second'];
+      const secondHelper = getHelper('ss-second');
       expect(secondHelper).toBeDefined();
 
       // Test single digit with padding
@@ -160,7 +159,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should handle undefined/null values gracefully', () => {
-      const hourHelper = capturedHelpers['ss-hour'];
+      const hourHelper = getHelper('ss-hour');
 
       // Test undefined - when passed undefined with pad format, should apply padding to default 0
       const result1 = hourHelper(undefined, { hash: { format: 'pad' } });
@@ -172,7 +171,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should use context when no explicit value provided', () => {
-      const hourHelper = capturedHelpers['ss-hour'];
+      const hourHelper = getHelper('ss-hour');
 
       // Simulate context data available via options.data.root
       const result = hourHelper(undefined, {
@@ -186,7 +185,7 @@ describe('Star Trek Helpers Functionality', () => {
 
   describe('Math Helper', () => {
     it('should perform addition correctly', () => {
-      const mathHelper = capturedHelpers['ss-math'];
+      const mathHelper = getHelper('ss-math');
       expect(mathHelper).toBeDefined();
 
       const result = mathHelper(2024, {
@@ -197,7 +196,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should perform subtraction correctly', () => {
-      const mathHelper = capturedHelpers['ss-math'];
+      const mathHelper = getHelper('ss-math');
 
       // Test TOS stardate calculation (year - 1300)
       const result = mathHelper(2268, {
@@ -208,7 +207,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should perform multiplication correctly', () => {
-      const mathHelper = capturedHelpers['ss-math'];
+      const mathHelper = getHelper('ss-math');
 
       const result = mathHelper(15, {
         hash: { op: 'multiply', value: 10 },
@@ -218,7 +217,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should perform division correctly', () => {
-      const mathHelper = capturedHelpers['ss-math'];
+      const mathHelper = getHelper('ss-math');
 
       const result = mathHelper(100, {
         hash: { op: 'divide', value: 4 },
@@ -228,7 +227,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should handle division by zero safely', () => {
-      const mathHelper = capturedHelpers['ss-math'];
+      const mathHelper = getHelper('ss-math');
 
       const result = mathHelper(100, {
         hash: { op: 'divide', value: 0 },
@@ -239,7 +238,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should handle invalid operations gracefully', () => {
-      const mathHelper = capturedHelpers['ss-math'];
+      const mathHelper = getHelper('ss-math');
 
       const result = mathHelper(50, {
         hash: { op: 'invalid-operation', value: 10 },
@@ -252,7 +251,7 @@ describe('Star Trek Helpers Functionality', () => {
 
   describe('Month and Day Helpers', () => {
     it('should format month abbreviations correctly', () => {
-      const monthHelper = capturedHelpers['ss-month'];
+      const monthHelper = getHelper('ss-month');
       expect(monthHelper).toBeDefined();
 
       // Test month 1 (January)
@@ -265,7 +264,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should format month names correctly', () => {
-      const monthHelper = capturedHelpers['ss-month'];
+      const monthHelper = getHelper('ss-month');
 
       // Test month 1 (January)
       const result1 = monthHelper(1, { hash: { format: 'name' } });
@@ -277,7 +276,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should format day ordinals correctly', () => {
-      const dayHelper = capturedHelpers['ss-day'];
+      const dayHelper = getHelper('ss-day');
       expect(dayHelper).toBeDefined();
 
       // Test various ordinal suffixes
@@ -292,7 +291,7 @@ describe('Star Trek Helpers Functionality', () => {
     });
 
     it('should format weekday names correctly', () => {
-      const weekdayHelper = capturedHelpers['ss-weekday'];
+      const weekdayHelper = getHelper('ss-weekday');
       expect(weekdayHelper).toBeDefined();
 
       // Test weekday 0 (Sunday)
@@ -320,18 +319,25 @@ describe('Star Trek Helpers Functionality', () => {
       ];
 
       for (const helperName of expectedHelpers) {
-        expect(capturedHelpers[helperName]).toBeDefined();
-        expect(typeof capturedHelpers[helperName]).toBe('function');
+        const helper = getHelper(helperName);
+        expect(helper).toBeDefined();
+        expect(typeof helper).toBe('function');
       }
     });
 
     it('should only register helpers once', () => {
-      const initialHelperCount = Object.keys(capturedHelpers).length;
+      const initialHelpers = Object.keys((Handlebars as any).helpers).filter(name =>
+        name.startsWith('ss-')
+      );
+      const initialHelperCount = initialHelpers.length;
 
       // Create another formatter (should not re-register)
       new DateFormatter(mockCalendar);
 
-      const afterHelperCount = Object.keys(capturedHelpers).length;
+      const afterHelpers = Object.keys((Handlebars as any).helpers).filter(name =>
+        name.startsWith('ss-')
+      );
+      const afterHelperCount = afterHelpers.length;
       expect(afterHelperCount).toBe(initialHelperCount);
     });
   });

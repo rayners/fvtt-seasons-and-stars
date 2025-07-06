@@ -92,13 +92,15 @@ describe('Star Trek Calendar Syntax Validation', () => {
   });
 
   describe('Real Calendar File Format Validation', () => {
-    it('should use correct colon syntax in time format (fixed from single quotes)', () => {
+    it('should use correct parameter syntax in time format (fixed from colon syntax)', () => {
       // This verifies the fix for the problematic line from the calendar file
       const federationVariant = starTrekCalendar.variants['federation-standard'];
       const timeFormat = federationVariant.overrides.dateFormats.time;
 
-      // Should now use correct colon syntax instead of single quotes
-      expect(timeFormat).toBe('{{ss-hour:pad}}:{{ss-minute:pad}}:{{ss-second:pad}} UTC');
+      // Should now use correct parameter syntax instead of colon syntax
+      expect(timeFormat).toBe(
+        '{{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}} UTC'
+      );
 
       // Mock Handlebars to succeed with correct syntax
       const mockTemplate = vi.fn().mockReturnValue('14:30:45 UTC');

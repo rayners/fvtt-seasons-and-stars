@@ -7,14 +7,9 @@ import { DateFormatter } from '../src/core/date-formatter';
 import { CalendarDate } from '../src/core/calendar-date';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
 
-// Mock Handlebars for testing
-const mockHandlebars = {
-  compile: vi.fn(),
-  registerHelper: vi.fn(),
-};
-
-// Ensure global Handlebars is available (mimicking Foundry)
-global.Handlebars = mockHandlebars;
+// Use REAL Handlebars for date formatter testing (following star-trek test pattern)
+import Handlebars from 'handlebars';
+global.Handlebars = Handlebars;
 
 describe('DateFormatter Edge Cases', () => {
   let formatter: DateFormatter;
@@ -54,12 +49,7 @@ describe('DateFormatter Edge Cases', () => {
 
   describe('Helper Syntax Edge Cases', () => {
     it('should handle single-quote format parameters gracefully', () => {
-      // RED: This should fail because single quotes are not valid Handlebars syntax
-      const mockTemplate = vi.fn().mockImplementation(() => {
-        throw new Error("Parse error: Expecting 'STRING', got 'INVALID'");
-      });
-      mockHandlebars.compile.mockReturnValue(mockTemplate);
-
+      // Single quotes are not valid Handlebars syntax - test real compilation error
       const invalidSyntax = "{{ss-hour format='pad'}}:{{ss-minute format='pad'}}";
       const result = formatter.format(mockDate, invalidSyntax);
 
@@ -70,27 +60,20 @@ describe('DateFormatter Edge Cases', () => {
     });
 
     it('should validate ss-stardate helper parameters', () => {
-      // RED: This should fail if the helper doesn't support complex parameters
+      // Test complex stardate format with invalid syntax (single quotes)
       const complexStardateFormat =
         "{{ss-stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear precision=1}}";
 
-      // Mock a template that throws on complex parameter usage
-      const mockTemplate = vi.fn().mockImplementation(() => {
-        throw new Error('ss-stardate helper: Invalid parameter configuration');
-      });
-      mockHandlebars.compile.mockReturnValue(mockTemplate);
-
       const result = formatter.format(mockDate, complexStardateFormat);
 
-      // Should fall back to basic format when helper fails
+      // Should fall back to basic format when compilation fails due to syntax error
       expect(result).toContain('2024');
-      expect(mockHandlebars.compile).toHaveBeenCalled();
     });
   });
 
   describe('Array Bounds Validation', () => {
     it('should handle invalid month indices gracefully', () => {
-      // RED: This should fail without proper bounds checking
+      // Test invalid month index bounds checking
       const invalidDate = {
         ...mockDate,
         month: 99, // Invalid month index
@@ -99,9 +82,6 @@ describe('DateFormatter Edge Cases', () => {
       // Access the calculateDayOfYear method indirectly through format
       const templateWithDayOfYear = 'Day {{dayOfYear}} of {{year}}';
 
-      const mockTemplate = vi.fn().mockReturnValue('Day 45 of 2024');
-      mockHandlebars.compile.mockReturnValue(mockTemplate);
-
       // This should not throw an error, but should handle the invalid month gracefully
       expect(() => {
         formatter.format(invalidDate, templateWithDayOfYear);
@@ -109,16 +89,13 @@ describe('DateFormatter Edge Cases', () => {
     });
 
     it('should handle negative month indices gracefully', () => {
-      // RED: This should fail without proper bounds checking
+      // Test negative month index bounds checking
       const invalidDate = {
         ...mockDate,
         month: -1, // Invalid negative month index
       } as CalendarDate;
 
       const templateWithDayOfYear = 'Day {{dayOfYear}} of {{year}}';
-
-      const mockTemplate = vi.fn().mockReturnValue('Day 1 of 2024');
-      mockHandlebars.compile.mockReturnValue(mockTemplate);
 
       // This should not throw an error, but should handle the invalid month gracefully
       expect(() => {
@@ -127,16 +104,13 @@ describe('DateFormatter Edge Cases', () => {
     });
 
     it('should handle month index of zero gracefully', () => {
-      // RED: This should fail without proper bounds checking (0-based vs 1-based confusion)
+      // Test zero month index bounds checking (0-based vs 1-based confusion)
       const invalidDate = {
         ...mockDate,
         month: 0, // Invalid month index (should be 1-based)
       } as CalendarDate;
 
       const templateWithDayOfYear = 'Day {{dayOfYear}} of {{year}}';
-
-      const mockTemplate = vi.fn().mockReturnValue('Day 1 of 2024');
-      mockHandlebars.compile.mockReturnValue(mockTemplate);
 
       // This should not throw an error, but should handle the invalid month gracefully
       expect(() => {
@@ -147,23 +121,14 @@ describe('DateFormatter Edge Cases', () => {
 
   describe('Calendar JSON Helper Syntax Validation', () => {
     it('should detect and handle malformed helper syntax in real calendar files', () => {
-      // RED: This simulates the actual malformed syntax found in gregorian-star-trek-variants.json
+      // Test malformed syntax found in gregorian-star-trek-variants.json (single quotes)
       const malformedTimeFormat =
         "{{ss-hour format='pad'}}:{{ss-minute format='pad'}}:{{ss-second format='pad'}} UTC";
-
-      // Mock Handlebars compilation failure for single quotes
-      mockHandlebars.compile.mockImplementation(template => {
-        if (template.includes("format='pad'")) {
-          throw new Error("Parse error on line 1: Expecting 'STRING', got 'INVALID'");
-        }
-        return vi.fn().mockReturnValue('14:30:45 UTC');
-      });
 
       const result = formatter.format(mockDate, malformedTimeFormat);
 
       // Should fall back to basic format due to syntax error
       expect(result).toContain('2024');
-      expect(mockHandlebars.compile).toHaveBeenCalled();
     });
   });
 });

@@ -11,20 +11,17 @@ import { CalendarWidget } from '../src/ui/calendar-widget';
 import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../src/ui/calendar-grid-widget';
 
-// Mock Logger since module.ts uses it for debug logging
+// Use real TestLogger instead of mocks for better testing
+import { TestLogger } from './utils/test-logger';
 vi.mock('../src/core/logger', () => ({
-  Logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
+  Logger: TestLogger,
 }));
 
 describe('Widget Factory Registration (Module.ts Changes)', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     vi.clearAllMocks();
+    TestLogger.clearLogs();
   });
 
   describe('Import Statement Coverage', () => {

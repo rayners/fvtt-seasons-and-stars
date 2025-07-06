@@ -7,19 +7,9 @@ import { DateFormatter } from '../src/core/date-formatter';
 import { CalendarDate } from '../src/core/calendar-date';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
 
-// Mock Handlebars for testing
-const mockHandlebars = {
-  compile: vi.fn(),
-  registerHelper: vi.fn(),
-};
-
-// Mock global Handlebars
-vi.mock('handlebars', () => ({
-  default: mockHandlebars,
-}));
-
-// Ensure global Handlebars is available (mimicking Foundry)
-global.Handlebars = mockHandlebars;
+// Use REAL Handlebars for date formatter testing (following star-trek test pattern)
+import Handlebars from 'handlebars';
+global.Handlebars = Handlebars;
 
 describe('DateFormatter Advanced Tests', () => {
   let formatter: DateFormatter;
@@ -28,6 +18,7 @@ describe('DateFormatter Advanced Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    DateFormatter.resetHelpersForTesting();
 
     mockCalendar = {
       id: 'test-calendar',
@@ -56,7 +47,9 @@ describe('DateFormatter Advanced Tests', () => {
       month: 1,
       day: 15,
       weekday: 1,
-      time: { hour: 10, minute: 30, second: 45 },
+      hour: 10,
+      minute: 30,
+      second: 45,
     } as CalendarDate;
   });
 
@@ -71,15 +64,12 @@ describe('DateFormatter Advanced Tests', () => {
         ...mockCalendar,
         dateFormats: {
           date: {
-            short: '{{month:abbr}} {{day}}',
-            long: '{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}}',
-            default: '{{month:name}} {{day}}, {{year}}',
+            short: '{{ss-month format="abbr"}} {{day}}',
+            long: '{{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} {{year}}',
+            default: '{{ss-month format="name"}} {{day}}, {{year}}',
           },
         },
       };
-
-      const mockCompiledTemplate = vi.fn().mockReturnValue('January 15, 2024');
-      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
 
       formatter = new DateFormatter(calendarWithVariants);
 
@@ -88,7 +78,6 @@ describe('DateFormatter Advanced Tests', () => {
 
       // Assert
       expect(result).toBe('January 15, 2024');
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{month:name}} {{day}}, {{year}}');
     });
 
     it('should handle format variants without default, use first available', () => {
@@ -97,14 +86,11 @@ describe('DateFormatter Advanced Tests', () => {
         ...mockCalendar,
         dateFormats: {
           date: {
-            short: '{{month:abbr}} {{day}}',
-            long: '{{weekday:name}}, {{day:ordinal}} {{month:name}} {{year}}',
+            short: '{{ss-month format="abbr"}} {{day}}',
+            long: '{{ss-weekday format="name"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} {{year}}',
           },
         },
       };
-
-      const mockCompiledTemplate = vi.fn().mockReturnValue('Jan 15');
-      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
 
       formatter = new DateFormatter(calendarWithVariants);
 
@@ -113,7 +99,6 @@ describe('DateFormatter Advanced Tests', () => {
 
       // Assert
       expect(result).toBe('Jan 15');
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{month:abbr}} {{day}}');
     });
 
     it('should handle format variants with empty object', () => {
@@ -163,7 +148,7 @@ describe('DateFormatter Advanced Tests', () => {
       const calendarWithoutWidgets: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          iso: '{{year}}-{{month:pad}}-{{day:pad}}',
+          iso: '{{year}}-{{ss-month format="pad"}}-{{ss-day format="pad"}}',
         },
       };
 
@@ -182,7 +167,7 @@ describe('DateFormatter Advanced Tests', () => {
         ...mockCalendar,
         dateFormats: {
           widgets: {
-            main: '{{weekday:abbr}}, {{day:ordinal}} {{month:name}}',
+            main: '{{ss-weekday format="abbr"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}}',
             // mini format missing
           },
         },
@@ -208,14 +193,10 @@ describe('DateFormatter Advanced Tests', () => {
       const calendarWithCircularRefs: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          format1: 'A: {{dateFmt:format2}}',
-          format2: 'B: {{dateFmt:format1}}', // Circular reference
+          format1: 'A: {{ss-dateFmt "format2"}}',
+          format2: 'B: {{ss-dateFmt "format1"}}', // Circular reference
         },
       };
-
-      // When circular reference is detected, it should fallback to basic format
-      const mockCompiledTemplate = vi.fn().mockReturnValue('A: Monday, 15th January Year 2024 CE');
-      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
 
       formatter = new DateFormatter(calendarWithCircularRefs);
 
@@ -233,21 +214,12 @@ describe('DateFormatter Advanced Tests', () => {
       const calendarWithDeepNesting: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          base: '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}}',
-          level1: 'L1: {{ss-dateFmt:base}}',
-          level2: 'L2: {{ss-dateFmt:level1}}',
-          level3: 'L3: {{ss-dateFmt:level2}}',
+          base: '{{year}}-{{ss-month format="pad"}}-{{ss-day format="pad"}}',
+          level1: 'L1: {{ss-dateFmt "base"}}',
+          level2: 'L2: {{ss-dateFmt "level1"}}',
+          level3: 'L3: {{ss-dateFmt "level2"}}',
         },
       };
-
-      const mockCompiledTemplate = vi
-        .fn()
-        .mockReturnValueOnce('2024-01-15') // base
-        .mockReturnValueOnce('L1: 2024-01-15') // level1
-        .mockReturnValueOnce('L2: L1: 2024-01-15') // level2
-        .mockReturnValueOnce('L3: L2: L1: 2024-01-15'); // level3
-
-      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
 
       formatter = new DateFormatter(calendarWithDeepNesting);
 
@@ -263,17 +235,10 @@ describe('DateFormatter Advanced Tests', () => {
       const calendarWithMixedFormats: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          good: '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}}',
-          mixed: 'Good: {{ss-dateFmt:good}}, Bad: {{ss-dateFmt:nonexistent}}',
+          good: '{{year}}-{{ss-month format="pad"}}-{{ss-day format="pad"}}',
+          mixed: 'Good: {{ss-dateFmt "good"}}, Bad: {{ss-dateFmt "nonexistent"}}',
         },
       };
-
-      const mockCompiledTemplate = vi
-        .fn()
-        .mockReturnValueOnce('2024-01-15') // good format
-        .mockReturnValueOnce('Good: 2024-01-15, Bad: Monday, 15th January Year 2024 CE'); // mixed with fallback
-
-      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
 
       formatter = new DateFormatter(calendarWithMixedFormats);
 
@@ -291,78 +256,63 @@ describe('DateFormatter Advanced Tests', () => {
     });
 
     it('should handle month helper with invalid format', () => {
-      // Act & Assert - Test the helper function directly
-      const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const monthHelperCall = helperCalls.find(call => call[0] === 'ss-month');
-      const monthHelper = monthHelperCall?.[1];
-
-      expect(monthHelper).toBeDefined();
-      expect(monthHelper(1, { hash: { format: 'invalid' } })).toBe('1'); // Should return string value
+      // Test helper with invalid format through template rendering
+      const result = formatter.format(mockDate, '{{ss-month format="invalid"}}');
+      expect(result).toBe('1'); // Should return string value
     });
 
     it('should handle day helper with invalid format', () => {
-      // Act & Assert - Test the helper function directly
-      const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const dayHelperCall = helperCalls.find(call => call[0] === 'ss-day');
-      const dayHelper = dayHelperCall?.[1];
-
-      expect(dayHelper).toBeDefined();
-      expect(dayHelper(15, { hash: { format: 'invalid' } })).toBe('15'); // Should return string value
+      // Test helper with invalid format through template rendering
+      const result = formatter.format(mockDate, '{{ss-day format="invalid"}}');
+      expect(result).toBe('15'); // Should return string value
     });
 
     it('should handle weekday helper with invalid format', () => {
-      // Act & Assert - Test the helper function directly
-      const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const weekdayHelperCall = helperCalls.find(call => call[0] === 'ss-weekday');
-      const weekdayHelper = weekdayHelperCall?.[1];
-
-      expect(weekdayHelper).toBeDefined();
-      expect(weekdayHelper(1, { hash: { format: 'invalid' } })).toBe('1'); // Should return string value
+      // Test helper with invalid format through template rendering
+      const result = formatter.format(mockDate, '{{ss-weekday format="invalid"}}');
+      expect(result).toBe('1'); // Should return string value
     });
 
     it('should handle math helper with invalid operation', () => {
-      // Act & Assert - Test the helper function directly
-      const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const mathHelperCall = helperCalls.find(call => call[0] === 'ss-math');
-      const mathHelper = mathHelperCall?.[1];
-
-      expect(mathHelper).toBeDefined();
-      expect(mathHelper(100, { hash: { op: 'invalid', value: 10 } })).toBe(100); // Should return original value
+      // Test helper with invalid operation through template rendering
+      const result = formatter.format(mockDate, '{{ss-math year op="invalid" value=10}}');
+      expect(result).toBe('2024'); // Should return original value
     });
 
     it('should handle math helper with non-numeric value', () => {
-      // Act & Assert - Test the helper function directly
-      const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const mathHelperCall = helperCalls.find(call => call[0] === 'ss-math');
-      const mathHelper = mathHelperCall?.[1];
-
-      expect(mathHelper).toBeDefined();
-      expect(mathHelper(100, { hash: { op: 'add', value: 'not-a-number' } })).toBe(100); // Should return original value
+      // Test helper with non-numeric value through template rendering
+      const result = formatter.format(mockDate, '{{ss-math year op="add" value="not-a-number"}}');
+      expect(result).toBe('2024'); // Should return original value
     });
 
     it('should handle math helper division by zero', () => {
-      // Act & Assert - Test the helper function directly
-      const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const mathHelperCall = helperCalls.find(call => call[0] === 'ss-math');
-      const mathHelper = mathHelperCall?.[1];
+      // Test helper division by zero through template rendering
+      const result1 = formatter.format(mockDate, '{{ss-math year op="divide" value=0}}');
+      expect(result1).toBe('2024'); // Should return original value
 
-      expect(mathHelper).toBeDefined();
-      expect(mathHelper(100, { hash: { op: 'divide', value: 0 } })).toBe(100); // Should return original value
-      expect(mathHelper(100, { hash: { op: 'modulo', value: 0 } })).toBe(100); // Should return original value
+      const result2 = formatter.format(mockDate, '{{ss-math year op="modulo" value=0}}');
+      expect(result2).toBe('2024'); // Should return original value
     });
 
     it('should handle math helper with all operations', () => {
-      // Act & Assert - Test all math operations
-      const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const mathHelperCall = helperCalls.find(call => call[0] === 'ss-math');
-      const mathHelper = mathHelperCall?.[1];
+      // Test all math operations through template rendering
+      // Use a fixed value of 100 for consistent testing
+      const testDate = { ...mockDate, day: 100 };
 
-      expect(mathHelper).toBeDefined();
-      expect(mathHelper(100, { hash: { op: 'add', value: 50 } })).toBe(150);
-      expect(mathHelper(100, { hash: { op: 'subtract', value: 30 } })).toBe(70);
-      expect(mathHelper(100, { hash: { op: 'multiply', value: 2 } })).toBe(200);
-      expect(mathHelper(100, { hash: { op: 'divide', value: 4 } })).toBe(25);
-      expect(mathHelper(100, { hash: { op: 'modulo', value: 30 } })).toBe(10);
+      const add = formatter.format(testDate, '{{ss-math day op="add" value=50}}');
+      expect(add).toBe('150');
+
+      const subtract = formatter.format(testDate, '{{ss-math day op="subtract" value=30}}');
+      expect(subtract).toBe('70');
+
+      const multiply = formatter.format(testDate, '{{ss-math day op="multiply" value=2}}');
+      expect(multiply).toBe('200');
+
+      const divide = formatter.format(testDate, '{{ss-math day op="divide" value=4}}');
+      expect(divide).toBe('25');
+
+      const modulo = formatter.format(testDate, '{{ss-math day op="modulo" value=30}}');
+      expect(modulo).toBe('10');
     });
   });
 
@@ -372,57 +322,42 @@ describe('DateFormatter Advanced Tests', () => {
     });
 
     it('should handle stardate with various precision levels', () => {
-      // Act & Assert - Test the helper function directly
-      const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const stardateHelperCall = helperCalls.find(call => call[0] === 'ss-stardate');
-      const stardateHelper = stardateHelperCall?.[1];
+      // Test different precision values through template rendering
+      const result0 = formatter.format(
+        mockDate,
+        '{{ss-stardate year prefix="47" baseYear=2024 dayOfYear=15 precision=0}}'
+      );
+      expect(result0).toBe('47015.0');
 
-      expect(stardateHelper).toBeDefined();
+      const result2 = formatter.format(
+        mockDate,
+        '{{ss-stardate year prefix="47" baseYear=2024 dayOfYear=15 precision=2}}'
+      );
+      expect(result2).toBe('47015.00');
 
-      // Test different precision values
-      expect(
-        stardateHelper(2024, {
-          hash: { prefix: '47', baseYear: 2024, dayOfYear: 15, precision: 0 },
-        })
-      ).toBe('47015.0');
-      expect(
-        stardateHelper(2024, {
-          hash: { prefix: '47', baseYear: 2024, dayOfYear: 15, precision: 2 },
-        })
-      ).toBe('47015.00');
-      expect(
-        stardateHelper(2024, {
-          hash: { prefix: '47', baseYear: 2024, dayOfYear: 15, precision: 3 },
-        })
-      ).toBe('47015.000');
+      const result3 = formatter.format(
+        mockDate,
+        '{{ss-stardate year prefix="47" baseYear=2024 dayOfYear=15 precision=3}}'
+      );
+      expect(result3).toBe('47015.000');
     });
 
     it('should handle stardate with default values', () => {
-      // Act & Assert - Test the helper function directly
-      const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const stardateHelperCall = helperCalls.find(call => call[0] === 'ss-stardate');
-      const stardateHelper = stardateHelperCall?.[1];
-
-      expect(stardateHelper).toBeDefined();
-
-      // Test with minimal parameters (should use defaults)
+      // Test with minimal parameters (should use defaults) through template rendering
       // When baseYear defaults to year (2024), yearOffset = 0, prefix = '0', dayOfYear = 1
       // Result: prefix(0) + yearOffset(0) + paddedDayOfYear(001) + .precision(0) = '0001.0'
-      expect(stardateHelper(2024, { hash: {} })).toBe('0001.0');
+      const result = formatter.format(mockDate, '{{ss-stardate year}}');
+      expect(result).toBe('0001.0');
     });
 
     it('should handle stardate with negative year offsets', () => {
-      // Act & Assert - Test the helper function directly
-      const helperCalls = mockHandlebars.registerHelper.mock.calls;
-      const stardateHelperCall = helperCalls.find(call => call[0] === 'ss-stardate');
-      const stardateHelper = stardateHelperCall?.[1];
-
-      expect(stardateHelper).toBeDefined();
-
-      // Test with year before base year
-      expect(stardateHelper(2020, { hash: { prefix: '47', baseYear: 2024, dayOfYear: 100 } })).toBe(
-        '43100.0'
+      // Test with year before base year through template rendering
+      const testDate = { ...mockDate, year: 2020 };
+      const result = formatter.format(
+        testDate,
+        '{{ss-stardate year prefix="47" baseYear=2024 dayOfYear=100}}'
       );
+      expect(result).toBe('43100.0');
     });
   });
 
@@ -439,15 +374,12 @@ describe('DateFormatter Advanced Tests', () => {
         day: 31,
       } as CalendarDate;
 
-      const mockCompiledTemplate = vi.fn().mockReturnValue('Day 365');
-      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
-
       // Act
-      formatter.format(decemberDate, '{{dayOfYear}}');
+      const result = formatter.format(decemberDate, 'Day {{dayOfYear}}');
 
       // Assert
-      const templateContext = mockCompiledTemplate.mock.calls[0][0];
-      expect(templateContext.dayOfYear).toBe(31 + 28 + 31 + 31); // Jan + Feb + Mar + Dec(31)
+      const expectedDayOfYear = 31 + 28 + 31 + 31; // Jan + Feb + Mar + Dec(31)
+      expect(result).toBe(`Day ${expectedDayOfYear}`);
     });
 
     it('should handle day of year calculation for invalid month', () => {
@@ -458,17 +390,13 @@ describe('DateFormatter Advanced Tests', () => {
         day: 15,
       } as CalendarDate;
 
-      const mockCompiledTemplate = vi.fn().mockReturnValue('Day 15');
-      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
-
       // Act
-      formatter.format(invalidDate, '{{dayOfYear}}');
+      const result = formatter.format(invalidDate, 'Day {{dayOfYear}}');
 
       // Assert
-      const templateContext = mockCompiledTemplate.mock.calls[0][0];
       // With improved bounds checking, invalid month (99) now returns 1 (start of year fallback)
       // This is the correct behavior - much better than returning undefined or NaN
-      expect(templateContext.dayOfYear).toBe(1);
+      expect(result).toBe('Day 1');
     });
   });
 
@@ -486,13 +414,8 @@ describe('DateFormatter Advanced Tests', () => {
 
       formatter = new DateFormatter(calendarNoYear);
 
-      // Mock compile to throw to force getBasicFormat
-      mockHandlebars.compile.mockImplementation(() => {
-        throw new Error('Template compilation failed');
-      });
-
-      // Act
-      const result = formatter.format(mockDate, '{{invalid}}'); // Force fallback to basic format
+      // Act - Use invalid template to force fallback to basic format
+      const result = formatter.format(mockDate, '{{invalid}}');
 
       // Assert
       expect(result).toBe('Monday, 15th January 2024'); // Should not have prefix/suffix
@@ -506,13 +429,8 @@ describe('DateFormatter Advanced Tests', () => {
         weekday: -1, // Invalid weekday
       } as CalendarDate;
 
-      // Mock compile to throw to force getBasicFormat
-      mockHandlebars.compile.mockImplementation(() => {
-        throw new Error('Template compilation failed');
-      });
-
-      // Act
-      const result = formatter.format(edgeDate, '{{invalid}}'); // Force fallback to basic format
+      // Act - Use invalid template to force fallback to basic format
+      const result = formatter.format(edgeDate, '{{invalid}}');
 
       // Assert
       expect(result).toContain('Unknown'); // Should handle invalid indices gracefully
@@ -525,45 +443,33 @@ describe('DateFormatter Advanced Tests', () => {
     });
 
     it('should prepare context with all required fields', () => {
-      // Arrange
-      const mockCompiledTemplate = vi.fn().mockReturnValue('result');
-      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
+      // Act - Test that context is prepared correctly by using all fields
+      const result = formatter.format(
+        mockDate,
+        '{{year}}-{{month}}-{{day}}-{{weekday}}-{{hour}}-{{minute}}-{{second}}-{{dayOfYear}}'
+      );
 
-      // Act
-      formatter.format(mockDate, '{{year}}-{{month}}-{{day}}');
-
-      // Assert
-      const context = mockCompiledTemplate.mock.calls[0][0];
-      expect(context).toEqual({
-        year: 2024,
-        month: 1,
-        day: 15,
-        weekday: 1,
-        hour: 10,
-        minute: 30,
-        second: 45,
-        dayOfYear: 15,
-      });
+      // Assert - Verify all fields are available and correct
+      expect(result).toBe('2024-1-15-1-10-30-45-15');
     });
 
     it('should handle date without time', () => {
       // Arrange
       const dateWithoutTime = {
-        ...mockDate,
-        time: undefined,
+        year: 2024,
+        month: 1,
+        day: 15,
+        weekday: 1,
       } as CalendarDate;
 
-      const mockCompiledTemplate = vi.fn().mockReturnValue('result');
-      mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
+      // Act - Test that missing time fields are handled gracefully
+      const result = formatter.format(
+        dateWithoutTime,
+        '{{year}}-{{month}}-{{day}}-{{hour}}-{{minute}}-{{second}}'
+      );
 
-      // Act
-      formatter.format(dateWithoutTime, '{{year}}-{{month}}-{{day}}');
-
-      // Assert
-      const context = mockCompiledTemplate.mock.calls[0][0];
-      expect(context.hour).toBeUndefined();
-      expect(context.minute).toBeUndefined();
-      expect(context.second).toBeUndefined();
+      // Assert - Missing time fields should be undefined (rendered as empty)
+      expect(result).toBe('2024-1-15---');
     });
   });
 

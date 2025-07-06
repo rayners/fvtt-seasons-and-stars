@@ -84,18 +84,18 @@
   },
 
   "dateFormats": {
-    "imperial": "{{ss-day:pad}}-{{year}}",
-    "standard": "Day {{ss-day:pad}} of {{year}}",
-    "long": "{{ss-weekday:name}}, Day {{ss-day}} of the year {{year}}",
-    "short": "{{ss-day:pad}}/{{year}}",
-    "date": "{{ss-weekday:name}}, Day {{ss-day}} of {{year}}",
-    "time": "{{ss-hour:pad}}:{{ss-minute:pad}}:{{ss-second:pad}}",
-    "datetime": "{{ss-dateFmt:date}} at {{ss-dateFmt:time}} Imperial Standard Time",
-    "administrative": "Imperial Date: {{year}}.{{ss-day:pad}}",
-    "formal": "The {{ss-day:ordinal}} day of the Imperial year {{year}}",
+    "imperial": "{{ss-day format=\"pad\"}}-{{year}}",
+    "standard": "Day {{ss-day format=\"pad\"}} of {{year}}",
+    "long": "{{ss-weekday format=\"name\"}}, Day {{ss-day}} of the year {{year}}",
+    "short": "{{ss-day format=\"pad\"}}/{{year}}",
+    "date": "{{ss-weekday format=\"name\"}}, Day {{ss-day}} of {{year}}",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt formatName=\"date\"}} at {{ss-dateFmt formatName=\"time\"}} Imperial Standard Time",
+    "administrative": "Imperial Date: {{year}}.{{ss-day format=\"pad\"}}",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of the Imperial year {{year}}",
     "widgets": {
-      "mini": "{{ss-day:pad}}/{{year}}",
-      "main": "{{ss-weekday:abbr}}, Day {{ss-day}}",
+      "mini": "{{ss-day format=\"pad\"}}/{{year}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, Day {{ss-day}}",
       "grid": "{{ss-day}}"
     }
   }

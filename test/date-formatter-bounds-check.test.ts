@@ -7,13 +7,9 @@ import { DateFormatter } from '../src/core/date-formatter';
 import { CalendarDate } from '../src/core/calendar-date';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
 
-// Mock Handlebars for testing
-const mockHandlebars = {
-  compile: vi.fn(),
-  registerHelper: vi.fn(),
-};
-
-global.Handlebars = mockHandlebars;
+// Use REAL Handlebars for date formatter testing (following star-trek test pattern)
+import Handlebars from 'handlebars';
+global.Handlebars = Handlebars;
 
 describe('DateFormatter Array Bounds Check', () => {
   let formatter: DateFormatter;
@@ -55,31 +51,23 @@ describe('DateFormatter Array Bounds Check', () => {
     // Create a template that will trigger calculateDayOfYear
     const templateNeedingDayOfYear = 'Day {{dayOfYear}} of {{year}}';
 
-    let actualContext: any;
-    const mockTemplate = vi.fn().mockImplementation(context => {
-      actualContext = context;
-      // Access the dayOfYear to trigger the calculation
-      return `Day ${context.dayOfYear} of ${context.year}`;
-    });
-
-    mockHandlebars.compile.mockReturnValue(mockTemplate);
-
     // This call will trigger prepareTemplateContext which calls calculateDayOfYear
     const result = formatter.format(outOfBoundsDate, templateNeedingDayOfYear);
 
-    expect(mockTemplate).toHaveBeenCalled();
-    expect(actualContext).toBeDefined();
+    // Extract the dayOfYear from the result
+    const match = result.match(/Day (\d+) of/);
+    const dayOfYear = match ? parseInt(match[1]) : NaN;
 
     // This test should expose that calculateDayOfYear doesn't handle bounds properly
     // The current implementation will access months[4] which is undefined
     // and could cause issues when trying to read month.days
-    console.log('Actual dayOfYear calculated:', actualContext.dayOfYear);
+    console.log('Actual dayOfYear calculated:', dayOfYear);
     console.log('Expected: should be handled gracefully, not undefined or NaN');
 
     // The dayOfYear should be a valid number, not NaN or undefined
-    expect(actualContext.dayOfYear).toBeDefined();
-    expect(typeof actualContext.dayOfYear).toBe('number');
-    expect(Number.isNaN(actualContext.dayOfYear)).toBe(false);
+    expect(dayOfYear).toBeDefined();
+    expect(typeof dayOfYear).toBe('number');
+    expect(Number.isNaN(dayOfYear)).toBe(false);
   });
 
   it('should fail when month index is negative', () => {
@@ -94,26 +82,19 @@ describe('DateFormatter Array Bounds Check', () => {
 
     const templateNeedingDayOfYear = 'Day {{dayOfYear}} of {{year}}';
 
-    let actualContext: any;
-    const mockTemplate = vi.fn().mockImplementation(context => {
-      actualContext = context;
-      return `Day ${context.dayOfYear} of ${context.year}`;
-    });
-
-    mockHandlebars.compile.mockReturnValue(mockTemplate);
-
     const result = formatter.format(negativeMonthDate, templateNeedingDayOfYear);
 
-    expect(mockTemplate).toHaveBeenCalled();
-    expect(actualContext).toBeDefined();
+    // Extract the dayOfYear from the result
+    const match = result.match(/Day (\d+) of/);
+    const dayOfYear = match ? parseInt(match[1]) : NaN;
 
     // This should expose the issue with negative indices
-    console.log('Negative month dayOfYear:', actualContext.dayOfYear);
+    console.log('Negative month dayOfYear:', dayOfYear);
 
-    expect(actualContext.dayOfYear).toBeDefined();
-    expect(typeof actualContext.dayOfYear).toBe('number');
-    expect(Number.isNaN(actualContext.dayOfYear)).toBe(false);
-    expect(actualContext.dayOfYear).toBeGreaterThan(0); // Should be positive
+    expect(dayOfYear).toBeDefined();
+    expect(typeof dayOfYear).toBe('number');
+    expect(Number.isNaN(dayOfYear)).toBe(false);
+    expect(dayOfYear).toBeGreaterThan(0); // Should be positive
   });
 
   it('should fail when month index is zero (0-based vs 1-based confusion)', () => {
@@ -128,25 +109,18 @@ describe('DateFormatter Array Bounds Check', () => {
 
     const templateNeedingDayOfYear = 'Day {{dayOfYear}} of {{year}}';
 
-    let actualContext: any;
-    const mockTemplate = vi.fn().mockImplementation(context => {
-      actualContext = context;
-      return `Day ${context.dayOfYear} of ${context.year}`;
-    });
-
-    mockHandlebars.compile.mockReturnValue(mockTemplate);
-
     const result = formatter.format(zeroMonthDate, templateNeedingDayOfYear);
 
-    expect(mockTemplate).toHaveBeenCalled();
-    expect(actualContext).toBeDefined();
+    // Extract the dayOfYear from the result
+    const match = result.match(/Day (\d+) of/);
+    const dayOfYear = match ? parseInt(match[1]) : NaN;
 
     // This should expose the 0-based vs 1-based confusion
-    console.log('Zero month dayOfYear:', actualContext.dayOfYear);
+    console.log('Zero month dayOfYear:', dayOfYear);
 
-    expect(actualContext.dayOfYear).toBeDefined();
-    expect(typeof actualContext.dayOfYear).toBe('number');
-    expect(Number.isNaN(actualContext.dayOfYear)).toBe(false);
-    expect(actualContext.dayOfYear).toBeGreaterThan(0); // Should be positive
+    expect(dayOfYear).toBeDefined();
+    expect(typeof dayOfYear).toBe('number');
+    expect(Number.isNaN(dayOfYear)).toBe(false);
+    expect(dayOfYear).toBeGreaterThan(0); // Should be positive
   });
 });

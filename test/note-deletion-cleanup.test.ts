@@ -8,14 +8,10 @@ import { CalendarWidget } from '../src/ui/calendar-widget';
 import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../src/ui/calendar-grid-widget';
 
-// Mock Logger
+// Use real TestLogger instead of mocks for better testing
+import { TestLogger } from './utils/test-logger';
 vi.mock('../src/core/logger', () => ({
-  Logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
+  Logger: TestLogger,
 }));
 
 describe('Note Deletion Cleanup (Issue #22)', () => {
@@ -26,6 +22,7 @@ describe('Note Deletion Cleanup (Issue #22)', () => {
   beforeEach(() => {
     // Reset mocks
     vi.clearAllMocks();
+    TestLogger.clearLogs();
 
     // Mock notes manager with storage
     mockNotesManager = {

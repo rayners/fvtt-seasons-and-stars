@@ -161,7 +161,18 @@ export class DateFormatter {
       const context = this.prepareTemplateContext(date);
 
       // Execute template with context
-      return compiledTemplate(context);
+      const result = compiledTemplate(context);
+
+      // Validate template output - detect malformed templates that produce empty/invalid output
+      if (this.isInvalidTemplateOutput(result, template)) {
+        console.warn('[S&S] Template produced invalid output, falling back to basic format:', {
+          template,
+          result,
+        });
+        return this.getBasicFormat(date);
+      }
+
+      return result;
     } catch (error) {
       console.warn('[S&S] Date format template compilation failed:', error);
 
@@ -262,16 +273,26 @@ export class DateFormatter {
       return this.getBasicFormat(date);
     }
 
-    // Match {{ss-dateFmt:formatName}} patterns
-    const embeddedFormatRegex = /\{\{\s*ss-dateFmt\s*:\s*([^}\s]+)\s*\}\}/g;
+    // Match both old colon syntax and new parameter syntax
+    const embeddedFormatRegex =
+      /\{\{\s*ss-dateFmt\s*(?::\s*([^}\s]+)|.*?formatName\s*=\s*["']([^"']+)["'])\s*\}\}/g;
 
-    return template.replace(embeddedFormatRegex, (match, formatName) => {
+    return template.replace(embeddedFormatRegex, (match, colonFormatName, paramFormatName) => {
       try {
+        // Use whichever format name was captured (colon or parameter syntax)
+        const formatName = colonFormatName || paramFormatName;
+        if (!formatName) {
+          console.warn(`[S&S] Could not extract format name from: ${match}`);
+          return this.getBasicFormat(date);
+        }
         // Recursively format the embedded format with visited set
         const embeddedResult = this.formatNamedRecursive(date, formatName, new Set(visited));
         return embeddedResult;
       } catch (error) {
-        console.warn(`[S&S] Failed to resolve embedded format '${formatName}':`, error);
+        console.warn(
+          `[S&S] Failed to resolve embedded format '${colonFormatName || paramFormatName}':`,
+          error
+        );
         // Fallback to basic format for this embedded piece
         return this.getBasicFormat(date);
       }
@@ -396,12 +417,14 @@ export class DateFormatter {
       }
     });
 
-    // Format embedding helper - allows {{ss-dateFmt:name}} syntax
+    // Format embedding helper - allows both {{ss-dateFmt:name}} and {{ss-dateFmt formatName="name"}} syntax
     // Note: This helper is mainly for documentation. The actual format embedding
     // is handled by preprocessing in the format() method to avoid circular issues.
-    Handlebars.registerHelper('ss-dateFmt', (formatName: string, _options: any) => {
+    Handlebars.registerHelper('ss-dateFmt', (formatName: string, options: any) => {
+      // Handle parameter format if formatName is passed via options.hash
+      const actualFormatName = options?.hash?.formatName || formatName;
       // This should not be called in normal operation due to preprocessing
-      return `[Unresolved: ${formatName}]`;
+      return `[Unresolved: ${actualFormatName}]`;
     });
 
     // Mathematical operations helper
@@ -569,5 +592,40 @@ export class DateFormatter {
   private getWeekdayAbbreviation(weekdayIndex: number): string {
     const weekday = this.calendar.weekdays[weekdayIndex];
     return weekday?.abbreviation || weekday?.name?.substring(0, 3) || 'Unk';
+  }
+
+  /**
+   * Validate template output to detect malformed templates that produce invalid results
+   */
+  private isInvalidTemplateOutput(result: string, template: string): boolean {
+    // If template contains helpers but result has too many empty values, it's likely malformed
+    const hasHelpers = template.includes('{{ss-');
+
+    if (!hasHelpers) {
+      return false; // No helpers, so any output is valid
+    }
+
+    // Check for patterns that suggest malformed helper output
+    const emptyHelperPatterns = [
+      /:\s*:/, // :: pattern (empty hour:minute)
+      /^:.*:$/, // :something: pattern
+      /^,\s*,/, // empty comma-separated values
+      /^\s*,.*,\s*$/, // mostly empty comma-separated
+    ];
+
+    // Check if result matches suspicious patterns
+    for (const pattern of emptyHelperPatterns) {
+      if (pattern.test(result.trim())) {
+        return true;
+      }
+    }
+
+    // Check if result is suspiciously short for a template with multiple helpers
+    const helperCount = (template.match(/\{\{ss-/g) || []).length;
+    if (helperCount >= 3 && result.trim().length < helperCount * 2) {
+      return true; // Too short for the number of helpers
+    }
+
+    return false;
   }
 }

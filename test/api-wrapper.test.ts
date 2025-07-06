@@ -2,17 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { APIWrapper } from '../src/core/api-wrapper';
 import { Logger } from '../src/core/logger';
 
-// Mock Logger
+// Use real TestLogger instead of mocks for better testing
+import { TestLogger } from './utils/test-logger';
 vi.mock('../src/core/logger', () => ({
-  Logger: {
-    api: vi.fn(),
-    error: vi.fn(),
-  },
+  Logger: TestLogger,
 }));
 
 describe('APIWrapper', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    TestLogger.clearLogs();
   });
 
   describe('wrapAPIMethod', () => {

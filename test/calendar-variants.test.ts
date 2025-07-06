@@ -1,4 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Use real TestLogger instead of mocks for better testing
+import { TestLogger } from './utils/test-logger';
+vi.mock('../src/core/logger', () => ({
+  Logger: TestLogger,
+}));
+
 import { CalendarManager } from '../src/core/calendar-manager';
 import { CalendarDate } from '../src/core/calendar-date';
 import type { SeasonsStarsCalendar, CalendarDateData } from '../src/types/calendar';
@@ -18,16 +25,6 @@ vi.stubGlobal('Hooks', {
 // Mock the built-in calendars list to be empty
 vi.mock('../src/generated/calendar-list', () => ({
   BUILT_IN_CALENDARS: [],
-}));
-
-// Mock Logger
-vi.mock('../src/core/logger', () => ({
-  Logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
 }));
 
 // Mock CalendarValidator
@@ -70,6 +67,7 @@ describe('Calendar Variants System', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    TestLogger.clearLogs();
 
     // Create a real CalendarManager instance
     calendarManager = new CalendarManager();
@@ -269,6 +267,7 @@ describe('Calendar Variants System', () => {
   describe('Variant DateFormats Support', () => {
     beforeEach(() => {
       vi.clearAllMocks();
+      TestLogger.clearLogs();
 
       // Setup mock template compilation
       const mockCompiledTemplate = vi.fn(context => {

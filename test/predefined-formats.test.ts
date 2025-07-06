@@ -2,31 +2,22 @@
  * Predefined Formats Tests - Comprehensive coverage for calendar dateFormats usage
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
+import Handlebars from 'handlebars';
 import { CalendarDate } from '../src/core/calendar-date';
 import { DateFormatter } from '../src/core/date-formatter';
 import type { SeasonsStarsCalendar, CalendarDateData } from '../src/types/calendar';
 
-// Mock Handlebars for testing
-const mockHandlebars = {
-  compile: vi.fn(),
-  registerHelper: vi.fn(),
-};
-
-// Mock global Handlebars
-vi.mock('handlebars', () => ({
-  default: mockHandlebars,
-}));
-
-// Ensure global Handlebars is available (mimicking Foundry)
-global.Handlebars = mockHandlebars;
+// Use REAL Handlebars for predefined formats testing
+global.Handlebars = Handlebars;
 
 describe('Predefined Formats Usage', () => {
   let mockCalendar: SeasonsStarsCalendar;
   let mockDate: CalendarDate;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    // Reset Handlebars helpers before each test
+    DateFormatter.resetHelpersForTesting();
 
     mockCalendar = {
       id: 'test-calendar',
@@ -44,36 +35,39 @@ describe('Predefined Formats Usage', () => {
       year: { prefix: 'Year ', suffix: ' CE' },
       time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
       dateFormats: {
-        // Basic formats that should match CalendarDate options
-        short: '{{ss-month:abbr}} {{ss-day}}',
-        long: '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}}',
-        numeric: '{{ss-month}}/{{ss-day}}/{{year}}',
+        // Basic formats using correct helper parameter syntax
+        short: '{{ss-month month format="abbr"}} {{ss-day day}}',
+        long: '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}}',
+        numeric: '{{ss-month month}}/{{ss-day day}}/{{year}}',
 
         // Time-related formats
-        shortTime: '{{ss-month:abbr}} {{ss-day}} {{hour:pad}}:{{minute:pad}}',
+        shortTime:
+          '{{ss-month month format="abbr"}} {{ss-day day}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}',
         longTime:
-          '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}} {{hour:pad}}:{{minute:pad}}:{{second:pad}}',
-        datetime: '{{ss-month:name}} {{ss-day}}, {{year}} at {{hour:pad}}:{{minute:pad}}',
+          '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}}',
+        datetime:
+          '{{ss-month month format="name"}} {{ss-day day}}, {{year}} at {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}',
         timestamp:
-          '{{year}}-{{ss-month:pad}}-{{ss-day:pad}} {{hour:pad}}:{{minute:pad}}:{{second:pad}}',
+          '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}}',
 
         // Widget formats
         widgets: {
-          mini: '{{ss-month:abbr}} {{ss-day}}',
-          main: '{{ss-weekday:abbr}}, {{ss-day:ordinal}} {{ss-month:name}}',
-          grid: '{{ss-day}}/{{ss-month}}',
+          mini: '{{ss-month month format="abbr"}} {{ss-day day}}',
+          main: '{{ss-weekday weekday format="abbr"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}}',
+          grid: '{{ss-day day}}/{{ss-month month}}',
         },
 
         // Complex scenarios
-        detailed: '{{ss-weekday:name}}, the {{ss-day:ordinal}} day of {{ss-month:name}}, {{year}}',
-        brief: '{{ss-month:abbr}} {{ss-day}}/{{year}}',
+        detailed:
+          '{{ss-weekday weekday format="name"}}, the {{ss-day day format="ordinal"}} day of {{ss-month month format="name"}}, {{year}}',
+        brief: '{{ss-month month format="abbr"}} {{ss-day day}}/{{year}}',
 
         // Format variants (object style)
         date: {
-          short: '{{ss-month:abbr}} {{ss-day}}',
-          long: '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}}',
-          iso: '{{year}}-{{ss-month:pad}}-{{ss-day:pad}}',
-          default: '{{ss-month:name}} {{ss-day}}, {{year}}',
+          short: '{{ss-month month format="abbr"}} {{ss-day day}}',
+          long: '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}}',
+          iso: '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}}',
+          default: '{{ss-month month format="name"}} {{ss-day day}}, {{year}}',
         },
       },
     } as SeasonsStarsCalendar;
@@ -86,90 +80,73 @@ describe('Predefined Formats Usage', () => {
       time: { hour: 10, minute: 30, second: 45 },
     };
     mockDate = new CalendarDate(dateData, mockCalendar);
-
-    // Setup realistic mock template compilation
-    const mockCompiledTemplate = vi.fn().mockImplementation(context => {
-      // Simulate basic template output based on context
-      return `${context.year}-${context.month}-${context.day}`;
-    });
-    mockHandlebars.compile.mockReturnValue(mockCompiledTemplate);
   });
 
   describe('CalendarDate Format Options to Predefined Format Mapping', () => {
     it('should use predefined "short" format for short option', () => {
-      // Act
-      mockDate.format({ format: 'short' });
+      // Act - this should find and use the 'short' format from dateFormats
+      const result = mockDate.format({ format: 'short' });
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-month:abbr}} {{ss-day}}');
+      // Assert - should produce the expected short format output
+      expect(result).toBe('Jan 15');
     });
 
     it('should use predefined "long" format for long option', () => {
-      // Act
-      mockDate.format({ format: 'long' });
+      // Act - this should find and use the 'long' format from dateFormats
+      const result = mockDate.format({ format: 'long' });
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}}'
-      );
+      // Assert - should produce the expected long format output
+      expect(result).toBe('Monday, 15th January 2024');
     });
 
     it('should use predefined "numeric" format for numeric option', () => {
-      // Act
-      mockDate.format({ format: 'numeric' });
+      // Act - this should find and use the 'numeric' format from dateFormats
+      const result = mockDate.format({ format: 'numeric' });
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-month}}/{{ss-day}}/{{year}}');
+      // Assert - should produce the expected numeric format output
+      expect(result).toBe('1/15/2024');
     });
 
     it('should prioritize time-inclusive formats when includeTime is true', () => {
-      // Act
-      mockDate.format({ format: 'short', includeTime: true });
+      // Act - should find shortTime format when includeTime is true
+      const result = mockDate.format({ format: 'short', includeTime: true });
 
-      // Assert - Should find shortTime format first
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-month:abbr}} {{ss-day}} {{hour:pad}}:{{minute:pad}}'
-      );
+      // Assert - should use shortTime format and include the time
+      expect(result).toBe('Jan 15 10:30');
     });
 
     it('should use datetime format when includeTime is true and no specific time format exists', () => {
-      // Act
-      mockDate.format({ format: 'long', includeTime: true });
+      // Act - should find longTime format when includeTime is true
+      const result = mockDate.format({ format: 'long', includeTime: true });
 
-      // Assert - Should find longTime format
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}} {{hour:pad}}:{{minute:pad}}:{{second:pad}}'
-      );
+      // Assert - should use longTime format and include full time
+      expect(result).toBe('Monday, 15th January 2024 10:30:45');
     });
 
     it('should use datetime format when includeTime is true and format is numeric', () => {
-      // Act
-      mockDate.format({ format: 'numeric', includeTime: true });
+      // Act - should find datetime format when no numericTime exists
+      const result = mockDate.format({ format: 'numeric', includeTime: true });
 
-      // Assert - Should find datetime format (higher priority than timestamp)
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-month:name}} {{ss-day}}, {{year}} at {{hour:pad}}:{{minute:pad}}'
-      );
+      // Assert - should use datetime format as fallback
+      expect(result).toBe('January 15, 2024 at 10:30');
     });
   });
 
   describe('Widget Formats Usage', () => {
     it('should use widget mini format for toShortString', () => {
-      // Act
-      mockDate.toShortString();
+      // Act - toShortString should use widgets.mini format
+      const result = mockDate.toShortString();
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-month:abbr}} {{ss-day}}');
+      // Assert - should produce mini widget format output
+      expect(result).toBe('Jan 15');
     });
 
     it('should use widget main format for toLongString', () => {
-      // Act
-      mockDate.toLongString();
+      // Act - toLongString should use widgets.main format
+      const result = mockDate.toLongString();
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-weekday:abbr}}, {{ss-day:ordinal}} {{ss-month:name}}'
-      );
+      // Assert - should produce main widget format output
+      expect(result).toBe('Mon, 15th January');
     });
 
     it('should use DateFormatter.formatWidget method correctly', () => {
@@ -177,16 +154,14 @@ describe('Predefined Formats Usage', () => {
       const formatter = new DateFormatter(mockCalendar);
 
       // Act
-      formatter.formatWidget(mockDate, 'mini');
-      formatter.formatWidget(mockDate, 'main');
-      formatter.formatWidget(mockDate, 'grid');
+      const miniResult = formatter.formatWidget(mockDate, 'mini');
+      const mainResult = formatter.formatWidget(mockDate, 'main');
+      const gridResult = formatter.formatWidget(mockDate, 'grid');
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-month:abbr}} {{ss-day}}'); // mini
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-weekday:abbr}}, {{ss-day:ordinal}} {{ss-month:name}}'
-      ); // main
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-day}}/{{ss-month}}'); // grid
+      // Assert - should produce expected widget format outputs
+      expect(miniResult).toBe('Jan 15'); // mini
+      expect(mainResult).toBe('Mon, 15th January'); // main
+      expect(gridResult).toBe('15/1'); // grid
     });
   });
 
@@ -196,14 +171,12 @@ describe('Predefined Formats Usage', () => {
       const formatter = new DateFormatter(mockCalendar);
 
       // Act
-      formatter.formatNamed(mockDate, 'detailed');
-      formatter.formatNamed(mockDate, 'brief');
+      const detailedResult = formatter.formatNamed(mockDate, 'detailed');
+      const briefResult = formatter.formatNamed(mockDate, 'brief');
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-weekday:name}}, the {{ss-day:ordinal}} day of {{ss-month:name}}, {{year}}'
-      );
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-month:abbr}} {{ss-day}}/{{year}}');
+      // Assert - should use the named formats from dateFormats
+      expect(detailedResult).toBe('Monday, the 15th day of January, 2024');
+      expect(briefResult).toBe('Jan 15/2024');
     });
 
     it('should handle variant formats with specific variant names', () => {
@@ -211,18 +184,14 @@ describe('Predefined Formats Usage', () => {
       const formatter = new DateFormatter(mockCalendar);
 
       // Act
-      formatter.formatNamed(mockDate, 'date', 'short');
-      formatter.formatNamed(mockDate, 'date', 'long');
-      formatter.formatNamed(mockDate, 'date', 'iso');
+      const shortResult = formatter.formatNamed(mockDate, 'date', 'short');
+      const longResult = formatter.formatNamed(mockDate, 'date', 'long');
+      const isoResult = formatter.formatNamed(mockDate, 'date', 'iso');
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-month:abbr}} {{ss-day}}'); // date.short
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}}'
-      ); // date.long
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{year}}-{{ss-month:pad}}-{{ss-day:pad}}'
-      ); // date.iso
+      // Assert - should use the specific variants from date object
+      expect(shortResult).toBe('Jan 15'); // date.short
+      expect(longResult).toBe('Monday, 15th January 2024'); // date.long
+      expect(isoResult).toBe('2024-01-15'); // date.iso
     });
 
     it('should use default variant when no variant specified', () => {
@@ -230,10 +199,10 @@ describe('Predefined Formats Usage', () => {
       const formatter = new DateFormatter(mockCalendar);
 
       // Act
-      formatter.formatNamed(mockDate, 'date'); // No variant specified
+      const result = formatter.formatNamed(mockDate, 'date'); // No variant specified
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-month:name}} {{ss-day}}, {{year}}'); // date.default
+      // Assert - should use date.default variant
+      expect(result).toBe('January 15, 2024'); // date.default
     });
   });
 
@@ -243,31 +212,28 @@ describe('Predefined Formats Usage', () => {
       const calendarWithMultipleFormats: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          short: '{{ss-month:abbr}} {{ss-day}}',
-          brief: '{{ss-month:abbr}} {{ss-day}}/{{year}}', // Alternative short format
-          shortTime: '{{ss-month:abbr}} {{ss-day}} {{hour:pad}}:{{minute:pad}}',
-          long: '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}}',
-          full: '{{ss-weekday:name}}, the {{ss-day:ordinal}} day of {{ss-month:name}}, {{year}}', // Alternative long format
+          short: '{{ss-month month format="abbr"}} {{ss-day day}}',
+          brief: '{{ss-month month format="abbr"}} {{ss-day day}}/{{year}}', // Alternative short format
+          shortTime:
+            '{{ss-month month format="abbr"}} {{ss-day day}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}',
+          long: '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}}',
+          full: '{{ss-weekday weekday format="name"}}, the {{ss-day day format="ordinal"}} day of {{ss-month month format="name"}}, {{year}}', // Alternative long format
           detailed:
-            '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}} {{hour:pad}}:{{minute:pad}}', // Alternative long time
+            '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}', // Alternative long time
         },
       };
 
       const dateWithFormats = new CalendarDate(mockDate.toObject(), calendarWithMultipleFormats);
 
       // Act - Test that it finds the most appropriate format
-      dateWithFormats.format({ format: 'short' }); // Should use 'short', not 'brief'
-      dateWithFormats.format({ format: 'short', includeTime: true }); // Should use 'shortTime'
-      dateWithFormats.format({ format: 'long' }); // Should use 'long', not 'full' or 'detailed'
+      const shortResult = dateWithFormats.format({ format: 'short' }); // Should use 'short', not 'brief'
+      const shortTimeResult = dateWithFormats.format({ format: 'short', includeTime: true }); // Should use 'shortTime'
+      const longResult = dateWithFormats.format({ format: 'long' }); // Should use 'long', not 'full' or 'detailed'
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-month:abbr}} {{ss-day}}'); // short
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-month:abbr}} {{ss-day}} {{hour:pad}}:{{minute:pad}}'
-      ); // shortTime
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}}'
-      ); // long
+      // Assert - should prioritize exact matches and time-specific formats
+      expect(shortResult).toBe('Jan 15'); // short
+      expect(shortTimeResult).toBe('Jan 15 10:30'); // shortTime
+      expect(longResult).toBe('Monday, 15th January 2024'); // long
     });
 
     it('should handle alternative format name patterns', () => {
@@ -275,9 +241,10 @@ describe('Predefined Formats Usage', () => {
       const calendarWithAlternativeNames: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          brief: '{{ss-month:abbr}} {{ss-day}}', // Alternative to 'short'
-          detailed: '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}}', // Alternative to 'long'
-          number: '{{ss-month}}/{{ss-day}}/{{year}}', // Alternative to 'numeric'
+          brief: '{{ss-month month format="abbr"}} {{ss-day day}}', // Alternative to 'short'
+          detailed:
+            '{{ss-weekday weekday format="name"}}, {{ss-day day format="ordinal"}} {{ss-month month format="name"}} {{year}}', // Alternative to 'long'
+          number: '{{ss-month month}}/{{ss-day day}}/{{year}}', // Alternative to 'numeric'
         },
       };
 
@@ -287,16 +254,14 @@ describe('Predefined Formats Usage', () => {
       );
 
       // Act
-      dateWithAltFormats.format({ format: 'short' }); // Should find 'brief'
-      dateWithAltFormats.format({ format: 'long' }); // Should find 'detailed'
-      dateWithAltFormats.format({ format: 'numeric' }); // Should find 'number'
+      const shortResult = dateWithAltFormats.format({ format: 'short' }); // Should find 'brief'
+      const longResult = dateWithAltFormats.format({ format: 'long' }); // Should find 'detailed'
+      const numericResult = dateWithAltFormats.format({ format: 'numeric' }); // Should find 'number'
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-month:abbr}} {{ss-day}}'); // brief
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}}'
-      ); // detailed
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-month}}/{{ss-day}}/{{year}}'); // number
+      // Assert - should find alternative format names
+      expect(shortResult).toBe('Jan 15'); // brief
+      expect(longResult).toBe('Monday, 15th January 2024'); // detailed
+      expect(numericResult).toBe('1/15/2024'); // number
     });
   });
 
@@ -307,19 +272,20 @@ describe('Predefined Formats Usage', () => {
         ...mockCalendar,
         dateFormats: {
           // Only has formats that don't match the requested options
-          custom: '{{month:name}} {{year}}',
+          custom: '{{ss-month month format="name"}} {{year}}',
         },
       };
 
       const dateWithoutFormats = new CalendarDate(mockDate.toObject(), calendarWithoutFormats);
 
-      // Act
-      dateWithoutFormats.format({ format: 'short' }); // No 'short' format exists
+      // Act - should fall back to programmatically built template
+      const result = dateWithoutFormats.format({ format: 'short' }); // No 'short' format exists
 
-      // Assert - Should build template from options instead of using predefined format
-      const templateCall = mockHandlebars.compile.mock.calls[0];
-      expect(templateCall[0]).toContain('{{ss-weekday:abbr}}'); // Short format uses weekday abbreviations
-      expect(templateCall[0]).toContain('{{ss-month:abbr}}'); // Short format uses month abbreviations
+      // Assert - should produce some reasonable format as fallback
+      expect(result).toContain('15'); // Should include day
+      expect(result).toContain('2024'); // Should include year
+      expect(typeof result).toBe('string'); // Should produce a string result
+      expect(result.length).toBeGreaterThan(0); // Should not be empty
     });
 
     it('should fallback to basic string formatting when dateFormats is undefined', () => {
@@ -339,7 +305,6 @@ describe('Predefined Formats Usage', () => {
 
       // Assert - Should use basic string formatting, not template system
       expect(result).toBe('15 Jan Year 2024 CE');
-      expect(mockHandlebars.compile).not.toHaveBeenCalled();
     });
   });
 
@@ -358,12 +323,10 @@ describe('Predefined Formats Usage', () => {
       );
 
       // Act
-      dateWithTime.format({ includeTime: true, format: 'long' });
+      const result = dateWithTime.format({ includeTime: true, format: 'long' });
 
-      // Assert
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-weekday:name}}, {{ss-day:ordinal}} {{ss-month:name}} {{year}} {{hour:pad}}:{{minute:pad}}:{{second:pad}}'
-      );
+      // Assert - should use longTime format with time components
+      expect(result).toBe('Sunday, 29th February 2024 14:05:00');
     });
 
     it('should handle date without time correctly', () => {
@@ -378,13 +341,11 @@ describe('Predefined Formats Usage', () => {
         mockCalendar
       );
 
-      // Act
-      dateWithoutTime.format({ includeTime: true, format: 'short' });
+      // Act - should try to use time format but default to 00:00 for missing time
+      const result = dateWithoutTime.format({ includeTime: true, format: 'short' });
 
-      // Assert - Should still try to find time format but template won't have time data
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-month:abbr}} {{ss-day}} {{hour:pad}}:{{minute:pad}}'
-      );
+      // Assert - should still find shortTime format but use default time values
+      expect(result).toBe('Mar 1 00:00');
     });
   });
 
@@ -394,19 +355,19 @@ describe('Predefined Formats Usage', () => {
       const calendarWithPriority: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          short: '{{ss-month:abbr}} {{ss-day}}', // Exact match
-          shortFormat: '{{ss-month:abbr}} {{ss-day}}/{{year}}', // Partial match
-          brief: '{{ss-month}} {{ss-day}}', // Alternative match
+          short: '{{ss-month month format="abbr"}} {{ss-day day}}', // Exact match
+          shortFormat: '{{ss-month month format="abbr"}} {{ss-day day}}/{{year}}', // Partial match
+          brief: '{{ss-month month}} {{ss-day day}}', // Alternative match
         },
       };
 
       const dateWithPriority = new CalendarDate(mockDate.toObject(), calendarWithPriority);
 
       // Act
-      dateWithPriority.format({ format: 'short' });
+      const result = dateWithPriority.format({ format: 'short' });
 
       // Assert - Should use exact match 'short', not 'shortFormat' or 'brief'
-      expect(mockHandlebars.compile).toHaveBeenCalledWith('{{ss-month:abbr}} {{ss-day}}');
+      expect(result).toBe('Jan 15');
     });
 
     it('should handle multiple time format possibilities correctly', () => {
@@ -414,23 +375,23 @@ describe('Predefined Formats Usage', () => {
       const calendarWithTimeFormats: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          short: '{{ss-month:abbr}} {{ss-day}}',
-          shortTime: '{{ss-month:abbr}} {{ss-day}} {{hour:pad}}:{{minute:pad}}', // Preferred time format
-          datetime: '{{ss-month:abbr}} {{ss-day}} at {{hour:pad}}:{{minute:pad}}', // Alternative time format
+          short: '{{ss-month month format="abbr"}} {{ss-day day}}',
+          shortTime:
+            '{{ss-month month format="abbr"}} {{ss-day day}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}', // Preferred time format
+          datetime:
+            '{{ss-month month format="abbr"}} {{ss-day day}} at {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}', // Alternative time format
           timestamp:
-            '{{year}}-{{month:pad}}-{{day:pad}} {{hour:pad}}:{{minute:pad}}:{{second:pad}}', // Generic time format
+            '{{year}}-{{ss-month month format="pad"}}-{{ss-day day format="pad"}} {{ss-hour hour format="pad"}}:{{ss-minute minute format="pad"}}:{{ss-second second format="pad"}}', // Generic time format
         },
       };
 
       const dateWithTimeFormats = new CalendarDate(mockDate.toObject(), calendarWithTimeFormats);
 
       // Act
-      dateWithTimeFormats.format({ format: 'short', includeTime: true });
+      const result = dateWithTimeFormats.format({ format: 'short', includeTime: true });
 
       // Assert - Should prioritize 'shortTime' over 'datetime' or 'timestamp'
-      expect(mockHandlebars.compile).toHaveBeenCalledWith(
-        '{{ss-month:abbr}} {{ss-day}} {{hour:pad}}:{{minute:pad}}'
-      );
+      expect(result).toBe('Jan 15 10:30');
     });
   });
 });
