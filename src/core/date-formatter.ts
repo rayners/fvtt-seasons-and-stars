@@ -566,23 +566,21 @@ export class DateFormatter {
       const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
 
       if (formatter) {
-        // Create a date object from the context
+        // Create a basic format manually since we don't have a full CalendarDate instance
         const context = options?.data?.root;
-        const date = {
-          year: context?.year || 2024,
-          month: context?.month || 1,
-          day: context?.day || 1,
-          weekday: context?.weekday || 0,
-          time:
-            context?.hour !== undefined
-              ? {
-                  hour: context.hour || 0,
-                  minute: context.minute || 0,
-                  second: context.second || 0,
-                }
-              : undefined,
-        };
-        return formatter.getBasicFormat(date);
+        const year = context?.year || 2024;
+        const month = context?.month || 1;
+        const day = context?.day || 1;
+        const weekday = context?.weekday || 0;
+
+        // Use the formatter's helper methods directly
+        const monthName = formatter.getMonthName(month);
+        const weekdayName = formatter.getWeekdayName(weekday);
+        const dayOrdinal = formatter.addOrdinalSuffix(day);
+        const yearString =
+          `${formatter.calendar.year?.prefix || ''}${year}${formatter.calendar.year?.suffix || ''}`.trim();
+
+        return `${weekdayName}, ${dayOrdinal} ${monthName} ${yearString}`;
       }
 
       // Fallback for debugging when no calendar context available
