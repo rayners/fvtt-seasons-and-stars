@@ -2,7 +2,7 @@
   "id": "seasons-and-stars",
   "title": "Seasons & Stars",
   "description": "Calendar and timekeeping module for Foundry VTT v13+ with clean architecture and generic integration APIs. Features calendar widgets, custom calendar support, and SmallTime integration. Works with Simple Calendar-dependent modules via the Simple Calendar Compatibility Bridge.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "compatibility": {
     "minimum": "13",
     "verified": "13"

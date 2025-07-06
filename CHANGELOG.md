@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [0.6.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.5.0...v0.6.0) (2025-07-06)
+
+
+### Features
+
+* Add date formatting system with Handlebars templates ([#121](https://github.com/rayners/fvtt-seasons-and-stars/issues/121)) ([1e4dd6d](https://github.com/rayners/fvtt-seasons-and-stars/commit/1e4dd6d87168fb5201ccc50c14179360218b9865))
+* Add German translation ([#126](https://github.com/rayners/fvtt-seasons-and-stars/issues/126)) ([ba14245](https://github.com/rayners/fvtt-seasons-and-stars/commit/ba142454560fd7b23e1e12f9edeeef255ce625db))
+* Add Polish translation ([#122](https://github.com/rayners/fvtt-seasons-and-stars/issues/122)) ([a16645f](https://github.com/rayners/fvtt-seasons-and-stars/commit/a16645fbf3c13c4c719dd5bd47ba13aaa62cd8c8))
+
+
+### Bug Fixes
+
+* integration detection timing issue in module initialization ([#127](https://github.com/rayners/fvtt-seasons-and-stars/issues/127)) ([1d30d4d](https://github.com/rayners/fvtt-seasons-and-stars/commit/1d30d4db2da80df9558b2e04b8ccf5b7a87f7d82))
+
 ## [0.5.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.4.6...v0.5.0) (2025-07-04)
 
 
