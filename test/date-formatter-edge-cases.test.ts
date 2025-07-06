@@ -39,9 +39,8 @@ describe('DateFormatter Edge Cases', () => {
       year: 2024,
       month: 1,
       day: 15,
-      hour: 14,
-      minute: 30,
-      second: 45,
+      weekday: 0,
+      time: { hour: 14, minute: 30, second: 45 },
     } as CalendarDate;
 
     formatter = new DateFormatter(mockCalendar);
@@ -49,8 +48,8 @@ describe('DateFormatter Edge Cases', () => {
 
   describe('Helper Syntax Edge Cases', () => {
     it('should handle single-quote format parameters gracefully', () => {
-      // Single quotes are not valid Handlebars syntax - test real compilation error
-      const invalidSyntax = "{{ss-hour format='pad'}}:{{ss-minute format='pad'}}";
+      // Test actual Handlebars compilation error with unclosed quote
+      const invalidSyntax = "{{ss-hour format='pad}}:{{ss-minute format='pad'}}";
       const result = formatter.format(mockDate, invalidSyntax);
 
       // Should fall back to basic format due to compilation error
@@ -60,9 +59,9 @@ describe('DateFormatter Edge Cases', () => {
     });
 
     it('should validate ss-stardate helper parameters', () => {
-      // Test complex stardate format with invalid syntax (single quotes)
+      // Test complex stardate format with invalid syntax (unclosed quote)
       const complexStardateFormat =
-        "{{ss-stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear precision=1}}";
+        "{{ss-stardate year prefix='47 baseYear=2370 dayOfYear=dayOfYear precision=1}}";
 
       const result = formatter.format(mockDate, complexStardateFormat);
 
@@ -121,9 +120,9 @@ describe('DateFormatter Edge Cases', () => {
 
   describe('Calendar JSON Helper Syntax Validation', () => {
     it('should detect and handle malformed helper syntax in real calendar files', () => {
-      // Test malformed syntax found in gregorian-star-trek-variants.json (single quotes)
+      // Test malformed syntax with unclosed quote
       const malformedTimeFormat =
-        "{{ss-hour format='pad'}}:{{ss-minute format='pad'}}:{{ss-second format='pad'}} UTC";
+        "{{ss-hour format='pad}}:{{ss-minute format='pad'}}:{{ss-second format='pad'}} UTC";
 
       const result = formatter.format(mockDate, malformedTimeFormat);
 

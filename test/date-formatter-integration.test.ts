@@ -267,11 +267,11 @@ describe('DateFormatter Integration Tests', () => {
 
   describe('Error Handling with Real Templates', () => {
     it('should handle template compilation errors gracefully', () => {
-      // Create a calendar with intentionally bad template syntax
+      // Create a calendar with intentionally bad template syntax (unclosed quote)
       const badCalendar = {
         ...testCalendar,
         dateFormats: {
-          'bad-template': '{{ss-day format=unclosed-quote}}',
+          'bad-template': '{{ss-day format="unclosed-quote}}',
         },
       };
 

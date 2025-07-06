@@ -91,8 +91,9 @@ describe('Star Trek Calendar Comprehensive Tests', () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
-      // Should contain the year
-      expect(result).toContain('2375');
+      // Short format contains month abbreviation and day (no year)
+      expect(result).toContain('Jun');
+      expect(result).toContain('10');
     });
 
     it('should format long date correctly', () => {

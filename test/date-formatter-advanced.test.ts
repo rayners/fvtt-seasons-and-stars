@@ -47,9 +47,7 @@ describe('DateFormatter Advanced Tests', () => {
       month: 1,
       day: 15,
       weekday: 1,
-      hour: 10,
-      minute: 30,
-      second: 45,
+      time: { hour: 10, minute: 30, second: 45 },
     } as CalendarDate;
   });
 

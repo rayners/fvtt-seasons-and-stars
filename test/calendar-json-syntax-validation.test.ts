@@ -46,7 +46,7 @@ describe('Calendar JSON Syntax Validation', () => {
   describe('Template Syntax Validation', () => {
     it('should handle invalid helper syntax gracefully', () => {
       // Test with invalid helper syntax that should cause compilation to fail
-      const invalidTemplate = '{{ss-hour format=unclosed-quote}}:{{ss-minute format="pad"}}';
+      const invalidTemplate = '{{ss-hour format="unclosed-quote}}:{{ss-minute format="pad"}}';
 
       // This should handle the error gracefully and fall back to basic format
       const result = formatter.format(mockDate, invalidTemplate);
@@ -84,13 +84,13 @@ describe('Calendar JSON Syntax Validation', () => {
 
   describe('Real Calendar File Validation', () => {
     it('should handle single quote syntax errors in templates', () => {
-      // Test calendar with problematic single quote syntax (simulates original bug)
+      // Test calendar with actually problematic syntax (unclosed quote)
       const calendarWithSingleQuotes: SeasonsStarsCalendar = {
         ...mockCalendar,
         dateFormats: {
-          // This would cause a real Handlebars compilation error
+          // This would cause a real Handlebars compilation error (unclosed quote)
           'bad-time':
-            "{{ss-hour format='pad'}}:{{ss-minute format='pad'}}:{{ss-second format='pad'}} UTC",
+            "{{ss-hour format='pad}}:{{ss-minute format='pad'}}:{{ss-second format='pad'}} UTC",
         },
       };
 

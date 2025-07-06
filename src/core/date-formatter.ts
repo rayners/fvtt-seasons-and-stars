@@ -45,9 +45,38 @@ export class DateFormatter {
   private templateCache: Map<string, Function> = new Map();
   private static helpersRegistered: boolean = false;
   private static notifiedErrors: Set<string> = new Set(); // Throttle repeated notifications
+  private static helperRegistry: Map<string, DateFormatter> = new Map(); // Registry for calendar access
+
+  // Fallback month/weekday names for when no calendar context is available
+  private static fallbackMonths = [
+    { name: 'January', abbreviation: 'Jan' },
+    { name: 'February', abbreviation: 'Feb' },
+    { name: 'March', abbreviation: 'Mar' },
+    { name: 'April', abbreviation: 'Apr' },
+    { name: 'May', abbreviation: 'May' },
+    { name: 'June', abbreviation: 'Jun' },
+    { name: 'July', abbreviation: 'Jul' },
+    { name: 'August', abbreviation: 'Aug' },
+    { name: 'September', abbreviation: 'Sep' },
+    { name: 'October', abbreviation: 'Oct' },
+    { name: 'November', abbreviation: 'Nov' },
+    { name: 'December', abbreviation: 'Dec' },
+  ];
+
+  private static fallbackWeekdays = [
+    { name: 'Sunday', abbreviation: 'Sun' },
+    { name: 'Monday', abbreviation: 'Mon' },
+    { name: 'Tuesday', abbreviation: 'Tue' },
+    { name: 'Wednesday', abbreviation: 'Wed' },
+    { name: 'Thursday', abbreviation: 'Thu' },
+    { name: 'Friday', abbreviation: 'Fri' },
+    { name: 'Saturday', abbreviation: 'Sat' },
+  ];
 
   constructor(calendar: SeasonsStarsCalendar) {
     this.calendar = calendar;
+    // Register this instance for helper access
+    DateFormatter.helperRegistry.set(calendar.id, this);
     // Only register helpers once globally to avoid unnecessary re-registration
     if (!DateFormatter.helpersRegistered) {
       this.registerCustomHelpers();
@@ -62,6 +91,7 @@ export class DateFormatter {
   static resetHelpersForTesting(): void {
     DateFormatter.helpersRegistered = false;
     DateFormatter.notifiedErrors.clear();
+    DateFormatter.helperRegistry.clear();
   }
 
   /**
@@ -197,13 +227,16 @@ export class DateFormatter {
     variant?: string,
     visited: Set<string> = new Set()
   ): string {
-    // Prevent circular references
+    // Input validation
+    if (!formatName) {
+      return this.getBasicFormat(date);
+    }
+
+    // Prevent circular references - check before adding to visited
     if (visited.has(formatName)) {
       console.warn(`[S&S] Circular reference detected in format '${formatName}'`);
       return this.getBasicFormat(date);
     }
-
-    visited.add(formatName);
 
     const dateFormats = this.calendar.dateFormats;
 
@@ -217,27 +250,43 @@ export class DateFormatter {
       return this.getBasicFormat(date);
     }
 
+    // Get the actual format string to process
+    let formatString: string;
+    let formatDisplayName: string;
+
     // Handle format variants (format as object)
     if (typeof format === 'object' && !Array.isArray(format)) {
       if (variant && format[variant]) {
-        return this.formatWithContext(date, format[variant], `${formatName}:${variant}`, visited);
+        formatString = format[variant];
+        formatDisplayName = `${formatName}:${variant}`;
+      } else {
+        // If no variant specified, try 'default' or first available
+        const defaultFormat = format.default || Object.values(format)[0];
+        if (defaultFormat) {
+          formatString = defaultFormat;
+          formatDisplayName = formatName;
+        } else {
+          return this.getBasicFormat(date);
+        }
       }
-
-      // If no variant specified, try 'default' or first available
-      const defaultFormat = format.default || Object.values(format)[0];
-      if (defaultFormat) {
-        return this.formatWithContext(date, defaultFormat, formatName, visited);
-      }
-
+    } else if (typeof format === 'string') {
+      formatString = format;
+      formatDisplayName = formatName;
+    } else {
       return this.getBasicFormat(date);
     }
 
-    // Handle simple string format
-    if (typeof format === 'string') {
-      return this.formatWithContext(date, format, formatName, visited);
+    // Pre-analyze for circular references in this format's embedded references
+    if (this.containsCircularReference(formatString, formatName, visited)) {
+      console.warn(`[S&S] Format '${formatName}' contains circular references, using basic format`);
+      return this.getBasicFormat(date);
     }
 
-    return this.getBasicFormat(date);
+    // Add to visited set AFTER circular check but BEFORE processing
+    visited.add(formatName);
+
+    // Process the format
+    return this.formatWithContext(date, formatString, formatDisplayName, visited);
   }
 
   /**
@@ -275,28 +324,39 @@ export class DateFormatter {
 
     // Match both old colon syntax and new parameter syntax
     const embeddedFormatRegex =
-      /\{\{\s*ss-dateFmt\s*(?::\s*([^}\s]+)|.*?formatName\s*=\s*["']([^"']+)["'])\s*\}\}/g;
+      /\{\{\s*ss-dateFmt\s*(?::\s*([^}\s]+)|.*?formatName\s*=\s*["']([^"']+)["']|\s+["']([^"']+)["'])\s*\}\}/g;
 
-    return template.replace(embeddedFormatRegex, (match, colonFormatName, paramFormatName) => {
-      try {
-        // Use whichever format name was captured (colon or parameter syntax)
-        const formatName = colonFormatName || paramFormatName;
-        if (!formatName) {
-          console.warn(`[S&S] Could not extract format name from: ${match}`);
-          return this.getBasicFormat(date);
+    return template.replace(
+      embeddedFormatRegex,
+      (match, colonFormatName, paramFormatName, quotedFormatName) => {
+        try {
+          // Use whichever format name was captured (colon, parameter, or quoted syntax)
+          const formatName = colonFormatName || paramFormatName || quotedFormatName;
+          if (!formatName) {
+            console.warn(`[S&S] Could not extract format name from: ${match}`);
+            return this.getBasicFormat(date);
+          }
+
+          // Check if the format actually exists before trying to resolve it
+          // If it doesn't exist, return the original match to let the helper handle it
+          if (!this.calendar.dateFormats || !this.calendar.dateFormats[formatName]) {
+            return match; // Return original match to let helper handle unresolved formats
+          }
+
+          // Recursively format the embedded format with the same visited set (to detect cycles)
+          // The circular reference detection happens in formatNamedRecursive
+          const embeddedResult = this.formatNamedRecursive(date, formatName, visited);
+          return embeddedResult;
+        } catch (error) {
+          console.warn(
+            `[S&S] Failed to resolve embedded format '${colonFormatName || paramFormatName || quotedFormatName}':`,
+            error
+          );
+          // Return original match to let helper handle the error
+          return match;
         }
-        // Recursively format the embedded format with visited set
-        const embeddedResult = this.formatNamedRecursive(date, formatName, new Set(visited));
-        return embeddedResult;
-      } catch (error) {
-        console.warn(
-          `[S&S] Failed to resolve embedded format '${colonFormatName || paramFormatName}':`,
-          error
-        );
-        // Fallback to basic format for this embedded piece
-        return this.getBasicFormat(date);
       }
-    });
+    );
   }
 
   /**
@@ -307,7 +367,7 @@ export class DateFormatter {
     formatName: string,
     visited: Set<string>
   ): string {
-    // Use the consolidated formatNamed method with the visited set
+    // Use the consolidated formatNamed method which handles circular reference detection
     return this.formatNamed(date, formatName, undefined, visited);
   }
 
@@ -324,6 +384,7 @@ export class DateFormatter {
       minute: date.time?.minute,
       second: date.time?.second,
       dayOfYear: this.calculateDayOfYear(date),
+      _calendarId: this.calendar.id, // Add calendar ID to context for helper access
     };
   }
 
@@ -374,61 +435,171 @@ export class DateFormatter {
    */
   private registerCustomHelpers(): void {
     // Day helper - supports ordinal and pad formats
-    Handlebars.registerHelper('ss-day', (value: number, options: any) => {
+    Handlebars.registerHelper('ss-day', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // If value is provided as first argument (and not undefined/null), use it; otherwise use context
+      let dayValue =
+        args.length > 1 && args[0] !== undefined && args[0] !== null
+          ? args[0]
+          : options?.data?.root?.day;
+
+      // Handle undefined/null values gracefully
+      if (dayValue === undefined || dayValue === null) {
+        dayValue = 1;
+      }
+
       const format = options?.hash?.format;
 
       switch (format) {
         case 'ordinal':
-          return this.addOrdinalSuffix(value);
+          return DateFormatter.addOrdinalSuffix(dayValue);
         case 'pad':
-          return value.toString().padStart(2, '0');
+          return dayValue.toString().padStart(2, '0');
         default:
-          return value.toString();
+          return dayValue.toString();
       }
     });
 
     // Month helper - supports name, abbr, and pad formats
-    Handlebars.registerHelper('ss-month', (value: number, options: any) => {
+    Handlebars.registerHelper('ss-month', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // If value is provided as first argument (and not undefined/null), use it; otherwise use context
+      let monthValue =
+        args.length > 1 && args[0] !== undefined && args[0] !== null
+          ? args[0]
+          : options?.data?.root?.month;
+
+      // Handle undefined/null values gracefully
+      if (monthValue === undefined || monthValue === null) {
+        monthValue = 1;
+      }
+
       const format = options?.hash?.format;
+      const calendarId = options?.data?.root?._calendarId;
+      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
 
       switch (format) {
         case 'name':
-          return this.getMonthName(value);
+          if (formatter) {
+            return formatter.getMonthName(monthValue);
+          } else {
+            // Fallback to standard month names
+            const fallbackMonth = DateFormatter.fallbackMonths[monthValue - 1];
+            return fallbackMonth ? fallbackMonth.name : `Month ${monthValue}`;
+          }
         case 'abbr':
-          return this.getMonthAbbreviation(value);
+          if (formatter) {
+            return formatter.getMonthAbbreviation(monthValue);
+          } else {
+            // Fallback to standard month abbreviations
+            const fallbackMonth = DateFormatter.fallbackMonths[monthValue - 1];
+            return fallbackMonth ? fallbackMonth.abbreviation : `M${monthValue}`;
+          }
         case 'pad':
-          return value.toString().padStart(2, '0');
+          return monthValue.toString().padStart(2, '0');
         default:
-          return value.toString();
+          return monthValue.toString();
       }
     });
 
     // Weekday helper - supports name and abbr formats
-    Handlebars.registerHelper('ss-weekday', (value: number, options: any) => {
+    Handlebars.registerHelper('ss-weekday', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // If value is provided as first argument (and not undefined/null), use it; otherwise use context
+      let weekdayValue =
+        args.length > 1 && args[0] !== undefined && args[0] !== null
+          ? args[0]
+          : options?.data?.root?.weekday;
+
+      // Handle undefined/null values gracefully
+      if (weekdayValue === undefined || weekdayValue === null) {
+        weekdayValue = 0;
+      }
+
       const format = options?.hash?.format;
+      const calendarId = options?.data?.root?._calendarId;
+      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
 
       switch (format) {
         case 'name':
-          return this.getWeekdayName(value);
+          if (formatter) {
+            return formatter.getWeekdayName(weekdayValue);
+          } else {
+            // Fallback to standard weekday names
+            const fallbackWeekday = DateFormatter.fallbackWeekdays[weekdayValue];
+            return fallbackWeekday ? fallbackWeekday.name : `Day ${weekdayValue}`;
+          }
         case 'abbr':
-          return this.getWeekdayAbbreviation(value);
+          if (formatter) {
+            return formatter.getWeekdayAbbreviation(weekdayValue);
+          } else {
+            // Fallback to standard weekday abbreviations
+            const fallbackWeekday = DateFormatter.fallbackWeekdays[weekdayValue];
+            return fallbackWeekday ? fallbackWeekday.abbreviation : `D${weekdayValue}`;
+          }
         default:
-          return value.toString();
+          return weekdayValue.toString();
       }
     });
 
     // Format embedding helper - allows both {{ss-dateFmt:name}} and {{ss-dateFmt formatName="name"}} syntax
     // Note: This helper is mainly for documentation. The actual format embedding
     // is handled by preprocessing in the format() method to avoid circular issues.
-    Handlebars.registerHelper('ss-dateFmt', (formatName: string, options: any) => {
-      // Handle parameter format if formatName is passed via options.hash
-      const actualFormatName = options?.hash?.formatName || formatName;
-      // This should not be called in normal operation due to preprocessing
-      return `[Unresolved: ${actualFormatName}]`;
+    Handlebars.registerHelper('ss-dateFmt', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // Get format name from first argument (if not undefined/null) or hash parameter
+      const formatName =
+        args.length > 1 && args[0] !== undefined && args[0] !== null
+          ? args[0]
+          : options?.hash?.formatName;
+
+      // Get the calendar ID from context and return basic format for non-existent formats
+      const calendarId = options?.data?.root?._calendarId;
+      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
+
+      if (formatter) {
+        // Create a date object from the context
+        const context = options?.data?.root;
+        const date = {
+          year: context?.year || 2024,
+          month: context?.month || 1,
+          day: context?.day || 1,
+          weekday: context?.weekday || 0,
+          time:
+            context?.hour !== undefined
+              ? {
+                  hour: context.hour || 0,
+                  minute: context.minute || 0,
+                  second: context.second || 0,
+                }
+              : undefined,
+        };
+        return formatter.getBasicFormat(date);
+      }
+
+      // Fallback for debugging when no calendar context available
+      return `[Unresolved: ${formatName}]`;
     });
 
     // Mathematical operations helper
-    Handlebars.registerHelper('ss-math', (value: number, options: any) => {
+    Handlebars.registerHelper('ss-math', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // If value is provided as first argument (and not undefined/null), use it; otherwise try from context
+      const value =
+        args.length > 1 && args[0] !== undefined && args[0] !== null
+          ? args[0]
+          : options?.data?.root?.value;
+
       const operation = options?.hash?.op;
       const operand = options?.hash?.value;
 
@@ -453,16 +624,26 @@ export class DateFormatter {
     });
 
     // Hour helper - supports pad format
-    Handlebars.registerHelper('ss-hour', (value: number, options: any) => {
-      // If value is not provided explicitly, use context
-      let hourValue = value;
-      if (value === undefined || value === null) {
-        hourValue = options?.data?.root?.hour;
-      }
+    Handlebars.registerHelper('ss-hour', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
 
-      // Handle still undefined/null values gracefully
+      // If value is provided as first argument (and not undefined/null), use it; otherwise use context
+      let hourValue =
+        args.length > 1 && args[0] !== undefined && args[0] !== null
+          ? args[0]
+          : options?.data?.root?.hour;
+
+      // Handle undefined/null values gracefully
+      // If value comes from context and is undefined, return empty string (let Handlebars handle it)
       if (hourValue === undefined || hourValue === null) {
-        hourValue = 0;
+        // If an explicit value was passed but is null/undefined, default to 0
+        if (args.length > 1) {
+          hourValue = 0;
+        } else {
+          // Value from context is undefined, return empty string
+          return '';
+        }
       }
 
       const format = options?.hash?.format;
@@ -476,16 +657,26 @@ export class DateFormatter {
     });
 
     // Minute helper - supports pad format
-    Handlebars.registerHelper('ss-minute', (value: number, options: any) => {
-      // If value is not provided explicitly, use context
-      let minuteValue = value;
-      if (value === undefined || value === null) {
-        minuteValue = options?.data?.root?.minute;
-      }
+    Handlebars.registerHelper('ss-minute', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
 
-      // Handle still undefined/null values gracefully
+      // If value is provided as first argument (and not undefined/null), use it; otherwise use context
+      let minuteValue =
+        args.length > 1 && args[0] !== undefined && args[0] !== null
+          ? args[0]
+          : options?.data?.root?.minute;
+
+      // Handle undefined/null values gracefully
+      // If value comes from context and is undefined, return empty string (let Handlebars handle it)
       if (minuteValue === undefined || minuteValue === null) {
-        minuteValue = 0;
+        // If an explicit value was passed but is null/undefined, default to 0
+        if (args.length > 1) {
+          minuteValue = 0;
+        } else {
+          // Value from context is undefined, return empty string
+          return '';
+        }
       }
 
       const format = options?.hash?.format;
@@ -499,16 +690,26 @@ export class DateFormatter {
     });
 
     // Second helper - supports pad format
-    Handlebars.registerHelper('ss-second', (value: number, options: any) => {
-      // If value is not provided explicitly, use context
-      let secondValue = value;
-      if (value === undefined || value === null) {
-        secondValue = options?.data?.root?.second;
-      }
+    Handlebars.registerHelper('ss-second', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
 
-      // Handle still undefined/null values gracefully
+      // If value is provided as first argument (and not undefined/null), use it; otherwise use context
+      let secondValue =
+        args.length > 1 && args[0] !== undefined && args[0] !== null
+          ? args[0]
+          : options?.data?.root?.second;
+
+      // Handle undefined/null values gracefully
+      // If value comes from context and is undefined, return empty string (let Handlebars handle it)
       if (secondValue === undefined || secondValue === null) {
-        secondValue = 0;
+        // If an explicit value was passed but is null/undefined, default to 0
+        if (args.length > 1) {
+          secondValue = 0;
+        } else {
+          // Value from context is undefined, return empty string
+          return '';
+        }
       }
 
       const format = options?.hash?.format;
@@ -522,15 +723,29 @@ export class DateFormatter {
     });
 
     // Stardate calculation helper for sci-fi calendars
-    Handlebars.registerHelper('ss-stardate', (year: number, options: any) => {
+    Handlebars.registerHelper('ss-stardate', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // If year is provided as first argument (and not undefined/null), use it; otherwise use context
+      let yearValue =
+        args.length > 1 && args[0] !== undefined && args[0] !== null
+          ? args[0]
+          : options?.data?.root?.year;
+
+      // Handle undefined/null values gracefully
+      if (yearValue === undefined || yearValue === null) {
+        yearValue = 2000; // Default fallback year
+      }
+
       const prefix = options?.hash?.prefix || '0';
-      const baseYear = options?.hash?.baseYear || year;
+      const baseYear = options?.hash?.baseYear || yearValue;
       const dayOfYear = options?.hash?.dayOfYear || 1;
       const precision = options?.hash?.precision || 1;
 
       // Calculate stardate: prefix + (year - baseYear) + dayOfYear
       // Format: XXYYYY.P where XX is era prefix, YYYY is year offset + day, P is precision
-      const yearOffset = year - baseYear;
+      const yearOffset = yearValue - baseYear;
       const stardatePrefix = parseInt(prefix) + yearOffset;
       const paddedDayOfYear = dayOfYear.toString().padStart(3, '0');
 
@@ -545,6 +760,13 @@ export class DateFormatter {
    * Add ordinal suffix to a number (1st, 2nd, 3rd, etc.)
    */
   private addOrdinalSuffix(day: number): string {
+    return DateFormatter.addOrdinalSuffix(day);
+  }
+
+  /**
+   * Static version of addOrdinalSuffix for use in helpers
+   */
+  static addOrdinalSuffix(day: number): string {
     if (day >= 11 && day <= 13) {
       return `${day}th`;
     }
@@ -565,44 +787,99 @@ export class DateFormatter {
   /**
    * Get month name from calendar definition
    */
-  private getMonthName(monthIndex: number): string {
+  getMonthName(monthIndex: number): string {
     const month = this.calendar.months[monthIndex - 1];
-    return month?.name || 'Unknown';
+    const name = month?.name;
+    // Ensure we return a string, not an object
+    return typeof name === 'string' ? name : 'Unknown';
   }
 
   /**
    * Get month abbreviation from calendar definition
    */
-  private getMonthAbbreviation(monthIndex: number): string {
+  getMonthAbbreviation(monthIndex: number): string {
     const month = this.calendar.months[monthIndex - 1];
-    return month?.abbreviation || month?.name?.substring(0, 3) || 'Unk';
+    const abbr = month?.abbreviation;
+    const name = month?.name;
+    // Ensure we return a string, not an object
+    if (typeof abbr === 'string') {
+      return abbr;
+    }
+    if (typeof name === 'string') {
+      return name.substring(0, 3);
+    }
+    return 'Unk';
   }
 
   /**
    * Get weekday name from calendar definition
    */
-  private getWeekdayName(weekdayIndex: number): string {
+  getWeekdayName(weekdayIndex: number): string {
     const weekday = this.calendar.weekdays[weekdayIndex];
-    return weekday?.name || 'Unknown';
+    const name = weekday?.name;
+    // Ensure we return a string, not an object
+    return typeof name === 'string' ? name : 'Unknown';
   }
 
   /**
    * Get weekday abbreviation from calendar definition
    */
-  private getWeekdayAbbreviation(weekdayIndex: number): string {
+  getWeekdayAbbreviation(weekdayIndex: number): string {
     const weekday = this.calendar.weekdays[weekdayIndex];
-    return weekday?.abbreviation || weekday?.name?.substring(0, 3) || 'Unk';
+    const abbr = weekday?.abbreviation;
+    const name = weekday?.name;
+    // Ensure we return a string, not an object
+    if (typeof abbr === 'string') {
+      return abbr;
+    }
+    if (typeof name === 'string') {
+      return name.substring(0, 3);
+    }
+    return 'Unk';
+  }
+
+  /**
+   * Check if a format string contains circular references
+   */
+  private containsCircularReference(
+    formatString: string,
+    currentFormat: string,
+    visited: Set<string>
+  ): boolean {
+    // Find all embedded format references in this format
+    const embeddedFormatRegex =
+      /\{\{\s*ss-dateFmt\s*(?::\s*([^}\s]+)|.*?formatName\s*=\s*["']([^"']+)["']|\s+["']([^"']+)["'])\s*\}\}/g;
+
+    let match;
+    while ((match = embeddedFormatRegex.exec(formatString)) !== null) {
+      const embeddedFormatName = match[1] || match[2] || match[3];
+      if (embeddedFormatName && visited.has(embeddedFormatName)) {
+        return true; // Found a circular reference
+      }
+    }
+
+    return false;
   }
 
   /**
    * Validate template output to detect malformed templates that produce invalid results
    */
   private isInvalidTemplateOutput(result: string, template: string): boolean {
+    // If result is empty, it's likely an invalid template
+    if (!result || result.trim().length === 0) {
+      return true;
+    }
+
     // If template contains helpers but result has too many empty values, it's likely malformed
     const hasHelpers = template.includes('{{ss-');
 
     if (!hasHelpers) {
-      return false; // No helpers, so any output is valid
+      // No helpers - check if template has variables but result is empty/minimal
+      const hasVariables = template.includes('{{');
+      if (hasVariables && result.trim().length === 0) {
+        return true; // Template has variables but no output
+      }
+      return false; // No helpers, output is valid
     }
 
     // Check for patterns that suggest malformed helper output

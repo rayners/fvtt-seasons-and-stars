@@ -186,6 +186,7 @@ describe('Duplicate Code Consolidation', () => {
         minute: 30,
         second: 45,
         dayOfYear: 15,
+        _calendarId: 'test-calendar',
       });
     });
   });

@@ -41,10 +41,18 @@ vi.mock('../src/core/calendar-localization', () => ({
   },
 }));
 
-// Use real TestLogger instead of mocks for better testing
-import { TestLogger } from './utils/test-logger';
+// Mock the logger module with simple vi.fn() mocks
 vi.mock('../src/core/logger', () => ({
-  Logger: TestLogger,
+  Logger: {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    api: vi.fn(),
+    integration: vi.fn(),
+    critical: vi.fn(),
+    timing: vi.fn((label, fn) => fn()),
+  },
 }));
 
 // Mock CalendarTimeUtils
@@ -61,7 +69,6 @@ describe('Calendar Selection Dialog - Variants Support', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    TestLogger.clearLogs();
 
     // Create test calendars including variants
     calendars = new Map([

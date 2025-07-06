@@ -71,6 +71,7 @@ describe('Day of Year Bounds Checking', () => {
         minute: undefined,
         second: undefined,
         dayOfYear: 1, // Improved: meaningful fallback value
+        _calendarId: 'test-calendar',
       });
     });
 
@@ -103,6 +104,7 @@ describe('Day of Year Bounds Checking', () => {
         minute: undefined,
         second: undefined,
         dayOfYear: 1, // Improved: consistent fallback behavior
+        _calendarId: 'test-calendar',
       });
     });
 
