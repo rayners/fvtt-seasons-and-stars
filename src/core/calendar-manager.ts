@@ -874,7 +874,7 @@ export class CalendarManager {
   /**
    * Get external calendar cache statistics
    */
-  getExternalCacheStats(): any {
+  getExternalCacheStats(): unknown {
     if (!this.externalRegistry) {
       return null;
     }
@@ -920,7 +920,7 @@ export class CalendarManager {
     Logger.debug('Firing calendar registration hook');
 
     // Create addCalendar function that other modules can use
-    const addCalendar = (calendarData: SeasonsStarsCalendar) => {
+    const addCalendar = (calendarData: SeasonsStarsCalendar): boolean => {
       try {
         // Basic input validation
         if (!calendarData || typeof calendarData !== 'object' || !calendarData.id) {
@@ -970,7 +970,7 @@ export class CalendarManager {
     Logger.debug('Firing protocol handler registration hook');
 
     // Create registerHandler function that other modules can use
-    const registerHandler = (handler: ProtocolHandlerLike) => {
+    const registerHandler = (handler: ProtocolHandlerLike): boolean => {
       try {
         // Basic input validation
         if (!handler || typeof handler !== 'object' || !handler.protocol) {
@@ -984,13 +984,13 @@ export class CalendarManager {
         const normalizedHandler = normalizeProtocolHandler(handler);
 
         // Check if protocol is already registered
-        if (this.externalRegistry!.hasHandler(normalizedHandler.protocol)) {
+        if (this.externalRegistry?.hasHandler(normalizedHandler.protocol)) {
           Logger.warn(`Protocol ${normalizedHandler.protocol} already registered, skipping`);
           return false;
         }
 
         // Register the handler
-        this.externalRegistry!.registerHandler(normalizedHandler);
+        this.externalRegistry?.registerHandler(normalizedHandler);
 
         Logger.info(`Successfully registered protocol handler via hook: ${normalizedHandler.protocol}`);
         return true;

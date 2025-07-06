@@ -71,7 +71,7 @@ Hooks.on('seasons-stars:registerCalendarLoaders', ({ registerHandler }) => {
 - `local:./relative/path/calendar.json` - Relative path
 - `local:C:\Windows\path\calendar.json` - Windows path
 
-### 3. `simple-calendar-loader-example.ts`
+### 3. `minimal-protocol-handlers.ts`
 
 **Minimal Function-Based Examples**
 
@@ -91,7 +91,7 @@ interface SimpleProtocolHandler {
 
 **Usage:**
 ```typescript
-import { createHttpCalendarLoader, createDemoProtocolLoader } from './simple-calendar-loader-example';
+import { createHttpCalendarLoader, createDemoProtocolLoader } from './minimal-protocol-handlers';
 
 Hooks.on('seasons-stars:registerCalendarLoaders', ({ registerHandler }) => {
   registerHandler(createHttpCalendarLoader());

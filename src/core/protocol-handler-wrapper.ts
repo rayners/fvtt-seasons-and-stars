@@ -54,7 +54,7 @@ export class ProtocolHandlerWrapper implements ProtocolHandler {
    */
   async loadCalendar(
     location: CalendarLocation,
-    options?: LoadCalendarOptions
+    _options?: LoadCalendarOptions
   ): Promise<SeasonsStarsCalendar> {
     try {
       Logger.debug(`Loading calendar via wrapped handler (${this.protocol}): ${location}`);
@@ -82,7 +82,7 @@ export class ProtocolHandlerWrapper implements ProtocolHandler {
   /**
    * Optional update checking - not implemented by default for simple handlers
    */
-  async checkForUpdates?(location: CalendarLocation, lastEtag?: string): Promise<boolean> {
+  async checkForUpdates?(_location: CalendarLocation, _lastEtag?: string): Promise<boolean> {
     Logger.debug(`Update checking not implemented for simple handler: ${this.protocol}`);
     return false; // Assume no updates for simple handlers
   }

@@ -7,7 +7,7 @@
  * 
  * @example Usage in your module:
  * ```typescript
- * import { createMyProtocolLoader } from './path/to/simple-calendar-loader-example';
+ * import { createMyProtocolLoader } from './path/to/minimal-protocol-handlers';
  * 
  * Hooks.on('seasons-stars:registerCalendarLoaders', ({ registerHandler }) => {
  *   registerHandler(createMyProtocolLoader());
