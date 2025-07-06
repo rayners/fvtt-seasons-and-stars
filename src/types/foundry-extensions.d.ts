@@ -7,6 +7,8 @@
 
 import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
 import type { SeasonsStarsIntegration } from './bridge-interfaces';
+import type { ContextExtensionAPI } from './widget-types';
+import type { ProtocolHandler } from './external-calendar';
 
 // Extend the Game interface to include S&S specific properties
 declare global {
@@ -18,6 +20,9 @@ declare global {
       categories?: unknown; // Note categories management
       integration?: SeasonsStarsIntegration | null;
       compatibilityManager?: unknown; // Expose for debugging and external access
+      widgets?: {
+        createContextAPI: (moduleId: string) => ContextExtensionAPI;
+      };
       // Warning state functions for debugging and external access
       resetSeasonsWarningState?: () => void;
       getSeasonsWarningState?: () => boolean;
@@ -62,6 +67,96 @@ export interface SeasonsStarsAPI {
   formatDate(date: CalendarDate, options?: DateFormatOptions): string;
   dateToWorldTime(date: CalendarDate, calendarId?: string): number;
   worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate;
+
+  // External calendar management
+  loadExternalCalendar(externalId: string): Promise<boolean>;
+  loadExternalCalendarWithOptions(
+    externalId: string,
+    options?: Record<string, unknown>
+  ): Promise<boolean>;
+  getExternalSources(): unknown[];
+  addExternalSource(source: unknown): void;
+  removeExternalSource(externalId: string): void;
+  updateExternalSource(externalId: string, updates: unknown): void;
+  getExternalCacheStats(): unknown;
+  clearExternalCache(): void;
+
+  // Template Context Extensions API
+  widgets?: {
+    /**
+     * Create a context extension API scoped to a specific module.
+     * This provides automatic cleanup when the module is disabled.
+     *
+     * @param moduleId The ID of the module registering extensions
+     * @returns A scoped API for registering context extensions and hooks
+     *
+     * @example
+     * ```typescript
+     * // In an external module
+     * const contextAPI = game.seasonsStars.api.widgets.createContextAPI('my-module');
+     *
+     * // Register extension to add weather data to all widgets
+     * contextAPI.registerExtension({
+     *   priority: 10,
+     *   widgetTypes: ['*'],
+     *   extensionFunction: (context) => ({
+     *     ...context,
+     *     weather: game.myModule.getCurrentWeather()
+     *   }),
+     *   metadata: {
+     *     name: 'Weather Integration',
+     *     description: 'Adds weather data to S&S widgets'
+     *   }
+     * });
+     * ```
+     */
+    createContextAPI(moduleId: string): ContextExtensionAPI;
+
+    /**
+     * Get information about all registered context extensions.
+     * Useful for debugging and module compatibility checking.
+     */
+    getRegisteredExtensions(): Array<{
+      id: string;
+      moduleId: string;
+      priority: number;
+      widgetTypes: string[];
+      metadata: {
+        name: string;
+        description?: string;
+        version?: string;
+        author?: string;
+      };
+    }>;
+
+    /**
+     * Get information about all registered context hooks.
+     * Useful for debugging hook execution order.
+     */
+    getRegisteredHooks(): Array<{
+      id: string;
+      moduleId: string;
+      phase: 'before' | 'after';
+      widgetTypes: string[];
+    }>;
+  };
+}
+
+// Hook event data interfaces
+export interface CalendarRegistrationHookData {
+  addCalendar: (calendarData: SeasonsStarsCalendar) => boolean;
+}
+
+export interface ProtocolHandlerRegistrationHookData {
+  registerHandler: (handler: ProtocolHandlerLike) => boolean;
+}
+
+// Support both full ProtocolHandler classes and simple functions
+export type ProtocolHandlerLike = ProtocolHandler | SimpleProtocolHandler;
+
+export interface SimpleProtocolHandler {
+  protocol: string;
+  loadCalendar: (location: string) => Promise<SeasonsStarsCalendar>;
 }
 
 // Type guard functions (implementations in type-guards.ts)
@@ -84,6 +179,15 @@ export interface CalendarManagerInterface {
   advanceWeeks(weeks: number): Promise<void>;
   advanceMonths(months: number): Promise<void>;
   advanceYears(years: number): Promise<void>;
+
+  // External calendar management
+  loadExternalCalendar(externalId: string): Promise<boolean>;
+  getExternalSources(): unknown[];
+  addExternalSource(source: unknown): void;
+  removeExternalSource(externalId: string): void;
+  updateExternalSource(externalId: string, updates: unknown): void;
+  getExternalCacheStats(): unknown;
+  clearExternalCache(): void;
 }
 
 // Calendar Engine interface for date calculations
@@ -94,8 +198,8 @@ export interface CalendarEngineInterface {
   dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number;
   worldTimeToDate(timestamp: number, worldCreationTimestamp?: number): CalendarDate;
   getIntercalaryDaysAfterMonth(month: number, year: number): any[];
-  addMonths(date: CalendarDate, months: number): CalendarDate;
-  addYears(date: CalendarDate, years: number): CalendarDate;
+  addMonths(date: CalendarDateData, months: number): CalendarDateData;
+  addYears(date: CalendarDateData, years: number): CalendarDateData;
 }
 
 // Notes Manager interface for type safety

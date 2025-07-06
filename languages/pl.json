@@ -46,7 +46,7 @@
       "default_widget": "🔧 Domyślny widżet kalendarza",
       "default_widget_hint": "Wybór widżetu kalendarza otwieranego przy użyciu przycisku sterowania sceną lub domyślnego skrótu klawiaturowego (Alt+S)",
       "default_widget_main": "Główny widżet kalendarza",
-      "default_widget_mini": "Mini widget kalendarza", 
+      "default_widget_mini": "Mini widget kalendarza",
       "default_widget_grid": "Widżet siatki kalendarza"
     },
     "notifications": {
@@ -60,7 +60,7 @@
       "toggle_default_widget_hint": "Pokaż lub ukryj domyślny widżet kalendarza (konfigurowalne w ustawieniach)",
       "toggle_mini_widget": "Przełączanie mini widżetu kalendarza",
       "toggle_mini_widget_hint": "Wyświetlanie lub ukrywanie widżetu kalendarza kompaktowego",
-      "toggle_grid_widget": "Przełączanie widżetu siatki kalendarza", 
+      "toggle_grid_widget": "Przełączanie widżetu siatki kalendarza",
       "toggle_grid_widget_hint": "Wyświetlanie lub ukrywanie widżetu siatki kalendarza miesięcznego",
       "toggle_main_widget": "Przełączanie głównego widżetu kalendarza",
       "toggle_main_widget_hint": "Wyświetlanie lub ukrywanie głównego widżetu zarządzania kalendarzem"

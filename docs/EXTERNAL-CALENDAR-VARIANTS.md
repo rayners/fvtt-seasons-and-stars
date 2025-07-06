@@ -5,6 +5,8 @@ The Seasons & Stars calendar system supports two types of calendar variants:
 1. **Inline Variants**: Defined within the same file as the base calendar (like Golarion PF2e variants)
 2. **External Variants**: Defined in separate files that reference existing base calendars
 
+External variants can be loaded from multiple sources using the new external calendar loading system, including HTTPS URLs, GitHub repositories, other modules, and local files.
+
 ## External Variant Files
 
 External variant files allow you to create themed calendar variants that build on existing calendars without modifying the original calendar definitions. This is particularly useful for:
@@ -148,6 +150,34 @@ The included `gregorian-star-trek-variants.json` demonstrates external variants 
 
 5. **Test**: The variant file will be automatically detected and loaded
 
+## Loading External Variants
+
+External variant files can be loaded from multiple sources:
+
+### From GitHub Repositories
+
+```
+github:user/calendar-repo/gregorian-star-trek-variants.json
+```
+
+### From HTTPS URLs
+
+```
+https://example.com/calendars/gregorian-themes.json
+```
+
+### From Other Modules
+
+```
+module:calendar-themes/variants/gregorian-fantasy-variants.json
+```
+
+### From Local Files
+
+```
+local:Data/calendars/custom-variants.json
+```
+
 ## Usage in Game
 
 Once loaded, external variants appear in the calendar selection dialog alongside inline variants:
@@ -156,6 +186,7 @@ Once loaded, external variants appear in the calendar selection dialog alongside
 - Variant indicators show the relationship
 - External variants must be explicitly selected (they are not automatic defaults)
 - Specific variants can be selected directly from the calendar selection dialog
+- External variants are cached for performance
 
 ## Calendar Selection Behavior
 
@@ -166,9 +197,31 @@ Once loaded, external variants appear in the calendar selection dialog alongside
 
 **Important**: External variants represent themed collections intended for specific campaign types and must be explicitly selected. They do not automatically become defaults for the base calendar.
 
+## External Calendar Collections
+
+For better organization, external variant files can be part of calendar collections using the universal index format:
+
+```json
+{
+  "name": "Fantasy Calendar Themes",
+  "description": "Themed calendar variants for fantasy campaigns",
+  "calendars": [
+    {
+      "id": "gregorian-star-trek-variants",
+      "name": "Star Trek Calendar Themes",
+      "file": "gregorian-star-trek-variants.json",
+      "tags": ["sci-fi", "star-trek", "themes"]
+    }
+  ]
+}
+```
+
 ## Benefits
 
 - **Modularity**: Theme-specific variants separate from core calendars
 - **Flexibility**: Easy to add/remove themed variants without affecting base calendars
 - **Maintainability**: Updates to base calendars automatically apply to variants
 - **Community**: Users can create and share themed variant collections
+- **External Loading**: Load variants from any supported source (HTTPS, GitHub, modules, local)
+- **Caching**: External variants are cached for better performance
+- **Development Mode**: Cache is automatically skipped during development for faster iteration

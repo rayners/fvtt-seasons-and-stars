@@ -68,7 +68,7 @@ export class NoteEditingDialog {
     // Format date display
     const manager = game.seasonsStars?.manager as any;
     const activeCalendar = manager?.getActiveCalendar?.();
-    let dateDisplayStr = `${this.originalData.startDate.year}-${this.originalData.startDate.month.toString().padStart(2, '0')}-${this.originalData.startDate.day.toString().padStart(2, '0')}`;
+    let dateDisplayStr;
     let calendarInfo = '';
 
     if (activeCalendar) {
@@ -79,6 +79,8 @@ export class NoteEditingDialog {
       const yearSuffix = activeCalendar.year?.suffix || '';
       dateDisplayStr = `${this.originalData.startDate.day} ${monthName}, ${yearPrefix}${this.originalData.startDate.year}${yearSuffix}`;
       calendarInfo = `<div style="text-align: center; margin-bottom: 16px; padding: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; font-weight: 600; color: var(--color-text-dark-primary);">${dateDisplayStr}</div>`;
+    } else {
+      dateDisplayStr = `${this.originalData.startDate.year}-${this.originalData.startDate.month.toString().padStart(2, '0')}-${this.originalData.startDate.day.toString().padStart(2, '0')}`;
     }
 
     // Build category options

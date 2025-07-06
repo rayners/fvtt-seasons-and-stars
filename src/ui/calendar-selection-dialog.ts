@@ -103,6 +103,21 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         }
       }
 
+      // Check if this is a namespaced external calendar
+      let namespaceInfo = '';
+      let isExternal = false;
+      if (id.includes('/') && !isVariant) {
+        // This is likely a namespaced external calendar
+        const lastSlashIndex = id.lastIndexOf('/');
+        if (lastSlashIndex > 0) {
+          const namespace = id.substring(0, lastSlashIndex);
+          namespaceInfo = this.formatNamespaceDisplay(namespace);
+          isExternal = true;
+          // Update baseCalendarId to be the namespace-prefixed version
+          baseCalendarId = id;
+        }
+      }
+
       // Generate sample date for preview
       const sampleDate = this.generateSampleDate(calendar);
 
@@ -121,6 +136,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         isVariant,
         variantInfo,
         baseCalendarId,
+        isExternal,
+        namespaceInfo,
       };
     });
 
@@ -180,6 +197,26 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       selectedCalendar: this.selectedCalendarId,
       currentCalendar: this.currentCalendarId,
     });
+  }
+
+  /**
+   * Format namespace for display purposes
+   */
+  private formatNamespaceDisplay(namespace: string): string {
+    // Convert technical namespaces to user-friendly display names
+    let displayName = namespace;
+
+    // Handle common patterns
+    if (displayName.startsWith('gh/')) {
+      displayName = `GitHub: ${displayName.substring(3)}`;
+    } else if (displayName.startsWith('gl/')) {
+      displayName = `GitLab: ${displayName.substring(3)}`;
+    } else if (displayName.includes('/')) {
+      // Likely a user/repo format
+      displayName = displayName.replace('/', ' / ');
+    }
+
+    return `Source: ${displayName}`;
   }
 
   /** @override */

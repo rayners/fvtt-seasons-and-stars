@@ -10,7 +10,7 @@
  * 3. Implement minimal fixes to make tests pass
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { compatibilityManager } from '../src/core/compatibility-manager';
 import type { SeasonsStarsCalendar, ICalendarDate } from '../src/types/calendar-types';

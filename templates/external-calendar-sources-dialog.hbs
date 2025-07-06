@@ -1,0 +1,122 @@
+<div class="external-calendar-sources">
+  <div class="sources-header">
+    <p>Configure external calendar sources for loading custom calendars from various protocols.</p>
+    <p class="warning"><i class="fas fa-exclamation-triangle"></i> Only trusted sources should be enabled. Untrusted sources are cached but not automatically loaded.</p>
+  </div>
+  
+  <div class="sources-list">
+    <table class="sources-table">
+      <thead>
+        <tr>
+          <th>Enabled</th>
+          <th>Protocol</th>
+          <th>Location</th>
+          <th>Label</th>
+          <th>Trusted</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody class="sources-tbody">
+        {{#if sources}}
+          {{#each sources}}
+          <tr data-source-index="{{index}}">
+            <td>
+              <input type="checkbox" data-action="toggleEnabled" data-index="{{index}}" {{#if enabled}}checked{{/if}}>
+            </td>
+            <td class="protocol-cell">{{protocol}}</td>
+            <td class="location-cell" title="{{location}}">{{truncatedLocation}}</td>
+            <td class="label-cell" title="{{label}}">{{#if label}}{{label}}{{else}}<em>Unlabeled</em>{{/if}}</td>
+            <td>
+              <input type="checkbox" data-action="toggleTrusted" data-index="{{index}}" {{#if trusted}}checked{{/if}}>
+            </td>
+            <td class="actions-cell">
+              <button type="button" data-action="editSource" data-index="{{index}}" title="Edit source">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button type="button" data-action="removeSource" data-index="{{index}}" title="Remove source">
+                <i class="fas fa-trash"></i>
+              </button>
+              <button type="button" data-action="testSource" data-index="{{index}}" title="Test connection">
+                <i class="fas fa-plug"></i>
+              </button>
+            </td>
+          </tr>
+          {{/each}}
+        {{else}}
+          <tr><td colspan="6" class="no-sources">No external calendar sources configured</td></tr>
+        {{/if}}
+      </tbody>
+    </table>
+  </div>
+
+  {{#if showAddForm}}
+  <div class="add-source-form">
+    <h3>Add New External Calendar Source</h3>
+    <div class="form-group">
+      <label for="source-protocol">Protocol:</label>
+      <select id="source-protocol" name="protocol" data-action="updateProtocol">
+        {{#each protocols}}
+        <option value="{{value}}">{{label}}</option>
+        {{/each}}
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="source-location">Location:</label>
+      <input type="text" id="source-location" name="location" placeholder="{{placeholders.https}}">
+      <div class="location-help">
+        <small>
+          <strong>HTTPS:</strong> {{placeholders.https}}<br>
+          <strong>GitHub:</strong> {{placeholders.github}}<br>
+          <strong>Module:</strong> {{placeholders.module}}<br>
+          <strong>Local:</strong> {{placeholders.local}}
+        </small>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="source-label">Label:</label>
+      <input type="text" id="source-label" name="label" placeholder="My Custom Calendar">
+    </div>
+    
+    <div class="form-group">
+      <label for="source-description">Description:</label>
+      <textarea id="source-description" name="description" placeholder="Description of this calendar source"></textarea>
+    </div>
+    
+    <div class="form-group checkbox-group">
+      <label class="checkbox">
+        <input type="checkbox" id="source-enabled" name="enabled" checked>
+        <span>Enabled (automatically load this source)</span>
+      </label>
+    </div>
+    
+    <div class="form-group checkbox-group">
+      <label class="checkbox">
+        <input type="checkbox" id="source-trusted" name="trusted">
+        <span>Trusted (load immediately without caching delay)</span>
+      </label>
+    </div>
+    
+    <div class="form-buttons">
+      <button type="button" data-action="confirmAddSource">Add Source</button>
+      <button type="button" data-action="cancelAddSource">Cancel</button>
+    </div>
+  </div>
+  {{else}}
+  <div class="add-source-section">
+    <button type="button" data-action="addSource" class="add-source-button">
+      <i class="fas fa-plus"></i> Add New Source
+    </button>
+  </div>
+  {{/if}}
+
+  <div class="dialog-buttons">
+    <button type="button" data-action="cancel" class="button">
+      <i class="fas fa-times"></i> Cancel
+    </button>
+    <button type="button" data-action="save" class="button primary">
+      <i class="fas fa-save"></i> Save Changes
+    </button>
+  </div>
+</div>

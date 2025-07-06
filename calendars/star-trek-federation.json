@@ -1,0 +1,187 @@
+{
+  "id": "star-trek-federation",
+  "translations": {
+    "en": {
+      "label": "United Federation of Planets Standard Calendar",
+      "description": "The standard calendar used throughout the United Federation of Planets, featuring era-based stardate calculations for different periods of Star Trek history.",
+      "setting": "Star Trek"
+    }
+  },
+
+  "year": {
+    "epoch": 0,
+    "currentYear": 2380,
+    "prefix": "",
+    "suffix": "",
+    "startDay": 1
+  },
+
+  "leapYear": {
+    "rule": "gregorian"
+  },
+
+  "months": [
+    {
+      "name": "January",
+      "abbreviation": "Jan",
+      "days": 31,
+      "description": "First month of the Federation Standard Calendar"
+    },
+    {
+      "name": "February",
+      "abbreviation": "Feb",
+      "days": 28,
+      "description": "Second month, gains an extra day in leap years"
+    },
+    {
+      "name": "March",
+      "abbreviation": "Mar",
+      "days": 31,
+      "description": "Third month of the Federation Standard Calendar"
+    },
+    {
+      "name": "April",
+      "abbreviation": "Apr",
+      "days": 30,
+      "description": "Fourth month of the Federation Standard Calendar"
+    },
+    {
+      "name": "May",
+      "abbreviation": "May",
+      "days": 31,
+      "description": "Fifth month of the Federation Standard Calendar"
+    },
+    {
+      "name": "June",
+      "abbreviation": "Jun",
+      "days": 30,
+      "description": "Sixth month of the Federation Standard Calendar"
+    },
+    {
+      "name": "July",
+      "abbreviation": "Jul",
+      "days": 31,
+      "description": "Seventh month of the Federation Standard Calendar"
+    },
+    {
+      "name": "August",
+      "abbreviation": "Aug",
+      "days": 31,
+      "description": "Eighth month of the Federation Standard Calendar"
+    },
+    {
+      "name": "September",
+      "abbreviation": "Sep",
+      "days": 30,
+      "description": "Ninth month of the Federation Standard Calendar"
+    },
+    {
+      "name": "October",
+      "abbreviation": "Oct",
+      "days": 31,
+      "description": "Tenth month of the Federation Standard Calendar"
+    },
+    {
+      "name": "November",
+      "abbreviation": "Nov",
+      "days": 30,
+      "description": "Eleventh month of the Federation Standard Calendar"
+    },
+    {
+      "name": "December",
+      "abbreviation": "Dec",
+      "days": 31,
+      "description": "Twelfth month of the Federation Standard Calendar"
+    }
+  ],
+
+  "weekdays": [
+    {
+      "name": "Monday",
+      "abbreviation": "Mon",
+      "description": "Standard Federation work week begins"
+    },
+    {
+      "name": "Tuesday",
+      "abbreviation": "Tue",
+      "description": "Second day of the Federation work week"
+    },
+    {
+      "name": "Wednesday",
+      "abbreviation": "Wed",
+      "description": "Mid-week in the Federation calendar"
+    },
+    {
+      "name": "Thursday",
+      "abbreviation": "Thu",
+      "description": "Fourth day of the Federation work week"
+    },
+    {
+      "name": "Friday",
+      "abbreviation": "Fri",
+      "description": "Fifth day of the Federation work week"
+    },
+    {
+      "name": "Saturday",
+      "abbreviation": "Sat",
+      "description": "Traditional rest day in many Federation worlds"
+    },
+    {
+      "name": "Sunday",
+      "abbreviation": "Sun",
+      "description": "Second rest day in the Federation standard week"
+    }
+  ],
+
+  "intercalary": [],
+
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "federation": "{{s&s-month:abbr}} {{day}}, {{year}}",
+    "tos-stardate": "{{s&s-math year op='subtract' value=1300}}.{{dayOfYear}}",
+    "tng-stardate": "{{s&s-stardate year prefix='47' baseYear=2370 dayOfYear=dayOfYear precision=1}}",
+    "ds9-stardate": "{{s&s-stardate year prefix='52' baseYear=2375 dayOfYear=dayOfYear precision=1}}",
+    "voyager-stardate": "{{s&s-stardate year prefix='53' baseYear=2376 dayOfYear=dayOfYear precision=1}}",
+    "enterprise-stardate": "{{s&s-stardate year prefix='0' baseYear=2151 dayOfYear=dayOfYear precision=2}}",
+    "starfleet": "Stardate {{s&s-dateFmt:tng-stardate}}",
+    "tos": "Stardate {{s&s-dateFmt:tos-stardate}}",
+    "tng": "Stardate {{s&s-dateFmt:tng-stardate}}",
+    "ds9": "Stardate {{s&s-dateFmt:ds9-stardate}}",
+    "voyager": "Stardate {{s&s-dateFmt:voyager-stardate}}",
+    "enterprise": "Stardate {{s&s-dateFmt:enterprise-stardate}}",
+    "short": "{{s&s-month:abbr}} {{day}}",
+    "long": "{{s&s-weekday:name}}, {{s&s-month:name}} {{s&s-day:ordinal}}, {{year}}",
+    "date": "{{s&s-weekday:name}}, {{s&s-month:name}} {{s&s-day:ordinal}}, {{year}}",
+    "time": "{{s&s-hour:pad}}:{{s&s-minute:pad}}:{{s&s-second:pad}} UTC",
+    "datetime": "{{s&s-dateFmt:date}} at {{s&s-dateFmt:time}}",
+    "official": "Federation Standard Date: {{s&s-month:name}} {{s&s-day:ordinal}}, {{year}}",
+    "command-log": "{{s&s-dateFmt:tng}} - {{s&s-dateFmt:federation}}",
+    "diplomatic": "{{s&s-dateFmt:federation}} ({{s&s-dateFmt:tng-stardate}})",
+    "variants": {
+      "command": {
+        "short": "SD {{s&s-dateFmt:tng-stardate}}",
+        "long": "{{s&s-dateFmt:tng}} - {{s&s-dateFmt:federation}}"
+      },
+      "civilian": {
+        "short": "{{s&s-month:abbr}} {{day}}/{{year}}",
+        "long": "{{s&s-dateFmt:federation}} ({{s&s-dateFmt:starfleet}})"
+      },
+      "temporal": {
+        "tos": "TOS Era: {{s&s-dateFmt:tos}}",
+        "tng": "TNG Era: {{s&s-dateFmt:tng}}",
+        "ds9": "DS9 Era: {{s&s-dateFmt:ds9}}",
+        "voyager": "VOY Era: {{s&s-dateFmt:voyager}}"
+      }
+    },
+    "widgets": {
+      "mini": "SD {{s&s-dateFmt:tng-stardate}}",
+      "main": "{{s&s-weekday:abbr}}, {{s&s-month:name}} {{s&s-day:ordinal}}",
+      "grid": "{{day}}"
+    }
+  }
+}

@@ -3,6 +3,12 @@
  */
 
 import type { SeasonsStarsCalendar, CalendarVariant } from '../types/calendar';
+import type { ExternalCalendarSource, LoadCalendarOptions } from '../types/external-calendar';
+import type { 
+  CalendarRegistrationHookData, 
+  ProtocolHandlerRegistrationHookData,
+  ProtocolHandlerLike 
+} from '../types/foundry-extensions';
 import { CalendarEngine } from './calendar-engine';
 import { TimeConverter } from './time-converter';
 import { CalendarValidator } from './calendar-validator';
@@ -10,12 +16,17 @@ import { CalendarDate } from './calendar-date';
 import { CalendarLocalization } from './calendar-localization';
 import { Logger } from './logger';
 import { BUILT_IN_CALENDARS } from '../generated/calendar-list';
+import { ExternalCalendarRegistry } from './external-calendar-registry';
+import { HttpsProtocolHandler } from './protocol-handlers/https-handler';
+import { ModuleProtocolHandler } from './protocol-handlers/module-handler';
+import { normalizeProtocolHandler } from './protocol-handler-wrapper';
 
 export class CalendarManager {
   public calendars: Map<string, SeasonsStarsCalendar> = new Map();
   public engines: Map<string, CalendarEngine> = new Map();
   private timeConverter: TimeConverter | null = null;
   private activeCalendarId: string | null = null;
+  private externalRegistry: ExternalCalendarRegistry | null = null;
 
   /**
    * Initialize the calendar manager
@@ -58,6 +69,12 @@ export class CalendarManager {
   async loadBuiltInCalendars(): Promise<void> {
     const builtInCalendars = BUILT_IN_CALENDARS;
 
+    // Initialize external calendar system
+    this.initializeExternalRegistry();
+
+    // Fire hook for external protocol handler registration
+    await this.fireProtocolHandlerRegistrationHook();
+
     // First, load all base calendars (excluding external variant files)
     for (const calendarId of builtInCalendars) {
       // Skip external variant files - they'll be loaded separately
@@ -82,6 +99,12 @@ export class CalendarManager {
 
     // Then, load external variant files
     await this.loadExternalVariantFiles();
+
+    // Next, load configured external calendar sources
+    await this.loadConfiguredExternalSources();
+
+    // Finally, fire hook for external calendar registration
+    await this.fireCalendarRegistrationHook();
   }
 
   /**
@@ -424,6 +447,19 @@ export class CalendarManager {
     if (!baseCalendar.variants) return;
 
     for (const [variantId, variant] of Object.entries(baseCalendar.variants)) {
+      // Validate variant has required fields
+      if (!variant.name || typeof variant.name !== 'string') {
+        Logger.warn(`Skipping invalid variant '${variantId}': missing or invalid 'name' field`);
+        continue;
+      }
+
+      if (!variant.description || typeof variant.description !== 'string') {
+        Logger.warn(
+          `Skipping invalid variant '${variantId}': missing or invalid 'description' field`
+        );
+        continue;
+      }
+
       const variantCalendar = this.applyVariantOverrides(baseCalendar, variantId, variant);
       const variantCalendarId = `${baseCalendar.id}(${variantId})`;
 
@@ -604,6 +640,374 @@ export class CalendarManager {
       // themed context, not automatic defaults for the base calendar
 
       Logger.debug(`Created external calendar variant: ${variantCalendarId}`);
+    }
+  }
+
+  /**
+   * Initialize the external calendar registry and protocol handlers
+   */
+  private initializeExternalRegistry(): void {
+    Logger.debug('Initializing external calendar registry');
+
+    this.externalRegistry = new ExternalCalendarRegistry();
+
+    // Register core protocol handlers only
+    // Essential protocols that are part of the core functionality
+    this.externalRegistry.registerHandler(new HttpsProtocolHandler());
+    this.externalRegistry.registerHandler(new ModuleProtocolHandler());
+
+    Logger.info('External calendar registry initialized with 2 core protocol handlers');
+    Logger.debug('Additional protocol handlers will be registered via hooks');
+  }
+
+  /**
+   * Load configured external calendar sources from settings
+   */
+  private async loadConfiguredExternalSources(): Promise<void> {
+    if (!this.externalRegistry) {
+      Logger.warn('External registry not initialized, skipping external sources');
+      return;
+    }
+
+    try {
+      // Get configured external sources from settings
+      const externalSources =
+        (game.settings?.get(
+          'seasons-and-stars',
+          'externalCalendarSources'
+        ) as ExternalCalendarSource[]) || [];
+
+      if (externalSources.length === 0) {
+        Logger.debug('No external calendar sources configured');
+        return;
+      }
+
+      Logger.debug(`Loading ${externalSources.length} configured external calendar sources`);
+
+      // Add each source to the registry and attempt to load it
+      for (const source of externalSources) {
+        if (!source.enabled) {
+          Logger.debug(`Skipping disabled external source: ${source.protocol}:${source.location}`);
+          continue;
+        }
+
+        try {
+          // Add the source to the registry
+          this.externalRegistry.addExternalSource(source);
+
+          // Attempt to load the calendar
+          const externalId = `${source.protocol}:${source.location}`;
+          await this.loadExternalCalendar(externalId);
+        } catch (error) {
+          Logger.error(
+            `Failed to load external calendar source: ${source.protocol}:${source.location}`,
+            error as Error
+          );
+          // Continue loading other sources even if one fails
+        }
+      }
+
+      Logger.info(
+        `External calendar loading complete (${externalSources.length} sources processed)`
+      );
+    } catch (error) {
+      Logger.error('Error loading configured external calendar sources', error as Error);
+    }
+  }
+
+  /**
+   * Load a calendar from an external source
+   */
+  async loadExternalCalendar(
+    externalId: string,
+    options: LoadCalendarOptions = {}
+  ): Promise<boolean> {
+    if (!this.externalRegistry) {
+      Logger.error('External registry not initialized');
+      return false;
+    }
+
+    try {
+      Logger.debug(`Loading external calendar: ${externalId}`);
+
+      const result = await this.externalRegistry.loadExternalCalendar(externalId, options);
+
+      if (result.success && result.calendar) {
+        // Generate a unique calendar ID using namespace information
+        const originalCalendarId = result.calendar.id;
+        const parsed = this.externalRegistry.parseExternalCalendarId(externalId);
+
+        // Only apply namespacing if there's actually a namespace to avoid breaking existing behavior
+        let finalCalendarId = originalCalendarId;
+        let namespacedCalendar = result.calendar;
+
+        if (parsed.namespace) {
+          const namespacedCalendarId = this.externalRegistry.generateUniqueCalendarId(
+            externalId,
+            originalCalendarId
+          );
+
+          // Check for ID conflicts and resolve them
+          const existingIds = new Set(this.calendars.keys());
+          finalCalendarId = this.externalRegistry.resolveCalendarIdConflict(
+            namespacedCalendarId,
+            existingIds
+          );
+
+          // Create a copy of the calendar with the namespaced ID
+          namespacedCalendar = {
+            ...result.calendar,
+            id: finalCalendarId,
+          };
+
+          // Update calendar translations to show namespace information
+          const namespaceDisplay = this.externalRegistry.getNamespaceDisplayName(externalId);
+          if (namespaceDisplay && namespacedCalendar.translations) {
+            for (const translation of Object.values(namespacedCalendar.translations)) {
+              if (translation.label && !translation.label.includes(namespaceDisplay)) {
+                translation.label = `${translation.label} (${namespaceDisplay})`;
+              }
+            }
+          }
+
+          Logger.debug(
+            `Applied namespace to calendar: ${originalCalendarId} -> ${finalCalendarId}`
+          );
+        } else {
+          Logger.debug(
+            `No namespace detected for external calendar: ${externalId}, using original ID: ${originalCalendarId}`
+          );
+        }
+
+        // Load the calendar into the manager
+        const loaded = this.loadCalendar(namespacedCalendar);
+
+        if (loaded) {
+          Logger.info(
+            `Successfully loaded external calendar: ${finalCalendarId} from ${externalId}`
+          );
+          return true;
+        } else {
+          Logger.error(`Failed to validate external calendar: ${externalId}`);
+          return false;
+        }
+      } else {
+        Logger.error(`Failed to load external calendar: ${externalId} - ${result.error}`);
+        return false;
+      }
+    } catch (error) {
+      Logger.error(`Error loading external calendar: ${externalId}`, error as Error);
+      return false;
+    }
+  }
+
+  /**
+   * Get all configured external calendar sources
+   */
+  getExternalSources(): ExternalCalendarSource[] {
+    if (!this.externalRegistry) {
+      return [];
+    }
+    return this.externalRegistry.getExternalSources();
+  }
+
+  /**
+   * Add a new external calendar source
+   */
+  addExternalSource(source: ExternalCalendarSource): void {
+    if (!this.externalRegistry) {
+      throw new Error('External registry not initialized');
+    }
+
+    // Add to registry
+    this.externalRegistry.addExternalSource(source);
+
+    // Save to settings
+    this.saveExternalSourcesToSettings();
+
+    Logger.info(`Added external calendar source: ${source.protocol}:${source.location}`);
+  }
+
+  /**
+   * Remove an external calendar source
+   */
+  removeExternalSource(externalId: string): void {
+    if (!this.externalRegistry) {
+      throw new Error('External registry not initialized');
+    }
+
+    // Remove from registry
+    this.externalRegistry.removeExternalSource(externalId);
+
+    // Remove calendar from manager if it was loaded
+    const { protocol, location } = this.externalRegistry.parseExternalCalendarId(externalId);
+    const possibleCalendarIds = Array.from(this.calendars.keys()).filter(
+      id => id.includes(location) || id.includes(protocol)
+    );
+
+    for (const calendarId of possibleCalendarIds) {
+      this.calendars.delete(calendarId);
+      this.engines.delete(calendarId);
+      Logger.debug(`Removed external calendar: ${calendarId}`);
+    }
+
+    // Save to settings
+    this.saveExternalSourcesToSettings();
+
+    Logger.info(`Removed external calendar source: ${externalId}`);
+  }
+
+  /**
+   * Update an external calendar source configuration
+   */
+  updateExternalSource(externalId: string, updates: Partial<ExternalCalendarSource>): void {
+    if (!this.externalRegistry) {
+      throw new Error('External registry not initialized');
+    }
+
+    this.externalRegistry.updateExternalSource(externalId, updates);
+    this.saveExternalSourcesToSettings();
+
+    Logger.info(`Updated external calendar source: ${externalId}`);
+  }
+
+  /**
+   * Get external calendar cache statistics
+   */
+  getExternalCacheStats(): unknown {
+    if (!this.externalRegistry) {
+      return null;
+    }
+    return this.externalRegistry.getCacheStats();
+  }
+
+  /**
+   * Clear external calendar cache
+   */
+  clearExternalCache(): void {
+    if (!this.externalRegistry) {
+      return;
+    }
+
+    this.externalRegistry.clearCache();
+    Logger.info('External calendar cache cleared');
+  }
+
+  /**
+   * Save current external sources to settings
+   */
+  private saveExternalSourcesToSettings(): void {
+    if (!this.externalRegistry) {
+      return;
+    }
+
+    const sources = this.externalRegistry.getExternalSources();
+    game.settings?.set('seasons-and-stars', 'externalCalendarSources', sources);
+  }
+
+  /**
+   * Get the external calendar registry (for module API access)
+   */
+  getExternalRegistry(): ExternalCalendarRegistry | null {
+    return this.externalRegistry;
+  }
+
+  /**
+   * Fire hook for external calendar registration
+   * Allows other modules to register calendars via the hook system
+   */
+  private async fireCalendarRegistrationHook(): Promise<void> {
+    Logger.debug('Firing calendar registration hook');
+
+    // Create addCalendar function that other modules can use
+    const addCalendar = (calendarData: SeasonsStarsCalendar): boolean => {
+      try {
+        // Basic input validation
+        if (!calendarData || typeof calendarData !== 'object' || !calendarData.id) {
+          Logger.error('Invalid calendar data provided to hook registration');
+          return false;
+        }
+
+        Logger.debug(`Adding calendar via hook: ${calendarData.id}`);
+
+        // Validate and load the calendar
+        const success = this.loadCalendar(calendarData);
+
+        if (success) {
+          Logger.info(`Successfully registered calendar via hook: ${calendarData.id}`);
+        } else {
+          Logger.error(`Failed to register calendar via hook: ${calendarData.id}`);
+        }
+
+        return success;
+      } catch (error) {
+        const calendarId = calendarData?.id || 'unknown';
+        Logger.error(`Error registering calendar via hook: ${calendarId}`, error as Error);
+        return false;
+      }
+    };
+
+    // Fire the hook with the addCalendar function
+    try {
+      const hookData: CalendarRegistrationHookData = { addCalendar };
+      Hooks.callAll('seasons-stars:loadCalendars', hookData);
+      Logger.debug('Calendar registration hook fired successfully');
+    } catch (error) {
+      Logger.error('Error firing calendar registration hook', error as Error);
+    }
+  }
+
+  /**
+   * Fire hook for external protocol handler registration
+   * Allows other modules to register custom protocol handlers
+   */
+  private async fireProtocolHandlerRegistrationHook(): Promise<void> {
+    if (!this.externalRegistry) {
+      Logger.warn('External registry not initialized, skipping protocol handler registration hook');
+      return;
+    }
+
+    Logger.debug('Firing protocol handler registration hook');
+
+    // Create registerHandler function that other modules can use
+    const registerHandler = (handler: ProtocolHandlerLike): boolean => {
+      try {
+        // Basic input validation
+        if (!handler || typeof handler !== 'object' || !handler.protocol) {
+          Logger.error('Invalid protocol handler provided to hook registration');
+          return false;
+        }
+
+        Logger.debug(`Registering protocol handler via hook: ${handler.protocol}`);
+
+        // Normalize the handler (convert simple handlers to full ProtocolHandler interface)
+        const normalizedHandler = normalizeProtocolHandler(handler);
+
+        // Check if protocol is already registered
+        if (this.externalRegistry?.hasHandler(normalizedHandler.protocol)) {
+          Logger.warn(`Protocol ${normalizedHandler.protocol} already registered, skipping`);
+          return false;
+        }
+
+        // Register the handler
+        this.externalRegistry?.registerHandler(normalizedHandler);
+
+        Logger.info(`Successfully registered protocol handler via hook: ${normalizedHandler.protocol}`);
+        return true;
+      } catch (error) {
+        const protocol = handler?.protocol || 'unknown';
+        Logger.error(`Error registering protocol handler via hook: ${protocol}`, error as Error);
+        return false;
+      }
+    };
+
+    // Fire the hook with the registerHandler function
+    try {
+      const hookData: ProtocolHandlerRegistrationHookData = { registerHandler };
+      Hooks.callAll('seasons-stars:registerCalendarLoaders', hookData);
+      Logger.debug('Protocol handler registration hook fired successfully');
+    } catch (error) {
+      Logger.error('Error firing protocol handler registration hook', error as Error);
     }
   }
 }

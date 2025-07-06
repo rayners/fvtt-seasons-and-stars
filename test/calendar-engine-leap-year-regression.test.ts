@@ -96,7 +96,7 @@ describe('Leap Year Calculation Regression', () => {
     const monthLengths = engine.getMonthLengths(year);
     console.log('\nMonth lengths for year', year, ':', monthLengths);
 
-    let month = 1;
+    let month;
     let tempRemainingDays = remainingDays;
 
     for (month = 1; month <= golarionCalendar.months.length; month++) {
