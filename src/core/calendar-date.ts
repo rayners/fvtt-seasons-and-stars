@@ -135,9 +135,9 @@ export class CalendarDate implements ICalendarDate {
 
     // Add day and month
     if (format === 'numeric') {
-      parts.push('{{month}}/{{day}}');
+      parts.push('{{ss-month}}/{{ss-day}}');
     } else if (format === 'short') {
-      parts.push('{{day}} {{ss-month format="abbr"}}');
+      parts.push('{{ss-day}} {{ss-month format="abbr"}}');
     } else {
       parts.push('{{ss-day format="ordinal"}} {{ss-month format="name"}}');
     }
