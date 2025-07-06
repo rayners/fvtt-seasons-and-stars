@@ -6,10 +6,7 @@ import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
-import { DateFormatter } from '../core/date-formatter';
-import { CalendarDate } from '../core/calendar-date';
-import { TemplateContextExtensions } from '../core/template-context-extensions';
-import type { MiniWidgetContext, SidebarButton } from '../types/widget-types';
+import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -52,13 +49,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Prepare rendering context for template
    */
-  async _prepareContext(options: Record<string, unknown> = {}): Promise<MiniWidgetContext> {
-    const baseContext = (await super._prepareContext(options)) as Record<string, unknown>;
+  async _prepareContext(options: WidgetRenderOptions = {}): Promise<MiniWidgetContext> {
+    const context = (await super._prepareContext(options)) as Record<string, unknown>;
 
     const manager = game.seasonsStars?.manager as CalendarManagerInterface;
 
     if (!manager) {
-      const errorContext: MiniWidgetContext = Object.assign(baseContext, {
+      return Object.assign(context, {
         error: 'Calendar not available',
         shortDate: 'N/A',
         hasSmallTime: false,
@@ -67,17 +64,14 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         currentDate: null,
         formattedDate: 'N/A',
         isGM: game.user?.isGM || false,
-      });
-
-      // Process through extensions even for error states
-      return await TemplateContextExtensions.processContext(errorContext, 'mini', options);
+      }) as MiniWidgetContext;
     }
 
     const activeCalendar = manager.getActiveCalendar();
     const currentDate = manager.getCurrentDate();
 
     if (!activeCalendar || !currentDate) {
-      const errorContext: MiniWidgetContext = Object.assign(baseContext, {
+      return Object.assign(context, {
         error: 'No calendar active',
         shortDate: 'N/A',
         hasSmallTime: false,
@@ -86,21 +80,14 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         currentDate: null,
         formattedDate: 'N/A',
         isGM: game.user?.isGM || false,
-      });
-
-      // Process through extensions even for error states
-      return await TemplateContextExtensions.processContext(errorContext, 'mini', options);
+      }) as MiniWidgetContext;
     }
 
     // Check if SmallTime is available and active
     const hasSmallTime = SmallTimeUtils.isSmallTimeAvailable();
 
-    // Use DateFormatter with widget-specific formats
-    const formatter = new DateFormatter(activeCalendar);
-
-    const context: MiniWidgetContext = Object.assign(baseContext, {
-      shortDate:
-        formatter.formatWidget(currentDate as CalendarDate, 'mini') || currentDate.toDateString(),
+    return Object.assign(context, {
+      shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
       showTimeControls: !hasSmallTime && (game.user?.isGM || false),
       isGM: game.user?.isGM || false,
@@ -110,12 +97,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         description: activeCalendar.description,
       },
       currentDate: currentDate.toObject(),
-      formattedDate:
-        formatter.formatWidget(currentDate as CalendarDate, 'main') || currentDate.toLongString(),
-    });
-
-    // Process context through extensions system
-    return await TemplateContextExtensions.processContext(context, 'mini', options);
+      formattedDate: currentDate.toLongString(),
+    }) as MiniWidgetContext;
   }
 
   /**

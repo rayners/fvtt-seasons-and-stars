@@ -2,11 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { APIWrapper } from '../src/core/api-wrapper';
 import { Logger } from '../src/core/logger';
 
-// Mock Logger
+// Mock the logger module with simple vi.fn() mocks
 vi.mock('../src/core/logger', () => ({
   Logger: {
-    api: vi.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
     error: vi.fn(),
+    api: vi.fn(),
+    integration: vi.fn(),
+    critical: vi.fn(),
+    timing: vi.fn((label, fn) => fn()),
   },
 }));
 

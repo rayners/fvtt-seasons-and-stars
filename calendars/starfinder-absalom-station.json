@@ -151,20 +151,20 @@
   },
 
   "dateFormats": {
-    "galactic": "{{year}}.{{s&s-month:pad}}.{{s&s-day:pad}} AG",
-    "pact": "{{s&s-month:abbr}} {{day}}, {{year}} AG",
-    "long": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}} AG",
-    "short": "{{s&s-month:abbr}} {{day}}",
-    "date": "{{s&s-weekday:name}}, {{s&s-day:ordinal}} {{s&s-month:name}} {{year}} AG",
-    "time": "{{s&s-hour:pad}}:{{s&s-minute:pad}}:{{s&s-second:pad}} GST",
-    "datetime": "{{s&s-dateFmt:date}} at {{s&s-dateFmt:time}}",
-    "standard": "{{day}}/{{month}}/{{year}} AG",
-    "formal": "The {{s&s-day:ordinal}} day of {{s&s-month:name}}, in the year {{year}} After the Gap",
-    "starship": "Stardate {{year}}.{{s&s-month:pad}}{{s&s-day:pad}}",
+    "galactic": "{{year}}.{{ss-month format=\"pad\"}}.{{ss-day format=\"pad\"}} AG",
+    "pact": "{{ss-month format=\"abbr\"}} {{ss-day}}, {{year}} AG",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} AG",
+    "short": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+    "date": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} AG",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}} GST",
+    "datetime": "{{ss-dateFmt formatName=\"date\"}} at {{ss-dateFmt formatName=\"time\"}}",
+    "standard": "{{ss-day}}/{{ss-month}}/{{year}} AG",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, in the year {{year}} After the Gap",
+    "starship": "Stardate {{year}}.{{ss-month format=\"pad\"}}{{ss-day format=\"pad\"}}",
     "widgets": {
-      "mini": "{{s&s-month:abbr}} {{day}}",
-      "main": "{{s&s-weekday:abbr}}, {{s&s-day:ordinal}} {{s&s-month:name}}",
-      "grid": "{{day}}"
+      "mini": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}"
     }
   }
 }

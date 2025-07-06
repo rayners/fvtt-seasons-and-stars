@@ -5,7 +5,14 @@
  * added in the prevent-seasons-warning-loop branch.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Use real TestLogger instead of mocks for better testing
+import { TestLogger } from './utils/test-logger';
+vi.mock('../src/core/logger', () => ({
+  Logger: TestLogger,
+}));
+
 import {
   resetSeasonsWarningState,
   getSeasonsWarningState,
@@ -38,19 +45,26 @@ const mockHooks = {
 globalThis.game = mockGame;
 globalThis.Hooks = mockHooks;
 
-// Mock the calendar manager to avoid complex dependencies
-const mockCalendarManager = {
-  getActiveCalendar: vi.fn(),
-  getCalendar: vi.fn(),
-  getActiveEngine: vi.fn(),
-  loadBuiltInCalendars: vi.fn().mockResolvedValue(undefined),
-  completeInitialization: vi.fn().mockResolvedValue(undefined),
-};
+// Import real CalendarManager for better testing
+import { CalendarManager } from '../src/core/calendar-manager';
+import { mockStandardCalendar } from './mocks/calendar-mocks';
 
 // Mock components to prevent side effects during module import
-vi.mock('../src/core/calendar-manager', () => ({
-  CalendarManager: vi.fn().mockImplementation(() => mockCalendarManager),
-}));
+vi.mock('../src/core/calendar-manager', () => {
+  const { CalendarManager: RealCalendarManager } = vi.importActual(
+    '../src/core/calendar-manager'
+  ) as any;
+
+  return {
+    CalendarManager: vi.fn().mockImplementation(() => {
+      const manager = new RealCalendarManager();
+      // Setup test calendar without requiring full initialization
+      manager.calendars.set(mockStandardCalendar.id, mockStandardCalendar);
+      (manager as any).activeCalendarId = mockStandardCalendar.id;
+      return manager;
+    }),
+  };
+});
 
 vi.mock('../src/core/notes-manager', () => ({
   NotesManager: vi.fn().mockImplementation(() => ({
@@ -93,13 +107,29 @@ vi.mock('../src/ui/scene-controls', () => ({
   },
 }));
 
+// Test calendar without seasons
+const calendarWithoutSeasons = {
+  id: 'test-no-seasons',
+  name: 'Test Calendar No Seasons',
+  year: { epoch: 0, currentYear: 2024 },
+  months: [
+    { name: 'January', days: 31 },
+    { name: 'February', days: 28 },
+  ],
+  weekdays: [{ name: 'Sunday' }, { name: 'Monday' }],
+  intercalary: [],
+  time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+  // No seasons property
+};
+
 describe('Seasons Warning State Management Functions', () => {
   beforeEach(() => {
     // Reset state before each test
     resetSeasonsWarningState();
 
-    // Reset all mocks
+    // Reset all mocks and clear test logger
     vi.clearAllMocks();
+    TestLogger.clearLogs();
   });
 
   afterEach(() => {
@@ -154,9 +184,19 @@ describe('Seasons Warning State Management Functions', () => {
     expect(setupAPI).toBeDefined();
     expect(typeof setupAPI).toBe('function');
 
-    // Setup minimal mocks needed for setupAPI
+    // Setup minimal mocks needed for setupAPI with real CalendarManager
+    const realManager = {
+      calendars: new Map(),
+      engines: new Map(),
+      getActiveCalendar: vi.fn().mockReturnValue(mockStandardCalendar),
+      getActiveEngine: vi.fn(),
+      loadBuiltInCalendars: vi.fn().mockResolvedValue(undefined),
+      completeInitialization: vi.fn().mockResolvedValue(undefined),
+    };
+    realManager.calendars.set(mockStandardCalendar.id, mockStandardCalendar);
+
     mockGame.seasonsStars = {
-      manager: mockCalendarManager,
+      manager: realManager,
     };
 
     // Should be able to call setupAPI without throwing

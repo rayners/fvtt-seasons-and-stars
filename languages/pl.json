@@ -1,0 +1,75 @@
+{
+  "SEASONS_STARS": {
+    "module_title": "Seasons & Stars",
+    "calendar": {
+      "current_date": "Bieżąca data",
+      "toggle_calendar": "Przełączanie kalendarza",
+      "monthly_view": "Kalendarz miesięczny",
+      "advance_time": "Przesuń czas",
+      "calendar_selection": "Wybór kalendarza",
+      "calendar_format": "Format kalendarza",
+      "custom": "Kalendarz niestandardowy",
+      "import": "Importuj kalendarz",
+      "export": "Eksportuj kalendarz",
+      "months": "Miesiące",
+      "days_per_week": "Dni w tygodniu",
+      "leap_year": "Rok przestępny",
+      "enabled": "Włączone"
+    },
+    "dialog": {
+      "calendar_selection": {
+        "title": "📅 Zmiana systemu kalendarza",
+        "choose_calendar": "Wybierz swój system kalendarza",
+        "choose_hint": "Wybierz system kalendarza, który będzie używany do wyświetlania dat i śledzenia czasu w twoim świecie. Wpływa to na sposób wyświetlania i obliczania dat w całej grze.",
+        "select": "Użyj tego kalendarza",
+        "cancel": "Zachowaj bieżący stan",
+        "switch_to": "Przełącz na {calendar}",
+        "current": "Obecnie aktywny",
+        "sample": "Próbka",
+        "preview": "Podgląd",
+        "preview_tooltip": "Zobacz szczegóły kalendarza i przykładowe daty",
+        "sample_dates": "Przykładowe daty",
+        "structure": "Struktura kalendarza",
+        "no_calendars": "Brak dostępnych kalendarzy",
+        "no_calendars_hint": "Nie znaleziono plików kalendarza. Upewnij się, że dane kalendarza są prawidłowo zainstalowane."
+      },
+      "calendar_preview": {
+        "title": "Podgląd kalendarza: {calendar}"
+      },
+      "close": "Zamknij"
+    },
+    "settings": {
+      "active_calendar": "📅 Aktywny system kalendarza",
+      "active_calendar_hint": "Wybór systemu kalendarza używanego do wyświetlania daty i śledzenia czasu. Jest to podstawowe ustawienie służące do konfigurowania kalendarza świata.",
+      "current_date": "Bieżąca data",
+      "current_date_hint": "Bieżąca data w grze (zarządzana automatycznie)",
+      "default_widget": "🔧 Domyślny widżet kalendarza",
+      "default_widget_hint": "Wybór widżetu kalendarza otwieranego przy użyciu przycisku sterowania sceną lub domyślnego skrótu klawiaturowego (Alt+S)",
+      "default_widget_main": "Główny widżet kalendarza",
+      "default_widget_mini": "Mini widget kalendarza",
+      "default_widget_grid": "Widżet siatki kalendarza"
+    },
+    "notifications": {
+      "calendar_changed": "Kalendarz został zmieniony na {calendar}"
+    },
+    "warnings": {
+      "no_calendars_available": "Brak dostępnych kalendarzy do wyboru"
+    },
+    "keybindings": {
+      "toggle_default_widget": "Przełączanie domyślnego widżetu kalendarza",
+      "toggle_default_widget_hint": "Pokaż lub ukryj domyślny widżet kalendarza (konfigurowalne w ustawieniach)",
+      "toggle_mini_widget": "Przełączanie mini widżetu kalendarza",
+      "toggle_mini_widget_hint": "Wyświetlanie lub ukrywanie widżetu kalendarza kompaktowego",
+      "toggle_grid_widget": "Przełączanie widżetu siatki kalendarza",
+      "toggle_grid_widget_hint": "Wyświetlanie lub ukrywanie widżetu siatki kalendarza miesięcznego",
+      "toggle_main_widget": "Przełączanie głównego widżetu kalendarza",
+      "toggle_main_widget_hint": "Wyświetlanie lub ukrywanie głównego widżetu zarządzania kalendarzem"
+    },
+    "errors": {
+      "invalid_calendar": "Nieprawidłowy format kalendarza",
+      "failed_load": "Nie udało się załadować kalendarza: {error}",
+      "conversion_failed": "Konwersja kalendarza nie powiodła się: {error}",
+      "manager_not_ready": "Menedżer kalendarza nie jest jeszcze gotowy"
+    }
+  }
+}

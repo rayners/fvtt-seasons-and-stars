@@ -1,4 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Use real TestLogger instead of mocks for better testing
+import { TestLogger } from './utils/test-logger';
+vi.mock('../src/core/logger', () => ({
+  Logger: TestLogger,
+}));
+
 import { CalendarManager } from '../src/core/calendar-manager';
 
 // Mock foundry environment and dependencies
@@ -19,16 +26,6 @@ vi.stubGlobal('fetch', vi.fn());
 // Mock the built-in calendars list to include gregorian and variants
 vi.mock('../src/generated/calendar-list', () => ({
   BUILT_IN_CALENDARS: ['gregorian', 'gregorian-star-trek-variants'],
-}));
-
-// Mock Logger
-vi.mock('../src/core/logger', () => ({
-  Logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  },
 }));
 
 // Mock CalendarValidator
@@ -59,6 +56,7 @@ describe('External Calendar Variants System', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    TestLogger.clearLogs();
 
     // Mock responses for different calendar files
     vi.mocked(fetch).mockImplementation((url: string) => {

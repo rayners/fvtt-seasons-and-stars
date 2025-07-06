@@ -27,14 +27,26 @@ export class CalendarDate implements ICalendarDate {
   private formatter: DateFormatter;
 
   constructor(data: CalendarDateData, calendar: SeasonsStarsCalendar) {
-    this.year = data.year;
-    this.month = data.month;
-    this.day = data.day;
-    this.weekday = data.weekday;
-    this.intercalary = data.intercalary;
-    this.time = data.time;
-    this.calendar = calendar;
-    this.formatter = new DateFormatter(calendar);
+    try {
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid calendar date data provided');
+      }
+      if (!calendar || typeof calendar !== 'object') {
+        throw new Error('Invalid calendar provided');
+      }
+
+      this.year = data.year;
+      this.month = data.month;
+      this.day = data.day;
+      this.weekday = data.weekday;
+      this.intercalary = data.intercalary;
+      this.time = data.time;
+      this.calendar = calendar;
+      this.formatter = new DateFormatter(calendar);
+    } catch (error) {
+      console.debug('[S&S] Error creating CalendarDate:', error);
+      throw error;
+    }
   }
 
   /**
@@ -75,8 +87,10 @@ export class CalendarDate implements ICalendarDate {
     }
 
     if (includeTime) {
-      possibleNames.unshift(...possibleNames.map((name: string) => `${name}Time`));
-      possibleNames.unshift('datetime', 'timestamp');
+      // Add specific time variants first (e.g., shortTime, longTime)
+      const timeVariants = possibleNames.map(name => `${name}Time`);
+      // Add generic time formats last
+      possibleNames.unshift(...timeVariants, 'datetime', 'timestamp');
     }
 
     // Check if any of these formats exist in calendar
@@ -113,19 +127,19 @@ export class CalendarDate implements ICalendarDate {
     // Add weekday if requested
     if (includeWeekday) {
       if (format === 'short') {
-        parts.push('{{weekday:abbr}}');
+        parts.push('{{ss-weekday format="abbr"}}');
       } else {
-        parts.push('{{weekday:name}}');
+        parts.push('{{ss-weekday format="name"}}');
       }
     }
 
     // Add day and month
     if (format === 'numeric') {
-      parts.push('{{month}}/{{day}}');
+      parts.push('{{ss-month}}/{{ss-day}}');
     } else if (format === 'short') {
-      parts.push('{{day}} {{month:abbr}}');
+      parts.push('{{ss-day}} {{ss-month format="abbr"}}');
     } else {
-      parts.push('{{day:ordinal}} {{month:name}}');
+      parts.push('{{ss-day format="ordinal"}} {{ss-month format="name"}}');
     }
 
     // Add year if requested
@@ -135,7 +149,7 @@ export class CalendarDate implements ICalendarDate {
 
     // Add time if requested
     if (includeTime && this.time) {
-      parts.push('{{hour:pad}}:{{minute:pad}}:{{second:pad}}');
+      parts.push('{{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}}');
     }
 
     return parts.join(', ');
@@ -163,7 +177,8 @@ export class CalendarDate implements ICalendarDate {
         includeWeekday: false,
         format: 'short',
       });
-    } catch {
+    } catch (error) {
+      console.debug('[S&S] Error formatting short date string:', error);
       return `${this.day} ${this.getMonthName('short')} ${this.getYearString()}`;
     }
   }
@@ -196,7 +211,8 @@ export class CalendarDate implements ICalendarDate {
         includeYear: true,
         format: 'long',
       });
-    } catch {
+    } catch (error) {
+      console.debug('[S&S] Error formatting long date string:', error);
       const weekdayName = this.getWeekdayName('long');
       const monthName = this.getMonthName('long');
       const dayOrdinal = this.getDayString('long');
@@ -233,7 +249,8 @@ export class CalendarDate implements ICalendarDate {
         includeYear: true,
         format: 'long',
       });
-    } catch {
+    } catch (error) {
+      console.debug('[S&S] Error formatting date string:', error);
       const weekdayName = this.getWeekdayName('long');
       const monthName = this.getMonthName('long');
       const dayOrdinal = this.getDayString('long');
@@ -260,82 +277,141 @@ export class CalendarDate implements ICalendarDate {
     }
 
     // Fallback to template-based time format
-    return this.formatter.format(this, '{{hour:pad}}:{{minute:pad}}:{{second:pad}}');
+    return this.formatter.format(
+      this,
+      '{{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}}'
+    );
   }
 
   /**
    * Get the weekday name
    */
   private getWeekdayName(format: 'short' | 'long' | 'numeric'): string {
-    const weekday = this.calendar.weekdays[this.weekday];
-    if (!weekday) return 'Unknown';
+    try {
+      const weekday = this.calendar.weekdays?.[this.weekday];
+      if (!weekday) {
+        console.debug(`[S&S] Invalid weekday index: ${this.weekday}`);
+        return 'Unknown';
+      }
 
-    if (format === 'short' && weekday.abbreviation) {
-      return weekday.abbreviation;
+      if (format === 'short' && weekday.abbreviation) {
+        return weekday.abbreviation;
+      }
+
+      return weekday.name || 'Unknown';
+    } catch (error) {
+      console.debug('[S&S] Error getting weekday name:', error);
+      return 'Unknown';
     }
-
-    return weekday.name;
   }
 
   /**
    * Get the month name
    */
   private getMonthName(format: 'short' | 'long' | 'numeric'): string {
-    const month = this.calendar.months[this.month - 1];
-    if (!month) return 'Unknown';
+    try {
+      const month = this.calendar.months?.[this.month - 1];
+      if (!month) {
+        console.debug(`[S&S] Invalid month index: ${this.month}`);
+        return 'Unknown';
+      }
 
-    if (format === 'short' && month.abbreviation) {
-      return month.abbreviation;
+      if (format === 'short' && month.abbreviation) {
+        return month.abbreviation;
+      }
+
+      return month.name || 'Unknown';
+    } catch (error) {
+      console.debug('[S&S] Error getting month name:', error);
+      return 'Unknown';
     }
-
-    return month.name;
   }
 
   /**
    * Get the day string with appropriate suffix
    */
   private getDayString(format: 'short' | 'long' | 'numeric'): string {
-    if (format === 'numeric') {
+    try {
+      if (typeof this.day !== 'number' || this.day < 1) {
+        console.debug(`[S&S] Invalid day value: ${this.day}`);
+        return '1';
+      }
+
+      if (format === 'numeric') {
+        return this.day.toString();
+      }
+
+      // Add ordinal suffix for long format
+      if (format === 'long') {
+        return this.addOrdinalSuffix(this.day);
+      }
+
       return this.day.toString();
+    } catch (error) {
+      console.debug('[S&S] Error formatting day string:', error);
+      return '1';
     }
-
-    // Add ordinal suffix for long format
-    if (format === 'long') {
-      return this.addOrdinalSuffix(this.day);
-    }
-
-    return this.day.toString();
   }
 
   /**
    * Get the year string with prefix/suffix
    */
   private getYearString(): string {
-    const { prefix, suffix } = this.calendar.year;
-    return `${prefix}${this.year}${suffix}`.trim();
+    try {
+      if (typeof this.year !== 'number') {
+        console.debug(`[S&S] Invalid year value: ${this.year}`);
+        return '1';
+      }
+
+      const { prefix = '', suffix = '' } = this.calendar.year || {};
+      return `${prefix}${this.year}${suffix}`.trim();
+    } catch (error) {
+      console.debug('[S&S] Error formatting year string:', error);
+      return this.year?.toString() || '1';
+    }
   }
 
   /**
    * Get the time string
    */
   private getTimeString(): string {
-    if (!this.time) return '';
+    try {
+      if (!this.time) return '';
 
-    const { hour, minute, second } = this.time;
+      const { hour, minute, second } = this.time;
 
-    // Use 24-hour format by default
-    const hourStr = CalendarTimeUtils.formatTimeComponent(hour);
-    const minuteStr = CalendarTimeUtils.formatTimeComponent(minute);
-    const secondStr = CalendarTimeUtils.formatTimeComponent(second);
+      // Validate time components
+      if (typeof hour !== 'number' || typeof minute !== 'number' || typeof second !== 'number') {
+        console.debug(`[S&S] Invalid time components:`, { hour, minute, second });
+        return '00:00:00';
+      }
 
-    return `${hourStr}:${minuteStr}:${secondStr}`;
+      // Use 24-hour format by default
+      const hourStr = CalendarTimeUtils.formatTimeComponent(hour);
+      const minuteStr = CalendarTimeUtils.formatTimeComponent(minute);
+      const secondStr = CalendarTimeUtils.formatTimeComponent(second);
+
+      return `${hourStr}:${minuteStr}:${secondStr}`;
+    } catch (error) {
+      console.debug('[S&S] Error formatting time string:', error);
+      return '00:00:00';
+    }
   }
 
   /**
    * Add ordinal suffix to a number (1st, 2nd, 3rd, etc.)
    */
   private addOrdinalSuffix(num: number): string {
-    return CalendarTimeUtils.addOrdinalSuffix(num);
+    try {
+      if (typeof num !== 'number' || num < 1) {
+        console.debug(`[S&S] Invalid number for ordinal suffix: ${num}`);
+        return '1st';
+      }
+      return CalendarTimeUtils.addOrdinalSuffix(num);
+    } catch (error) {
+      console.debug('[S&S] Error adding ordinal suffix:', error);
+      return `${num || 1}th`;
+    }
   }
 
   /**
@@ -359,18 +435,28 @@ export class CalendarDate implements ICalendarDate {
    * Compare this date with another date
    */
   compareTo(other: CalendarDateData): number {
-    if (this.year !== other.year) return this.year - other.year;
-    if (this.month !== other.month) return this.month - other.month;
-    if (this.day !== other.day) return this.day - other.day;
+    try {
+      if (!other || typeof other !== 'object') {
+        console.debug('[S&S] Invalid date data provided for comparison:', other);
+        return 0;
+      }
 
-    // Compare time if both have it
-    if (this.time && other.time) {
-      if (this.time.hour !== other.time.hour) return this.time.hour - other.time.hour;
-      if (this.time.minute !== other.time.minute) return this.time.minute - other.time.minute;
-      if (this.time.second !== other.time.second) return this.time.second - other.time.second;
+      if (this.year !== other.year) return this.year - other.year;
+      if (this.month !== other.month) return this.month - other.month;
+      if (this.day !== other.day) return this.day - other.day;
+
+      // Compare time if both have it
+      if (this.time && other.time) {
+        if (this.time.hour !== other.time.hour) return this.time.hour - other.time.hour;
+        if (this.time.minute !== other.time.minute) return this.time.minute - other.time.minute;
+        if (this.time.second !== other.time.second) return this.time.second - other.time.second;
+      }
+
+      return 0;
+    } catch (error) {
+      console.debug('[S&S] Error comparing dates:', error);
+      return 0;
     }
-
-    return 0;
   }
 
   /**
