@@ -24,11 +24,11 @@ async function getAjvValidators() {
     // Dynamic import to handle different AJV versions
     const Ajv = (await import('ajv')).default;
     ajvInstance = new Ajv({ allErrors: true, verbose: true });
-    
+
     try {
       const addFormats = (await import('ajv-formats')).default;
       addFormats(ajvInstance);
-    } catch (error) {
+    } catch {
       // ajv-formats is optional
       console.warn('ajv-formats not available, some validations may be limited');
     }
@@ -38,7 +38,7 @@ async function getAjvValidators() {
     validateVariants = ajvInstance.compile(variantsSchema);
     validateCollection = ajvInstance.compile(collectionSchema);
   }
-  
+
   return { validateCalendar, validateVariants, validateCollection };
 }
 
@@ -63,11 +63,11 @@ export class CalendarValidator {
     try {
       // Get validators
       const validators = await getAjvValidators();
-      
+
       // Determine schema type based on structure
       let validator: any;
       let schemaType: string;
-      
+
       if (calendar.baseCalendar && calendar.variants) {
         // External variants file
         validator = validators.validateVariants;
@@ -84,7 +84,7 @@ export class CalendarValidator {
 
       // Run JSON schema validation
       const isValid = validator(calendar);
-      
+
       if (!isValid && validator.errors) {
         // Convert AJV errors to our format
         for (const error of validator.errors) {
@@ -106,7 +106,6 @@ export class CalendarValidator {
 
       result.isValid = result.errors.length === 0;
       return result;
-      
     } catch (error) {
       // Fallback to non-schema validation if AJV fails
       console.warn('Schema validation failed, falling back to legacy validation:', error);
@@ -168,7 +167,7 @@ export class CalendarValidator {
   /**
    * Additional variants-specific validations not covered by JSON schema
    */
-  private static validateVariantsSpecific(calendar: any, result: ValidationResult): void {
+  private static validateVariantsSpecific(_calendar: any, _result: ValidationResult): void {
     // Add any variants-specific cross-reference validations here
     // Currently, the JSON schema handles most validation
   }
