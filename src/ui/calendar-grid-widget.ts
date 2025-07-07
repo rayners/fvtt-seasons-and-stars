@@ -6,6 +6,7 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarWidgetManager } from './widget-manager';
 import { CalendarDate } from '../core/calendar-date';
 import { Logger } from '../core/logger';
+import { templateContextProviders } from '../core/template-context-provider';
 import type { NoteCategories } from '../core/note-categories';
 import type { CreateNoteData } from '../core/notes-manager';
 import type {
@@ -147,7 +148,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       uiHint = 'Click dates to view details.';
     }
 
-    return Object.assign(context, {
+    // Build core context
+    const coreContext = {
       calendar: calendarInfo,
       viewDate: this.viewDate,
       currentDate: currentDate.toObject(),
@@ -163,7 +165,35 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         abbreviation: wd.abbreviation,
         description: wd.description,
       })),
-    });
+    };
+
+    // Merge with base context
+    const baseContext = Object.assign(context, coreContext);
+
+    // Apply context providers for additional template data
+    // Use the current view date for context providers instead of current date
+    const viewDateCalendarDate = new CalendarDate(this.viewDate, activeCalendar);
+    
+    try {
+      const extendedContext = await templateContextProviders.mergeContext(
+        'grid',
+        baseContext,
+        activeCalendar,
+        viewDateCalendarDate
+      );
+
+      Logger.debug('Grid widget context prepared with providers', {
+        providerCount: templateContextProviders.getProvidersFor('grid').length,
+        contextKeys: Object.keys(extendedContext),
+        viewDate: this.viewDate,
+      });
+
+      return extendedContext;
+    } catch (error) {
+      Logger.error('Error applying template context providers to grid widget:', error instanceof Error ? error : new Error(String(error)));
+      // Fallback to core context if providers fail
+      return baseContext;
+    }
   }
 
   /**

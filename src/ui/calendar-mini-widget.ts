@@ -6,6 +6,7 @@ import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
+import { templateContextProviders } from '../core/template-context-provider';
 import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
@@ -86,7 +87,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Check if SmallTime is available and active
     const hasSmallTime = SmallTimeUtils.isSmallTimeAvailable();
 
-    return Object.assign(context, {
+    // Build core context
+    const coreContext = {
       shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
       showTimeControls: !hasSmallTime && (game.user?.isGM || false),
@@ -98,7 +100,31 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       },
       currentDate: currentDate.toObject(),
       formattedDate: currentDate.toLongString(),
-    }) as MiniWidgetContext;
+    };
+
+    // Merge with base context
+    const baseContext = Object.assign(context, coreContext);
+
+    // Apply context providers for additional template data
+    try {
+      const extendedContext = await templateContextProviders.mergeContext(
+        'mini',
+        baseContext,
+        activeCalendar,
+        currentDate as any // CalendarDate from manager is compatible
+      );
+
+      Logger.debug('Mini widget context prepared with providers', {
+        providerCount: templateContextProviders.getProvidersFor('mini').length,
+        contextKeys: Object.keys(extendedContext),
+      });
+
+      return extendedContext as MiniWidgetContext;
+    } catch (error) {
+      Logger.error('Error applying template context providers to mini widget:', error instanceof Error ? error : new Error(String(error)));
+      // Fallback to core context if providers fail
+      return baseContext as MiniWidgetContext;
+    }
   }
 
   /**
