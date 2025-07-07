@@ -614,12 +614,15 @@ export class CalendarManager {
   /**
    * Load a calendar from an external URL
    */
-  async loadCalendarFromUrl(url: string, options?: { validate?: boolean; cache?: boolean }): Promise<LoadResult> {
+  async loadCalendarFromUrl(
+    url: string,
+    options?: { validate?: boolean; cache?: boolean }
+  ): Promise<LoadResult> {
     Logger.info(`Loading calendar from URL: ${url}`);
 
     const result = await this.calendarLoader.loadFromUrl(url, {
       validate: options?.validate !== false,
-      cache: options?.cache !== false
+      cache: options?.cache !== false,
     });
 
     if (result.success && result.calendar) {
@@ -629,7 +632,7 @@ export class CalendarManager {
         return {
           ...result,
           success: false,
-          error: 'Calendar loaded from URL but failed validation in CalendarManager'
+          error: 'Calendar loaded from URL but failed validation in CalendarManager',
         };
       }
 
@@ -658,12 +661,15 @@ export class CalendarManager {
   /**
    * Load multiple calendars from a collection URL
    */
-  async loadCalendarCollection(url: string, options?: { validate?: boolean; cache?: boolean }): Promise<LoadResult[]> {
+  async loadCalendarCollection(
+    url: string,
+    options?: { validate?: boolean; cache?: boolean }
+  ): Promise<LoadResult[]> {
     Logger.info(`Loading calendar collection from URL: ${url}`);
 
     const results = await this.calendarLoader.loadCollection(url, {
       validate: options?.validate !== false,
-      cache: options?.cache !== false
+      cache: options?.cache !== false,
     });
 
     let successCount = 0;
@@ -742,14 +748,14 @@ export class CalendarManager {
     if (!source) {
       return {
         success: false,
-        error: `External source not found: ${sourceId}`
+        error: `External source not found: ${sourceId}`,
       };
     }
 
     if (!source.enabled) {
       return {
         success: false,
-        error: `External source is disabled: ${source.name}`
+        error: `External source is disabled: ${source.name}`,
       };
     }
 
@@ -761,11 +767,11 @@ export class CalendarManager {
       const results = await this.loadCalendarCollection(source.url);
       // Return summary result for collection
       const successCount = results.filter(r => r.success).length;
-      
+
       return {
         success: successCount > 0,
         error: successCount === 0 ? 'All calendars in collection failed to load' : undefined,
-        sourceUrl: source.url
+        sourceUrl: source.url,
       };
     } else {
       return await this.loadCalendarFromUrl(source.url);
@@ -788,13 +794,15 @@ export class CalendarManager {
         results[source.id] = {
           success: false,
           error: error instanceof Error ? error.message : 'Unknown error',
-          sourceUrl: source.url
+          sourceUrl: source.url,
         };
       }
     }
 
     const successCount = Object.values(results).filter(r => r.success).length;
-    Logger.info(`External calendar refresh completed: ${successCount}/${sources.length} successful`);
+    Logger.info(
+      `External calendar refresh completed: ${successCount}/${sources.length} successful`
+    );
 
     return results;
   }

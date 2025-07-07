@@ -64,9 +64,20 @@ export interface SeasonsStarsAPI {
   dateToWorldTime(date: CalendarDate, calendarId?: string): number;
   worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate;
   // External Calendar Loading Methods
-  loadCalendarFromUrl(url: string, options?: { validate?: boolean; cache?: boolean }): Promise<LoadResult>;
-  loadCalendarCollection(url: string, options?: { validate?: boolean; cache?: boolean }): Promise<LoadResult[]>;
-  addExternalSource(source: { name: string; url: string; enabled: boolean; type: 'calendar' | 'collection' | 'variants' }): string;
+  loadCalendarFromUrl(
+    url: string,
+    options?: { validate?: boolean; cache?: boolean }
+  ): Promise<LoadResult>;
+  loadCalendarCollection(
+    url: string,
+    options?: { validate?: boolean; cache?: boolean }
+  ): Promise<LoadResult[]>;
+  addExternalSource(source: {
+    name: string;
+    url: string;
+    enabled: boolean;
+    type: 'calendar' | 'collection' | 'variants';
+  }): string;
   removeExternalSource(sourceId: string): boolean;
   getExternalSources(): ExternalCalendarSource[];
   getExternalSource(sourceId: string): ExternalCalendarSource | undefined;
