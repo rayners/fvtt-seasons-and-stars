@@ -30,3 +30,4 @@ jobs:
           coverage-node-version: '18'
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
           junit-output: true
+          test-command: 'npm run validate'
