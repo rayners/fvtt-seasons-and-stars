@@ -15,7 +15,7 @@ Validates individual calendar JSON files including:
 - **Extensions**: `worldTime`, `compatibility`, `variants`, `extensions` support
 - **Format Validation**: Date format templates, localization structure
 
-**Current Validation Rate**: 63% (10/16 built-in calendars pass)
+**Validation Coverage**: Validates all built-in calendar formats
 
 ### Calendar Collection Index Schema (`calendar-collection-v1.0.0.json`)
 
@@ -47,7 +47,7 @@ npm run validate:calendars
 
 # Example output:
 # ✅ gregorian.json
-# ✅ forgotten-realms.json  
+# ✅ forgotten-realms.json
 # ❌ eberron.json
 #    ❌ root: should match exactly one schema in oneOf
 ```
@@ -85,7 +85,7 @@ Add `$schema` property to your JSON files for real-time validation:
     "en": {
       "label": "My Custom Calendar"
     }
-  },
+  }
   // ... rest of calendar definition
 }
 ```
@@ -142,13 +142,14 @@ Add `$schema` property to your JSON files for real-time validation:
 - Extension and compatibility framework support
 - Multi-language localization validation
 
-### Known Limitations
+### Implementation Notes
 
-- Some complex dateFormat patterns need refinement
-- Additional properties in 6 calendars not yet covered by schema
-- Enum validation for worldTime interpretation values needs expansion
+- **Runtime Performance**: Schemas are compiled once and cached for optimal validation speed
+- **Bundle Impact**: AJV dependency provides comprehensive validation capabilities
+- **Error Messages**: Detailed field-level validation errors with specific failure reasons
+- **Backward Compatibility**: Graceful fallback to legacy validation preserves existing behavior
 
-### Future Enhancements
+### Planned Schema Enhancements
 
 - Enhanced astronomical calculations validation
 - Multi-calendar system support validation
@@ -160,7 +161,7 @@ Add `$schema` property to your JSON files for real-time validation:
 Schemas follow semantic versioning with these guidelines:
 
 - **Major version** (1.x.x → 2.x.x): Breaking changes to required fields or data types
-- **Minor version** (x.1.x → x.2.x): New optional fields or relaxed constraints  
+- **Minor version** (x.1.x → x.2.x): New optional fields or relaxed constraints
 - **Patch version** (x.x.1 → x.x.2): Bug fixes or improved error messages
 
 **Current version**: v1.0.0
@@ -174,4 +175,4 @@ When updating schemas:
 3. **Documentation**: Update validation rules and examples in this README
 4. **Version Management**: Follow semantic versioning for schema changes
 
-All schemas are available via stable GitHub URLs that point to the latest version of each schema file.
+Schemas are published via GitHub URLs for stable access to versioned schema files.
