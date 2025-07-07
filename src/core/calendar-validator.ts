@@ -2,10 +2,7 @@
  * Calendar JSON format validation for Seasons & Stars using JSON schemas
  */
 
-// Import schema files
-import calendarSchema from '../../schemas/calendar-v1.0.0.json';
-import variantsSchema from '../../schemas/calendar-variants-v1.0.0.json';
-import collectionSchema from '../../schemas/calendar-collection-v1.0.0.json';
+// Schema files will be loaded dynamically from the module
 
 export interface ValidationResult {
   isValid: boolean;
@@ -24,13 +21,52 @@ async function getAjvValidators() {
     // Dynamic import to handle different AJV versions
     const Ajv = (await import('ajv')).default;
     ajvInstance = new Ajv({ allErrors: true, verbose: true });
-    
+
     try {
       const addFormats = (await import('ajv-formats')).default;
       addFormats(ajvInstance);
-    } catch (error) {
+    } catch {
       // ajv-formats is optional
       console.warn('ajv-formats not available, some validations may be limited');
+    }
+
+    // Load schemas based on environment
+    let calendarSchema, variantsSchema, collectionSchema;
+
+    if (typeof window !== 'undefined') {
+      // Browser environment - use FoundryVTT module paths
+      const moduleId = 'seasons-and-stars';
+      const basePath = `modules/${moduleId}/schemas`;
+
+      [calendarSchema, variantsSchema, collectionSchema] = await Promise.all([
+        fetch(`${basePath}/calendar-v1.0.0.json`).then(r => r.json()),
+        fetch(`${basePath}/calendar-variants-v1.0.0.json`).then(r => r.json()),
+        fetch(`${basePath}/calendar-collection-v1.0.0.json`).then(r => r.json()),
+      ]);
+    } else {
+      // Node.js environment - use dynamic imports from filesystem
+      const fs = await import('fs');
+      const path = await import('path');
+
+      // Find the project root by looking for package.json
+      let currentDir = process.cwd();
+      while (!fs.existsSync(path.join(currentDir, 'package.json'))) {
+        const parentDir = path.dirname(currentDir);
+        if (parentDir === currentDir) {
+          throw new Error('Could not find project root (package.json not found)');
+        }
+        currentDir = parentDir;
+      }
+
+      const schemasDir = path.join(currentDir, 'schemas');
+
+      [calendarSchema, variantsSchema, collectionSchema] = await Promise.all([
+        JSON.parse(fs.readFileSync(path.join(schemasDir, 'calendar-v1.0.0.json'), 'utf8')),
+        JSON.parse(fs.readFileSync(path.join(schemasDir, 'calendar-variants-v1.0.0.json'), 'utf8')),
+        JSON.parse(
+          fs.readFileSync(path.join(schemasDir, 'calendar-collection-v1.0.0.json'), 'utf8')
+        ),
+      ]);
     }
 
     // Compile schemas
@@ -38,7 +74,7 @@ async function getAjvValidators() {
     validateVariants = ajvInstance.compile(variantsSchema);
     validateCollection = ajvInstance.compile(collectionSchema);
   }
-  
+
   return { validateCalendar, validateVariants, validateCollection };
 }
 
@@ -63,11 +99,11 @@ export class CalendarValidator {
     try {
       // Get validators
       const validators = await getAjvValidators();
-      
+
       // Determine schema type based on structure
       let validator: any;
       let schemaType: string;
-      
+
       if (calendar.baseCalendar && calendar.variants) {
         // External variants file
         validator = validators.validateVariants;
@@ -84,7 +120,7 @@ export class CalendarValidator {
 
       // Run JSON schema validation
       const isValid = validator(calendar);
-      
+
       if (!isValid && validator.errors) {
         // Convert AJV errors to our format
         for (const error of validator.errors) {
@@ -106,7 +142,6 @@ export class CalendarValidator {
 
       result.isValid = result.errors.length === 0;
       return result;
-      
     } catch (error) {
       // Fallback to non-schema validation if AJV fails
       console.warn('Schema validation failed, falling back to legacy validation:', error);
@@ -168,7 +203,7 @@ export class CalendarValidator {
   /**
    * Additional variants-specific validations not covered by JSON schema
    */
-  private static validateVariantsSpecific(calendar: any, result: ValidationResult): void {
+  private static validateVariantsSpecific(_calendar: any, _result: ValidationResult): void {
     // Add any variants-specific cross-reference validations here
     // Currently, the JSON schema handles most validation
   }

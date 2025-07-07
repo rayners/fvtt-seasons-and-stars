@@ -47,7 +47,7 @@ npm run validate:calendars
 
 # Example output:
 # ✅ gregorian.json
-# ✅ forgotten-realms.json  
+# ✅ forgotten-realms.json
 # ❌ eberron.json
 #    ❌ root: should match exactly one schema in oneOf
 ```
@@ -85,7 +85,7 @@ Add `$schema` property to your JSON files for real-time validation:
     "en": {
       "label": "My Custom Calendar"
     }
-  },
+  }
   // ... rest of calendar definition
 }
 ```
@@ -148,6 +148,13 @@ Add `$schema` property to your JSON files for real-time validation:
 - Additional properties in 6 calendars not yet covered by schema
 - Enum validation for worldTime interpretation values needs expansion
 
+### Implementation Notes
+
+- **Runtime Performance**: Schemas are compiled once and cached for optimal validation speed
+- **Bundle Impact**: AJV dependency provides comprehensive validation capabilities
+- **Error Messages**: Detailed field-level validation errors with specific failure reasons
+- **Backward Compatibility**: Graceful fallback to legacy validation preserves existing behavior
+
 ### Future Enhancements
 
 - Enhanced astronomical calculations validation
@@ -160,7 +167,7 @@ Add `$schema` property to your JSON files for real-time validation:
 Schemas follow semantic versioning with these guidelines:
 
 - **Major version** (1.x.x → 2.x.x): Breaking changes to required fields or data types
-- **Minor version** (x.1.x → x.2.x): New optional fields or relaxed constraints  
+- **Minor version** (x.1.x → x.2.x): New optional fields or relaxed constraints
 - **Patch version** (x.x.1 → x.x.2): Bug fixes or improved error messages
 
 **Current version**: v1.0.0
