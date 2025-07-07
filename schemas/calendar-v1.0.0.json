@@ -1,0 +1,636 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/rayners/fvtt-seasons-and-stars/schemas/calendar-v1.0.0.json",
+  "title": "Seasons & Stars Calendar Schema",
+  "description": "JSON schema for Seasons & Stars calendar format v1.0.0",
+  "type": "object",
+  "required": ["id", "translations"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^([a-z0-9-]+[:/][a-z0-9-]+|[a-z0-9-]+)$",
+      "minLength": 1,
+      "maxLength": 50,
+      "description": "Unique identifier for the calendar (lowercase, numbers, and hyphens only, optionally namespaced with : or /)"
+    },
+    "translations": {
+      "type": "object",
+      "minProperties": 1,
+      "patternProperties": {
+        "^[a-z]{2}(-[A-Z]{2})?$": {
+          "type": "object",
+          "required": ["label"],
+          "additionalProperties": false,
+          "properties": {
+            "label": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "description": "Display name for the calendar"
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 500,
+              "description": "Optional description of the calendar"
+            },
+            "setting": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "Optional description for settings menu"
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Localization data with language codes (e.g., 'en', 'en-US')"
+    },
+    "year": {
+      "type": "object",
+      "required": ["epoch", "currentYear", "prefix", "suffix", "startDay"],
+      "additionalProperties": false,
+      "properties": {
+        "epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Starting year for calculations"
+        },
+        "currentYear": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Default current year"
+        },
+        "prefix": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Text before year number (e.g., 'Year ')"
+        },
+        "suffix": {
+          "type": "string",
+          "maxLength": 50,
+          "description": "Text after year number (e.g., ' CE')"
+        },
+        "startDay": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6,
+          "description": "Which weekday the epoch starts on (0-6)"
+        }
+      }
+    },
+    "months": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 24,
+      "description": "Array of month definitions",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "anyOf": [{ "required": ["length"] }, { "required": ["days"] }],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Name of the month"
+          },
+          "length": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "description": "Number of days in the month"
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "description": "Alternate field name for number of days in the month"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Optional description of the month"
+          },
+          "abbreviation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10,
+            "description": "Optional short form of the month name"
+          }
+        }
+      }
+    },
+    "weekdays": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 14,
+      "description": "Array of weekday definitions",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Name of the weekday"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Optional description of the weekday"
+          },
+          "abbreviation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10,
+            "description": "Optional short form of the weekday name"
+          }
+        }
+      }
+    },
+    "intercalary": {
+      "type": "array",
+      "description": "Special days outside the normal calendar structure",
+      "items": {
+        "type": "object",
+        "required": ["name", "after"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Name of the intercalary day"
+          },
+          "after": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Month name after which this day occurs"
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Number of days in the intercalary period"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Optional description of the intercalary day"
+          },
+          "leapYearOnly": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether this day only occurs in leap years"
+          },
+          "countsForWeekdays": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether this day counts for weekday calculations"
+          },
+          "month": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Month number where this intercalary day occurs"
+          },
+          "day": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Day number within the month where this intercalary day occurs"
+          }
+        }
+      }
+    },
+    "leapYear": {
+      "type": "object",
+      "required": ["rule"],
+      "additionalProperties": false,
+      "properties": {
+        "rule": {
+          "type": "string",
+          "enum": ["none", "gregorian", "custom"],
+          "description": "Leap year calculation rule"
+        },
+        "interval": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 1000,
+          "description": "For custom rules: interval between leap years"
+        },
+        "month": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50,
+          "description": "Which month gets extra days (must match a month name)"
+        },
+        "extraDays": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "How many extra days to add"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "rule": { "const": "custom" } }
+          },
+          "then": {
+            "required": ["interval"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "rule": { "enum": ["gregorian", "custom"] } }
+          },
+          "then": {
+            "properties": {
+              "month": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50,
+                "description": "Which month gets extra days (must match a month name)"
+              },
+              "extraDays": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10,
+                "description": "How many extra days to add"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "time": {
+      "type": "object",
+      "required": ["hoursInDay", "minutesInHour", "secondsInMinute"],
+      "additionalProperties": false,
+      "properties": {
+        "hoursInDay": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 48,
+          "description": "Number of hours in a day"
+        },
+        "minutesInHour": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120,
+          "description": "Number of minutes in an hour"
+        },
+        "secondsInMinute": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120,
+          "description": "Number of seconds in a minute"
+        }
+      }
+    },
+    "compatibility": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z0-9-]+$": {
+          "type": "object",
+          "properties": {
+            "weekdayOffset": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6,
+              "description": "Offset for weekday calculations"
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "Description of the compatibility adjustment"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false,
+      "description": "System-specific compatibility settings"
+    },
+    "variants": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z0-9-]+$": {
+          "type": "object",
+          "required": ["name"],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "description": "Display name for the variant"
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 500,
+              "description": "Description of the variant"
+            },
+            "default": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether this is the default variant"
+            },
+            "config": {
+              "type": "object",
+              "properties": {
+                "yearOffset": {
+                  "type": "integer",
+                  "description": "Year offset for calculations"
+                }
+              },
+              "additionalProperties": true,
+              "description": "Configuration options for the variant"
+            },
+            "overrides": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "year": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "prefix": { "type": "string", "maxLength": 50 },
+                    "suffix": { "type": "string", "maxLength": 50 },
+                    "epoch": { "type": "integer", "minimum": 0 },
+                    "currentYear": { "type": "integer", "minimum": 0 }
+                  }
+                },
+                "months": {
+                  "type": "object",
+                  "patternProperties": {
+                    "^.+$": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "name": { "type": "string", "minLength": 1, "maxLength": 50 },
+                        "description": { "type": "string", "maxLength": 500 },
+                        "abbreviation": { "type": "string", "minLength": 1, "maxLength": 10 }
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "weekdays": {
+                  "type": "object",
+                  "patternProperties": {
+                    "^.+$": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "name": { "type": "string", "minLength": 1, "maxLength": 50 },
+                        "description": { "type": "string", "maxLength": 500 },
+                        "abbreviation": { "type": "string", "minLength": 1, "maxLength": 10 }
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "moons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "dateFormats": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "description": "Property overrides for the variant"
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Inline calendar variants"
+    },
+    "worldTime": {
+      "type": "object",
+      "description": "World time interpretation settings for game system integration",
+      "additionalProperties": false,
+      "properties": {
+        "interpretation": {
+          "type": "string",
+          "enum": ["epoch-based", "direct", "custom", "real-time-based"],
+          "description": "How to interpret game.time.worldTime values"
+        },
+        "epochYear": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Year that corresponds to worldTime 0"
+        },
+        "currentYear": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Current year in the calendar system"
+        },
+        "transform": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Custom transformation settings"
+        }
+      }
+    },
+    "seasons": {
+      "type": "array",
+      "description": "Optional seasonal definitions",
+      "items": {
+        "type": "object",
+        "required": ["name", "startMonth", "endMonth"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Name of the season"
+          },
+          "startMonth": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Starting month of the season (1-based)"
+          },
+          "endMonth": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Ending month of the season (1-based)"
+          },
+          "icon": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "Icon identifier for the season"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Description of the season"
+          }
+        }
+      }
+    },
+    "moons": {
+      "type": "array",
+      "description": "Optional celestial body definitions",
+      "items": {
+        "type": "object",
+        "required": ["name", "cycleLength"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Name of the celestial body"
+          },
+          "cycleLength": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 1000,
+            "description": "Length of the cycle in days"
+          },
+          "firstNewMoon": {
+            "type": "object",
+            "required": ["year", "month", "day"],
+            "additionalProperties": false,
+            "properties": {
+              "year": { "type": "integer", "minimum": 1 },
+              "month": { "type": "integer", "minimum": 1 },
+              "day": { "type": "integer", "minimum": 1 }
+            },
+            "description": "Reference date for cycle calculations"
+          },
+          "phases": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "length"],
+              "additionalProperties": false,
+              "properties": {
+                "name": { "type": "string", "minLength": 1, "maxLength": 50 },
+                "length": { "type": "number", "minimum": 0.1 },
+                "singleDay": { "type": "boolean", "default": false },
+                "icon": { "type": "string", "maxLength": 50 }
+              }
+            },
+            "description": "Moon phases configuration"
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "description": "Hex color code for the celestial body"
+          },
+          "translations": {
+            "type": "object",
+            "patternProperties": {
+              "^[a-z]{2}(-[A-Z]{2})?$": {
+                "type": "object",
+                "properties": {
+                  "description": { "type": "string", "maxLength": 500 }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false,
+            "description": "Localized descriptions for the celestial body"
+          }
+        }
+      }
+    },
+    "dateFormats": {
+      "type": "object",
+      "description": "Handlebars-based date formatting templates for different display contexts",
+      "patternProperties": {
+        "^[a-zA-Z0-9-_]+$": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500,
+              "description": "Handlebars template string for date formatting"
+            },
+            {
+              "type": "object",
+              "patternProperties": {
+                "^[a-zA-Z0-9-_]+$": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500,
+                      "description": "Named variant of the format"
+                    },
+                    {
+                      "type": "object",
+                      "patternProperties": {
+                        "^[a-zA-Z0-9-_]+$": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500,
+                          "description": "Nested format variant"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Object containing nested format variants"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "description": "Object containing named format variants"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "extensions": {
+      "type": "object",
+      "description": "Module-specific extensions and custom data",
+      "patternProperties": {
+        "^[a-z0-9-]+$": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Extension data organized by module identifier"
+        }
+      },
+      "additionalProperties": false
+    },
+    "baseCalendar": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "ID of the base calendar this calendar extends or variants from"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Human-readable name for the calendar or calendar collection"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Description of the calendar or calendar collection"
+    },
+    "author": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Author or creator of the calendar"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Version number in semantic versioning format"
+    }
+  }
+}

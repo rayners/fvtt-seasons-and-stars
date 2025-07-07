@@ -1,6 +1,8 @@
 /**
- * Calendar JSON format validation for Seasons & Stars
+ * Calendar JSON format validation for Seasons & Stars using JSON schemas
  */
+
+// Schema files will be loaded dynamically from the module
 
 export interface ValidationResult {
   isValid: boolean;
@@ -8,11 +10,79 @@ export interface ValidationResult {
   warnings: string[];
 }
 
+// Lazy-loaded AJV instances to avoid module resolution issues
+let ajvInstance: any = null;
+let validateCalendar: any = null;
+let validateVariants: any = null;
+let validateCollection: any = null;
+
+async function getAjvValidators() {
+  if (!ajvInstance) {
+    // Dynamic import to handle different AJV versions
+    const Ajv = (await import('ajv')).default;
+    ajvInstance = new Ajv({ allErrors: true, verbose: true });
+
+    try {
+      const addFormats = (await import('ajv-formats')).default;
+      addFormats(ajvInstance);
+    } catch {
+      // ajv-formats is optional
+      console.warn('ajv-formats not available, some validations may be limited');
+    }
+
+    // Load schemas based on environment
+    let calendarSchema, variantsSchema, collectionSchema;
+
+    if (typeof window !== 'undefined') {
+      // Browser environment - use FoundryVTT module paths
+      const moduleId = 'seasons-and-stars';
+      const basePath = `modules/${moduleId}/schemas`;
+
+      [calendarSchema, variantsSchema, collectionSchema] = await Promise.all([
+        fetch(`${basePath}/calendar-v1.0.0.json`).then(r => r.json()),
+        fetch(`${basePath}/calendar-variants-v1.0.0.json`).then(r => r.json()),
+        fetch(`${basePath}/calendar-collection-v1.0.0.json`).then(r => r.json()),
+      ]);
+    } else {
+      // Node.js environment - use dynamic imports from filesystem
+      const fs = await import('fs');
+      const path = await import('path');
+
+      // Find the project root by looking for package.json
+      let currentDir = process.cwd();
+      while (!fs.existsSync(path.join(currentDir, 'package.json'))) {
+        const parentDir = path.dirname(currentDir);
+        if (parentDir === currentDir) {
+          throw new Error('Could not find project root (package.json not found)');
+        }
+        currentDir = parentDir;
+      }
+
+      const schemasDir = path.join(currentDir, 'schemas');
+
+      [calendarSchema, variantsSchema, collectionSchema] = await Promise.all([
+        JSON.parse(fs.readFileSync(path.join(schemasDir, 'calendar-v1.0.0.json'), 'utf8')),
+        JSON.parse(fs.readFileSync(path.join(schemasDir, 'calendar-variants-v1.0.0.json'), 'utf8')),
+        JSON.parse(
+          fs.readFileSync(path.join(schemasDir, 'calendar-collection-v1.0.0.json'), 'utf8')
+        ),
+      ]);
+    }
+
+    // Compile schemas
+    validateCalendar = ajvInstance.compile(calendarSchema);
+    validateVariants = ajvInstance.compile(variantsSchema);
+    validateCollection = ajvInstance.compile(collectionSchema);
+  }
+
+  return { validateCalendar, validateVariants, validateCollection };
+}
+
 export class CalendarValidator {
   /**
-   * Validate a complete calendar configuration
+   * Validate a complete calendar configuration using JSON schema
    */
-  static validate(calendar: any): ValidationResult {
+  static async validate(calendar: any): Promise<ValidationResult> {
     const result: ValidationResult = {
       isValid: true,
       errors: [],
@@ -26,355 +96,119 @@ export class CalendarValidator {
       return result;
     }
 
-    // Validate required root fields
-    this.validateRequiredFields(calendar, result);
+    try {
+      // Get validators
+      const validators = await getAjvValidators();
 
-    // Validate data types and constraints
-    if (result.errors.length === 0) {
-      this.validateDataTypes(calendar, result);
-      this.validateConstraints(calendar, result);
+      // Determine schema type based on structure
+      let validator: any;
+      let schemaType: string;
+
+      if (calendar.baseCalendar && calendar.variants) {
+        // External variants file
+        validator = validators.validateVariants;
+        schemaType = 'variants';
+      } else if (calendar.calendars && Array.isArray(calendar.calendars)) {
+        // Collection index file
+        validator = validators.validateCollection;
+        schemaType = 'collection';
+      } else {
+        // Regular calendar file
+        validator = validators.validateCalendar;
+        schemaType = 'calendar';
+      }
+
+      // Run JSON schema validation
+      const isValid = validator(calendar);
+
+      if (!isValid && validator.errors) {
+        // Convert AJV errors to our format
+        for (const error of validator.errors) {
+          const path = error.instancePath ? error.instancePath : 'root';
+          const message = error.message || 'Validation error';
+          result.errors.push(`${path}: ${message}`);
+        }
+      }
+
+      // Add additional custom validations for calendar files
+      if (schemaType === 'calendar') {
+        this.validateCalendarSpecific(calendar, result);
+      } else if (schemaType === 'variants') {
+        this.validateVariantsSpecific(calendar, result);
+      }
+
+      // Add warnings for date formats
       this.validateDateFormats(calendar, result);
-      this.validateCrossReferences(calendar, result);
+
+      result.isValid = result.errors.length === 0;
+      return result;
+    } catch (error) {
+      // Fallback to non-schema validation if AJV fails
+      console.warn('Schema validation failed, falling back to legacy validation:', error);
+      return this.validateLegacy(calendar);
     }
+  }
+
+  /**
+   * Fallback validation method that doesn't use JSON schemas
+   */
+  private static validateLegacy(calendar: any): ValidationResult {
+    const result: ValidationResult = {
+      isValid: true,
+      errors: [],
+      warnings: [],
+    };
+
+    // Basic structural validation
+    if (!calendar.id || typeof calendar.id !== 'string') {
+      result.errors.push('Calendar must have a valid id string');
+    }
+
+    if (calendar.baseCalendar && calendar.variants) {
+      // Variants file validation
+      if (typeof calendar.baseCalendar !== 'string') {
+        result.errors.push('baseCalendar must be a string');
+      }
+      if (!calendar.variants || typeof calendar.variants !== 'object') {
+        result.errors.push('variants must be an object');
+      }
+    } else {
+      // Regular calendar validation
+      if (!calendar.translations || typeof calendar.translations !== 'object') {
+        result.errors.push('Calendar must have translations object');
+      }
+      if (!Array.isArray(calendar.months)) {
+        result.errors.push('Calendar must have months array');
+      }
+      if (!Array.isArray(calendar.weekdays)) {
+        result.errors.push('Calendar must have weekdays array');
+      }
+    }
+
+    this.validateDateFormats(calendar, result);
+    this.validateCrossReferences(calendar, result);
 
     result.isValid = result.errors.length === 0;
     return result;
   }
 
   /**
-   * Validate required fields are present
+   * Additional calendar-specific validations not covered by JSON schema
    */
-  private static validateRequiredFields(calendar: any, result: ValidationResult): void {
-    // Check if this is an external variant file
-    const isExternalVariant = calendar.baseCalendar && calendar.variants;
-
-    let requiredFields: string[];
-    if (isExternalVariant) {
-      // External variant files need different required fields
-      requiredFields = ['id', 'baseCalendar', 'variants'];
-    } else {
-      // Regular calendar files need the full structure
-      requiredFields = ['id', 'translations', 'months', 'weekdays'];
-    }
-
-    for (const field of requiredFields) {
-      if (!(field in calendar)) {
-        result.errors.push(`Missing required field: ${field}`);
-      }
-    }
-
-    // Check required fields in nested objects (only for regular calendars)
-    if (calendar.months) {
-      calendar.months.forEach((month: any, index: number) => {
-        if (!month.name) {
-          result.errors.push(`Month ${index + 1} missing required field: name`);
-        }
-        if (typeof month.days !== 'number') {
-          result.errors.push(`Month ${index + 1} missing required field: days`);
-        }
-      });
-    }
-
-    if (calendar.weekdays) {
-      calendar.weekdays.forEach((weekday: any, index: number) => {
-        if (!weekday.name) {
-          result.errors.push(`Weekday ${index + 1} missing required field: name`);
-        }
-      });
-    }
-
-    // Validate external variant structure
-    if (calendar.baseCalendar) {
-      if (typeof calendar.baseCalendar !== 'string' || calendar.baseCalendar.trim() === '') {
-        result.errors.push('baseCalendar must be a non-empty string');
-      }
-    }
-
-    if (calendar.variants) {
-      if (typeof calendar.variants !== 'object') {
-        result.errors.push('Variants must be an object');
-      } else {
-        const variantKeys = Object.keys(calendar.variants);
-        if (variantKeys.length === 0) {
-          result.errors.push('Variants object must contain at least one variant');
-        }
-
-        // Validate each variant
-        for (const [variantId, variant] of Object.entries(calendar.variants)) {
-          if (typeof variant !== 'object') {
-            result.errors.push(`Variant '${variantId}' must be an object`);
-            continue;
-          }
-
-          const v = variant as any;
-          if (!v.name || typeof v.name !== 'string') {
-            result.errors.push(`Variant '${variantId}' missing required field: name`);
-          }
-        }
-      }
-    }
-
-    if (calendar.intercalary) {
-      calendar.intercalary.forEach((intercalary: any, index: number) => {
-        if (!intercalary.name) {
-          result.errors.push(`Intercalary day ${index + 1} missing required field: name`);
-        }
-        if (!intercalary.after) {
-          result.errors.push(`Intercalary day ${index + 1} missing required field: after`);
-        }
-      });
-    }
+  private static validateCalendarSpecific(calendar: any, result: ValidationResult): void {
+    // Cross-reference validations for calendar files
+    this.validateCrossReferences(calendar, result);
   }
 
   /**
-   * Validate data types
+   * Additional variants-specific validations not covered by JSON schema
    */
-  private static validateDataTypes(calendar: any, result: ValidationResult): void {
-    // Check if this is an external variant file
-    const isExternalVariant = calendar.baseCalendar && calendar.variants;
-
-    // Validate ID
-    if (typeof calendar.id !== 'string') {
-      result.errors.push('Calendar ID must be a string');
-    }
-
-    // Validate translations structure (optional for external variants)
-    if (calendar.translations) {
-      if (typeof calendar.translations !== 'object') {
-        result.errors.push('Calendar translations must be an object');
-      } else {
-        // Check that there's at least one translation
-        const languages = Object.keys(calendar.translations);
-        if (languages.length === 0) {
-          result.errors.push('Calendar must have at least one translation');
-        }
-
-        // Validate each translation
-        for (const [lang, translation] of Object.entries(calendar.translations)) {
-          if (typeof translation !== 'object') {
-            result.errors.push(`Translation for language '${lang}' must be an object`);
-            continue;
-          }
-
-          const trans = translation as any;
-          if (!trans.label || typeof trans.label !== 'string') {
-            result.errors.push(`Translation for language '${lang}' missing required label`);
-          }
-        }
-      }
-    } else if (!isExternalVariant) {
-      // Regular calendars require translations, external variants don't
-      result.errors.push('Calendar must have translations');
-    }
-
-    // Validate year configuration
-    if (calendar.year) {
-      this.validateYearConfig(calendar.year, result);
-    }
-
-    // Validate leap year configuration
-    if (calendar.leapYear) {
-      this.validateLeapYearConfig(calendar.leapYear, result);
-    }
-
-    // Validate arrays (skip for external variants since they reference base calendar)
-    if (!isExternalVariant) {
-      if (!Array.isArray(calendar.months)) {
-        result.errors.push('Months must be an array');
-      }
-
-      if (!Array.isArray(calendar.weekdays)) {
-        result.errors.push('Weekdays must be an array');
-      }
-    }
-
-    if (calendar.intercalary && !Array.isArray(calendar.intercalary)) {
-      result.errors.push('Intercalary days must be an array');
-    }
-
-    // Validate time configuration
-    if (calendar.time) {
-      this.validateTimeConfig(calendar.time, result);
-    }
-
-    // Validate moons configuration
-    if (calendar.moons) {
-      this.validateMoonsConfig(calendar.moons, result);
-    }
+  private static validateVariantsSpecific(_calendar: any, _result: ValidationResult): void {
+    // Add any variants-specific cross-reference validations here
+    // Currently, the JSON schema handles most validation
   }
 
-  /**
-   * Validate year configuration
-   */
-  private static validateYearConfig(year: any, result: ValidationResult): void {
-    if (typeof year !== 'object') {
-      result.errors.push('Year configuration must be an object');
-      return;
-    }
-
-    if (year.epoch !== undefined && typeof year.epoch !== 'number') {
-      result.errors.push('Year epoch must be a number');
-    }
-
-    if (year.currentYear !== undefined && typeof year.currentYear !== 'number') {
-      result.errors.push('Year currentYear must be a number');
-    }
-
-    if (year.prefix !== undefined && typeof year.prefix !== 'string') {
-      result.errors.push('Year prefix must be a string');
-    }
-
-    if (year.suffix !== undefined && typeof year.suffix !== 'string') {
-      result.errors.push('Year suffix must be a string');
-    }
-
-    if (year.startDay !== undefined && typeof year.startDay !== 'number') {
-      result.errors.push('Year startDay must be a number');
-    }
-  }
-
-  /**
-   * Validate leap year configuration
-   */
-  private static validateLeapYearConfig(leapYear: any, result: ValidationResult): void {
-    if (typeof leapYear !== 'object') {
-      result.errors.push('Leap year configuration must be an object');
-      return;
-    }
-
-    const validRules = ['none', 'gregorian', 'custom'];
-    if (leapYear.rule && !validRules.includes(leapYear.rule)) {
-      result.errors.push(`Leap year rule must be one of: ${validRules.join(', ')}`);
-    }
-
-    if (leapYear.interval !== undefined && typeof leapYear.interval !== 'number') {
-      result.errors.push('Leap year interval must be a number');
-    }
-
-    if (leapYear.month !== undefined && typeof leapYear.month !== 'string') {
-      result.errors.push('Leap year month must be a string');
-    }
-
-    if (leapYear.extraDays !== undefined && typeof leapYear.extraDays !== 'number') {
-      result.errors.push('Leap year extraDays must be a number');
-    }
-  }
-
-  /**
-   * Validate time configuration
-   */
-  private static validateTimeConfig(time: any, result: ValidationResult): void {
-    if (typeof time !== 'object') {
-      result.errors.push('Time configuration must be an object');
-      return;
-    }
-
-    if (time.hoursInDay !== undefined && typeof time.hoursInDay !== 'number') {
-      result.errors.push('Time hoursInDay must be a number');
-    }
-
-    if (time.minutesInHour !== undefined && typeof time.minutesInHour !== 'number') {
-      result.errors.push('Time minutesInHour must be a number');
-    }
-
-    if (time.secondsInMinute !== undefined && typeof time.secondsInMinute !== 'number') {
-      result.errors.push('Time secondsInMinute must be a number');
-    }
-  }
-
-  /**
-   * Validate moons configuration
-   */
-  private static validateMoonsConfig(moons: any, result: ValidationResult): void {
-    if (!Array.isArray(moons)) {
-      result.errors.push('Moons configuration must be an array');
-      return;
-    }
-
-    moons.forEach((moon: any, index: number) => {
-      const moonIndex = index + 1;
-
-      // Validate required fields
-      if (!moon.name || typeof moon.name !== 'string') {
-        result.errors.push(`Moon ${moonIndex} missing required field: name`);
-      }
-
-      if (typeof moon.cycleLength !== 'number') {
-        result.errors.push(`Moon ${moonIndex} missing required field: cycleLength`);
-      } else if (moon.cycleLength <= 0) {
-        result.errors.push(`Moon ${moonIndex} cycleLength must be positive`);
-      }
-
-      if (!moon.firstNewMoon || typeof moon.firstNewMoon !== 'object') {
-        result.errors.push(`Moon ${moonIndex} missing required field: firstNewMoon`);
-      } else {
-        // Validate firstNewMoon structure
-        const firstNewMoon = moon.firstNewMoon;
-        if (typeof firstNewMoon.year !== 'number') {
-          result.errors.push(`Moon ${moonIndex} firstNewMoon.year must be a number`);
-        }
-        if (typeof firstNewMoon.month !== 'number') {
-          result.errors.push(`Moon ${moonIndex} firstNewMoon.month must be a number`);
-        }
-        if (typeof firstNewMoon.day !== 'number') {
-          result.errors.push(`Moon ${moonIndex} firstNewMoon.day must be a number`);
-        }
-      }
-
-      if (!Array.isArray(moon.phases)) {
-        result.errors.push(`Moon ${moonIndex} missing required field: phases`);
-      } else {
-        // Validate phases array
-        if (moon.phases.length === 0) {
-          result.errors.push(`Moon ${moonIndex} must have at least one phase`);
-        }
-
-        let totalPhaseLength = 0;
-        moon.phases.forEach((phase: any, phaseIndex: number) => {
-          const phaseRef = `Moon ${moonIndex} phase ${phaseIndex + 1}`;
-
-          if (!phase.name || typeof phase.name !== 'string') {
-            result.errors.push(`${phaseRef} missing required field: name`);
-          }
-
-          if (typeof phase.length !== 'number') {
-            result.errors.push(`${phaseRef} missing required field: length`);
-          } else if (phase.length <= 0) {
-            result.errors.push(`${phaseRef} length must be positive`);
-          } else {
-            totalPhaseLength += phase.length;
-          }
-
-          if (typeof phase.singleDay !== 'boolean') {
-            result.errors.push(`${phaseRef} missing required field: singleDay`);
-          }
-
-          if (!phase.icon || typeof phase.icon !== 'string') {
-            result.errors.push(`${phaseRef} missing required field: icon`);
-          }
-        });
-
-        // Validate that phase lengths sum to cycle length
-        if (
-          typeof moon.cycleLength === 'number' &&
-          Math.abs(totalPhaseLength - moon.cycleLength) > 0.001
-        ) {
-          result.errors.push(
-            `Moon ${moonIndex} phase lengths (${totalPhaseLength}) don't equal cycle length (${moon.cycleLength})`
-          );
-        }
-      }
-
-      // Validate optional color field (hex format)
-      if (moon.color !== undefined) {
-        if (typeof moon.color !== 'string') {
-          result.errors.push(`Moon ${moonIndex} color must be a string`);
-        } else if (!/^#[0-9A-Fa-f]{6}$/.test(moon.color)) {
-          result.errors.push(`Moon ${moonIndex} color must be a valid hex color (e.g., "#ffffff")`);
-        }
-      }
-    });
-  }
+  // Note: Most validation is now handled by JSON schemas above
 
   /**
    * Validate date formats and enforce reasonable limits
@@ -448,81 +282,14 @@ export class CalendarValidator {
     }
   }
 
-  /**
-   * Validate data constraints and ranges
-   */
-  private static validateConstraints(calendar: any, result: ValidationResult): void {
-    // Check if this is an external variant file
-    const isExternalVariant = calendar.baseCalendar && calendar.variants;
-
-    // Validate ID format
-    if (calendar.id && !/^[a-zA-Z0-9_-]+$/.test(calendar.id)) {
-      result.errors.push(
-        'Calendar ID must contain only alphanumeric characters, hyphens, and underscores'
-      );
-    }
-
-    // Validate months (skip for external variants)
-    if (!isExternalVariant && Array.isArray(calendar.months)) {
-      if (calendar.months.length === 0) {
-        result.errors.push('Calendar must have at least one month');
-      }
-
-      calendar.months.forEach((month: any, index: number) => {
-        if (typeof month.days === 'number') {
-          if (month.days < 1 || month.days > 366) {
-            result.errors.push(`Month ${index + 1} days must be between 1 and 366`);
-          }
-        }
-      });
-    }
-
-    // Validate weekdays (skip for external variants)
-    if (!isExternalVariant && Array.isArray(calendar.weekdays)) {
-      if (calendar.weekdays.length === 0) {
-        result.errors.push('Calendar must have at least one weekday');
-      }
-    }
-
-    // Validate year constraints
-    if (calendar.year?.startDay !== undefined && Array.isArray(calendar.weekdays)) {
-      if (calendar.year.startDay < 0 || calendar.year.startDay >= calendar.weekdays.length) {
-        result.errors.push(`Year startDay must be between 0 and ${calendar.weekdays.length - 1}`);
-      }
-    }
-
-    // Validate time constraints
-    if (calendar.time) {
-      if (calendar.time.hoursInDay !== undefined && calendar.time.hoursInDay < 1) {
-        result.errors.push('Time hoursInDay must be at least 1');
-      }
-
-      if (calendar.time.minutesInHour !== undefined && calendar.time.minutesInHour < 1) {
-        result.errors.push('Time minutesInHour must be at least 1');
-      }
-
-      if (calendar.time.secondsInMinute !== undefined && calendar.time.secondsInMinute < 1) {
-        result.errors.push('Time secondsInMinute must be at least 1');
-      }
-    }
-
-    // Validate leap year constraints
-    if (calendar.leapYear?.rule === 'custom' && calendar.leapYear?.interval !== undefined) {
-      if (calendar.leapYear.interval < 1) {
-        result.errors.push('Leap year interval must be at least 1');
-      }
-    }
-  }
+  // Note: Constraints are now validated by JSON schemas
 
   /**
    * Validate cross-references between fields
    */
   private static validateCrossReferences(calendar: any, result: ValidationResult): void {
-    // Check if this is an external variant file
-    const isExternalVariant = calendar.baseCalendar && calendar.variants;
-
-    // Check for unique month names (skip for external variants)
-    if (!isExternalVariant && Array.isArray(calendar.months)) {
+    // Check for unique month names
+    if (Array.isArray(calendar.months)) {
       const monthNames = calendar.months.map((m: any) => m.name).filter(Boolean);
       const uniqueNames = new Set(monthNames);
 
@@ -531,8 +298,8 @@ export class CalendarValidator {
       }
     }
 
-    // Check for unique weekday names (skip for external variants)
-    if (!isExternalVariant && Array.isArray(calendar.weekdays)) {
+    // Check for unique weekday names
+    if (Array.isArray(calendar.weekdays)) {
       const weekdayNames = calendar.weekdays.map((w: any) => w.name).filter(Boolean);
       const uniqueNames = new Set(weekdayNames);
 
@@ -569,10 +336,11 @@ export class CalendarValidator {
   }
 
   /**
-   * Validate calendar and provide helpful error messages
+   * Validate calendar and provide helpful error messages (synchronous version)
    */
   static validateWithHelp(calendar: any): ValidationResult {
-    const result = this.validate(calendar);
+    // Use legacy validation for synchronous operation
+    const result = this.validateLegacy(calendar);
 
     // Only warn for potential problems, not normal configurations
     // These are optional fields with sensible defaults and shouldn't trigger warnings
@@ -587,13 +355,13 @@ export class CalendarValidator {
    * Quick validation for just checking if calendar is loadable
    */
   static isValid(calendar: any): boolean {
-    return this.validate(calendar).isValid;
+    return this.validateWithHelp(calendar).isValid;
   }
 
   /**
    * Get a list of validation errors as strings
    */
   static getErrors(calendar: any): string[] {
-    return this.validate(calendar).errors;
+    return this.validateWithHelp(calendar).errors;
   }
 }

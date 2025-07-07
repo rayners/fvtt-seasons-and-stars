@@ -1,4 +1,6 @@
 import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
 import typescript from '@rollup/plugin-typescript';
 import copy from 'rollup-plugin-copy';
 import scss from 'rollup-plugin-scss';
@@ -13,8 +15,14 @@ export default {
     sourcemap: true,
     inlineDynamicImports: true,
   },
+  external: ['fs', 'path'],
   plugins: [
-    resolve(),
+    resolve({
+      browser: true,
+      preferBuiltins: false,
+    }),
+    commonjs(),
+    json(),
     typescript(),
     scss({
       fileName: 'styles/seasons-and-stars.css',
@@ -27,6 +35,7 @@ export default {
         { src: 'module.json', dest: 'dist' },
         { src: 'languages', dest: 'dist' },
         { src: 'calendars', dest: 'dist' },
+        { src: 'schemas', dest: 'dist' },
         { src: 'templates', dest: 'dist' },
         { src: 'README.md', dest: 'dist' },
         { src: 'CHANGELOG.md', dest: 'dist' },

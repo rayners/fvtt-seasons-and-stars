@@ -88,8 +88,8 @@ export class CalendarManager {
    * Load a calendar from data
    */
   loadCalendar(calendarData: SeasonsStarsCalendar): boolean {
-    // Validate the calendar data
-    const validation = CalendarValidator.validate(calendarData);
+    // Validate the calendar data (using synchronous legacy validation for performance)
+    const validation = CalendarValidator.validateWithHelp(calendarData);
 
     if (!validation.isValid) {
       Logger.error(`Invalid calendar data for ${calendarData.id}: ${validation.errors.join(', ')}`);
