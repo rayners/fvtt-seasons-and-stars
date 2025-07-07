@@ -93,7 +93,6 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
    ```
 
 2. **Make Your Changes**
-
    - Follow coding standards
    - Add/update tests
    - Update documentation
