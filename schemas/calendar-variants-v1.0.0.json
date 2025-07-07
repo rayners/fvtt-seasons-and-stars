@@ -124,8 +124,13 @@
                     },
                     "epoch": {
                       "type": "integer",
-                      "minimum": 1,
+                      "minimum": 0,
                       "description": "Starting year for calculations"
+                    },
+                    "currentYear": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Current year for calculations"
                     }
                   }
                 },
@@ -188,6 +193,19 @@
                   },
                   "additionalProperties": false,
                   "description": "Weekday name/description overrides keyed by original weekday name"
+                },
+                "moons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "description": "Override for celestial bodies"
+                },
+                "dateFormats": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "Override for date formatting templates"
                 }
               },
               "description": "Property overrides for the variant"

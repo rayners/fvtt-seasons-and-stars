@@ -4,15 +4,15 @@
   "title": "Seasons & Stars Calendar Schema",
   "description": "JSON schema for Seasons & Stars calendar format v1.0.0",
   "type": "object",
-  "required": ["id", "translations", "months", "weekdays"],
+  "required": ["id", "translations"],
   "additionalProperties": false,
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^[a-z0-9-]+$",
+      "pattern": "^([a-z0-9-]+[:/][a-z0-9-]+|[a-z0-9-]+)$",
       "minLength": 1,
       "maxLength": 50,
-      "description": "Unique identifier for the calendar (lowercase, numbers, and hyphens only)"
+      "description": "Unique identifier for the calendar (lowercase, numbers, and hyphens only, optionally namespaced with : or /)"
     },
     "translations": {
       "type": "object",
@@ -171,6 +171,12 @@
             "maxLength": 50,
             "description": "Month name after which this day occurs"
           },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "description": "Number of days in the intercalary period"
+          },
           "description": {
             "type": "string",
             "maxLength": 500,
@@ -185,6 +191,16 @@
             "type": "boolean",
             "default": true,
             "description": "Whether this day counts for weekday calculations"
+          },
+          "month": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Month number where this intercalary day occurs"
+          },
+          "day": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Day number within the month where this intercalary day occurs"
           }
         }
       }
@@ -225,6 +241,27 @@
           },
           "then": {
             "required": ["interval"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "rule": { "enum": ["gregorian", "custom"] } }
+          },
+          "then": {
+            "properties": {
+              "month": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 50,
+                "description": "Which month gets extra days (must match a month name)"
+              },
+              "extraDays": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10,
+                "description": "How many extra days to add"
+              }
+            }
           }
         }
       ]
@@ -323,7 +360,8 @@
                   "properties": {
                     "prefix": { "type": "string", "maxLength": 50 },
                     "suffix": { "type": "string", "maxLength": 50 },
-                    "epoch": { "type": "integer", "minimum": 0 }
+                    "epoch": { "type": "integer", "minimum": 0 },
+                    "currentYear": { "type": "integer", "minimum": 0 }
                   }
                 },
                 "months": {
@@ -355,6 +393,17 @@
                     }
                   },
                   "additionalProperties": false
+                },
+                "moons": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "dateFormats": {
+                  "type": "object",
+                  "additionalProperties": true
                 }
               },
               "description": "Property overrides for the variant"
@@ -372,7 +421,7 @@
       "properties": {
         "interpretation": {
           "type": "string",
-          "enum": ["epoch-based", "direct", "custom"],
+          "enum": ["epoch-based", "direct", "custom", "real-time-based"],
           "description": "How to interpret game.time.worldTime values"
         },
         "epochYear": {
@@ -513,10 +562,27 @@
               "type": "object",
               "patternProperties": {
                 "^[a-zA-Z0-9-_]+$": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 500,
-                  "description": "Named variant of the format"
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500,
+                      "description": "Named variant of the format"
+                    },
+                    {
+                      "type": "object",
+                      "patternProperties": {
+                        "^[a-zA-Z0-9-_]+$": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500,
+                          "description": "Nested format variant"
+                        }
+                      },
+                      "additionalProperties": false,
+                      "description": "Object containing nested format variants"
+                    }
+                  ]
                 }
               },
               "additionalProperties": false,
@@ -538,6 +604,33 @@
         }
       },
       "additionalProperties": false
+    },
+    "baseCalendar": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "ID of the base calendar this calendar extends or variants from"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "description": "Human-readable name for the calendar or calendar collection"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Description of the calendar or calendar collection"
+    },
+    "author": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "Author or creator of the calendar"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Version number in semantic versioning format"
     }
   }
 }
