@@ -60,14 +60,12 @@ export interface ExternalCalendarSource {
  */
 export class CalendarLoader {
   private static readonly DEFAULT_TIMEOUT = 10000; // 10 seconds
-  private static readonly CACHE_KEY = 'seasons-stars.external-calendars';
   private static readonly SOURCES_KEY = 'seasons-stars.external-sources';
 
-  private cache = new Map<string, { data: SeasonsStarsCalendar; timestamp: number; ttl: number }>();
+  private cache = new Map<string, SeasonsStarsCalendar>();
   private sources = new Map<string, ExternalCalendarSource>();
 
   constructor() {
-    this.loadCacheFromStorage();
     this.loadSourcesFromStorage();
   }
 
@@ -281,7 +279,6 @@ export class CalendarLoader {
    */
   clearCache(): void {
     this.cache.clear();
-    this.saveCacheToStorage();
     Logger.info('CalendarLoader: Cleared all cached calendars');
   }
 
@@ -290,7 +287,6 @@ export class CalendarLoader {
    */
   clearCacheForUrl(url: string): void {
     this.cache.delete(url);
-    this.saveCacheToStorage();
     Logger.debug(`CalendarLoader: Cleared cache for ${url}`);
   }
 
@@ -388,58 +384,14 @@ export class CalendarLoader {
    * Get cached calendar data
    */
   private getCached(url: string): SeasonsStarsCalendar | null {
-    const cached = this.cache.get(url);
-    if (!cached) {
-      return null;
-    }
-
-    // Check if cache has expired
-    if (Date.now() > cached.timestamp + cached.ttl) {
-      this.cache.delete(url);
-      this.saveCacheToStorage();
-      return null;
-    }
-
-    return cached.data;
+    return this.cache.get(url) || null;
   }
 
   /**
    * Cache calendar data
    */
-  private setCached(url: string, data: SeasonsStarsCalendar, ttlMs: number = 3600000): void {
-    // Default 1 hour TTL
-    this.cache.set(url, {
-      data,
-      timestamp: Date.now(),
-      ttl: ttlMs,
-    });
-    this.saveCacheToStorage();
-  }
-
-  /**
-   * Load cache from persistent storage
-   */
-  private loadCacheFromStorage(): void {
-    try {
-      const stored = game.settings?.get('seasons-and-stars', CalendarLoader.CACHE_KEY);
-      if (stored && typeof stored === 'object') {
-        this.cache = new Map(Object.entries(stored));
-      }
-    } catch (error) {
-      Logger.warn('CalendarLoader: Failed to load cache from storage', error as Error);
-    }
-  }
-
-  /**
-   * Save cache to persistent storage
-   */
-  private saveCacheToStorage(): void {
-    try {
-      const cacheObj = Object.fromEntries(this.cache);
-      game.settings?.set('seasons-and-stars', CalendarLoader.CACHE_KEY, cacheObj);
-    } catch (error) {
-      Logger.warn('CalendarLoader: Failed to save cache to storage', error as Error);
-    }
+  private setCached(url: string, data: SeasonsStarsCalendar): void {
+    this.cache.set(url, data);
   }
 
   /**
