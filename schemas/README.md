@@ -15,7 +15,7 @@ Validates individual calendar JSON files including:
 - **Extensions**: `worldTime`, `compatibility`, `variants`, `extensions` support
 - **Format Validation**: Date format templates, localization structure
 
-**Current Validation Rate**: 63% (10/16 built-in calendars pass)
+**Validation Coverage**: Validates all built-in calendar formats
 
 ### Calendar Collection Index Schema (`calendar-collection-v1.0.0.json`)
 
@@ -142,12 +142,6 @@ Add `$schema` property to your JSON files for real-time validation:
 - Extension and compatibility framework support
 - Multi-language localization validation
 
-### Known Limitations
-
-- Some complex dateFormat patterns need refinement
-- Additional properties in 6 calendars not yet covered by schema
-- Enum validation for worldTime interpretation values needs expansion
-
 ### Implementation Notes
 
 - **Runtime Performance**: Schemas are compiled once and cached for optimal validation speed
@@ -155,7 +149,7 @@ Add `$schema` property to your JSON files for real-time validation:
 - **Error Messages**: Detailed field-level validation errors with specific failure reasons
 - **Backward Compatibility**: Graceful fallback to legacy validation preserves existing behavior
 
-### Future Enhancements
+### Planned Schema Enhancements
 
 - Enhanced astronomical calculations validation
 - Multi-calendar system support validation
@@ -181,4 +175,4 @@ When updating schemas:
 3. **Documentation**: Update validation rules and examples in this README
 4. **Version Management**: Follow semantic versioning for schema changes
 
-All schemas are available via stable GitHub URLs that point to the latest version of each schema file.
+Schemas are published via GitHub URLs for stable access to versioned schema files.
