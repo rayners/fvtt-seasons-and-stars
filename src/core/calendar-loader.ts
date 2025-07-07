@@ -63,7 +63,7 @@ export class CalendarLoader {
   private static readonly CACHE_KEY = 'seasons-stars.external-calendars';
   private static readonly SOURCES_KEY = 'seasons-stars.external-sources';
 
-  private cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  private cache = new Map<string, { data: SeasonsStarsCalendar; timestamp: number; ttl: number }>();
   private sources = new Map<string, ExternalCalendarSource>();
 
   constructor() {
@@ -172,7 +172,7 @@ export class CalendarLoader {
       return [collectionResult];
     }
 
-    const collection = collectionResult.calendar as any;
+    const collection = collectionResult.calendar as { calendars?: Array<{ url?: string }> };
 
     // Validate collection structure
     if (!collection.calendars || !Array.isArray(collection.calendars)) {
@@ -387,7 +387,7 @@ export class CalendarLoader {
   /**
    * Get cached calendar data
    */
-  private getCached(url: string): any | null {
+  private getCached(url: string): SeasonsStarsCalendar | null {
     const cached = this.cache.get(url);
     if (!cached) {
       return null;
@@ -406,7 +406,7 @@ export class CalendarLoader {
   /**
    * Cache calendar data
    */
-  private setCached(url: string, data: any, ttlMs: number = 3600000): void {
+  private setCached(url: string, data: SeasonsStarsCalendar, ttlMs: number = 3600000): void {
     // Default 1 hour TTL
     this.cache.set(url, {
       data,
