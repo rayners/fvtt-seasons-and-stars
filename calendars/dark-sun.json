@@ -321,7 +321,7 @@
       "color": "#8de715",
       "translations": {
         "en": {
-          "description": "The golden moon of dying Athas, scorched by the crimson sun"
+          "description": "The smaller, green-yellow moon of Athas, companion to Ral in the hostile sky"
         }
       }
     },
@@ -386,7 +386,7 @@
       "color": "#e7dd15",
       "translations": {
         "en": {
-          "description": "The smaller, burnt-orange moon of Athas, companion to Ral in the hostile sky"
+          "description": "The golden moon of dying Athas, scorched by the crimson sun"
         }
       }
     }
