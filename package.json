@@ -21,8 +21,6 @@
     "test:coverage:junit": "vitest run --coverage --reporter=default --reporter=junit --outputFile=test-report.junit.xml",
     "validate:calendars": "tsx scripts/validate-calendars.ts",
     "validate": "npm run lint && npm run format:check && npm run typecheck && npm run test:run && npm run validate:calendars && npm run build",
-    "validate:ci": "npm run lint && npm run format:check && npm run typecheck && npm run test:run && npm run validate:calendars",
-    "test:ci": "node scripts/test-ci.js",
     "prepare": "husky",
     "link-electron": "node ../foundry-dev-tools/scripts/link-module.js ~/Library/Application\\ Support/FoundryVTT/Data/modules",
     "link-node": "node ../foundry-dev-tools/scripts/link-module.js ~/foundry-versions/13.344-data/modules",
@@ -68,7 +66,6 @@
     "vitest": "^3.2.2"
   },
   "dependencies": {
-    "@rollup/plugin-json": "^6.1.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1"
   }
