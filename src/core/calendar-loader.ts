@@ -17,8 +17,6 @@ export interface LoaderOptions {
   timeout?: number;
   /** Whether to validate the calendar after loading */
   validate?: boolean;
-  /** Whether to cache the loaded calendar */
-  cache?: boolean;
   /** Custom headers for the request */
   headers?: Record<string, string>;
 }
@@ -32,8 +30,6 @@ export interface LoadResult {
   validation?: ValidationResult;
   /** Error message (if failed) */
   error?: string;
-  /** Whether the result came from cache */
-  fromCache?: boolean;
   /** URL that was loaded from */
   sourceUrl?: string;
   /** Collection entry metadata (if loaded from collection) */
@@ -100,7 +96,6 @@ export class CalendarLoader {
   private static readonly DEFAULT_TIMEOUT = 10000; // 10 seconds
   private static readonly SOURCES_KEY = 'seasons-stars.external-sources';
 
-  private cache = new Map<string, SeasonsStarsCalendar>();
   private sources = new Map<string, ExternalCalendarSource>();
 
   constructor() {
@@ -123,27 +118,13 @@ export class CalendarLoader {
       };
     }
 
-    // Check cache first if caching is enabled
-    if (options.cache !== false) {
-      const cached = this.getCached(url);
-      if (cached) {
-        Logger.debug(`CalendarLoader: Using cached calendar for ${url}`);
-        return {
-          success: true,
-          calendar: cached,
-          fromCache: true,
-          sourceUrl: url,
-        };
-      }
-    }
-
     try {
       // Perform the fetch request
       const response = await this.fetchWithTimeout(url, {
         timeout: options.timeout || CalendarLoader.DEFAULT_TIMEOUT,
         headers: {
           Accept: 'application/json',
-          'Content-Type': 'application/json',
+          // Note: Content-Type not needed for GET requests and causes CORS issues
           ...options.headers,
         },
       });
@@ -168,17 +149,11 @@ export class CalendarLoader {
         }
       }
 
-      // Cache the successful result
-      if (options.cache !== false) {
-        this.setCached(url, calendarData);
-      }
-
       Logger.info(`CalendarLoader: Successfully loaded calendar from ${url}`);
       return {
         success: true,
         calendar: calendarData,
         validation,
-        fromCache: false,
         sourceUrl: url,
       };
     } catch (error) {
@@ -284,9 +259,6 @@ export class CalendarLoader {
     this.sources.delete(id);
     this.saveSourcesToStorage();
 
-    // Clear related cache entries
-    this.clearCacheForUrl(source.url);
-
     Logger.info(`CalendarLoader: Removed external source: ${source.name}`);
     return true;
   }
@@ -308,7 +280,7 @@ export class CalendarLoader {
         if (!validation.valid) continue;
 
         // Try to load the index to verify it exists and is valid
-        const result = await this.loadFromUrl(moduleUrl, { validate: false, cache: false });
+        const result = await this.loadFromUrl(moduleUrl, { validate: false });
 
         if (result.success) {
           const collection = result.calendar as unknown as CalendarCollection;
@@ -365,22 +337,6 @@ export class CalendarLoader {
 
     this.sources.set(id, source);
     this.saveSourcesToStorage();
-  }
-
-  /**
-   * Clear all cached calendars
-   */
-  clearCache(): void {
-    this.cache.clear();
-    Logger.info('CalendarLoader: Cleared all cached calendars');
-  }
-
-  /**
-   * Clear cache for a specific URL
-   */
-  clearCacheForUrl(url: string): void {
-    this.cache.delete(url);
-    Logger.debug(`CalendarLoader: Cleared cache for ${url}`);
   }
 
   /**
@@ -502,6 +458,7 @@ export class CalendarLoader {
     const timeoutId = setTimeout(() => controller.abort(), options.timeout);
 
     try {
+      // First attempt: CORS mode with headers
       const response = await fetch(url, {
         signal: controller.signal,
         headers: options.headers,
@@ -509,12 +466,35 @@ export class CalendarLoader {
       });
       clearTimeout(timeoutId);
       return response;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error(`Request timeout after ${options.timeout}ms`);
+    } catch (corsError) {
+      // If CORS fails, try without custom headers (simpler request)
+      try {
+        Logger.debug(`CORS failed for ${url}, retrying with no-cors mode`);
+        const response = await fetch(url, {
+          signal: controller.signal,
+          mode: 'no-cors',
+        });
+        clearTimeout(timeoutId);
+
+        // no-cors mode returns opaque responses, so we can't read JSON directly
+        // This is a limitation - we'd need to use script tag loading for actual data
+        if (response.type === 'opaque') {
+          throw new Error(
+            'CORS blocked - server does not allow cross-origin requests. Consider using a CORS proxy or hosting the calendar file on a CORS-enabled server.'
+          );
+        }
+
+        return response;
+      } catch {
+        clearTimeout(timeoutId);
+        if (corsError instanceof Error && corsError.name === 'AbortError') {
+          throw new Error(`Request timeout after ${options.timeout}ms`);
+        }
+        // Throw the original CORS error with helpful message
+        throw new Error(
+          `CORS error: ${corsError instanceof Error ? corsError.message : 'Unknown error'}. The server hosting this calendar does not allow cross-origin requests. Consider hosting the file on a CORS-enabled service or using a proxy.`
+        );
       }
-      throw error;
     }
   }
 
@@ -559,20 +539,6 @@ export class CalendarLoader {
   }
 
   /**
-   * Get cached calendar data
-   */
-  private getCached(url: string): SeasonsStarsCalendar | null {
-    return this.cache.get(url) || null;
-  }
-
-  /**
-   * Cache calendar data
-   */
-  private setCached(url: string, data: SeasonsStarsCalendar): void {
-    this.cache.set(url, data);
-  }
-
-  /**
    * Load sources from persistent storage
    */
   private loadSourcesFromStorage(): void {
@@ -606,6 +572,7 @@ export class CalendarLoader {
   private sanitizeHTML(html: string): string {
     try {
       // Use Foundry's String.stripScripts method if available
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (typeof (String.prototype as any).stripScripts === 'function') {
         return html.stripScripts();
       }

@@ -167,7 +167,6 @@ describe('CalendarLoader', () => {
 
       expect(result.success).toBe(true);
       expect(result.calendar).toEqual(sampleCalendar);
-      expect(result.fromCache).toBe(false);
       expect(result.sourceUrl).toBe('https://example.com/calendar.json');
     });
 
@@ -597,80 +596,6 @@ describe('CalendarLoader', () => {
       expect(sources).toHaveLength(2);
       expect(sources.map(s => s.name)).toContain('Source 1');
       expect(sources.map(s => s.name)).toContain('Source 2');
-    });
-  });
-
-  describe('Caching', () => {
-    it('should cache successful loads', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(sampleCalendar),
-      });
-
-      // First load
-      const result1 = await loader.loadFromUrl('https://example.com/calendar.json');
-      expect(result1.fromCache).toBe(false);
-
-      // Second load should use cache
-      const result2 = await loader.loadFromUrl('https://example.com/calendar.json');
-      expect(result2.fromCache).toBe(true);
-      expect(result2.calendar).toEqual(sampleCalendar);
-
-      // Fetch should only be called once
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-    });
-
-    it('should respect cache disable option', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(sampleCalendar),
-      });
-
-      // Load without caching
-      await loader.loadFromUrl('https://example.com/calendar.json', { cache: false });
-      await loader.loadFromUrl('https://example.com/calendar.json', { cache: false });
-
-      // Fetch should be called twice
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-    });
-
-    it('should clear cache', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(sampleCalendar),
-      });
-
-      // Load and cache
-      await loader.loadFromUrl('https://example.com/calendar.json');
-
-      // Clear cache
-      loader.clearCache();
-
-      // Next load should fetch again
-      await loader.loadFromUrl('https://example.com/calendar.json');
-
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-    });
-
-    it('should clear cache for specific URL', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(sampleCalendar),
-      });
-
-      // Load multiple URLs
-      await loader.loadFromUrl('https://example.com/calendar1.json');
-      await loader.loadFromUrl('https://example.com/calendar2.json');
-
-      // Clear cache for one URL
-      loader.clearCacheForUrl('https://example.com/calendar1.json');
-
-      // Verify one is cached, other is not
-      const result1 = await loader.loadFromUrl('https://example.com/calendar1.json');
-      const result2 = await loader.loadFromUrl('https://example.com/calendar2.json');
-
-      expect(result1.fromCache).toBe(false);
-      expect(result2.fromCache).toBe(true);
     });
   });
 });

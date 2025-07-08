@@ -72,7 +72,6 @@ export class CalendarManager {
         const result = await this.calendarLoader.loadFromUrl(
           `module:seasons-and-stars/calendars/${calendarId}.json`,
           {
-            cache: false, // Built-in calendars don't need caching
             validate: true, // Keep validation for built-in calendars
           }
         );
@@ -557,7 +556,6 @@ export class CalendarManager {
       const result = await this.calendarLoader.loadFromUrl(
         `module:seasons-and-stars/calendars/${variantFileId}.json`,
         {
-          cache: false, // Built-in variant files don't need caching
           validate: false, // External variant files have different structure than calendars
         }
       );
@@ -654,12 +652,14 @@ export class CalendarManager {
 
     const result = await this.calendarLoader.loadFromUrl(url, {
       validate: options?.validate !== false,
-      cache: options?.cache !== false,
     });
 
     if (result.success && result.calendar) {
-      // Load the calendar into the manager
-      const loadSuccess = this.loadCalendar(result.calendar);
+      // Determine source information based on URL
+      const sourceInfo = this.determineSourceInfo(url, result);
+
+      // Load the calendar into the manager with source info
+      const loadSuccess = this.loadCalendar(result.calendar, sourceInfo);
       if (!loadSuccess) {
         return {
           ...result,
@@ -701,7 +701,6 @@ export class CalendarManager {
 
     const results = await this.calendarLoader.loadCollection(url, {
       validate: options?.validate !== false,
-      cache: options?.cache !== false,
     });
 
     let successCount = 0;
@@ -828,7 +827,6 @@ export class CalendarManager {
       // Try to load the calendar collection from the module
       const results = await this.loadCalendarCollection(indexUrl, {
         validate: true,
-        cache: false, // Module calendars don't need caching
       });
 
       const successfulResults = results.filter(r => r.success);
@@ -875,11 +873,6 @@ export class CalendarManager {
       return false;
     }
 
-    // Remove any calendars loaded from this source
-    // Note: This is a simple implementation - in practice, we'd need to track
-    // which calendars came from which sources
-    this.calendarLoader.clearCacheForUrl(source.url);
-
     const success = this.calendarLoader.removeSource(sourceId);
     if (success) {
       Logger.info(`Removed external calendar source: ${source.name}`);
@@ -922,7 +915,6 @@ export class CalendarManager {
     }
 
     // Clear cache for this URL to force fresh load
-    this.calendarLoader.clearCacheForUrl(source.url);
 
     // Load based on source type
     if (source.type === 'collection') {
@@ -973,8 +965,7 @@ export class CalendarManager {
    * Clear external calendar cache
    */
   clearExternalCalendarCache(): void {
-    this.calendarLoader.clearCache();
-    Logger.info('Cleared external calendar cache');
+    Logger.info('Cache system removed - no operation needed');
   }
 
   /**
