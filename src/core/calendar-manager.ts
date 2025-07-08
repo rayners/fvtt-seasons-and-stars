@@ -788,8 +788,7 @@ export class CalendarManager {
     const calendarPackModules = Array.from(game.modules.values()).filter(
       module =>
         module.id.startsWith('seasons-and-stars-') &&
-        module.active &&
-        module.id !== 'seasons-and-stars'
+        module.active
     );
 
     if (calendarPackModules.length === 0) {
