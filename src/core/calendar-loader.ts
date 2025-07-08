@@ -605,14 +605,8 @@ export class CalendarLoader {
    */
   private sanitizeHTML(html: string): string {
     try {
-      // Use Foundry's String.stripScripts method first (removes <script> tags)
-      let sanitized = html;
-      if (typeof (String.prototype as any).stripScripts === 'function') {
-        sanitized = (sanitized as any).stripScripts();
-      } else {
-        // Fallback: remove script tags manually
-        sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-      }
+      // Use Foundry's String.stripScripts method (removes <script> tags)
+      let sanitized = html.stripScripts();
 
       // Use Foundry's TextEditor.cleanHTML method if available
       if (typeof (globalThis as any).TextEditor?.cleanHTML === 'function') {
