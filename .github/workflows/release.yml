@@ -45,7 +45,7 @@ jobs:
           fi
 
       - name: Release Seasons & Stars
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v5
         with:
           node-version: '18'
           build-command: 'npm run build'
