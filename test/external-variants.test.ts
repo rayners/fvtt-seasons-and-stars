@@ -14,7 +14,7 @@ vi.stubGlobal('game', {
     get: vi.fn(),
     set: vi.fn(),
   },
-  modules: new Map(),
+  modules: new Map([['seasons-and-stars', { id: 'seasons-and-stars', active: true }]]),
 });
 vi.stubGlobal('Hooks', {
   callAll: vi.fn(),
@@ -61,7 +61,7 @@ describe('External Calendar Variants System', () => {
 
     // Mock responses for different calendar files
     vi.mocked(fetch).mockImplementation((url: string) => {
-      if (url.includes('gregorian.json')) {
+      if (url === 'modules/seasons-and-stars/calendars/gregorian.json') {
         // Mock gregorian base calendar
         return Promise.resolve({
           ok: true,
@@ -97,7 +97,7 @@ describe('External Calendar Variants System', () => {
               year: { epoch: 0, suffix: ' AD' },
             }),
         } as Response);
-      } else if (url.includes('gregorian-star-trek-variants.json')) {
+      } else if (url === 'modules/seasons-and-stars/calendars/gregorian-star-trek-variants.json') {
         // Mock Star Trek variants file
         return Promise.resolve({
           ok: true,
@@ -231,9 +231,11 @@ describe('External Calendar Variants System', () => {
     it('should handle missing base calendar gracefully', async () => {
       // Mock a variant file that references a non-existent base calendar
       vi.mocked(fetch).mockImplementation((url: string) => {
-        if (url.includes('gregorian.json')) {
+        if (url.includes('modules/seasons-and-stars/calendars/gregorian.json')) {
           return Promise.resolve({ ok: false, status: 404 } as Response);
-        } else if (url.includes('gregorian-star-trek-variants.json')) {
+        } else if (
+          url.includes('modules/seasons-and-stars/calendars/gregorian-star-trek-variants.json')
+        ) {
           return Promise.resolve({
             ok: true,
             json: () =>
@@ -261,7 +263,7 @@ describe('External Calendar Variants System', () => {
     it('should handle invalid external variant file format', async () => {
       // Mock invalid variant file
       vi.mocked(fetch).mockImplementation((url: string) => {
-        if (url.includes('gregorian.json')) {
+        if (url.includes('modules/seasons-and-stars/calendars/gregorian.json')) {
           return Promise.resolve({
             ok: true,
             json: () =>
@@ -273,7 +275,9 @@ describe('External Calendar Variants System', () => {
                 year: { epoch: 0 },
               }),
           } as Response);
-        } else if (url.includes('gregorian-star-trek-variants.json')) {
+        } else if (
+          url.includes('modules/seasons-and-stars/calendars/gregorian-star-trek-variants.json')
+        ) {
           return Promise.resolve({
             ok: true,
             json: () =>
