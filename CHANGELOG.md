@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2025-07-08
+
 ### Features
 
 * **calendar-packs**: Add auto-detection system for calendar pack modules
@@ -184,8 +186,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * add issue [#35](https://github.com/rayners/fvtt-seasons-and-stars/issues/35) UI improvements to roadmap ([1fee106](https://github.com/rayners/fvtt-seasons-and-stars/commit/1fee106ca5e9d8f19d0704516bfca4309228e0cf))
 * add star emoji to README_FOUNDRY.md title ([4182716](https://github.com/rayners/fvtt-seasons-and-stars/commit/418271663a3d33ed811af5e5653a2a9abf76ffb0))
 * align ROADMAP with 0.4.0 milestone and fix documentation standards ([fda2d58](https://github.com/rayners/fvtt-seasons-and-stars/commit/fda2d58ecca14bbddd059d8e8325473c7b96ce61))
-
-## [Unreleased]
 
 ### Next Priority Features
 
@@ -438,8 +438,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Visual Feedback**: Clear indicators, animations, and state changes
 - **Responsive Design**: Works across different screen sizes and UI configurations
 - **Accessibility**: Proper ARIA labels and keyboard navigation support
-
-## [Unreleased]
 
 ### Planned Features
 
