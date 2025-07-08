@@ -26,10 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `loadModuleCalendars()` API method for programmatic access
   - Comprehensive documentation in Developer Guide and dedicated Calendar Pack Guide
 
-### Bug Fixes
-
-* restructure changelog to properly prepare for v0.7.0 release ([51523fd](https://github.com/rayners/fvtt-seasons-and-stars/commit/51523fdd4214a191a404db608e13ca72c9d5f628))
-
 ### Technical Changes
 
 * **calendar-loader**: Add module URL protocol support (`module:module-id`)
