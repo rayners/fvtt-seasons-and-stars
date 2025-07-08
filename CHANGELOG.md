@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
-## [Unreleased]
+## [0.7.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.6.0...v0.7.0) (2025-07-08)
 
-## [0.7.0] - 2025-07-08
 
 ### Features
+
+* Add JSON Schema validation system for calendar formats ([#129](https://github.com/rayners/fvtt-seasons-and-stars/issues/129)) ([01cad57](https://github.com/rayners/fvtt-seasons-and-stars/commit/01cad57e22ff666028e376c4fe2660e97ccb2cb8))
+* External Calendar Loading System ([#130](https://github.com/rayners/fvtt-seasons-and-stars/issues/130)) ([2fc8306](https://github.com/rayners/fvtt-seasons-and-stars/commit/2fc8306d008145b3ea83149f49865c08fbe490ad))
+* update dark-sun.json calendar for canon moon colors and cycles ([#138](https://github.com/rayners/fvtt-seasons-and-stars/issues/138)) ([d84cc70](https://github.com/rayners/fvtt-seasons-and-stars/commit/d84cc70fa9cfed05aac2d8807c5618da72367b88))
 
 * **calendar-packs**: Add auto-detection system for calendar pack modules
   - Automatically discovers modules with `seasons-and-stars-*` naming pattern
