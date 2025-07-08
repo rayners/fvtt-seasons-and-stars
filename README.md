@@ -14,6 +14,7 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Module Integration**: Clean APIs for weather modules and other integrations via compatibility bridges
 - **SmallTime Integration**: Seamless positioning and visual consistency with enhanced styling
 - **16 Built-in Calendars**: Switch between Gregorian, fantasy calendars (D&D, PF2e, Critical Role, etc.), sci-fi calendars (Star Trek, Starfinder, Traveller), and custom formats based on official game sources
+- **Calendar Pack Auto-Detection**: Automatically discovers and loads calendar modules following the `seasons-and-stars-*` naming convention - no JavaScript required, just JSON data files
 - **Advanced Date Formatting**: Handlebars-based templates with mathematical operations, format embedding, and era-specific calculations (like Star Trek stardates)
 - **Calendar Variants System**: Cultural and regional calendar variations (e.g., Golarion has Absalom Reckoning, Imperial, Varisian, and Earth Historical variants)
 
@@ -131,6 +132,43 @@ Hooks.on('seasons-stars:dateChanged', data => {
 ```
 
 See the [Developer Guide](./docs/DEVELOPER-GUIDE.md) for complete API reference.
+
+## 📦 Creating Calendar Packs
+
+Calendar packs are **pure data modules** that provide additional calendars without requiring any JavaScript:
+
+### Quick Example
+
+```
+seasons-and-stars-fantasy/
+├── module.json                 # Standard Foundry module
+└── calendars/
+    ├── index.json             # Collection metadata
+    ├── dragonlance.json       # Individual calendar files
+    └── forgotten-realms.json
+```
+
+**Collection Format (`calendars/index.json`):**
+
+```json
+{
+  "name": "Fantasy Calendar Pack",
+  "calendars": [
+    {
+      "id": "dragonlance",
+      "name": "Dragonlance Calendar",
+      "file": "dragonlance.json",
+      "preview": "15th of Autumn Twilight, 421 AC"
+    }
+  ]
+}
+```
+
+### Auto-Detection
+
+Modules with IDs starting with `seasons-and-stars-` are automatically detected and loaded. No registration required!
+
+**📖 Complete Guide**: See [Calendar Pack Development Guide](./docs/CALENDAR-PACK-GUIDE.md) for detailed instructions.
 
 ### Build from Source
 
