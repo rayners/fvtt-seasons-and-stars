@@ -35,6 +35,23 @@ global.game = {
   modules: mockModules,
 };
 
+// Mock Foundry's stripScripts method for testing - using simple approach
+String.prototype.stripScripts = function () {
+  // Simple mock that removes script tags and content for testing
+  let result = this.toString();
+  // Remove script tags one at a time (safer than complex nested regex)
+  while (result.includes('<script')) {
+    const start = result.indexOf('<script');
+    const end = result.indexOf('</script>');
+    if (start !== -1 && end !== -1 && end > start) {
+      result = result.substring(0, start) + result.substring(end + 9);
+    } else {
+      break; // Avoid infinite loop if malformed
+    }
+  }
+  return result;
+};
+
 // Sample calendar data for testing
 const sampleCalendar: SeasonsStarsCalendar = {
   id: 'test-calendar',
