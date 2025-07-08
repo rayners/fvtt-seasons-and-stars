@@ -14,6 +14,7 @@ vi.stubGlobal('game', {
     get: vi.fn(),
     set: vi.fn(),
   },
+  modules: new Map(),
 });
 vi.stubGlobal('Hooks', {
   callAll: vi.fn(),
