@@ -260,7 +260,20 @@ export class CalendarLocalization {
     for (const [, group] of sortedGroups) {
       // Add base calendar first
       if (group.base) {
-        choices[group.base.id] = this.getCalendarLabel(group.base);
+        const label = this.getCalendarLabel(group.base);
+        const setting = this.getCalendarSetting(group.base);
+        const sourceInfo = group.base.sourceInfo;
+
+        let displayLabel = label;
+
+        // For settings dropdown, prioritize showing source over setting to avoid redundancy
+        if (sourceInfo && sourceInfo.type !== 'builtin') {
+          displayLabel += ` - ${sourceInfo.sourceName}`;
+        } else if (setting) {
+          displayLabel += ` (${setting})`;
+        }
+
+        choices[group.base.id] = displayLabel;
       }
 
       // Sort variants alphabetically and add with prefix
@@ -272,7 +285,19 @@ export class CalendarLocalization {
 
       for (const variant of group.variants) {
         const variantLabel = this.getCalendarLabel(variant);
-        choices[variant.id] = `— ${variantLabel}`;
+        const variantSetting = this.getCalendarSetting(variant);
+        const sourceInfo = variant.sourceInfo;
+
+        let displayLabel = variantLabel;
+
+        // For settings dropdown, prioritize showing source over setting to avoid redundancy
+        if (sourceInfo && sourceInfo.type !== 'builtin') {
+          displayLabel += ` - ${sourceInfo.sourceName}`;
+        } else if (variantSetting) {
+          displayLabel += ` (${variantSetting})`;
+        }
+
+        choices[variant.id] = `— ${displayLabel}`;
       }
     }
 

@@ -2,7 +2,7 @@
   "id": "golarion-pf2e",
   "translations": {
     "en": {
-      "label": "Golarion Calendar (Pathfinder 2e)",
+      "label": "Golarion Calendar",
       "description": "The Absalom Reckoning calendar system used throughout Golarion, the campaign setting for Pathfinder Second Edition. Features twelve months with leap years following Gregorian rules.",
       "setting": "Pathfinder 2e"
     }

@@ -2,7 +2,7 @@
   "id": "greyhawk",
   "translations": {
     "en": {
-      "label": "Greyhawk Calendar (D&D)",
+      "label": "Greyhawk Calendar",
       "description": "The Common Year calendar system used in the World of Greyhawk, the classic D&D campaign setting. Features twelve months and four festival weeks that fall outside normal monthly structure.",
       "setting": "D&D Greyhawk"
     }

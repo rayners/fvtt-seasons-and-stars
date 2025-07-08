@@ -33,8 +33,12 @@ async function getAjvValidators() {
     // Load schemas based on environment
     let calendarSchema, variantsSchema, collectionSchema;
 
-    if (typeof window !== 'undefined') {
-      // Browser environment - use FoundryVTT module paths
+    if (
+      typeof window !== 'undefined' &&
+      typeof game !== 'undefined' &&
+      game.modules?.get('seasons-and-stars')
+    ) {
+      // Browser environment with FoundryVTT - use module paths
       const moduleId = 'seasons-and-stars';
       const basePath = `modules/${moduleId}/schemas`;
 
@@ -44,7 +48,7 @@ async function getAjvValidators() {
         fetch(`${basePath}/calendar-collection-v1.0.0.json`).then(r => r.json()),
       ]);
     } else {
-      // Node.js environment - use dynamic imports from filesystem
+      // Node.js environment or test environment - use filesystem
       const fs = await import('fs');
       const path = await import('path');
 

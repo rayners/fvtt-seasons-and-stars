@@ -5,6 +5,8 @@
 .seasons-stars.calendar-selection-dialog {
   // Use native Foundry CSS Grid system with scrolling
   .calendar-selection-grid {
+    display: grid;
+    grid-template-columns: 1fr; // Single column for wider cards
     gap: 1rem;
     min-height: 300px;
     max-height: 520px;
@@ -42,6 +44,7 @@
     border-radius: 4px;
     min-height: 200px;
     cursor: var(--cursor-pointer, pointer);
+    width: 100%; // Ensure cards use full available width
     
     // Use Foundry's interactive colors
     border: 1px solid var(--color-border-light-secondary);
@@ -115,57 +118,101 @@
 
     .card-header {
       margin-bottom: 0.5rem;
-      align-items: flex-start;
+      gap: 0.5rem;
 
-      .calendar-info {
-        flex: 1;
+      .calendar-title-row {
+        align-items: flex-start;
+        gap: 0.5rem;
 
-        .calendar-name {
-          margin: 0 0 0.25rem 0;
-          font-size: 1.1rem;
-          font-weight: 600;
-          color: var(--color-text-light-primary);
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          
-          .variant-indicator {
-            color: var(--color-cool-1);
-            font-size: 0.9rem;
-            opacity: 0.8;
+        .calendar-title-info {
+          flex: 1;
+          min-width: 0;
+
+          .calendar-name {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--color-text-light-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             
-            i {
-              transform: rotate(0deg);
-              transition: transform 0.2s ease;
+            .variant-indicator {
+              color: var(--color-cool-1);
+              font-size: 0.9rem;
+              opacity: 0.8;
+              
+              i {
+                transform: rotate(0deg);
+                transition: transform 0.2s ease;
+              }
             }
+          }
+
+          .calendar-setting {
+            font-size: 0.8rem;
+            color: var(--color-text-light-7);
+            font-style: italic;
+          }
+          
+          .variant-info {
+            font-size: 0.75rem;
+            color: var(--color-cool-2);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--color-bg-secondary);
+            padding: 0.125rem 0.375rem;
+            border-radius: 3px;
+            border: 1px solid var(--color-cool-5);
+            margin-top: 0.25rem;
+            display: inline-block;
           }
         }
 
-        .calendar-setting {
-          font-size: 0.8rem;
-          color: var(--color-text-light-7);
-          font-style: italic;
-        }
-        
-        .variant-info {
-          font-size: 0.75rem;
-          color: var(--color-cool-2);
-          font-weight: 500;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          background: var(--color-bg-secondary);
-          padding: 0.125rem 0.375rem;
-          border-radius: 3px;
-          border: 1px solid var(--color-cool-5);
-          margin-top: 0.25rem;
-          display: inline-block;
+        .calendar-badges {
+          flex-shrink: 0;
+          align-items: center;
+          gap: 0.25rem;
+
+          .current-badge {
+            color: var(--color-warm-1);
+            font-size: 1.1rem;
+          }
+
+          .module-badge,
+          .external-badge {
+            color: var(--color-text-light-6);
+            font-size: 1rem;
+            opacity: 0.8;
+            
+            &:hover {
+              opacity: 1;
+            }
+          }
         }
       }
-
-      .current-badge {
-        color: var(--color-warm-1);
-        font-size: 1.2rem;
-        margin-left: 0.5rem;
+      
+      .source-info {
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%; // Take full width now that it's on its own row
+        
+        .source-icon {
+          font-size: 0.85rem;
+          color: var(--color-text-light-7);
+          flex-shrink: 0;
+          width: 1rem;
+        }
+        
+        .source-label {
+          font-size: 0.8rem;
+          color: var(--color-text-light-6);
+          font-weight: 500;
+          word-break: break-word;
+          line-height: 1.2;
+          flex: 1;
+        }
       }
     }
 

@@ -26,6 +26,7 @@ Validates calendar collection index files (`index.json`) including:
 - Collection metadata and versioning
 - Calendar entry definitions with proper references
 - Tag and category validation
+- Preview text for calendar selection (with HTML sanitization)
 
 ### External Calendar Variants Schema (`calendar-variants-v1.0.0.json`)
 
@@ -87,6 +88,37 @@ Add `$schema` property to your JSON files for real-time validation:
     }
   }
   // ... rest of calendar definition
+}
+```
+
+### Calendar Collection with Preview Example
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/rayners/fvtt-seasons-and-stars/main/schemas/calendar-collection-v1.0.0.json",
+  "name": "Fantasy Calendar Collection",
+  "description": "Popular calendars for fantasy RPGs",
+  "version": "1.0.0",
+  "calendars": [
+    {
+      "id": "golarion",
+      "name": "Golarion (Pathfinder)",
+      "description": "The standard calendar used in Pathfinder campaigns",
+      "file": "golarion.json",
+      "preview": "<strong>Sunday, 21st of Lamashan, 4712 AR</strong>",
+      "tags": ["pathfinder", "fantasy"],
+      "author": "Paizo Publishing"
+    },
+    {
+      "id": "faerun",
+      "name": "Faerûn (Forgotten Realms)",
+      "description": "Calendar of Toril used in D&D 5e campaigns",
+      "file": "faerun.json",
+      "preview": "Eleint 15, 1492 DR (The Year of Three Ships Sailing)",
+      "tags": ["dnd5e", "forgotten-realms"],
+      "author": "Wizards of the Coast"
+    }
+  ]
 }
 ```
 

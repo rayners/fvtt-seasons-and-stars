@@ -9,6 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 💖 **Love this module?** Consider [supporting development on Patreon](https://patreon.com/rayners) to help fund new features and faster updates!
 
+## [Unreleased]
+
+### Features
+
+* **calendar-packs**: Add auto-detection system for calendar pack modules
+  - Automatically discovers modules with `seasons-and-stars-*` naming pattern
+  - Loads calendar collections from standard `calendars/index.json` layout
+  - Supports relative file paths and preview text with HTML sanitization
+  - Enhanced calendar selection dialog with source type indicators
+  - Added `loadModuleCalendars()` API method for programmatic access
+  - Comprehensive documentation in Developer Guide and dedicated Calendar Pack Guide
+
+### Technical Changes
+
+* **calendar-loader**: Add module URL protocol support (`module:module-id`)
+* **calendar-manager**: Integrate auto-detection into built-in calendar loading flow
+* **ui**: Enhanced calendar selection with module/built-in/external source badges
+* **schemas**: Add preview field to calendar collection schema with validation
+* **api**: Extend public API with calendar pack loading methods
+
 ## [0.6.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.5.0...v0.6.0) (2025-07-06)
 
 

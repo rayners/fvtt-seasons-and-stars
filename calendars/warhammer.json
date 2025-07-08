@@ -2,7 +2,7 @@
   "id": "warhammer",
   "translations": {
     "en": {
-      "label": "Imperial Calendar (Warhammer Fantasy)",
+      "label": "Imperial Calendar",
       "description": "The calendar of the Empire in the Old World, featuring irregular months and feast days that mark the passage of seasons in the grim darkness of the Warhammer Fantasy setting.",
       "setting": "Warhammer Fantasy"
     }

@@ -2,12 +2,13 @@
  * Calendar management system for Seasons & Stars
  */
 
-import type { SeasonsStarsCalendar, CalendarVariant } from '../types/calendar';
+import type { SeasonsStarsCalendar, CalendarVariant, CalendarSourceInfo } from '../types/calendar';
 import { CalendarEngine } from './calendar-engine';
 import { TimeConverter } from './time-converter';
 import { CalendarValidator } from './calendar-validator';
 import { CalendarDate } from './calendar-date';
 import { CalendarLocalization } from './calendar-localization';
+import { CalendarLoader, type ExternalCalendarSource, type LoadResult } from './calendar-loader';
 import { Logger } from './logger';
 import { BUILT_IN_CALENDARS } from '../generated/calendar-list';
 
@@ -16,6 +17,7 @@ export class CalendarManager {
   public engines: Map<string, CalendarEngine> = new Map();
   private timeConverter: TimeConverter | null = null;
   private activeCalendarId: string | null = null;
+  private calendarLoader: CalendarLoader = new CalendarLoader();
 
   /**
    * Initialize the calendar manager
@@ -66,14 +68,26 @@ export class CalendarManager {
       }
 
       try {
-        // Try to load from module's calendars directory
-        const response = await fetch(`modules/seasons-and-stars/calendars/${calendarId}.json`);
+        // Load from module's calendars directory using CalendarLoader
+        const result = await this.calendarLoader.loadFromUrl(
+          `module:seasons-and-stars/calendars/${calendarId}.json`,
+          {
+            validate: true, // Keep validation for built-in calendars
+          }
+        );
 
-        if (response.ok) {
-          const calendarData = await response.json();
-          this.loadCalendar(calendarData);
+        if (result.success && result.calendar) {
+          // Tag built-in calendars with source info
+          const builtinSourceInfo: CalendarSourceInfo = {
+            type: 'builtin',
+            sourceName: 'Seasons & Stars',
+            description: 'Calendar included with Seasons & Stars',
+            icon: 'fa-solid fa-calendar',
+            url: `module:seasons-and-stars/calendars/${calendarId}.json`,
+          };
+          this.loadCalendar(result.calendar, builtinSourceInfo);
         } else {
-          Logger.warn(`Could not load built-in calendar: ${calendarId}`);
+          Logger.warn(`Could not load built-in calendar: ${calendarId}`, result.error);
         }
       } catch (error) {
         Logger.error(`Error loading calendar ${calendarId}`, error as Error);
@@ -82,12 +96,15 @@ export class CalendarManager {
 
     // Then, load external variant files
     await this.loadExternalVariantFiles();
+
+    // Auto-detect and load calendar pack modules
+    await this.autoLoadCalendarPacks();
   }
 
   /**
    * Load a calendar from data
    */
-  loadCalendar(calendarData: SeasonsStarsCalendar): boolean {
+  loadCalendar(calendarData: SeasonsStarsCalendar, sourceInfo?: CalendarSourceInfo): boolean {
     // Validate the calendar data (using synchronous legacy validation for performance)
     const validation = CalendarValidator.validateWithHelp(calendarData);
 
@@ -99,6 +116,11 @@ export class CalendarManager {
     // Warn about potential issues
     if (validation.warnings.length > 0) {
       Logger.debug(`Calendar info for ${calendarData.id}: ${validation.warnings.join(', ')}`);
+    }
+
+    // Set source information if provided
+    if (sourceInfo) {
+      calendarData.sourceInfo = sourceInfo;
     }
 
     // Store the base calendar
@@ -530,14 +552,24 @@ export class CalendarManager {
    */
   private async loadExternalVariantFile(variantFileId: string): Promise<void> {
     try {
-      const response = await fetch(`modules/seasons-and-stars/calendars/${variantFileId}.json`);
+      // Load external variant file using CalendarLoader
+      const result = await this.calendarLoader.loadFromUrl(
+        `module:seasons-and-stars/calendars/${variantFileId}.json`,
+        {
+          validate: false, // External variant files have different structure than calendars
+        }
+      );
 
-      if (!response.ok) {
-        Logger.debug(`External variant file not found: ${variantFileId}`);
+      if (!result.success || !result.calendar) {
+        Logger.debug(`External variant file not found: ${variantFileId}`, result.error);
         return;
       }
 
-      const variantFileData = await response.json();
+      // Cast to variant file data since we disabled validation
+      const variantFileData = result.calendar as unknown as {
+        baseCalendar: string;
+        variants: Record<string, CalendarVariant>;
+      };
 
       // Validate external variant file structure
       if (!this.validateExternalVariantFile(variantFileData)) {
@@ -605,5 +637,338 @@ export class CalendarManager {
 
       Logger.debug(`Created external calendar variant: ${variantCalendarId}`);
     }
+  }
+
+  // External Calendar Loading Methods
+
+  /**
+   * Load a calendar from an external URL
+   */
+  async loadCalendarFromUrl(
+    url: string,
+    options?: { validate?: boolean; cache?: boolean }
+  ): Promise<LoadResult> {
+    Logger.info(`Loading calendar from URL: ${url}`);
+
+    const result = await this.calendarLoader.loadFromUrl(url, {
+      validate: options?.validate !== false,
+    });
+
+    if (result.success && result.calendar) {
+      // Determine source information based on URL
+      const sourceInfo = this.determineSourceInfo(url, result);
+
+      // Load the calendar into the manager with source info
+      const loadSuccess = this.loadCalendar(result.calendar, sourceInfo);
+      if (!loadSuccess) {
+        return {
+          ...result,
+          success: false,
+          error: 'Calendar loaded from URL but failed validation in CalendarManager',
+        };
+      }
+
+      // Update source status if this was from a registered source
+      const sources = this.calendarLoader.getSources();
+      const matchingSource = sources.find(s => s.url === url);
+      if (matchingSource) {
+        this.calendarLoader.updateSourceStatus(matchingSource.id, true);
+      }
+
+      Logger.info(`Successfully loaded external calendar: ${result.calendar.id}`);
+    } else if (result.error) {
+      // Update source status if this was from a registered source
+      const sources = this.calendarLoader.getSources();
+      const matchingSource = sources.find(s => s.url === url);
+      if (matchingSource) {
+        this.calendarLoader.updateSourceStatus(matchingSource.id, false, result.error);
+      }
+
+      Logger.error(`Failed to load calendar from URL: ${result.error}`);
+    }
+
+    return result;
+  }
+
+  /**
+   * Load multiple calendars from a collection URL
+   */
+  async loadCalendarCollection(
+    url: string,
+    options?: { validate?: boolean; cache?: boolean }
+  ): Promise<LoadResult[]> {
+    Logger.info(`Loading calendar collection from URL: ${url}`);
+
+    const results = await this.calendarLoader.loadCollection(url, {
+      validate: options?.validate !== false,
+    });
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const result of results) {
+      if (result.success && result.calendar) {
+        // Determine source information based on URL
+        const sourceInfo = this.determineSourceInfo(url, result);
+
+        const loadSuccess = this.loadCalendar(result.calendar, sourceInfo);
+        if (loadSuccess) {
+          successCount++;
+        } else {
+          result.success = false;
+          result.error = 'Calendar loaded from collection but failed validation in CalendarManager';
+          errorCount++;
+        }
+      } else {
+        errorCount++;
+      }
+    }
+
+    Logger.info(`Collection load completed: ${successCount} successful, ${errorCount} failed`);
+    return results;
+  }
+
+  /**
+   * Determine source information based on URL and load result
+   */
+  private determineSourceInfo(url: string, _result: LoadResult): CalendarSourceInfo {
+    // Check if this is a module URL
+    if (url.startsWith('module:')) {
+      const moduleMatch = url.match(/^module:([a-z0-9-]+)/);
+      if (moduleMatch) {
+        const moduleId = moduleMatch[1];
+        const module = game.modules.get(moduleId);
+
+        if (module) {
+          return {
+            type: 'module',
+            sourceName: module.title,
+            description: `Calendar provided by the ${module.title} module`,
+            icon: 'fa-solid fa-puzzle-piece',
+            moduleId,
+            url,
+          };
+        }
+      }
+    }
+
+    // Check if this came from an external source (tracked by CalendarLoader)
+    const externalSources = this.calendarLoader.getSources();
+    for (const source of externalSources) {
+      if (source.url === url) {
+        return {
+          type: 'external',
+          sourceName: source.name,
+          description: `Calendar loaded from external source: ${source.name}`,
+          icon: 'fa-solid fa-cloud',
+          externalSourceId: source.id,
+          url: source.url,
+        };
+      }
+    }
+
+    // Default fallback (shouldn't happen for collections, but safety)
+    return {
+      type: 'builtin',
+      sourceName: 'Unknown Source',
+      description: 'Calendar source could not be determined',
+      icon: 'fa-solid fa-question-circle',
+      url,
+    };
+  }
+
+  /**
+   * Auto-detect and load calendar pack modules
+   * Scans for enabled modules starting with 'seasons-and-stars-' and loads their calendars
+   */
+  async autoLoadCalendarPacks(): Promise<void> {
+    Logger.debug('Auto-detecting calendar pack modules');
+
+    // Find all enabled modules that start with 'seasons-and-stars-' (excluding core module)
+    const calendarPackModules = Array.from(game.modules.values()).filter(
+      module => module.id.startsWith('seasons-and-stars-') && module.active
+    );
+
+    if (calendarPackModules.length === 0) {
+      Logger.debug('No calendar pack modules found');
+      return;
+    }
+
+    Logger.info(
+      `Found ${calendarPackModules.length} calendar pack modules: ${calendarPackModules.map(m => m.id).join(', ')}`
+    );
+
+    for (const module of calendarPackModules) {
+      await this.loadModuleCalendars(module.id);
+    }
+  }
+
+  /**
+   * Load calendars from a specific module
+   * @param moduleId - The module ID to load calendars from
+   */
+  async loadModuleCalendars(moduleId: string): Promise<LoadResult[]> {
+    Logger.debug(`Loading calendars from module: ${moduleId}`);
+
+    // Check if module is enabled
+    const module = game.modules.get(moduleId);
+    if (!module?.active) {
+      Logger.warn(`Module not found or not enabled: ${moduleId}`);
+      return [];
+    }
+
+    // Use module URL protocol for proper CalendarLoader handling
+    const indexUrl = `module:${moduleId}`;
+
+    try {
+      // Try to load the calendar collection from the module
+      const results = await this.loadCalendarCollection(indexUrl, {
+        validate: true,
+      });
+
+      const successfulResults = results.filter(r => r.success);
+      const failedResults = results.filter(r => !r.success);
+
+      if (successfulResults.length > 0) {
+        Logger.info(
+          `Successfully loaded ${successfulResults.length} calendars from module ${moduleId}`
+        );
+      }
+
+      if (failedResults.length > 0) {
+        Logger.warn(`Failed to load ${failedResults.length} calendars from module ${moduleId}`);
+        failedResults.forEach(result => {
+          if (result.error) {
+            Logger.debug(`  - ${result.collectionEntry?.name || 'Unknown'}: ${result.error}`);
+          }
+        });
+      }
+
+      return results;
+    } catch (error) {
+      Logger.warn(`Failed to load calendar collection from module ${moduleId}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Add an external calendar source
+   */
+  addExternalSource(source: Omit<ExternalCalendarSource, 'id'>): string {
+    const sourceId = this.calendarLoader.addSource(source);
+    Logger.info(`Added external calendar source: ${source.name} (${sourceId})`);
+    return sourceId;
+  }
+
+  /**
+   * Remove an external calendar source and its calendars
+   */
+  removeExternalSource(sourceId: string): boolean {
+    const source = this.calendarLoader.getSource(sourceId);
+    if (!source) {
+      Logger.warn(`External source not found: ${sourceId}`);
+      return false;
+    }
+
+    const success = this.calendarLoader.removeSource(sourceId);
+    if (success) {
+      Logger.info(`Removed external calendar source: ${source.name}`);
+    }
+
+    return success;
+  }
+
+  /**
+   * Get all external calendar sources
+   */
+  getExternalSources(): ExternalCalendarSource[] {
+    return this.calendarLoader.getSources();
+  }
+
+  /**
+   * Get an external calendar source by ID
+   */
+  getExternalSource(sourceId: string): ExternalCalendarSource | undefined {
+    return this.calendarLoader.getSource(sourceId);
+  }
+
+  /**
+   * Refresh a calendar from an external source
+   */
+  async refreshExternalCalendar(sourceId: string): Promise<LoadResult> {
+    const source = this.calendarLoader.getSource(sourceId);
+    if (!source) {
+      return {
+        success: false,
+        error: `External source not found: ${sourceId}`,
+      };
+    }
+
+    if (!source.enabled) {
+      return {
+        success: false,
+        error: `External source is disabled: ${source.name}`,
+      };
+    }
+
+    // Clear cache for this URL to force fresh load
+
+    // Load based on source type
+    if (source.type === 'collection') {
+      const results = await this.loadCalendarCollection(source.url);
+      // Return summary result for collection
+      const successCount = results.filter(r => r.success).length;
+
+      return {
+        success: successCount > 0,
+        error: successCount === 0 ? 'All calendars in collection failed to load' : undefined,
+        sourceUrl: source.url,
+      };
+    } else {
+      return await this.loadCalendarFromUrl(source.url);
+    }
+  }
+
+  /**
+   * Refresh all enabled external sources
+   */
+  async refreshAllExternalCalendars(): Promise<{ [sourceId: string]: LoadResult }> {
+    const sources = this.calendarLoader.getSources().filter(s => s.enabled);
+    const results: { [sourceId: string]: LoadResult } = {};
+
+    Logger.info(`Refreshing ${sources.length} external calendar sources`);
+
+    for (const source of sources) {
+      try {
+        results[source.id] = await this.refreshExternalCalendar(source.id);
+      } catch (error) {
+        results[source.id] = {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          sourceUrl: source.url,
+        };
+      }
+    }
+
+    const successCount = Object.values(results).filter(r => r.success).length;
+    Logger.info(
+      `External calendar refresh completed: ${successCount}/${sources.length} successful`
+    );
+
+    return results;
+  }
+
+  /**
+   * Clear external calendar cache
+   */
+  clearExternalCalendarCache(): void {
+    Logger.info('Cache system removed - no operation needed');
+  }
+
+  /**
+   * Get the CalendarLoader instance for advanced operations
+   */
+  getCalendarLoader(): CalendarLoader {
+    return this.calendarLoader;
   }
 }

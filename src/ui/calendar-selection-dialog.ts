@@ -8,22 +8,30 @@ import { Logger } from '../core/logger';
 import { CalendarTimeUtils } from '../core/calendar-time-utils';
 import { CalendarDate } from '../core/calendar-date';
 import type { SeasonsStarsCalendar } from '../types/calendar';
+import type { CalendarCollectionEntry, ExternalCalendarSource } from '../core/calendar-loader';
 
 export class CalendarSelectionDialog extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
   private selectedCalendarId: string | null = null;
   private calendars: Map<string, SeasonsStarsCalendar>;
+  private collectionEntries: Map<string, CalendarCollectionEntry>;
+  private externalSources: Map<string, ExternalCalendarSource>;
   private currentCalendarId: string;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(calendars: any, currentCalendarId: string) {
+  constructor(
+    calendars: Map<string, SeasonsStarsCalendar> | SeasonsStarsCalendar[],
+    currentCalendarId: string,
+    collectionEntries?: Map<string, CalendarCollectionEntry>,
+    externalSources?: Map<string, ExternalCalendarSource>
+  ) {
     super();
 
     Logger.debug('CalendarSelectionDialog constructor', {
       type: typeof calendars,
       isMap: calendars instanceof Map,
       calendars,
+      collectionEntries,
     });
 
     // Convert array to Map if needed
@@ -41,6 +49,12 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       Logger.error('Unsupported calendars type', new Error(`Type: ${typeof calendars}`));
       this.calendars = new Map();
     }
+
+    // Store collection entries metadata (if available)
+    this.collectionEntries = collectionEntries || new Map();
+
+    // Store external sources metadata (if available)
+    this.externalSources = externalSources || new Map();
 
     this.currentCalendarId = currentCalendarId;
     this.selectedCalendarId = currentCalendarId;
@@ -103,11 +117,15 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         }
       }
 
-      // Generate sample date for preview
-      const sampleDate = this.generateSampleDate(calendar);
+      // Determine the source type and metadata
+      const sourceInfo = this.getCalendarSourceInfo(id);
 
-      // Generate mini widget preview
-      const miniPreview = this.generateMiniWidgetPreview(calendar);
+      // Use collection preview if available, otherwise generate sample date
+      const collectionEntry = this.collectionEntries.get(id);
+      const sampleDate = collectionEntry?.preview || this.generateSampleDate(calendar);
+
+      // Generate mini widget preview (use collection preview for consistency if available)
+      const miniPreview = collectionEntry?.preview || this.generateMiniWidgetPreview(calendar);
 
       return {
         id,
@@ -121,6 +139,13 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         isVariant,
         variantInfo,
         baseCalendarId,
+        sourceType: sourceInfo.type,
+        sourceIcon: sourceInfo.icon,
+        sourceLabel: sourceInfo.label,
+        sourceDescription: sourceInfo.description,
+        isModuleSource: sourceInfo.type === 'module',
+        isBuiltinSource: sourceInfo.type === 'builtin',
+        isExternalSource: sourceInfo.type === 'external',
       };
     });
 
@@ -399,6 +424,38 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   }
 
   /**
+   * Determine the source type and metadata for a calendar
+   */
+  private getCalendarSourceInfo(calendarId: string): {
+    type: 'builtin' | 'module' | 'external';
+    icon: string;
+    label: string;
+    description: string;
+  } {
+    // Get the calendar object to check for source information
+    const calendar = this.calendars.get(calendarId);
+
+    // Use the stored source information if available
+    if (calendar?.sourceInfo) {
+      return {
+        type: calendar.sourceInfo.type,
+        icon: calendar.sourceInfo.icon,
+        label: calendar.sourceInfo.sourceName,
+        description: calendar.sourceInfo.description,
+      };
+    }
+
+    // Fallback for calendars without source information (shouldn't happen with new system)
+    Logger.warn(`Calendar ${calendarId} missing source information, using fallback detection`);
+    return {
+      type: 'builtin',
+      icon: 'fa-solid fa-question-circle',
+      label: 'Unknown Source',
+      description: 'Calendar source information not available',
+    };
+  }
+
+  /**
    * Generate mini widget preview for calendar selection
    */
   private generateMiniWidgetPreview(calendar: SeasonsStarsCalendar): string {
@@ -525,7 +582,40 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       return;
     }
 
-    const dialog = new CalendarSelectionDialog(calendars, currentCalendarId);
+    // Get collection entries and external sources from CalendarLoader if available
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const calendarLoader = (game.seasonsStars as any)?.calendarLoader;
+    let collectionEntries: Map<string, CalendarCollectionEntry> | undefined;
+    let externalSources: Map<string, ExternalCalendarSource> | undefined;
+
+    if (calendarLoader) {
+      try {
+        // Get external sources from calendar loader
+        const sources = calendarLoader.getSources();
+        externalSources = new Map();
+        for (const source of sources) {
+          externalSources.set(source.id, source);
+        }
+
+        // Collection entries would be populated during calendar loading
+        // For now, we'll pass an empty map and the source detection will work based on external sources
+        collectionEntries = new Map();
+
+        Logger.debug('CalendarSelectionDialog.show() - external sources', {
+          sourcesCount: externalSources.size,
+          sources: Array.from(externalSources.values()),
+        });
+      } catch (error) {
+        Logger.warn('Failed to get external sources from calendar loader:', error);
+      }
+    }
+
+    const dialog = new CalendarSelectionDialog(
+      calendars,
+      currentCalendarId,
+      collectionEntries,
+      externalSources
+    );
     dialog.render(true);
   }
 }

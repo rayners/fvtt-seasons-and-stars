@@ -7,9 +7,14 @@
 
 import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
 import type { SeasonsStarsIntegration } from './bridge-interfaces';
+import type { LoadResult, ExternalCalendarSource } from '../core/calendar-loader';
 
 // Extend the Game interface to include S&S specific properties
 declare global {
+  interface String {
+    stripScripts(): string;
+  }
+
   interface Game {
     seasonsStars?: {
       api?: SeasonsStarsAPI;
@@ -62,6 +67,29 @@ export interface SeasonsStarsAPI {
   formatDate(date: CalendarDate, options?: DateFormatOptions): string;
   dateToWorldTime(date: CalendarDate, calendarId?: string): number;
   worldTimeToDate(timestamp: number, calendarId?: string): CalendarDate;
+  // External Calendar Loading Methods
+  loadCalendarFromUrl(
+    url: string,
+    options?: { validate?: boolean; cache?: boolean }
+  ): Promise<LoadResult>;
+  loadCalendarCollection(
+    url: string,
+    options?: { validate?: boolean; cache?: boolean }
+  ): Promise<LoadResult[]>;
+  addExternalSource(source: {
+    name: string;
+    url: string;
+    enabled: boolean;
+    type: 'calendar' | 'collection' | 'variants';
+  }): string;
+  removeExternalSource(sourceId: string): boolean;
+  getExternalSources(): ExternalCalendarSource[];
+  getExternalSource(sourceId: string): ExternalCalendarSource | undefined;
+  refreshExternalCalendar(sourceId: string): Promise<LoadResult>;
+  refreshAllExternalCalendars(): Promise<{ [sourceId: string]: LoadResult }>;
+  clearExternalCalendarCache(): void;
+  // Module Calendar Loading Methods
+  loadModuleCalendars(moduleId: string): Promise<LoadResult[]>;
 }
 
 // Type guard functions (implementations in type-guards.ts)

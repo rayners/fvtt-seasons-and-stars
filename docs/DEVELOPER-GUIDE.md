@@ -6,6 +6,7 @@ Complete API reference and integration guide for module developers working with 
 
 - [Getting Started](#getting-started)
 - [Core API](#core-api)
+- [Calendar Pack Modules](#calendar-pack-modules)
 - [Bridge Integration](#bridge-integration)
 - [Hook System](#hook-system)
 - [System Integration](#system-integration)
@@ -279,6 +280,300 @@ const calendars = game.seasonsStars.api.getAvailableCalendars();
 console.log('Available calendars:', calendars);
 // Returns: ['gregorian', 'vale-reckoning', 'custom-calendar']
 ```
+
+## 📦 Calendar Pack Modules
+
+Calendar pack modules are **pure data modules** that provide additional calendars for Seasons & Stars through an **auto-detection system**. No JavaScript required - just properly structured JSON files.
+
+### ✨ Auto-Detection System
+
+Seasons & Stars automatically discovers and loads calendar pack modules that follow the naming convention:
+
+- **Module ID Pattern**: `seasons-and-stars-{pack-name}`
+- **Examples**: `seasons-and-stars-fantasy`, `seasons-and-stars-scifi`, `seasons-and-stars-homebrew`
+- **Auto-Load**: Enabled modules are detected and loaded automatically on world startup
+
+### 📁 Standard Layout
+
+Calendar pack modules must follow this directory structure:
+
+```
+modules/seasons-and-stars-{pack-name}/
+├── module.json
+└── calendars/
+    ├── index.json        # Collection metadata
+    ├── calendar-1.json   # Individual calendar files
+    ├── calendar-2.json
+    └── ...
+```
+
+### 🗂️ Collection Format (`index.json`)
+
+The `index.json` file describes the calendar collection:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/rayners/fvtt-seasons-and-stars/main/schemas/calendar-collection-v1.0.0.json",
+  "name": "Fantasy Calendar Pack",
+  "description": "Popular calendars for fantasy RPG campaigns",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "calendars": [
+    {
+      "id": "dragonlance",
+      "name": "Dragonlance Calendar",
+      "description": "Calendar system for the world of Krynn",
+      "file": "dragonlance.json",
+      "preview": "15th of Autumn Twilight, 421 AC",
+      "tags": ["dragonlance", "fantasy"],
+      "author": "Your Name"
+    },
+    {
+      "id": "custom-setting",
+      "name": "My Custom Setting",
+      "description": "Calendar for homebrew campaign world",
+      "file": "custom-setting.json",
+      "preview": "Day 42 of the Third Season, Year 1024",
+      "tags": ["homebrew", "custom"]
+    }
+  ]
+}
+```
+
+**Key Properties:**
+
+- **`file`**: Relative path to calendar JSON file (in same directory)
+- **`preview`**: Sample date text shown in calendar selection dialog
+- **`tags`**: Categories for filtering and organization
+- **Schema validation**: Use `$schema` for IDE support and validation
+
+### 📝 Module Definition (`module.json`)
+
+Standard Foundry module definition with S&S dependency:
+
+```json
+{
+  "id": "seasons-and-stars-fantasy",
+  "title": "Seasons & Stars: Fantasy Calendar Pack",
+  "description": "Fantasy calendars for D&D, Pathfinder, and other fantasy RPGs",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "Your Name",
+      "discord": "yourname#1234"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "relationships": {
+    "requires": [
+      {
+        "id": "seasons-and-stars",
+        "type": "module",
+        "compatibility": {
+          "minimum": "0.7.0"
+        }
+      }
+    ]
+  },
+  "manifest": "https://your-repo.com/module.json",
+  "download": "https://your-repo.com/releases/latest/download/module.zip"
+}
+```
+
+### 🎯 Calendar File Format
+
+Individual calendar files follow the standard [Seasons & Stars calendar format](../CALENDAR-FORMAT.md):
+
+```json
+{
+  "id": "dragonlance",
+  "translations": {
+    "en": {
+      "label": "Dragonlance Calendar",
+      "description": "The calendar system used in Krynn with its three moons",
+      "setting": "Dragonlance"
+    }
+  },
+  "year": {
+    "epoch": 0,
+    "currentYear": 421,
+    "suffix": " AC"
+  },
+  "months": [
+    {
+      "name": "Winter Night",
+      "abbreviation": "WN",
+      "days": 30
+    }
+    // ... more months
+  ],
+  "weekdays": [
+    {
+      "name": "Luinday",
+      "abbreviation": "Lu"
+    }
+    // ... more weekdays
+  ],
+  "dateFormats": {
+    "default": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}} AC"
+  }
+}
+```
+
+### 🔧 API Integration
+
+Calendar pack modules are loaded automatically, but you can also manage them programmatically:
+
+```javascript
+// Load calendars from a specific module
+const results = await game.seasonsStars.api.loadModuleCalendars('seasons-and-stars-fantasy');
+
+// Check results
+results.forEach(result => {
+  if (result.success) {
+    console.log(`Loaded calendar: ${result.calendar.id}`);
+  } else {
+    console.error(`Failed to load: ${result.error}`);
+  }
+});
+
+// Get collection metadata
+if (result.collectionEntry) {
+  console.log('Preview:', result.collectionEntry.preview);
+  console.log('Tags:', result.collectionEntry.tags);
+}
+```
+
+### 🔧 External Calendar Loading (Advanced Users Only)
+
+> **⚠️ Developer/Power-User Feature**: The external calendar loading APIs are intended for advanced users, developers, and those comfortable with console-based operations. These features are not documented for general users as they require technical knowledge and may encounter CORS restrictions or other technical issues.
+
+**External calendar loading methods**:
+
+```javascript
+// Load a single calendar from URL (console only - no UI yet)
+const result = await game.seasonsStars.api.loadCalendarFromUrl('https://example.com/calendar.json');
+
+// Load multiple calendars from a collection
+const results = await game.seasonsStars.api.loadCalendarCollection(
+  'https://example.com/collection.json'
+);
+
+// Manage external sources programmatically
+const sourceId = game.seasonsStars.api.addExternalSource({
+  name: 'My External Calendar',
+  url: 'https://example.com/calendar.json',
+  enabled: true,
+  type: 'calendar',
+});
+
+// Refresh external calendars
+await game.seasonsStars.api.refreshExternalCalendar(sourceId);
+await game.seasonsStars.api.refreshAllExternalCalendars();
+```
+
+**Technical considerations for external calendar loading**:
+
+- CORS policies may prevent loading from many hosts
+- No user-friendly UI exists for managing external sources
+- Requires manual console interaction and technical troubleshooting
+- Intended for developers and advanced users comfortable with debugging web requests
+- May require CORS proxies or specially configured hosting for many calendar sources
+
+### 🚀 Development Workflow
+
+**1. Create Module Structure**
+
+```bash
+mkdir seasons-and-stars-mypack
+cd seasons-and-stars-mypack
+mkdir calendars
+```
+
+**2. Add Module Definition**
+
+```bash
+# Create module.json with required S&S dependency
+```
+
+**3. Create Collection Index**
+
+```bash
+# Create calendars/index.json with calendar metadata
+```
+
+**4. Add Calendar Files**
+
+```bash
+# Create individual .json files for each calendar
+```
+
+**5. Test in Foundry**
+
+```bash
+# Copy to Foundry modules directory
+# Enable module in world
+# Check console for auto-detection logs
+```
+
+### 🛡️ Security & Validation
+
+- **HTML Sanitization**: Preview text is automatically sanitized for security
+- **Schema Validation**: Collection files are validated against JSON schema
+- **Module Validation**: Only active, valid modules are processed
+- **Error Handling**: Detailed error reporting for failed calendar loads
+
+### 🎨 UI Integration
+
+Calendar pack calendars appear in the calendar selection dialog with:
+
+- **Source Badge**: "Module: Pack Name" indicator
+- **Preview Text**: Sample date format from collection metadata
+- **Organization**: Grouped by source type (Built-in/Module/External)
+- **Visual Hierarchy**: Clear distinction between calendar sources
+
+### 📋 Best Practices
+
+**✅ Do:**
+
+- Use descriptive, unique calendar IDs
+- Provide meaningful preview text showing actual date format
+- Include comprehensive descriptions and metadata
+- Test calendars thoroughly before distribution
+- Use semantic versioning for pack releases
+- Add proper tags for discoverability
+
+**❌ Don't:**
+
+- Include JavaScript in calendar pack modules
+- Hardcode absolute paths in collection files
+- Use conflicting calendar IDs with other packs
+- Skip schema validation during development
+- Include sensitive data in preview text
+
+### 🔍 Troubleshooting
+
+**Module Not Detected:**
+
+- Check module ID starts with `seasons-and-stars-`
+- Ensure module is enabled in Foundry
+- Verify `calendars/index.json` exists and is valid JSON
+
+**Calendar Load Failures:**
+
+- Check console for detailed error messages
+- Validate JSON syntax in calendar files
+- Ensure `file` property matches actual filename
+- Verify calendar format follows S&S schema
+
+**Preview Not Showing:**
+
+- Check `preview` field in collection entry
+- Ensure preview text is under 200 characters
+- Verify HTML is properly escaped if used
 
 ## 🔄 Bridge Integration
 

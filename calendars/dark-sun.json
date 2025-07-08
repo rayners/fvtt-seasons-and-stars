@@ -2,7 +2,7 @@
   "id": "dark-sun",
   "translations": {
     "en": {
-      "label": "Athasian Calendar (Dark Sun)",
+      "label": "Athasian Calendar",
       "description": "The harsh calendar of the dying world of Athas from the Dark Sun D&D setting. Features a complex system of named years that cycle through 77 different combinations, with intercalary periods marking the deadly seasonal extremes.",
       "setting": "D&D Dark Sun"
     }

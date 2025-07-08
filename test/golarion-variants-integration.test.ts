@@ -14,6 +14,7 @@ vi.stubGlobal('game', {
     get: vi.fn(),
     set: vi.fn(),
   },
+  modules: new Map([['seasons-and-stars', { id: 'seasons-and-stars', active: true }]]),
 });
 vi.stubGlobal('Hooks', {
   callAll: vi.fn(),
@@ -64,10 +65,15 @@ describe('Golarion Variants Integration', () => {
     );
     const golarionCalendar = JSON.parse(golarionCalendarResponse);
 
-    vi.mocked(fetch).mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(golarionCalendar),
-    } as any);
+    vi.mocked(fetch).mockImplementation((url: string) => {
+      if (url.includes('modules/seasons-and-stars/calendars/golarion-pf2e.json')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(golarionCalendar),
+        } as any);
+      }
+      return Promise.resolve({ ok: false, status: 404 } as Response);
+    });
 
     // Create calendar manager
     calendarManager = new CalendarManager();
