@@ -364,8 +364,8 @@ Standard Foundry module definition with S&S dependency:
     }
   ],
   "compatibility": {
-    "minimum": "11",
-    "verified": "12"
+    "minimum": "13",
+    "verified": "13"
   },
   "relationships": {
     "requires": [
@@ -373,7 +373,7 @@ Standard Foundry module definition with S&S dependency:
         "id": "seasons-and-stars",
         "type": "module",
         "compatibility": {
-          "minimum": "0.6.0"
+          "minimum": "0.7.0"
         }
       }
     ]
