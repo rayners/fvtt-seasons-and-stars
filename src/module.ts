@@ -27,6 +27,7 @@ import { APIWrapper } from './core/api-wrapper';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
+import { templateContextProviders } from './core/template-context-provider';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
 import type {
   ErrorsAndEchoesAPI,
@@ -1081,14 +1082,15 @@ export function setupAPI(): void {
       categories: noteCategories, // Will be available by this point since ready runs after init
       integration: null, // Will be set after the object is fully created
       compatibilityManager, // Expose for debugging and external access
+      templateContextProviders, // Expose template context provider system for external modules
       // Expose warning state functions for debugging and external access
       resetSeasonsWarningState,
       getSeasonsWarningState,
       setSeasonsWarningState,
-    };
+    } as any; // Type assertion to handle new templateContextProviders property
 
     // Set integration after game.seasonsStars is fully assigned
-    game.seasonsStars.integration = SeasonsStarsIntegration.detect();
+    game.seasonsStars!.integration = SeasonsStarsIntegration.detect();
   }
 
   // Expose API to window for debugging
@@ -1097,6 +1099,7 @@ export function setupAPI(): void {
     manager: calendarManager,
     notes: notesManager,
     integration: SeasonsStarsIntegration.detect() || null,
+    templateContextProviders, // Expose for debugging and testing
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,

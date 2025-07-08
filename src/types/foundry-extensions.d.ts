@@ -18,6 +18,7 @@ declare global {
       categories?: unknown; // Note categories management
       integration?: SeasonsStarsIntegration | null;
       compatibilityManager?: unknown; // Expose for debugging and external access
+      templateContextProviders?: unknown; // Template context provider system
       // Warning state functions for debugging and external access
       resetSeasonsWarningState?: () => void;
       getSeasonsWarningState?: () => boolean;
@@ -31,6 +32,7 @@ declare global {
       manager: unknown;
       notes: unknown;
       integration: SeasonsStarsIntegration | null;
+      templateContextProviders?: unknown; // Template context provider system
       CalendarWidget?: unknown;
       CalendarMiniWidget?: unknown;
       CalendarGridWidget?: unknown;
