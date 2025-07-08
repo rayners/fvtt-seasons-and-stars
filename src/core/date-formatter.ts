@@ -4,9 +4,14 @@
 
 import type { CalendarDate } from './calendar-date';
 import type { SeasonsStarsCalendar } from '../types/calendar';
+import type { ExtendedFormatOptions } from '../types/universal-formats';
+import { FormatConverter } from './format-converter';
+import { UniversalFormatRegistry, type UniversalFormatName } from './universal-format-registry';
 
 export class DateFormatter {
   private calendar: SeasonsStarsCalendar;
+  private formatConverter: FormatConverter;
+  private universalRegistry: UniversalFormatRegistry;
 
   /**
    * Template compilation cache - intentionally unlimited size
@@ -75,6 +80,12 @@ export class DateFormatter {
 
   constructor(calendar: SeasonsStarsCalendar) {
     this.calendar = calendar;
+    this.formatConverter = FormatConverter.getInstance();
+    this.universalRegistry = UniversalFormatRegistry.getInstance();
+
+    // Index calendar formats for universal format system
+    this.universalRegistry.indexCalendarFormats(calendar);
+
     // Register this instance for helper access
     DateFormatter.helperRegistry.set(calendar.id, this);
     // Only register helpers once globally to avoid unnecessary re-registration
@@ -313,6 +324,90 @@ export class DateFormatter {
     }
 
     return this.formatWithContext(date, widgetFormat, `widgets.${widgetType}`);
+  }
+
+  /**
+   * Format a date using universal format with fallback support
+   */
+  formatUniversal(
+    date: CalendarDate,
+    formatName: UniversalFormatName,
+    fallback?: UniversalFormatName
+  ): string {
+    const resolution = this.formatConverter.resolveFormat(this.calendar, {
+      universalFormat: formatName,
+      fallback,
+      preferUniversal: true,
+    });
+
+    return this.formatWithContext(date, resolution.template, resolution.resolvedName);
+  }
+
+  /**
+   * Format a date using extended options with universal format support
+   */
+  formatExtended(date: CalendarDate, options: ExtendedFormatOptions): string {
+    const resolution = this.formatConverter.resolveFormat(this.calendar, options);
+    return this.formatWithContext(date, resolution.template, resolution.resolvedName);
+  }
+
+  /**
+   * Get optimal format for a specific use case
+   */
+  formatForUse(
+    date: CalendarDate,
+    useCase: 'ui-compact' | 'ui-full' | 'data-exchange' | 'user-display'
+  ): string {
+    const resolution = this.formatConverter.getOptimalFormat(this.calendar, useCase);
+    return this.formatWithContext(date, resolution.template, resolution.resolvedName);
+  }
+
+  /**
+   * Check if a format is available for this calendar
+   */
+  hasFormat(formatName: string): boolean {
+    // Check calendar-specific formats
+    if (this.calendar.dateFormats && this.calendar.dateFormats[formatName]) {
+      return true;
+    }
+
+    // Check universal formats
+    const universalFormat = this.universalRegistry.getUniversalFormat(
+      formatName as UniversalFormatName
+    );
+    if (universalFormat) {
+      // Validate compatibility
+      const validation = this.formatConverter.validateFormat(this.calendar, formatName);
+      return validation.isValid;
+    }
+
+    return false;
+  }
+
+  /**
+   * Get format suggestions for this calendar
+   */
+  getFormatSuggestions(): Array<{
+    formatName: UniversalFormatName;
+    template: string;
+    description: string;
+    reason: string;
+    priority: number;
+  }> {
+    return this.formatConverter.getFormatSuggestions(this.calendar);
+  }
+
+  /**
+   * Get calendar capabilities for format compatibility
+   */
+  getCapabilities(): {
+    supportsTime: boolean;
+    supportsWeekdays: boolean;
+    supportsMonths: boolean;
+    customFormatCount: number;
+    compatibleUniversalFormats: UniversalFormatName[];
+  } {
+    return this.formatConverter.analyzeCalendarCapabilities(this.calendar);
   }
 
   /**
