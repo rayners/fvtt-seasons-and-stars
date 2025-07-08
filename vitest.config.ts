@@ -4,28 +4,28 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['./test/setup.ts'],
+    setupFiles: ['./packages/core/test/setup.ts'],
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
-      '**/test/fixtures/**', // Exclude downloaded game system test files
+      '**/packages/core/test/fixtures/**', // Exclude downloaded game system test files
     ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
         'node_modules/',
-        'test/',
+        'packages/core/test/',
         'dist/',
         '**/*.d.ts',
         '*.config.*',
-        'docs/',
-        'templates/',
-        'styles/',
-        'calendars/',
+        'packages/core/docs/',
+        'packages/core/templates/',
+        'packages/core/src/styles/',
+        'packages/core/calendars/',
         'languages/',
-        'scripts/',
-        'src/quench-tests.ts', // Quench integration tests (not unit tests)
+        'packages/core/scripts/',
+        'packages/core/src/quench-tests.ts', // Quench integration tests (not unit tests)
       ],
       thresholds: {
         global: {

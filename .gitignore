@@ -116,4 +116,4 @@ temp/
 # They are used only for testing and are NOT included in module distributions
 test/fixtures/pf2e-system/
 test/fixtures/*/node_modules/
-test/fixtures/*/*.zip
+test/fixtures/*/*.zippackages/core/test/fixtures/pf2e-system/
