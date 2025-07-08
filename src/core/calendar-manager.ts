@@ -68,14 +68,19 @@ export class CalendarManager {
       }
 
       try {
-        // Try to load from module's calendars directory
-        const response = await fetch(`modules/seasons-and-stars/calendars/${calendarId}.json`);
+        // Load from module's calendars directory using CalendarLoader
+        const result = await this.calendarLoader.loadFromUrl(
+          `module:seasons-and-stars/calendars/${calendarId}.json`,
+          {
+            cache: false, // Built-in calendars don't need caching
+            validate: true, // Keep validation for built-in calendars
+          }
+        );
 
-        if (response.ok) {
-          const calendarData = await response.json();
-          this.loadCalendar(calendarData);
+        if (result.success && result.calendar) {
+          this.loadCalendar(result.calendar);
         } else {
-          Logger.warn(`Could not load built-in calendar: ${calendarId}`);
+          Logger.warn(`Could not load built-in calendar: ${calendarId}`, result.error);
         }
       } catch (error) {
         Logger.error(`Error loading calendar ${calendarId}`, error as Error);
@@ -84,6 +89,9 @@ export class CalendarManager {
 
     // Then, load external variant files
     await this.loadExternalVariantFiles();
+
+    // Auto-detect and load calendar pack modules
+    await this.autoLoadCalendarPacks();
   }
 
   /**
@@ -532,14 +540,25 @@ export class CalendarManager {
    */
   private async loadExternalVariantFile(variantFileId: string): Promise<void> {
     try {
-      const response = await fetch(`modules/seasons-and-stars/calendars/${variantFileId}.json`);
+      // Load external variant file using CalendarLoader
+      const result = await this.calendarLoader.loadFromUrl(
+        `module:seasons-and-stars/calendars/${variantFileId}.json`,
+        {
+          cache: false, // Built-in variant files don't need caching
+          validate: false, // External variant files have different structure than calendars
+        }
+      );
 
-      if (!response.ok) {
-        Logger.debug(`External variant file not found: ${variantFileId}`);
+      if (!result.success || !result.calendar) {
+        Logger.debug(`External variant file not found: ${variantFileId}`, result.error);
         return;
       }
 
-      const variantFileData = await response.json();
+      // Cast to variant file data since we disabled validation
+      const variantFileData = result.calendar as unknown as {
+        baseCalendar: string;
+        variants: Record<string, CalendarVariant>;
+      };
 
       // Validate external variant file structure
       if (!this.validateExternalVariantFile(variantFileData)) {
@@ -692,6 +711,84 @@ export class CalendarManager {
 
     Logger.info(`Collection load completed: ${successCount} successful, ${errorCount} failed`);
     return results;
+  }
+
+  /**
+   * Auto-detect and load calendar pack modules
+   * Scans for enabled modules starting with 'seasons-and-stars-' and loads their calendars
+   */
+  async autoLoadCalendarPacks(): Promise<void> {
+    Logger.debug('Auto-detecting calendar pack modules');
+
+    // Find all enabled modules that start with 'seasons-and-stars-' (excluding core module)
+    const calendarPackModules = Array.from(game.modules.values()).filter(
+      module =>
+        module.id.startsWith('seasons-and-stars-') &&
+        module.active &&
+        module.id !== 'seasons-and-stars'
+    );
+
+    if (calendarPackModules.length === 0) {
+      Logger.debug('No calendar pack modules found');
+      return;
+    }
+
+    Logger.info(
+      `Found ${calendarPackModules.length} calendar pack modules: ${calendarPackModules.map(m => m.id).join(', ')}`
+    );
+
+    for (const module of calendarPackModules) {
+      await this.loadModuleCalendars(module.id);
+    }
+  }
+
+  /**
+   * Load calendars from a specific module
+   * @param moduleId - The module ID to load calendars from
+   */
+  async loadModuleCalendars(moduleId: string): Promise<LoadResult[]> {
+    Logger.debug(`Loading calendars from module: ${moduleId}`);
+
+    // Check if module is enabled
+    const module = game.modules.get(moduleId);
+    if (!module?.active) {
+      Logger.warn(`Module not found or not enabled: ${moduleId}`);
+      return [];
+    }
+
+    // Use module URL protocol for proper CalendarLoader handling
+    const indexUrl = `module:${moduleId}`;
+
+    try {
+      // Try to load the calendar collection from the module
+      const results = await this.loadCalendarCollection(indexUrl, {
+        validate: true,
+        cache: false, // Module calendars don't need caching
+      });
+
+      const successfulResults = results.filter(r => r.success);
+      const failedResults = results.filter(r => !r.success);
+
+      if (successfulResults.length > 0) {
+        Logger.info(
+          `Successfully loaded ${successfulResults.length} calendars from module ${moduleId}`
+        );
+      }
+
+      if (failedResults.length > 0) {
+        Logger.warn(`Failed to load ${failedResults.length} calendars from module ${moduleId}`);
+        failedResults.forEach(result => {
+          if (result.error) {
+            Logger.debug(`  - ${result.collectionEntry?.name || 'Unknown'}: ${result.error}`);
+          }
+        });
+      }
+
+      return results;
+    } catch (error) {
+      Logger.warn(`Failed to load calendar collection from module ${moduleId}:`, error);
+      return [];
+    }
   }
 
   /**

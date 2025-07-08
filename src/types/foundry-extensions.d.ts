@@ -84,6 +84,8 @@ export interface SeasonsStarsAPI {
   refreshExternalCalendar(sourceId: string): Promise<LoadResult>;
   refreshAllExternalCalendars(): Promise<{ [sourceId: string]: LoadResult }>;
   clearExternalCalendarCache(): void;
+  // Module Calendar Loading Methods
+  loadModuleCalendars(moduleId: string): Promise<LoadResult[]>;
 }
 
 // Type guard functions (implementations in type-guards.ts)

@@ -36,6 +36,8 @@ export interface LoadResult {
   fromCache?: boolean;
   /** URL that was loaded from */
   sourceUrl?: string;
+  /** Collection entry metadata (if loaded from collection) */
+  collectionEntry?: CalendarCollectionEntry;
 }
 
 export interface ExternalCalendarSource {
@@ -53,6 +55,42 @@ export interface ExternalCalendarSource {
   lastError?: string;
   /** Source type (single calendar, collection, or variants) */
   type: 'calendar' | 'collection' | 'variants';
+}
+
+export interface CalendarCollectionEntry {
+  /** Unique identifier for the calendar */
+  id: string;
+  /** Display name for the calendar */
+  name: string;
+  /** Description of the calendar */
+  description?: string;
+  /** Filename of the calendar JSON file (relative to index) */
+  file?: string;
+  /** URL to the calendar JSON file */
+  url?: string;
+  /** Sample date text showing calendar format */
+  preview?: string;
+  /** Tags for categorizing the calendar */
+  tags?: string[];
+  /** Author of the calendar */
+  author?: string;
+  /** Version of the calendar */
+  version?: string;
+  /** Additional metadata */
+  metadata?: Record<string, unknown>;
+}
+
+export interface CalendarCollection {
+  /** Display name for the collection */
+  name: string;
+  /** Description of the collection */
+  description?: string;
+  /** Version of the collection */
+  version?: string;
+  /** Array of calendar definitions */
+  calendars: CalendarCollectionEntry[];
+  /** Collection metadata */
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -170,7 +208,7 @@ export class CalendarLoader {
       return [collectionResult];
     }
 
-    const collection = collectionResult.calendar as { calendars?: Array<{ url?: string }> };
+    const collection = collectionResult.calendar as unknown as CalendarCollection;
 
     // Validate collection structure
     if (!collection.calendars || !Array.isArray(collection.calendars)) {
@@ -186,18 +224,31 @@ export class CalendarLoader {
     // Load each calendar in the collection
     const results: LoadResult[] = [];
     for (const calendarEntry of collection.calendars) {
-      if (!calendarEntry.url) {
+      // Check for URL in entry (either absolute URL or relative file path)
+      const calendarUrl = calendarEntry.url || calendarEntry.file;
+      if (!calendarUrl) {
         results.push({
           success: false,
-          error: `Calendar entry missing URL: ${JSON.stringify(calendarEntry)}`,
+          error: `Calendar entry missing URL or file: ${JSON.stringify(calendarEntry)}`,
           sourceUrl: url,
+          collectionEntry: calendarEntry,
         });
         continue;
       }
 
       // Resolve relative URLs against the collection base URL
-      const calendarUrl = this.resolveUrl(calendarEntry.url, url);
-      const result = await this.loadFromUrl(calendarUrl, options);
+      const resolvedUrl = this.resolveUrl(calendarUrl, url);
+      const result = await this.loadFromUrl(resolvedUrl, options);
+
+      // Add collection entry metadata to the result with sanitized preview
+      if (result.success) {
+        const sanitizedEntry = { ...calendarEntry };
+        if (sanitizedEntry.preview) {
+          sanitizedEntry.preview = this.sanitizeHTML(sanitizedEntry.preview);
+        }
+        result.collectionEntry = sanitizedEntry;
+      }
+
       results.push(result);
     }
 
@@ -238,6 +289,48 @@ export class CalendarLoader {
 
     Logger.info(`CalendarLoader: Removed external source: ${source.name}`);
     return true;
+  }
+
+  /**
+   * Auto-discover calendar collections in active modules
+   */
+  async discoverModuleCollections(): Promise<ExternalCalendarSource[]> {
+    const discovered: ExternalCalendarSource[] = [];
+
+    for (const module of game.modules.values()) {
+      if (!module.active) continue;
+
+      // Use simple module URL format (defaults to calendars/index.json)
+      const moduleUrl = `module:${module.id}`;
+
+      try {
+        const validation = this.validateModuleUrl(moduleUrl);
+        if (!validation.valid) continue;
+
+        // Try to load the index to verify it exists and is valid
+        const result = await this.loadFromUrl(moduleUrl, { validate: false, cache: false });
+
+        if (result.success) {
+          const collection = result.calendar as unknown as CalendarCollection;
+
+          discovered.push({
+            id: `module-${module.id}`,
+            name: collection.name || `${module.title} Calendars`,
+            url: moduleUrl,
+            enabled: true,
+            type: 'collection',
+            lastLoaded: Date.now(),
+          });
+
+          Logger.info(`CalendarLoader: Discovered calendar collection in module ${module.id}`);
+        }
+      } catch {
+        // Module doesn't have a calendar collection, continue silently
+        Logger.debug(`CalendarLoader: No calendar collection found in module ${module.id}`);
+      }
+    }
+
+    return discovered;
   }
 
   /**
@@ -295,13 +388,18 @@ export class CalendarLoader {
    */
   private validateUrl(url: string): { valid: boolean; error?: string } {
     try {
+      // Handle module:// protocol specially
+      if (url.startsWith('module:')) {
+        return this.validateModuleUrl(url);
+      }
+
       const parsed = new URL(url);
 
-      // Only allow HTTP/HTTPS protocols
+      // Only allow HTTP/HTTPS protocols for external URLs
       if (!['http:', 'https:'].includes(parsed.protocol)) {
         return {
           valid: false,
-          error: `Unsupported protocol: ${parsed.protocol}. Only HTTP and HTTPS are allowed.`,
+          error: `Unsupported protocol: ${parsed.protocol}. Only HTTP, HTTPS, and module: are allowed.`,
         };
       }
 
@@ -322,12 +420,84 @@ export class CalendarLoader {
   }
 
   /**
+   * Validate module:// URL format
+   */
+  private validateModuleUrl(url: string): { valid: boolean; error?: string } {
+    // Extract module ID from either simple or full format
+    let moduleId: string;
+
+    const simpleMatch = url.match(/^module:([a-z0-9-]+)$/);
+    const fullMatch = url.match(/^module:([a-z0-9-]+)\/(.+)$/);
+
+    if (simpleMatch) {
+      moduleId = simpleMatch[1];
+    } else if (fullMatch) {
+      moduleId = fullMatch[1];
+    } else {
+      return {
+        valid: false,
+        error: 'Invalid module URL format. Expected: module:module-id or module:module-id/path',
+      };
+    }
+
+    const module = game.modules.get(moduleId);
+
+    if (!module) {
+      return {
+        valid: false,
+        error: `Module '${moduleId}' not found`,
+      };
+    }
+
+    if (!module.active) {
+      return {
+        valid: false,
+        error: `Module '${moduleId}' is not active`,
+      };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Resolve module:// URLs to actual file paths
+   */
+  private resolveModuleUrl(moduleUrl: string): string {
+    // Handle simple module:module-name format (defaults to calendars/index.json)
+    const simpleMatch = moduleUrl.match(/^module:([a-z0-9-]+)$/);
+    if (simpleMatch) {
+      const [, moduleId] = simpleMatch;
+      return `modules/${moduleId}/calendars/index.json`;
+    }
+
+    // Handle full module:module-name/path format
+    const fullMatch = moduleUrl.match(/^module:([a-z0-9-]+)\/(.+)$/);
+    if (!fullMatch) {
+      throw new Error(
+        'Invalid module URL format. Expected: module:module-id or module:module-id/path'
+      );
+    }
+
+    const [, moduleId, path] = fullMatch;
+    // Convert to actual file path - append index.json if path doesn't end with .json
+    const fullPath = path.endsWith('.json') ? path : `${path}/index.json`;
+    return `modules/${moduleId}/${fullPath}`;
+  }
+
+  /**
    * Fetch with timeout support
    */
   private async fetchWithTimeout(
     url: string,
     options: { timeout: number; headers?: Record<string, string> }
   ): Promise<Response> {
+    // Handle module URLs by converting to local file paths
+    if (url.startsWith('module:')) {
+      const localPath = this.resolveModuleUrl(url);
+      Logger.debug(`CalendarLoader: Resolving module URL ${url} to ${localPath}`);
+      url = localPath;
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), options.timeout);
 
@@ -353,6 +523,14 @@ export class CalendarLoader {
    */
   private resolveUrl(relativeUrl: string, baseUrl: string): string {
     try {
+      // Handle module URLs specially - only for simple module:name format
+      if (baseUrl.startsWith('module:') && !baseUrl.includes('/')) {
+        // Extract module ID from base URL (only simple format like module:seasons-and-stars-test-pack)
+        const moduleId = baseUrl.replace('module:', '');
+        // Construct module URL for the relative file in the calendars directory
+        return `module:${moduleId}/calendars/${relativeUrl}`;
+      }
+
       return new URL(relativeUrl, baseUrl).toString();
     } catch {
       // If URL construction fails, assume it's already absolute
@@ -419,6 +597,45 @@ export class CalendarLoader {
       game.settings?.set('seasons-and-stars', CalendarLoader.SOURCES_KEY, sourcesArray);
     } catch (error) {
       Logger.warn('CalendarLoader: Failed to save sources to storage', error as Error);
+    }
+  }
+
+  /**
+   * Sanitize HTML content using Foundry's built-in utilities
+   */
+  private sanitizeHTML(html: string): string {
+    try {
+      // Use Foundry's String.stripScripts method first (removes <script> tags)
+      let sanitized = html;
+      if (typeof (String.prototype as any).stripScripts === 'function') {
+        sanitized = (sanitized as any).stripScripts();
+      } else {
+        // Fallback: remove script tags manually
+        sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+      }
+
+      // Use Foundry's TextEditor.cleanHTML method if available
+      if (typeof (globalThis as any).TextEditor?.cleanHTML === 'function') {
+        return (globalThis as any).TextEditor.cleanHTML(sanitized);
+      }
+
+      // Fallback: Allow safe HTML tags but remove dangerous ones
+      const dangerousTags =
+        /<(script|object|embed|iframe|form|input|button|link|meta|style)[^>]*>/gi;
+      sanitized = sanitized.replace(dangerousTags, '');
+
+      // Remove any remaining script content
+      sanitized = sanitized.replace(/javascript:/gi, '');
+      sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+
+      return sanitized;
+    } catch (error) {
+      Logger.warn(
+        'CalendarLoader: Failed to sanitize HTML, stripping dangerous content',
+        error as Error
+      );
+      // Emergency fallback: remove only the most dangerous elements
+      return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
     }
   }
 }

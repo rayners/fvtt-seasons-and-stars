@@ -22,8 +22,9 @@ if (!fs.existsSync(outputDir)) {
 }
 
 // Scan the calendars directory
-const calendars = fs.readdirSync(calendarsDir)
-  .filter(file => file.endsWith('.json'))
+const calendars = fs
+  .readdirSync(calendarsDir)
+  .filter(file => file.endsWith('.json') && file !== 'index.json') // Exclude index.json
   .map(file => file.replace('.json', ''))
   .sort(); // Keep them alphabetically sorted
 

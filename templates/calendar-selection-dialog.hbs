@@ -7,7 +7,7 @@
       <div class="form-fields">
         <div class="input-grid calendar-selection-grid" style="--grid-cols: 2;">
           {{#each calendars}}
-          <div class="calendar-card ui-control {{#if isCurrent}}active{{/if}} {{#if isSelected}}picked{{/if}} {{#if isVariant}}variant{{/if}} {{#if hierarchyLevel}}hierarchy-level-{{hierarchyLevel}}{{/if}}" 
+          <div class="calendar-card ui-control {{#if isCurrent}}active{{/if}} {{#if isSelected}}picked{{/if}} {{#if isVariant}}variant{{/if}} {{#if hierarchyLevel}}hierarchy-level-{{hierarchyLevel}}{{/if}} source-{{sourceType}}" 
                data-action="selectCalendar"
                data-calendar-id="{{id}}" 
                title="{{description}}">
@@ -28,12 +28,27 @@
                 {{#if variantInfo}}
                 <span class="variant-info">{{variantInfo}}</span>
                 {{/if}}
+                <div class="source-info flexrow">
+                  <i class="{{sourceIcon}} source-icon"></i>
+                  <span class="source-label">{{sourceLabel}}</span>
+                </div>
               </div>
-              {{#if isCurrent}}
-              <div class="current-badge">
-                <i class="fas fa-star"></i>
+              <div class="calendar-badges flexcol">
+                {{#if isCurrent}}
+                <div class="current-badge" data-tooltip="Current active calendar">
+                  <i class="fas fa-star"></i>
+                </div>
+                {{/if}}
+                {{#if isModuleSource}}
+                <div class="module-badge" data-tooltip="{{sourceDescription}}">
+                  <i class="fas fa-puzzle-piece"></i>
+                </div>
+                {{else if isExternalSource}}
+                <div class="external-badge" data-tooltip="{{sourceDescription}}">
+                  <i class="fas fa-cloud"></i>
+                </div>
+                {{/if}}
               </div>
-              {{/if}}
             </div>
 
             <div class="card-content flexcol">

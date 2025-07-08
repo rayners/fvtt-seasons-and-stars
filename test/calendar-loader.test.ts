@@ -16,9 +16,23 @@ const mockSettings = {
   set: vi.fn(),
 };
 
+// Mock modules
+const mockModules = new Map();
+mockModules.set('test-module', {
+  id: 'test-module',
+  title: 'Test Module',
+  active: true,
+});
+mockModules.set('inactive-module', {
+  id: 'inactive-module',
+  title: 'Inactive Module',
+  active: false,
+});
+
 // @ts-expect-error - Mocking global game object
 global.game = {
   settings: mockSettings,
+  modules: mockModules,
 };
 
 // Sample calendar data for testing
@@ -53,11 +67,26 @@ const sampleCollection = {
       id: 'calendar-1',
       name: 'Calendar 1',
       url: 'https://example.com/calendar1.json',
+      preview: '<strong>15th of Moonfall, 2370 AR</strong>',
     },
     {
       id: 'calendar-2',
       name: 'Calendar 2',
       url: './calendar2.json',
+      preview: 'Day 15, Month 1, Year 2370',
+    },
+  ],
+};
+
+const sampleCollectionWithScript = {
+  id: 'malicious-collection',
+  name: 'Test Collection with Scripts',
+  calendars: [
+    {
+      id: 'calendar-3',
+      name: 'Calendar with Script',
+      file: 'calendar3.json',
+      preview: '<script>alert("xss")</script>Sanitized preview text',
     },
   ],
 };
@@ -273,6 +302,193 @@ describe('CalendarLoader', () => {
       expect(results).toHaveLength(1);
       expect(results[0].success).toBe(false);
       expect(results[0].error).toContain('Invalid collection format');
+    });
+
+    it('should include collection entry metadata with preview in results', async () => {
+      // Mock collection fetch
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(sampleCollection),
+      });
+
+      // Mock individual calendar fetches
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ ...sampleCalendar, id: 'calendar-1' }),
+      });
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ ...sampleCalendar, id: 'calendar-2' }),
+      });
+
+      const results = await loader.loadCollection('https://example.com/collection.json');
+
+      expect(results).toHaveLength(2);
+      expect(results[0].success).toBe(true);
+      expect(results[0].collectionEntry).toBeDefined();
+      expect(results[0].collectionEntry?.id).toBe('calendar-1');
+      expect(results[0].collectionEntry?.preview).toBe(
+        '<strong>15th of Moonfall, 2370 AR</strong>'
+      );
+
+      expect(results[1].success).toBe(true);
+      expect(results[1].collectionEntry).toBeDefined();
+      expect(results[1].collectionEntry?.id).toBe('calendar-2');
+      expect(results[1].collectionEntry?.preview).toBe('Day 15, Month 1, Year 2370');
+    });
+
+    it('should sanitize HTML in preview text', async () => {
+      // Mock collection fetch
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(sampleCollectionWithScript),
+      });
+
+      // Mock individual calendar fetch
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ ...sampleCalendar, id: 'calendar-3' }),
+      });
+
+      const results = await loader.loadCollection('https://example.com/malicious-collection.json');
+
+      expect(results).toHaveLength(1);
+      expect(results[0].success).toBe(true);
+      expect(results[0].collectionEntry).toBeDefined();
+      expect(results[0].collectionEntry?.preview).not.toContain('<script>');
+      expect(results[0].collectionEntry?.preview).not.toContain('alert');
+      // Should contain the safe text portion
+      expect(results[0].collectionEntry?.preview).toContain('Sanitized preview text');
+    });
+  });
+
+  describe('Module URL Support', () => {
+    it('should accept valid module URLs', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(sampleCalendar),
+      });
+
+      const result = await loader.loadFromUrl('module:test-module/calendars');
+      expect(result.success).toBe(true);
+      expect(result.calendar).toEqual(sampleCalendar);
+
+      // Verify the URL was resolved correctly
+      expect(mockFetch).toHaveBeenCalledWith(
+        'modules/test-module/calendars/index.json',
+        expect.any(Object)
+      );
+    });
+
+    it('should reject module URLs for inactive modules', async () => {
+      const result = await loader.loadFromUrl('module:inactive-module/calendars');
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('is not active');
+    });
+
+    it('should reject module URLs for non-existent modules', async () => {
+      const result = await loader.loadFromUrl('module:nonexistent-module/calendars');
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('not found');
+    });
+
+    it('should reject malformed module URLs', async () => {
+      const result = await loader.loadFromUrl('module:');
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Invalid module URL format');
+    });
+
+    it('should handle simple module URLs (defaults to calendars/index.json)', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(sampleCalendar),
+      });
+
+      const result = await loader.loadFromUrl('module:test-module');
+      expect(result.success).toBe(true);
+      expect(result.calendar).toEqual(sampleCalendar);
+
+      // Verify the URL was resolved to the default path
+      expect(mockFetch).toHaveBeenCalledWith(
+        'modules/test-module/calendars/index.json',
+        expect.any(Object)
+      );
+    });
+
+    it('should handle module URLs with explicit JSON files', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(sampleCalendar),
+      });
+
+      await loader.loadFromUrl('module:test-module/special/calendar.json');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'modules/test-module/special/calendar.json',
+        expect.any(Object)
+      );
+    });
+
+    it('should handle module URLs with paths (auto-append index.json)', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(sampleCalendar),
+      });
+
+      await loader.loadFromUrl('module:test-module/my-calendars');
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'modules/test-module/my-calendars/index.json',
+        expect.any(Object)
+      );
+    });
+  });
+
+  describe('Module Discovery', () => {
+    it('should discover calendar collections in active modules', async () => {
+      // Mock successful collection load
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            name: 'Test Module Calendars',
+            description: 'Calendars from test module',
+            calendars: [],
+          }),
+      });
+
+      const discovered = await loader.discoverModuleCollections();
+
+      expect(discovered).toHaveLength(1);
+      expect(discovered[0].id).toBe('module-test-module');
+      expect(discovered[0].name).toBe('Test Module Calendars');
+      expect(discovered[0].url).toBe('module:test-module');
+      expect(discovered[0].type).toBe('collection');
+    });
+
+    it('should skip modules without calendar collections', async () => {
+      // Mock 404 for modules without calendars
+      mockFetch.mockRejectedValueOnce(new Error('Not found'));
+
+      const discovered = await loader.discoverModuleCollections();
+
+      expect(discovered).toHaveLength(0);
+    });
+
+    it('should use module title as fallback for collection name', async () => {
+      // Mock collection without name
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            calendars: [],
+          }),
+      });
+
+      const discovered = await loader.discoverModuleCollections();
+
+      expect(discovered[0].name).toBe('Test Module Calendars');
     });
   });
 

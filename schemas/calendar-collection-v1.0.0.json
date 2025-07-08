@@ -77,6 +77,11 @@
             "pattern": "^\\d+\\.\\d+\\.\\d+([+-][a-zA-Z0-9.-]+)?$",
             "description": "Version of the calendar"
           },
+          "preview": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Sample date text showing calendar format (HTML will be sanitized)"
+          },
           "metadata": {
             "type": "object",
             "additionalProperties": false,

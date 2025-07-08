@@ -1231,6 +1231,18 @@ export function setupAPI(): void {
         throw error;
       }
     },
+
+    // Module Calendar Loading Methods
+    loadModuleCalendars: async (moduleId: string) => {
+      return APIWrapper.wrapAPIMethod(
+        'loadModuleCalendars',
+        { moduleId },
+        params => {
+          APIWrapper.validateString(params.moduleId, 'Module ID');
+        },
+        () => calendarManager.loadModuleCalendars(moduleId)
+      );
+    },
   };
 
   // Expose API to global game object
