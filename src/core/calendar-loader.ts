@@ -264,48 +264,6 @@ export class CalendarLoader {
   }
 
   /**
-   * Auto-discover calendar collections in active modules
-   */
-  async discoverModuleCollections(): Promise<ExternalCalendarSource[]> {
-    const discovered: ExternalCalendarSource[] = [];
-
-    for (const module of game.modules.values()) {
-      if (!module.active) continue;
-
-      // Use simple module URL format (defaults to calendars/index.json)
-      const moduleUrl = `module:${module.id}`;
-
-      try {
-        const validation = this.validateModuleUrl(moduleUrl);
-        if (!validation.valid) continue;
-
-        // Try to load the index to verify it exists and is valid
-        const result = await this.loadFromUrl(moduleUrl, { validate: false });
-
-        if (result.success) {
-          const collection = result.calendar as unknown as CalendarCollection;
-
-          discovered.push({
-            id: `module-${module.id}`,
-            name: collection.name || `${module.title} Calendars`,
-            url: moduleUrl,
-            enabled: true,
-            type: 'collection',
-            lastLoaded: Date.now(),
-          });
-
-          Logger.info(`CalendarLoader: Discovered calendar collection in module ${module.id}`);
-        }
-      } catch {
-        // Module doesn't have a calendar collection, continue silently
-        Logger.debug(`CalendarLoader: No calendar collection found in module ${module.id}`);
-      }
-    }
-
-    return discovered;
-  }
-
-  /**
    * Get all external sources
    */
   getSources(): ExternalCalendarSource[] {

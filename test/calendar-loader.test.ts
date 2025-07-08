@@ -459,53 +459,6 @@ describe('CalendarLoader', () => {
     });
   });
 
-  describe('Module Discovery', () => {
-    it('should discover calendar collections in active modules', async () => {
-      // Mock successful collection load
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            name: 'Test Module Calendars',
-            description: 'Calendars from test module',
-            calendars: [],
-          }),
-      });
-
-      const discovered = await loader.discoverModuleCollections();
-
-      expect(discovered).toHaveLength(1);
-      expect(discovered[0].id).toBe('module-test-module');
-      expect(discovered[0].name).toBe('Test Module Calendars');
-      expect(discovered[0].url).toBe('module:test-module');
-      expect(discovered[0].type).toBe('collection');
-    });
-
-    it('should skip modules without calendar collections', async () => {
-      // Mock 404 for modules without calendars
-      mockFetch.mockRejectedValueOnce(new Error('Not found'));
-
-      const discovered = await loader.discoverModuleCollections();
-
-      expect(discovered).toHaveLength(0);
-    });
-
-    it('should use module title as fallback for collection name', async () => {
-      // Mock collection without name
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () =>
-          Promise.resolve({
-            calendars: [],
-          }),
-      });
-
-      const discovered = await loader.discoverModuleCollections();
-
-      expect(discovered[0].name).toBe('Test Module Calendars');
-    });
-  });
-
   describe('External Source Management', () => {
     it('should add external source', () => {
       const sourceId = loader.addSource({
