@@ -11,6 +11,10 @@ import type { LoadResult, ExternalCalendarSource } from '../core/calendar-loader
 
 // Extend the Game interface to include S&S specific properties
 declare global {
+  interface String {
+    stripScripts(): string;
+  }
+
   interface Game {
     seasonsStars?: {
       api?: SeasonsStarsAPI;

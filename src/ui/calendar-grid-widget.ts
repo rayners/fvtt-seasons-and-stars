@@ -1542,7 +1542,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         const title = note.name || 'Untitled Note';
         const category = note.flags?.['seasons-and-stars']?.category || 'general';
         const preview = note.pages?.contents?.[0]?.text?.content?.substring(0, 100) || 'No content';
-        const cleanPreview = preview.replace(/<[^>]*>/g, '').trim() || 'No content';
+        const cleanPreview = preview.stripScripts().trim();
 
         return `
         <div class="note-item" data-note-id="${note.id}" data-index="${index}">
