@@ -2,7 +2,7 @@
   "id": "forgotten-realms",
   "translations": {
     "en": {
-      "label": "Calendar of Harptos (Forgotten Realms)",
+      "label": "Calendar of Harptos",
       "description": "The standard calendar of Faerûn, featuring twelve 30-day months interspersed with festival days that fall outside the normal monthly structure. Used throughout the Forgotten Realms in D&D campaigns.",
       "setting": "D&D Forgotten Realms"
     }

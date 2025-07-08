@@ -5,49 +5,51 @@
       <p class="hint">{{localize "SEASONS_STARS.dialog.calendar_selection.choose_hint"}}</p>
       
       <div class="form-fields">
-        <div class="input-grid calendar-selection-grid" style="--grid-cols: 2;">
+        <div class="calendar-selection-grid">
           {{#each calendars}}
           <div class="calendar-card ui-control {{#if isCurrent}}active{{/if}} {{#if isSelected}}picked{{/if}} {{#if isVariant}}variant{{/if}} {{#if hierarchyLevel}}hierarchy-level-{{hierarchyLevel}}{{/if}} source-{{sourceType}}" 
                data-action="selectCalendar"
                data-calendar-id="{{id}}" 
                title="{{description}}">
             
-            <div class="card-header flexrow">
-              <div class="calendar-info flexcol">
-                <h4 class="calendar-name">
-                  {{#if isVariant}}
-                  <span class="variant-indicator">
-                    <i class="fas fa-code-branch"></i>
-                  </span>
+            <div class="card-header flexcol">
+              <div class="calendar-title-row flexrow">
+                <div class="calendar-title-info flexcol">
+                  <h4 class="calendar-name">
+                    {{#if isVariant}}
+                    <span class="variant-indicator">
+                      <i class="fas fa-code-branch"></i>
+                    </span>
+                    {{/if}}
+                    {{label}}
+                  </h4>
+                  {{#if setting}}
+                  <span class="calendar-setting">{{setting}}</span>
                   {{/if}}
-                  {{label}}
-                </h4>
-                {{#if setting}}
-                <span class="calendar-setting">{{setting}}</span>
-                {{/if}}
-                {{#if variantInfo}}
-                <span class="variant-info">{{variantInfo}}</span>
-                {{/if}}
-                <div class="source-info flexrow">
-                  <i class="{{sourceIcon}} source-icon"></i>
-                  <span class="source-label">{{sourceLabel}}</span>
+                  {{#if variantInfo}}
+                  <span class="variant-info">{{variantInfo}}</span>
+                  {{/if}}
+                </div>
+                <div class="calendar-badges flexrow">
+                  {{#if isCurrent}}
+                  <div class="current-badge" data-tooltip="Current active calendar">
+                    <i class="fas fa-star"></i>
+                  </div>
+                  {{/if}}
+                  {{#if isModuleSource}}
+                  <div class="module-badge" data-tooltip="{{sourceDescription}}">
+                    <i class="fas fa-puzzle-piece"></i>
+                  </div>
+                  {{else if isExternalSource}}
+                  <div class="external-badge" data-tooltip="{{sourceDescription}}">
+                    <i class="fas fa-cloud"></i>
+                  </div>
+                  {{/if}}
                 </div>
               </div>
-              <div class="calendar-badges flexcol">
-                {{#if isCurrent}}
-                <div class="current-badge" data-tooltip="Current active calendar">
-                  <i class="fas fa-star"></i>
-                </div>
-                {{/if}}
-                {{#if isModuleSource}}
-                <div class="module-badge" data-tooltip="{{sourceDescription}}">
-                  <i class="fas fa-puzzle-piece"></i>
-                </div>
-                {{else if isExternalSource}}
-                <div class="external-badge" data-tooltip="{{sourceDescription}}">
-                  <i class="fas fa-cloud"></i>
-                </div>
-                {{/if}}
+              <div class="source-info flexrow">
+                <i class="{{sourceIcon}} source-icon"></i>
+                <span class="source-label">{{sourceLabel}}</span>
               </div>
             </div>
 

@@ -2,7 +2,7 @@
   "id": "starfinder-absalom-station",
   "translations": {
     "en": {
-      "label": "Absalom Station Calendar (Starfinder)",
+      "label": "Absalom Station Calendar",
       "description": "The galactic standard calendar used throughout the Pact Worlds, based on the ancient Golarion calendar but adapted for space travel and interplanetary coordination.",
       "setting": "Starfinder"
     }

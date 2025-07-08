@@ -2,7 +2,7 @@
   "id": "eberron",
   "translations": {
     "en": {
-      "label": "Eberron Calendar (D&D)",
+      "label": "Eberron Calendar",
       "description": "The Galifar Calendar used in the D&D Eberron campaign setting. Features twelve months of 28 days each, creating a perfectly regular 336-day year with no leap years.",
       "setting": "D&D Eberron"
     }

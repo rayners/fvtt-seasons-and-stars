@@ -16,7 +16,7 @@ describe('WFRP Seasons Fix Verification (Issue #83)', () => {
     warhammerData = JSON.parse(readFileSync(warhammerPath, 'utf8'));
 
     expect(warhammerData.id).toBe('warhammer');
-    expect(warhammerData.translations.en.label).toBe('Imperial Calendar (Warhammer Fantasy)');
+    expect(warhammerData.translations.en.label).toBe('Imperial Calendar');
   });
 
   it('should have seasons property defined', () => {

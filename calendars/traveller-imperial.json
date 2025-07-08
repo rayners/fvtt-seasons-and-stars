@@ -2,7 +2,7 @@
   "id": "traveller-imperial",
   "translations": {
     "en": {
-      "label": "Imperial Calendar (Traveller)",
+      "label": "Imperial Calendar",
       "description": "The standardized Imperial Calendar used throughout the Third Imperium in the Traveller universe. Features a simplified system with a single 364-day year preceded by a holiday.",
       "setting": "Traveller RPG"
     }
