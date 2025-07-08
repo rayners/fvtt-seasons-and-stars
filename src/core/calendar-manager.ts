@@ -786,9 +786,7 @@ export class CalendarManager {
 
     // Find all enabled modules that start with 'seasons-and-stars-' (excluding core module)
     const calendarPackModules = Array.from(game.modules.values()).filter(
-      module =>
-        module.id.startsWith('seasons-and-stars-') &&
-        module.active
+      module => module.id.startsWith('seasons-and-stars-') && module.active
     );
 
     if (calendarPackModules.length === 0) {
