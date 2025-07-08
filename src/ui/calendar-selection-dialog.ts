@@ -20,7 +20,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private currentCalendarId: string;
 
   constructor(
-    calendars: any,
+    calendars: Map<string, SeasonsStarsCalendar> | SeasonsStarsCalendar[],
     currentCalendarId: string,
     collectionEntries?: Map<string, CalendarCollectionEntry>,
     externalSources?: Map<string, ExternalCalendarSource>
@@ -432,62 +432,26 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     label: string;
     description: string;
   } {
-    // Check if this calendar came from an external source
-    for (const [sourceId, source] of this.externalSources) {
-      // Check if the calendar ID suggests it came from this external source
-      if (calendarId.startsWith(`${sourceId}-`) || this.collectionEntries.has(calendarId)) {
-        // Determine if it's a module source based on URL
-        if (source.url.startsWith('module:')) {
-          const moduleMatch = source.url.match(/^module:([a-z0-9-]+)/);
-          const moduleId = moduleMatch ? moduleMatch[1] : 'unknown';
-          const module = game.modules.get(moduleId);
+    // Get the calendar object to check for source information
+    const calendar = this.calendars.get(calendarId);
 
-          return {
-            type: 'module',
-            icon: 'fa-solid fa-puzzle-piece',
-            label: `Module: ${module?.title || moduleId}`,
-            description: `Calendar provided by the ${module?.title || moduleId} module`,
-          };
-        } else {
-          return {
-            type: 'external',
-            icon: 'fa-solid fa-cloud',
-            label: 'External Source',
-            description: `Calendar loaded from external URL: ${source.name}`,
-          };
-        }
-      }
+    // Use the stored source information if available
+    if (calendar?.sourceInfo) {
+      return {
+        type: calendar.sourceInfo.type,
+        icon: calendar.sourceInfo.icon,
+        label: calendar.sourceInfo.sourceName,
+        description: calendar.sourceInfo.description,
+      };
     }
 
-    // Check if this looks like it came from a module based on ID patterns
-    // Module calendars often have module-specific prefixes or are discovered through module sources
-    const moduleCalendarPatterns = [
-      /^module-(.+)/, // Auto-discovered module calendars
-      /^(.+)-module$/, // Module-specific calendars
-    ];
-
-    for (const pattern of moduleCalendarPatterns) {
-      const match = calendarId.match(pattern);
-      if (match) {
-        const moduleId = match[1];
-        const module = game.modules.get(moduleId);
-        if (module) {
-          return {
-            type: 'module',
-            icon: 'fa-solid fa-puzzle-piece',
-            label: `Module: ${module.title}`,
-            description: `Calendar provided by the ${module.title} module`,
-          };
-        }
-      }
-    }
-
-    // Default to builtin calendar
+    // Fallback for calendars without source information (shouldn't happen with new system)
+    Logger.warn(`Calendar ${calendarId} missing source information, using fallback detection`);
     return {
       type: 'builtin',
-      icon: 'fa-solid fa-calendar',
-      label: 'Built-in Calendar',
-      description: 'Calendar included with Seasons & Stars',
+      icon: 'fa-solid fa-question-circle',
+      label: 'Unknown Source',
+      description: 'Calendar source information not available',
     };
   }
 

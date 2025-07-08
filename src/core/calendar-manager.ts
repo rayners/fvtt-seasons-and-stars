@@ -2,7 +2,7 @@
  * Calendar management system for Seasons & Stars
  */
 
-import type { SeasonsStarsCalendar, CalendarVariant } from '../types/calendar';
+import type { SeasonsStarsCalendar, CalendarVariant, CalendarSourceInfo } from '../types/calendar';
 import { CalendarEngine } from './calendar-engine';
 import { TimeConverter } from './time-converter';
 import { CalendarValidator } from './calendar-validator';
@@ -78,7 +78,15 @@ export class CalendarManager {
         );
 
         if (result.success && result.calendar) {
-          this.loadCalendar(result.calendar);
+          // Tag built-in calendars with source info
+          const builtinSourceInfo: CalendarSourceInfo = {
+            type: 'builtin',
+            sourceName: 'Seasons & Stars',
+            description: 'Calendar included with Seasons & Stars',
+            icon: 'fa-solid fa-calendar',
+            url: `module:seasons-and-stars/calendars/${calendarId}.json`,
+          };
+          this.loadCalendar(result.calendar, builtinSourceInfo);
         } else {
           Logger.warn(`Could not load built-in calendar: ${calendarId}`, result.error);
         }
@@ -97,7 +105,7 @@ export class CalendarManager {
   /**
    * Load a calendar from data
    */
-  loadCalendar(calendarData: SeasonsStarsCalendar): boolean {
+  loadCalendar(calendarData: SeasonsStarsCalendar, sourceInfo?: CalendarSourceInfo): boolean {
     // Validate the calendar data (using synchronous legacy validation for performance)
     const validation = CalendarValidator.validateWithHelp(calendarData);
 
@@ -109,6 +117,11 @@ export class CalendarManager {
     // Warn about potential issues
     if (validation.warnings.length > 0) {
       Logger.debug(`Calendar info for ${calendarData.id}: ${validation.warnings.join(', ')}`);
+    }
+
+    // Set source information if provided
+    if (sourceInfo) {
+      calendarData.sourceInfo = sourceInfo;
     }
 
     // Store the base calendar
@@ -696,7 +709,10 @@ export class CalendarManager {
 
     for (const result of results) {
       if (result.success && result.calendar) {
-        const loadSuccess = this.loadCalendar(result.calendar);
+        // Determine source information based on URL
+        const sourceInfo = this.determineSourceInfo(url, result);
+
+        const loadSuccess = this.loadCalendar(result.calendar, sourceInfo);
         if (loadSuccess) {
           successCount++;
         } else {
@@ -711,6 +727,55 @@ export class CalendarManager {
 
     Logger.info(`Collection load completed: ${successCount} successful, ${errorCount} failed`);
     return results;
+  }
+
+  /**
+   * Determine source information based on URL and load result
+   */
+  private determineSourceInfo(url: string, _result: LoadResult): CalendarSourceInfo {
+    // Check if this is a module URL
+    if (url.startsWith('module:')) {
+      const moduleMatch = url.match(/^module:([a-z0-9-]+)/);
+      if (moduleMatch) {
+        const moduleId = moduleMatch[1];
+        const module = game.modules.get(moduleId);
+
+        if (module) {
+          return {
+            type: 'module',
+            sourceName: module.title,
+            description: `Calendar provided by the ${module.title} module`,
+            icon: 'fa-solid fa-puzzle-piece',
+            moduleId,
+            url,
+          };
+        }
+      }
+    }
+
+    // Check if this came from an external source (tracked by CalendarLoader)
+    const externalSources = this.calendarLoader.getSources();
+    for (const source of externalSources) {
+      if (source.url === url) {
+        return {
+          type: 'external',
+          sourceName: source.name,
+          description: `Calendar loaded from external source: ${source.name}`,
+          icon: 'fa-solid fa-cloud',
+          externalSourceId: source.id,
+          url: source.url,
+        };
+      }
+    }
+
+    // Default fallback (shouldn't happen for collections, but safety)
+    return {
+      type: 'builtin',
+      sourceName: 'Unknown Source',
+      description: 'Calendar source could not be determined',
+      icon: 'fa-solid fa-question-circle',
+      url,
+    };
   }
 
   /**

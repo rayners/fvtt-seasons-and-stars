@@ -56,6 +56,9 @@ export interface SeasonsStarsCalendar {
   variants?: {
     [variantId: string]: CalendarVariant;
   };
+
+  // Source tracking for badge display and management
+  sourceInfo?: CalendarSourceInfo;
 }
 
 // Date formatting system interfaces
@@ -231,4 +234,30 @@ export interface CalendarVariant {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
+}
+
+/**
+ * Source information for calendar badge display and management
+ */
+export interface CalendarSourceInfo {
+  /** Source type - determines badge style and icon */
+  type: 'builtin' | 'module' | 'external';
+
+  /** Display name for the source */
+  sourceName: string;
+
+  /** Description for tooltips */
+  description: string;
+
+  /** Icon class for badge display */
+  icon: string;
+
+  /** Module ID (for module sources) */
+  moduleId?: string;
+
+  /** External source ID (for external sources) */
+  externalSourceId?: string;
+
+  /** Original URL or path where calendar was loaded from */
+  url?: string;
 }
