@@ -447,6 +447,42 @@ if (result.collectionEntry) {
 }
 ```
 
+### 🔧 External Calendar Loading (Advanced Users Only)
+
+> **⚠️ Developer/Power-User Feature**: The external calendar loading APIs are intended for advanced users, developers, and those comfortable with console-based operations. These features are not documented for general users as they require technical knowledge and may encounter CORS restrictions or other technical issues.
+
+**External calendar loading methods**:
+
+```javascript
+// Load a single calendar from URL (console only - no UI yet)
+const result = await game.seasonsStars.api.loadCalendarFromUrl('https://example.com/calendar.json');
+
+// Load multiple calendars from a collection
+const results = await game.seasonsStars.api.loadCalendarCollection(
+  'https://example.com/collection.json'
+);
+
+// Manage external sources programmatically
+const sourceId = game.seasonsStars.api.addExternalSource({
+  name: 'My External Calendar',
+  url: 'https://example.com/calendar.json',
+  enabled: true,
+  type: 'calendar',
+});
+
+// Refresh external calendars
+await game.seasonsStars.api.refreshExternalCalendar(sourceId);
+await game.seasonsStars.api.refreshAllExternalCalendars();
+```
+
+**Technical considerations for external calendar loading**:
+
+- CORS policies may prevent loading from many hosts
+- No user-friendly UI exists for managing external sources
+- Requires manual console interaction and technical troubleshooting
+- Intended for developers and advanced users comfortable with debugging web requests
+- May require CORS proxies or specially configured hosting for many calendar sources
+
 ### 🚀 Development Workflow
 
 **1. Create Module Structure**
