@@ -1,10 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noImplicitAny": false,
-    "strict": false,
+    "types": ["vitest/globals", "node", "jquery"],
     "skipLibCheck": true
   },
-  "include": ["test/**/*", "src/**/*", "src/types/**/*.d.ts"],
-  "exclude": ["node_modules"]
+  "include": ["packages/core/test/**/*", "packages/core/src/**/*"]
 }

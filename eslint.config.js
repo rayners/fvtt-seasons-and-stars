@@ -11,7 +11,7 @@ export default [
 
   // Project-specific overrides for source files
   {
-    files: ['src/**/*.{js,ts}'],
+    files: ['packages/core/src/**/*.{js,ts}'],
     rules: {
       // Temporarily relax some rules for migration
       '@typescript-eslint/no-unused-vars': 'error', // Match GitHub CodeQL strictness
@@ -24,7 +24,7 @@ export default [
 
   // Test files with relaxed rules
   {
-    files: ['test/**/*.{js,ts}'],
+    files: ['packages/core/test/**/*.{js,ts}'],
     languageOptions: {
       parserOptions: {
         project: './tsconfig.test.json',
@@ -44,7 +44,7 @@ export default [
 
   // Node.js scripts with appropriate environment
   {
-    files: ['scripts/**/*.js'],
+    files: ['packages/*/scripts/**/*.js'],
     languageOptions: {
       globals: {
         process: 'readonly',

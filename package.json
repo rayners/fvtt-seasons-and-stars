@@ -11,7 +11,7 @@
     "prebuild:scifi": "node packages/scifi-pack/scripts/generate-calendar-list.js",
     "build": "npm run build:core && npm run build:fantasy && npm run build:scifi",
     "build:core": "rollup -c rollup.config.core.js",
-    "build:fantasy": "npm run copy:fantasy", 
+    "build:fantasy": "npm run copy:fantasy",
     "build:scifi": "npm run copy:scifi",
     "copy:fantasy": "mkdir -p dist/fantasy-pack && cp packages/fantasy-pack/module.json dist/fantasy-pack/ && cp -r packages/fantasy-pack/calendars dist/fantasy-pack/",
     "copy:scifi": "mkdir -p dist/scifi-pack && cp packages/scifi-pack/module.json dist/scifi-pack/ && cp -r packages/scifi-pack/calendars dist/scifi-pack/",
@@ -39,11 +39,14 @@
     "link-copy": "node ../foundry-dev-tools/scripts/link-module.js --copy"
   },
   "lint-staged": {
-    "*.{ts,js}": [
+    "packages/**/*.{ts,js}": [
       "eslint --fix",
       "prettier --write"
     ],
     "*.{json,md}": [
+      "prettier --write"
+    ],
+    "packages/**/*.{json,md}": [
       "prettier --write"
     ]
   },

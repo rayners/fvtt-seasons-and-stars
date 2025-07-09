@@ -16,6 +16,11 @@
     "typeRoots": ["./node_modules/@types", "./packages/core/src/types", "./packages/core/test"],
     "skipLibCheck": true
   },
-  "include": ["packages/core/src/**/*", "packages/core/src/types/**/*.d.ts", "packages/core/scripts/**/*.ts"],
+  "include": [
+    "packages/core/src/**/*",
+    "packages/core/src/types/**/*.d.ts",
+    "packages/core/scripts/**/*.ts",
+    "packages/core/test/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }
