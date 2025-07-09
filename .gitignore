@@ -7,6 +7,9 @@ dist/
 # Generated files
 src/generated/
 
+# Generated calendar index files (rebuilt during build)
+packages/*/calendars/index.json
+
 # Development files
 test-dialog.html
 
