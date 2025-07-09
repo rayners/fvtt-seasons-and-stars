@@ -2,42 +2,10 @@
  * PF2e Environment Setup for Testing
  *
  * This utility sets up an environment for PF2e integration testing.
- * Currently uses PF2e-compatible implementation with real PF2e system code
- * available in test/fixtures/pf2e-system/ for reference and future enhancement.
- *
- * Future: Will integrate directly with real PF2e WorldClock class for
- * fully authentic testing once dependency challenges are resolved.
+ * Uses PF2e-compatible implementation for authentic testing.
  */
 
 import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
-import { existsSync } from 'fs';
-import { join } from 'path';
-
-// Use relative path from test directory - more reliable in test environments
-const pf2eWorldClockPath = join(
-  process.cwd(),
-  'test',
-  'fixtures',
-  'pf2e-system',
-  'src',
-  'module',
-  'apps',
-  'world-clock',
-  'app.ts'
-);
-
-/**
- * Check if real PF2e system code is available for reference
- */
-function checkPF2eSystemAvailable(): boolean {
-  const available = existsSync(pf2eWorldClockPath);
-  if (available) {
-    console.log('✅ Real PF2e system code available for reference validation');
-  } else {
-    console.log('ℹ️  PF2e system code not available - run `npm run setup-pf2e-system` to download');
-  }
-  return available;
-}
 
 interface PF2eEnvironmentConfig {
   /** World creation timestamp (Date.getTime() / 1000) */
@@ -83,9 +51,6 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
     dateTheme = 'AR',
     timeConvention = 24,
   } = config;
-
-  // Check if real PF2e system code is available for reference
-  checkPF2eSystemAvailable();
 
   // Set up PF2e system ID
   (global as any).game = (global as any).game || {};
@@ -175,7 +140,6 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
  */
 export function createPF2eCalculations(): PF2eWorldClockCalculations {
   // NOTE: These calculations replicate the logic from the actual PF2e WorldClock class
-  // (see test/fixtures/pf2e-system/src/world-clock/app.ts lines 140-142)
   // but are simplified to work without full PF2e system dependencies
   const calculations = {
     calculateYear(worldTime: number, worldCreatedOn: string, dateTheme: string): number {
