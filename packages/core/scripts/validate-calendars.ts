@@ -15,23 +15,26 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Main validation function
+ * Validate calendars in a specific directory
  */
-async function validateAllCalendars(): Promise<void> {
-  const calendarsDir = path.join(__dirname, '..', 'calendars');
-
-  console.log('🗓️  Validating all built-in calendars using CalendarValidator...\n');
-
+async function validateCalendarsInDirectory(
+  calendarsDir: string,
+  dirName: string
+): Promise<{ valid: number; invalid: number; total: number }> {
   let totalCalendars = 0;
   let validCalendars = 0;
   let invalidCalendars = 0;
 
+  console.log(`📂 Validating calendars in ${dirName}...`);
+
   try {
-    const files = fs.readdirSync(calendarsDir).filter(file => file.endsWith('.json'));
+    const files = fs
+      .readdirSync(calendarsDir)
+      .filter(file => file.endsWith('.json') && file !== 'index.json');
 
     if (files.length === 0) {
-      console.log('❌ No calendar files found in calendars directory');
-      process.exit(1);
+      console.log(`   ℹ️  No calendar files found in ${dirName}`);
+      return { valid: 0, invalid: 0, total: 0 };
     }
 
     for (const file of files) {
@@ -43,35 +46,71 @@ async function validateAllCalendars(): Promise<void> {
         const result = await CalendarValidator.validate(calendarData);
 
         if (result.isValid) {
-          console.log(`✅ ${file}`);
+          console.log(`   ✅ ${file}`);
           if (result.warnings.length > 0) {
             result.warnings.forEach(warning => {
-              console.log(`   ⚠️  ${warning}`);
+              console.log(`      ⚠️  ${warning}`);
             });
           }
           validCalendars++;
         } else {
-          console.log(`❌ ${file}`);
+          console.log(`   ❌ ${file}`);
           result.errors.forEach(error => {
-            console.log(`   ❌ ${error}`);
+            console.log(`      ❌ ${error}`);
           });
           if (result.warnings.length > 0) {
             result.warnings.forEach(warning => {
-              console.log(`   ⚠️  ${warning}`);
+              console.log(`      ⚠️  ${warning}`);
             });
           }
           invalidCalendars++;
         }
       } catch (parseError: any) {
-        console.log(`❌ ${file}: JSON PARSE ERROR`);
-        console.log(`   ❌ ${parseError.message}`);
+        console.log(`   ❌ ${file}: JSON PARSE ERROR`);
+        console.log(`      ❌ ${parseError.message}`);
         invalidCalendars++;
       }
     }
   } catch (error: any) {
-    console.error(`❌ Error reading calendars directory: ${error.message}`);
-    process.exit(1);
+    console.log(`   ❌ Error reading ${dirName} directory: ${error.message}`);
+    return { valid: 0, invalid: invalidCalendars, total: totalCalendars };
   }
+
+  return { valid: validCalendars, invalid: invalidCalendars, total: totalCalendars };
+}
+
+/**
+ * Main validation function
+ */
+async function validateAllCalendars(): Promise<void> {
+  const rootDir = path.join(__dirname, '..', '..', '..');
+
+  console.log('🗓️  Validating all calendars in core and packs using CalendarValidator...\n');
+
+  let totalCalendars = 0;
+  let validCalendars = 0;
+  let invalidCalendars = 0;
+
+  // Define calendar directories to check
+  const calendarDirs = [
+    { path: path.join(rootDir, 'packages', 'core', 'calendars'), name: 'core' },
+    { path: path.join(rootDir, 'packages', 'fantasy-pack', 'calendars'), name: 'fantasy-pack' },
+    { path: path.join(rootDir, 'packages', 'scifi-pack', 'calendars'), name: 'scifi-pack' },
+  ];
+
+  // Validate calendars in each directory
+  for (const dir of calendarDirs) {
+    if (fs.existsSync(dir.path)) {
+      const result = await validateCalendarsInDirectory(dir.path, dir.name);
+      totalCalendars += result.total;
+      validCalendars += result.valid;
+      invalidCalendars += result.invalid;
+    } else {
+      console.log(`   ⚠️  Directory ${dir.name} does not exist: ${dir.path}`);
+    }
+  }
+
+  console.log();
 
   // Summary
   console.log('\n📊 VALIDATION SUMMARY');
