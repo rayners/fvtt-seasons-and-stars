@@ -428,7 +428,10 @@ describe('CalendarEngine - Real Calendar Integration Tests', () => {
     const fs = await import('fs');
     const path = await import('path');
 
-    const greyhawkPath = path.resolve(__dirname, '../calendars/greyhawk.json');
+    const greyhawkPath = path.resolve(
+      __dirname,
+      '../../../packages/fantasy-pack/calendars/greyhawk.json'
+    );
     const greyhawkData = JSON.parse(fs.readFileSync(greyhawkPath, 'utf8'));
 
     // Validate the calendar
@@ -448,7 +451,10 @@ describe('CalendarEngine - Real Calendar Integration Tests', () => {
     const fs = await import('fs');
     const path = await import('path');
 
-    const darkSunPath = path.resolve(__dirname, '../calendars/dark-sun.json');
+    const darkSunPath = path.resolve(
+      __dirname,
+      '../../../packages/fantasy-pack/calendars/dark-sun.json'
+    );
     const darkSunData = JSON.parse(fs.readFileSync(darkSunPath, 'utf8'));
 
     // Validate the calendar

@@ -14,7 +14,7 @@ import * as path from 'path';
 
 // Load Exandrian calendar for testing
 function loadCalendar(): SeasonsStarsCalendar {
-  const calendarPath = path.join('packages/core/calendars', 'exandrian.json');
+  const calendarPath = path.join('packages/fantasy-pack/calendars', 'exandrian.json');
   const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
   return calendarData;
 }

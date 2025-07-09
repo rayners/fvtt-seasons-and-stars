@@ -14,9 +14,21 @@ import * as path from 'path';
 
 // Load test calendars
 function loadCalendar(fileName: string): SeasonsStarsCalendar {
-  const calendarPath = path.join('packages/core/calendars', fileName);
-  const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
-  return calendarData;
+  // Check if the calendar is in the core package first
+  const coreCalendarPath = path.join('packages/core/calendars', fileName);
+  if (fs.existsSync(coreCalendarPath)) {
+    const calendarData = JSON.parse(fs.readFileSync(coreCalendarPath, 'utf8'));
+    return calendarData;
+  }
+
+  // Otherwise, try the fantasy pack
+  const fantasyPackCalendarPath = path.join('packages/fantasy-pack/calendars', fileName);
+  if (fs.existsSync(fantasyPackCalendarPath)) {
+    const calendarData = JSON.parse(fs.readFileSync(fantasyPackCalendarPath, 'utf8'));
+    return calendarData;
+  }
+
+  throw new Error(`Calendar file not found: ${fileName}`);
 }
 
 describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {

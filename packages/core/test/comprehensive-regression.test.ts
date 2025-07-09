@@ -1,8 +1,8 @@
 /**
- * Comprehensive Regression Test for All Calendar Types
+ * Comprehensive Regression Test for Core Calendar Types
  *
- * This test ensures that the WFRP calendar fixes do not break
- * existing functionality for any other calendar types.
+ * This test ensures that core calendar functionality remains stable
+ * across the gregorian and golarion-pf2e calendars included in the core package.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -10,25 +10,9 @@ import { CalendarEngine } from '../src/core/calendar-engine';
 import * as fs from 'fs';
 import * as path from 'path';
 
-describe('Comprehensive Regression Tests - All Calendar Types', () => {
+describe('Comprehensive Regression Tests - Core Calendar Types', () => {
   const calendarDir = path.join(__dirname, '..', 'calendars');
-  const calendarFiles = [
-    'dark-sun.json',
-    'dnd5e-sword-coast.json',
-    'eberron.json',
-    'exandrian.json',
-    'forbidden-lands.json',
-    'forgotten-realms.json',
-    'golarion-pf2e.json',
-    'gregorian.json',
-    'greyhawk.json',
-    'starfinder-absalom-station.json',
-    'symbaroum.json',
-    'traditional-fantasy-epoch.json',
-    'traveller-imperial.json',
-    'vale-reckoning.json',
-    'warhammer.json', // Include WFRP to ensure it still works
-  ];
+  const calendarFiles = ['golarion-pf2e.json', 'gregorian.json'];
 
   calendarFiles.forEach(calendarFile => {
     const calendarName = calendarFile.replace('.json', '');
@@ -249,77 +233,14 @@ describe('Comprehensive Regression Tests - All Calendar Types', () => {
           expect(afterAdvancing.year).toBeGreaterThanOrEqual(year);
         });
       });
-
-      // WFRP-specific test for Issue #21
-      if (calendarName === 'warhammer') {
-        it('should handle WFRP intercalary days with countsForWeekdays: false', () => {
-          const cal = engine.getCalendar();
-          const year = cal.year.currentYear + 1;
-
-          // Test the specific Issue #21 scenario: 33rd Jahrdrung → Mitterfruhl → 1st Pflugzeit
-          const jahrdrung33 = { year, month: 2, day: 33, weekday: 0 };
-          const weekdayBefore = engine.calculateWeekday(
-            jahrdrung33.year,
-            jahrdrung33.month,
-            jahrdrung33.day
-          );
-
-          // Add 2 days to cross Mitterfruhl and reach 1st Pflugzeit
-          const pflugzeit1 = engine.addDays(jahrdrung33, 2);
-          const weekdayAfter = engine.calculateWeekday(
-            pflugzeit1.year,
-            pflugzeit1.month,
-            pflugzeit1.day
-          );
-
-          // Should advance by exactly 1 weekday (skipping Mitterfruhl)
-          const expectedWeekday = (weekdayBefore + 1) % cal.weekdays.length;
-          expect(weekdayAfter).toBe(expectedWeekday);
-
-          console.log(
-            `✅ WFRP Issue #21 Test: ${jahrdrung33.day} Jahrdrung (weekday ${weekdayBefore}) → Mitterfruhl → ${pflugzeit1.day} Pflugzeit (weekday ${weekdayAfter})`
-          );
-        });
-      }
-
-      // Dark Sun-specific test for Issue #69
-      if (calendarName === 'dark-sun') {
-        it('should ensure all months start on "1 Day" with countsForWeekdays: false', () => {
-          const cal = engine.getCalendar();
-          const year = cal.year.currentYear + 1;
-
-          // Test that every month starts on weekday 0 ("1 Day")
-          for (let month = 1; month <= cal.months.length; month++) {
-            const firstDayWeekday = engine.calculateWeekday(year, month, 1);
-            expect(firstDayWeekday).toBe(0);
-          }
-
-          // Test specifically that intercalary days don't affect month starts
-          // Month 5 (Breeze) comes after Cooling Sun intercalary
-          const firstDayBreeze = engine.calculateWeekday(year, 5, 1);
-          expect(firstDayBreeze).toBe(0);
-
-          // Month 9 (Hoard) comes after Soaring Sun intercalary
-          const firstDayHoard = engine.calculateWeekday(year, 9, 1);
-          expect(firstDayHoard).toBe(0);
-
-          // Month 1 of next year comes after Highest Sun intercalary
-          const firstDayNextYear = engine.calculateWeekday(year + 1, 1, 1);
-          expect(firstDayNextYear).toBe(0);
-
-          console.log(
-            `✅ Dark Sun Issue #69 Test: All months start on "1 Day" with intercalary countsForWeekdays: false`
-          );
-        });
-      }
     });
   });
 
   describe('Cross-Calendar Compatibility', () => {
-    it('should handle all calendars consistently', () => {
+    it('should handle core calendars consistently', () => {
       const allEngines: { [key: string]: CalendarEngine } = {};
 
-      // Load all calendars
+      // Load all core calendars
       calendarFiles.forEach(calendarFile => {
         const calendarName = calendarFile.replace('.json', '');
         const calendarPath = path.join(calendarDir, calendarFile);

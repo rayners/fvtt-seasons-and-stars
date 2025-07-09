@@ -14,7 +14,7 @@ import * as path from 'path';
 
 // Load Dark Sun calendar for testing
 function loadCalendar(): SeasonsStarsCalendar {
-  const calendarPath = path.join('packages/core/calendars', 'dark-sun.json');
+  const calendarPath = path.join('packages/fantasy-pack/calendars', 'dark-sun.json');
   const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
   return calendarData;
 }

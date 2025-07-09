@@ -21,7 +21,12 @@ describe('Performance Baseline Tests', () => {
       let engine: CalendarEngine;
 
       beforeEach(() => {
-        const calendarPath = path.join('packages/core/calendars', file);
+        let calendarPath;
+        if (file === 'warhammer.json') {
+          calendarPath = path.join('packages/fantasy-pack/calendars', file);
+        } else {
+          calendarPath = path.join('packages/core/calendars', file);
+        }
         const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
         engine = new CalendarEngine(calendarData);
       });
@@ -89,7 +94,7 @@ describe('Performance Baseline Tests', () => {
 
   // Test that WFRP performance is acceptable compared to simpler calendars
   it('should maintain reasonable performance with intercalary days', () => {
-    const wfrpPath = path.join('packages/core/calendars', 'warhammer.json');
+    const wfrpPath = path.join('packages/fantasy-pack/calendars', 'warhammer.json');
     const wfrpData = JSON.parse(fs.readFileSync(wfrpPath, 'utf8'));
     const wfrpEngine = new CalendarEngine(wfrpData);
 

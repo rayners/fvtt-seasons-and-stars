@@ -14,7 +14,10 @@ describe('WFRP Calendar Bug Fixes (Issue #21)', () => {
 
   beforeAll(() => {
     // Load the WFRP calendar
-    const warhammerPath = resolve(__dirname, '../calendars/warhammer.json');
+    const warhammerPath = resolve(
+      __dirname,
+      '../../../packages/fantasy-pack/calendars/warhammer.json'
+    );
     warhammerData = JSON.parse(readFileSync(warhammerPath, 'utf8'));
     engine = new CalendarEngine(warhammerData);
 

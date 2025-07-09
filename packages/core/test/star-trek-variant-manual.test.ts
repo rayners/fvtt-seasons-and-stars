@@ -32,7 +32,10 @@ describe('Star Trek Variant Manual Test', () => {
     const baseCalendar: SeasonsStarsCalendar = JSON.parse(gregorianData);
 
     // Load Star Trek variants
-    const starTrekPath = path.resolve(__dirname, '../calendars/gregorian-star-trek-variants.json');
+    const starTrekPath = path.resolve(
+      __dirname,
+      '../../../packages/scifi-pack/calendars/gregorian-star-trek-variants.json'
+    );
     const starTrekData = await fs.readFile(starTrekPath, 'utf-8');
     const starTrekVariants = JSON.parse(starTrekData);
 

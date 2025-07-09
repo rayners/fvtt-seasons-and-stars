@@ -146,7 +146,16 @@ describe('DateFormatter Integration Tests', () => {
   describe('Calendar JSON Template Validation', () => {
     it('should validate Eberron calendar templates compile successfully', () => {
       try {
-        const eberronPath = join(__dirname, '..', 'calendars', 'eberron.json');
+        const eberronPath = join(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'packages',
+          'fantasy-pack',
+          'calendars',
+          'eberron.json'
+        );
         const eberronCalendar = JSON.parse(
           readFileSync(eberronPath, 'utf8')
         ) as SeasonsStarsCalendar;
@@ -189,6 +198,10 @@ describe('DateFormatter Integration Tests', () => {
         const starTrekPath = join(
           __dirname,
           '..',
+          '..',
+          '..',
+          'packages',
+          'scifi-pack',
           'calendars',
           'gregorian-star-trek-variants.json'
         );
@@ -239,15 +252,18 @@ describe('DateFormatter Integration Tests', () => {
 
     it('should compile all calendar templates without syntax errors', () => {
       const calendarFiles = [
-        'eberron.json',
-        'gregorian.json',
-        'starfinder-absalom-station.json',
-        'traveller-imperial.json',
+        { filename: 'eberron.json', pack: 'fantasy-pack' },
+        { filename: 'gregorian.json', pack: 'core' },
+        { filename: 'starfinder-absalom-station.json', pack: 'scifi-pack' },
+        { filename: 'traveller-imperial.json', pack: 'scifi-pack' },
       ];
 
-      calendarFiles.forEach(filename => {
+      calendarFiles.forEach(({ filename, pack }) => {
         try {
-          const calendarPath = join(__dirname, '..', 'calendars', filename);
+          const calendarPath =
+            pack === 'core'
+              ? join(__dirname, '..', 'calendars', filename)
+              : join(__dirname, '..', '..', '..', 'packages', pack, 'calendars', filename);
           const calendar = JSON.parse(readFileSync(calendarPath, 'utf8')) as SeasonsStarsCalendar;
 
           if (calendar.dateFormats) {

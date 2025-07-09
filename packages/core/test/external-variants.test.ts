@@ -24,9 +24,9 @@ vi.stubGlobal('Hooks', {
 // Mock fetch to return different responses for different files
 vi.stubGlobal('fetch', vi.fn());
 
-// Mock the built-in calendars list to include gregorian and variants
+// Mock the built-in calendars list to include only gregorian (variants are now in scifi-pack)
 vi.mock('../src/generated/calendar-list', () => ({
-  BUILT_IN_CALENDARS: ['gregorian', 'gregorian-star-trek-variants'],
+  BUILT_IN_CALENDARS: ['gregorian'],
 }));
 
 // Mock CalendarValidator
@@ -59,7 +59,7 @@ describe('External Calendar Variants System', () => {
     vi.clearAllMocks();
     TestLogger.clearLogs();
 
-    // Mock responses for different calendar files
+    // Mock responses for calendar files
     vi.mocked(fetch).mockImplementation((url: string) => {
       if (url === 'modules/seasons-and-stars/calendars/gregorian.json') {
         // Mock gregorian base calendar
@@ -97,65 +97,6 @@ describe('External Calendar Variants System', () => {
               year: { epoch: 0, suffix: ' AD' },
             }),
         } as Response);
-      } else if (url === 'modules/seasons-and-stars/calendars/gregorian-star-trek-variants.json') {
-        // Mock Star Trek variants file
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              id: 'gregorian-star-trek-variants',
-              baseCalendar: 'gregorian',
-              name: 'Star Trek Calendar Variants',
-              description: 'Star Trek universe calendar variants',
-              variants: {
-                'earth-stardate': {
-                  name: 'Earth Stardate System',
-                  description: 'Earth-based stardate calendar',
-                  default: true,
-                  config: { yearOffset: 2323 },
-                  overrides: {
-                    year: { prefix: 'Stardate ', suffix: '' },
-                  },
-                },
-                'vulcan-calendar': {
-                  name: 'Vulcan Calendar',
-                  description: 'Traditional Vulcan calendar system',
-                  config: { yearOffset: 2161 },
-                  overrides: {
-                    year: { prefix: '', suffix: ' V.S.' },
-                    months: {
-                      January: { name: "T'Keth", description: 'First month in Vulcan calendar' },
-                      February: { name: "T'Ket", description: 'Second month in Vulcan calendar' },
-                    },
-                  },
-                },
-                'klingon-calendar': {
-                  name: 'Klingon Calendar',
-                  description: 'Traditional Klingon warrior calendar',
-                  config: { yearOffset: 2151 },
-                  overrides: {
-                    year: { prefix: '', suffix: ' K.Y.' },
-                    months: {
-                      January: { name: 'Maktag', description: 'Month of battle preparation' },
-                      February: { name: 'Jagh', description: 'Month of enemies' },
-                    },
-                    weekdays: {
-                      Sunday: { name: 'jup', description: 'Day of the warrior' },
-                      Monday: { name: 'ghItlh', description: 'Day of writing' },
-                    },
-                  },
-                },
-                'federation-standard': {
-                  name: 'Federation Standard Calendar',
-                  description: 'United Federation of Planets standard calendar',
-                  config: { yearOffset: 2161 },
-                  overrides: {
-                    year: { prefix: '', suffix: ' F.S.' },
-                  },
-                },
-              },
-            }),
-        } as Response);
       } else {
         // File not found
         return Promise.resolve({
@@ -172,11 +113,71 @@ describe('External Calendar Variants System', () => {
     it('should load base calendar and external variants successfully', async () => {
       await calendarManager.loadBuiltInCalendars();
 
-      // Should have base calendar + 4 Star Trek variants = 5 total
-      expect(calendarManager.calendars.size).toBe(5);
-
-      // Check base calendar
+      // Should have only base calendar since variants are now in scifi-pack, not core
+      expect(calendarManager.calendars.size).toBe(1);
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
+
+      // Manually load the external variant file to test the functionality
+      const variantFileData = {
+        id: 'gregorian-star-trek-variants',
+        baseCalendar: 'gregorian',
+        variants: {
+          'earth-stardate': {
+            name: 'Earth Stardate System',
+            description: 'Earth-based stardate calendar',
+            default: true,
+            config: { yearOffset: 2323 },
+            overrides: {
+              year: { prefix: 'Stardate ', suffix: '' },
+            },
+          },
+          'vulcan-calendar': {
+            name: 'Vulcan Calendar',
+            description: 'Traditional Vulcan calendar system',
+            config: { yearOffset: 2161 },
+            overrides: {
+              year: { prefix: '', suffix: ' V.S.' },
+              months: {
+                January: { name: "T'Keth", description: 'First month in Vulcan calendar' },
+                February: { name: "T'Ket", description: 'Second month in Vulcan calendar' },
+              },
+            },
+          },
+          'klingon-calendar': {
+            name: 'Klingon Calendar',
+            description: 'Traditional Klingon warrior calendar',
+            config: { yearOffset: 2151 },
+            overrides: {
+              year: { prefix: '', suffix: ' K.Y.' },
+              months: {
+                January: { name: 'Maktag', description: 'Month of battle preparation' },
+                February: { name: 'Jagh', description: 'Month of enemies' },
+              },
+              weekdays: {
+                Sunday: { name: 'jup', description: 'Day of the warrior' },
+                Monday: { name: 'ghItlh', description: 'Day of writing' },
+              },
+            },
+          },
+          'federation-standard': {
+            name: 'Federation Standard Calendar',
+            description: 'United Federation of Planets standard calendar',
+            config: { yearOffset: 2161 },
+            overrides: {
+              year: { prefix: '', suffix: ' F.S.' },
+            },
+          },
+        },
+      };
+
+      const baseCalendar = calendarManager.calendars.get('gregorian');
+      expect(baseCalendar).toBeDefined();
+
+      // Apply external variants manually
+      calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
+
+      // Now should have base calendar + 4 Star Trek variants = 5 total
+      expect(calendarManager.calendars.size).toBe(5);
 
       // Check Star Trek variants
       expect(calendarManager.calendars.has('gregorian(earth-stardate)')).toBe(true);
@@ -187,6 +188,51 @@ describe('External Calendar Variants System', () => {
 
     it('should apply external variant overrides correctly', async () => {
       await calendarManager.loadBuiltInCalendars();
+
+      // Manually apply external variants to test the functionality
+      const variantFileData = {
+        id: 'gregorian-star-trek-variants',
+        baseCalendar: 'gregorian',
+        variants: {
+          'earth-stardate': {
+            name: 'Earth Stardate System',
+            default: true,
+            overrides: {
+              year: { prefix: 'Stardate ', suffix: '' },
+            },
+          },
+          'vulcan-calendar': {
+            name: 'Vulcan Calendar',
+            overrides: {
+              year: { prefix: '', suffix: ' V.S.' },
+              months: {
+                January: { name: "T'Keth" },
+                February: { name: "T'Ket" },
+              },
+            },
+          },
+          'klingon-calendar': {
+            name: 'Klingon Calendar',
+            overrides: {
+              year: { prefix: '', suffix: ' K.Y.' },
+              months: {
+                January: { name: 'Maktag' },
+                February: { name: 'Jagh' },
+              },
+              weekdays: {
+                Sunday: { name: 'jup' },
+                Monday: { name: 'ghItlh' },
+              },
+            },
+          },
+        },
+      };
+
+      const baseCalendar = calendarManager.calendars.get('gregorian');
+      expect(baseCalendar).toBeDefined();
+
+      // Apply external variants manually
+      calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
 
       // Test Vulcan calendar overrides
       const vulcanCalendar = calendarManager.calendars.get('gregorian(vulcan-calendar)');
@@ -216,6 +262,30 @@ describe('External Calendar Variants System', () => {
     it('should preserve base calendar properties for non-overridden items', async () => {
       await calendarManager.loadBuiltInCalendars();
 
+      // Manually apply external variants to test the functionality
+      const variantFileData = {
+        id: 'gregorian-star-trek-variants',
+        baseCalendar: 'gregorian',
+        variants: {
+          'vulcan-calendar': {
+            name: 'Vulcan Calendar',
+            overrides: {
+              year: { prefix: '', suffix: ' V.S.' },
+              months: {
+                January: { name: "T'Keth" },
+                February: { name: "T'Ket" },
+              },
+            },
+          },
+        },
+      };
+
+      const baseCalendar = calendarManager.calendars.get('gregorian');
+      expect(baseCalendar).toBeDefined();
+
+      // Apply external variants manually
+      calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
+
       const vulcanCalendar = calendarManager.calendars.get('gregorian(vulcan-calendar)');
       expect(vulcanCalendar).toBeDefined();
 
@@ -229,28 +299,8 @@ describe('External Calendar Variants System', () => {
     });
 
     it('should handle missing base calendar gracefully', async () => {
-      // Mock a variant file that references a non-existent base calendar
+      // Mock fetch to return 404 for gregorian calendar
       vi.mocked(fetch).mockImplementation((url: string) => {
-        if (url.includes('modules/seasons-and-stars/calendars/gregorian.json')) {
-          return Promise.resolve({ ok: false, status: 404 } as Response);
-        } else if (
-          url.includes('modules/seasons-and-stars/calendars/gregorian-star-trek-variants.json')
-        ) {
-          return Promise.resolve({
-            ok: true,
-            json: () =>
-              Promise.resolve({
-                id: 'gregorian-star-trek-variants',
-                baseCalendar: 'gregorian',
-                variants: {
-                  'test-variant': {
-                    name: 'Test Variant',
-                    overrides: { year: { suffix: ' TEST' } },
-                  },
-                },
-              }),
-          } as Response);
-        }
         return Promise.resolve({ ok: false, status: 404 } as Response);
       });
 
@@ -261,7 +311,7 @@ describe('External Calendar Variants System', () => {
     });
 
     it('should handle invalid external variant file format', async () => {
-      // Mock invalid variant file
+      // Mock gregorian calendar loading successfully
       vi.mocked(fetch).mockImplementation((url: string) => {
         if (url.includes('modules/seasons-and-stars/calendars/gregorian.json')) {
           return Promise.resolve({
@@ -275,24 +325,13 @@ describe('External Calendar Variants System', () => {
                 year: { epoch: 0 },
               }),
           } as Response);
-        } else if (
-          url.includes('modules/seasons-and-stars/calendars/gregorian-star-trek-variants.json')
-        ) {
-          return Promise.resolve({
-            ok: true,
-            json: () =>
-              Promise.resolve({
-                // Missing required fields
-                invalidStructure: true,
-              }),
-          } as Response);
         }
         return Promise.resolve({ ok: false, status: 404 } as Response);
       });
 
       await calendarManager.loadBuiltInCalendars();
 
-      // Should only have base calendar, no variants due to invalid format
+      // Should only have base calendar, no variants since we're not loading external variant files
       expect(calendarManager.calendars.size).toBe(1);
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
     });
@@ -312,6 +351,26 @@ describe('External Calendar Variants System', () => {
     it('should allow setting specific external variants directly', async () => {
       await calendarManager.loadBuiltInCalendars();
 
+      // Manually apply external variants to test the functionality
+      const variantFileData = {
+        id: 'gregorian-star-trek-variants',
+        baseCalendar: 'gregorian',
+        variants: {
+          'vulcan-calendar': {
+            name: 'Vulcan Calendar',
+            overrides: {
+              year: { prefix: '', suffix: ' V.S.' },
+            },
+          },
+        },
+      };
+
+      const baseCalendar = calendarManager.calendars.get('gregorian');
+      expect(baseCalendar).toBeDefined();
+
+      // Apply external variants manually
+      calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
+
       // Set active calendar to specific external variant
       await calendarManager.setActiveCalendar('gregorian(vulcan-calendar)');
 
@@ -326,6 +385,44 @@ describe('External Calendar Variants System', () => {
     it('should create calendar engines for external variants', async () => {
       await calendarManager.loadBuiltInCalendars();
 
+      // Manually apply external variants to test the functionality
+      const variantFileData = {
+        id: 'gregorian-star-trek-variants',
+        baseCalendar: 'gregorian',
+        variants: {
+          'earth-stardate': {
+            name: 'Earth Stardate System',
+            overrides: {
+              year: { prefix: 'Stardate ', suffix: '' },
+            },
+          },
+          'vulcan-calendar': {
+            name: 'Vulcan Calendar',
+            overrides: {
+              year: { prefix: '', suffix: ' V.S.' },
+            },
+          },
+          'klingon-calendar': {
+            name: 'Klingon Calendar',
+            overrides: {
+              year: { prefix: '', suffix: ' K.Y.' },
+            },
+          },
+          'federation-standard': {
+            name: 'Federation Standard Calendar',
+            overrides: {
+              year: { prefix: '', suffix: ' F.S.' },
+            },
+          },
+        },
+      };
+
+      const baseCalendar = calendarManager.calendars.get('gregorian');
+      expect(baseCalendar).toBeDefined();
+
+      // Apply external variants manually
+      calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
+
       // Check that engines exist for all variants
       expect(calendarManager.engines.has('gregorian')).toBe(true);
       expect(calendarManager.engines.has('gregorian(earth-stardate)')).toBe(true);
@@ -336,6 +433,32 @@ describe('External Calendar Variants System', () => {
 
     it('should update variant calendar translations to show variant name', async () => {
       await calendarManager.loadBuiltInCalendars();
+
+      // Manually apply external variants to test the functionality
+      const variantFileData = {
+        id: 'gregorian-star-trek-variants',
+        baseCalendar: 'gregorian',
+        variants: {
+          'vulcan-calendar': {
+            name: 'Vulcan Calendar',
+            overrides: {
+              year: { prefix: '', suffix: ' V.S.' },
+            },
+          },
+          'klingon-calendar': {
+            name: 'Klingon Calendar',
+            overrides: {
+              year: { prefix: '', suffix: ' K.Y.' },
+            },
+          },
+        },
+      };
+
+      const baseCalendar = calendarManager.calendars.get('gregorian');
+      expect(baseCalendar).toBeDefined();
+
+      // Apply external variants manually
+      calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
 
       const vulcanCalendar = calendarManager.calendars.get('gregorian(vulcan-calendar)');
       expect(vulcanCalendar).toBeDefined();

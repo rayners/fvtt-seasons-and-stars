@@ -12,11 +12,14 @@ describe('WFRP Seasons Fix Verification (Issue #83)', () => {
   let warhammerData: SeasonsStarsCalendar;
 
   it('should load WFRP calendar successfully', () => {
-    const warhammerPath = resolve(__dirname, '../calendars/warhammer.json');
+    const warhammerPath = resolve(
+      __dirname,
+      '../../../packages/fantasy-pack/calendars/warhammer.json'
+    );
     warhammerData = JSON.parse(readFileSync(warhammerPath, 'utf8'));
 
     expect(warhammerData.id).toBe('warhammer');
-    expect(warhammerData.translations.en.label).toBe('Imperial Calendar');
+    expect(warhammerData.translations.en.label).toBe('Imperial Calendar (Warhammer Fantasy)');
   });
 
   it('should have seasons property defined', () => {

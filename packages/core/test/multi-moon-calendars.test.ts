@@ -8,7 +8,7 @@ import { CalendarEngine } from '../src/core/calendar-engine';
 import { CalendarDate } from '../src/core/calendar-date';
 
 // Import calendar data
-import exandrianCalendar from '../calendars/exandrian.json';
+import exandrianCalendar from '../../../packages/fantasy-pack/calendars/exandrian.json';
 import gregorianCalendar from '../calendars/gregorian.json';
 
 describe('Multi-Moon Calendar Integration', () => {
