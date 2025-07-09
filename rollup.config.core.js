@@ -36,9 +36,9 @@ export default {
     copy({
       targets: [
         { src: 'packages/core/module.json', dest: 'dist/core' },
-        { src: 'languages', dest: 'dist/core' },
+        { src: 'packages/core/languages', dest: 'dist/core' },
         { src: 'packages/core/calendars', dest: 'dist/core' },
-        { src: 'packages/core/schemas', dest: 'dist/core' },
+        { src: 'shared/schemas', dest: 'dist/core' },
         { src: 'packages/core/templates', dest: 'dist/core' },
         { src: 'README.md', dest: 'dist/core' },
         { src: 'CHANGELOG.md', dest: 'dist/core' },

@@ -62,7 +62,7 @@ async function getAjvValidators() {
         currentDir = parentDir;
       }
 
-      const schemasDir = path.join(currentDir, 'packages', 'core', 'schemas');
+      const schemasDir = path.join(currentDir, 'shared', 'schemas');
 
       [calendarSchema, variantsSchema, collectionSchema] = await Promise.all([
         JSON.parse(fs.readFileSync(path.join(schemasDir, 'calendar-v1.0.0.json'), 'utf8')),
