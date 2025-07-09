@@ -30,6 +30,10 @@ on:
           - release
           - prerelease
 
+permissions:
+  contents: write
+  packages: read
+
 jobs:
   detect-module:
     runs-on: ubuntu-latest
@@ -41,24 +45,24 @@ jobs:
         id: detect
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "module=${{ github.event.inputs.module }}" >> $GITHUB_OUTPUT
-            echo "tag=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
+            echo "module=${{ github.event.inputs.module }}" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
           else
             TAG="${{ github.ref_name }}"
             # release-please monorepo tagging: package@version
             if [[ "$TAG" == seasons-and-stars-fantasy@* ]]; then
-              echo "module=fantasy-pack" >> $GITHUB_OUTPUT
+              echo "module=fantasy-pack" >> "$GITHUB_OUTPUT"
             elif [[ "$TAG" == seasons-and-stars-scifi@* ]]; then
-              echo "module=scifi-pack" >> $GITHUB_OUTPUT
+              echo "module=scifi-pack" >> "$GITHUB_OUTPUT"
             elif [[ "$TAG" == seasons-and-stars@* ]]; then
-              echo "module=core" >> $GITHUB_OUTPUT
+              echo "module=core" >> "$GITHUB_OUTPUT"
             # Legacy/manual tagging support
             elif [[ "$TAG" == v* ]]; then
-              echo "module=core" >> $GITHUB_OUTPUT
+              echo "module=core" >> "$GITHUB_OUTPUT"
             else
-              echo "module=core" >> $GITHUB_OUTPUT
+              echo "module=core" >> "$GITHUB_OUTPUT"
             fi
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           fi
 
   release-core:
