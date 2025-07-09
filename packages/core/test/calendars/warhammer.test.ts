@@ -14,7 +14,7 @@ import * as path from 'path';
 
 // Load WFRP calendar for testing
 function loadCalendar(): SeasonsStarsCalendar {
-  const calendarPath = path.join('calendars', 'warhammer.json');
+  const calendarPath = path.join('packages/core/calendars', 'warhammer.json');
   const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
   return calendarData;
 }

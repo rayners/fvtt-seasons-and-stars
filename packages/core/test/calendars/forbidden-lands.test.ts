@@ -14,7 +14,7 @@ import * as path from 'path';
 
 // Load Forbidden Lands calendar for testing
 function loadCalendar(): SeasonsStarsCalendar {
-  const calendarPath = path.join('calendars', 'forbidden-lands.json');
+  const calendarPath = path.join('packages/core/calendars', 'forbidden-lands.json');
   const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
   return calendarData;
 }
