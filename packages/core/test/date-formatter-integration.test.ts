@@ -186,7 +186,12 @@ describe('DateFormatter Integration Tests', () => {
 
     it('should validate Star Trek calendar templates compile successfully', () => {
       try {
-        const starTrekPath = join(__dirname, '..', 'calendars', 'gregorian-star-trek-variants.json');
+        const starTrekPath = join(
+          __dirname,
+          '..',
+          'calendars',
+          'gregorian-star-trek-variants.json'
+        );
         const starTrekVariants = JSON.parse(readFileSync(starTrekPath, 'utf8'));
 
         // Get the Star Trek variant from the variants object
