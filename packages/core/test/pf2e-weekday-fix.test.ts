@@ -18,7 +18,7 @@ describe('PF2e Weekday Fix Investigation', () => {
   let golarionCalendar: SeasonsStarsCalendar;
 
   beforeEach(() => {
-    const calendarPath = path.join('calendars', 'golarion-pf2e.json');
+    const calendarPath = path.join('packages/core/calendars', 'golarion-pf2e.json');
     const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
     golarionCalendar = calendarData;
     golarionEngine = new CalendarEngine(calendarData);

@@ -39,7 +39,7 @@ describe('PF2e Compatibility Verification', () => {
     // Reset the mock to ensure PF2e environment
     (global as any).game = mockGame;
 
-    const calendarPath = path.join('calendars', 'golarion-pf2e.json');
+    const calendarPath = path.join('packages/core/calendars', 'golarion-pf2e.json');
     const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
     golarionCalendar = calendarData;
     golarionEngine = new CalendarEngine(calendarData);
@@ -137,7 +137,7 @@ describe('PF2e Compatibility Verification', () => {
     console.log('\n=== TESTING CALENDAR-SPECIFIC COMPATIBILITY ===');
 
     // Test with a different calendar (Gregorian) in PF2e environment
-    const gregorianPath = path.join('calendars', 'gregorian.json');
+    const gregorianPath = path.join('packages/core/calendars', 'gregorian.json');
     const gregorianData = JSON.parse(fs.readFileSync(gregorianPath, 'utf8'));
     const gregorianEngine = new CalendarEngine(gregorianData);
 
