@@ -11,7 +11,7 @@ import * as path from 'path';
 
 // Load the actual Gregorian calendar definition from the JSON file
 function loadGregorianCalendar(): SeasonsStarsCalendar {
-  const calendarPath = path.join(__dirname, '../calendars/gregorian.json');
+  const calendarPath = path.join(__dirname, '..', 'calendars', 'gregorian.json');
   const calendarData = fs.readFileSync(calendarPath, 'utf8');
   return JSON.parse(calendarData) as SeasonsStarsCalendar;
 }

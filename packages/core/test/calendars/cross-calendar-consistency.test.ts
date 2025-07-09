@@ -14,7 +14,7 @@ import * as path from 'path';
 
 // Load specific calendars for testing
 function loadCalendar(fileName: string): SeasonsStarsCalendar {
-  const calendarPath = path.join('calendars', fileName);
+  const calendarPath = path.join(__dirname, '..', '..', 'calendars', fileName);
   const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
   return calendarData;
 }

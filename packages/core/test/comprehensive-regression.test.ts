@@ -11,7 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 describe('Comprehensive Regression Tests - All Calendar Types', () => {
-  const calendarDir = 'calendars';
+  const calendarDir = path.join(__dirname, '..', 'calendars');
   const calendarFiles = [
     'dark-sun.json',
     'dnd5e-sword-coast.json',

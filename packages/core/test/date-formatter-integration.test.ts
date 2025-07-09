@@ -146,7 +146,7 @@ describe('DateFormatter Integration Tests', () => {
   describe('Calendar JSON Template Validation', () => {
     it('should validate Eberron calendar templates compile successfully', () => {
       try {
-        const eberronPath = join(process.cwd(), 'calendars', 'eberron.json');
+        const eberronPath = join(__dirname, '..', 'calendars', 'eberron.json');
         const eberronCalendar = JSON.parse(
           readFileSync(eberronPath, 'utf8')
         ) as SeasonsStarsCalendar;
@@ -186,14 +186,14 @@ describe('DateFormatter Integration Tests', () => {
 
     it('should validate Star Trek calendar templates compile successfully', () => {
       try {
-        const starTrekPath = join(process.cwd(), 'calendars', 'gregorian-star-trek-variants.json');
+        const starTrekPath = join(__dirname, '..', 'calendars', 'gregorian-star-trek-variants.json');
         const starTrekVariants = JSON.parse(readFileSync(starTrekPath, 'utf8'));
 
         // Get the Star Trek variant from the variants object
         const starTrekCalendar = starTrekVariants.variants?.['star-trek-calendar'];
         if (starTrekCalendar?.overrides?.dateFormats) {
           // Create a test calendar by merging base Gregorian with Star Trek overrides
-          const gregorianPath = join(process.cwd(), 'calendars', 'gregorian.json');
+          const gregorianPath = join(__dirname, '..', 'calendars', 'gregorian.json');
           const baseCalendar = JSON.parse(
             readFileSync(gregorianPath, 'utf8')
           ) as SeasonsStarsCalendar;
@@ -242,7 +242,7 @@ describe('DateFormatter Integration Tests', () => {
 
       calendarFiles.forEach(filename => {
         try {
-          const calendarPath = join(process.cwd(), 'calendars', filename);
+          const calendarPath = join(__dirname, '..', 'calendars', filename);
           const calendar = JSON.parse(readFileSync(calendarPath, 'utf8')) as SeasonsStarsCalendar;
 
           if (calendar.dateFormats) {

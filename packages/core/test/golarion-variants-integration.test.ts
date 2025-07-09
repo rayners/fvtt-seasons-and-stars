@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import * as path from 'path';
 
 // Use real TestLogger instead of mocks for better testing
 import { TestLogger } from './utils/test-logger';
@@ -61,7 +62,7 @@ describe('Golarion Variants Integration', () => {
 
     // Mock fetch to return the actual Golarion calendar file
     const golarionCalendarResponse = await import('fs/promises').then(fs =>
-      fs.readFile('./calendars/golarion-pf2e.json', 'utf-8')
+      fs.readFile(path.join(__dirname, '..', 'calendars', 'golarion-pf2e.json'), 'utf-8')
     );
     const golarionCalendar = JSON.parse(golarionCalendarResponse);
 
