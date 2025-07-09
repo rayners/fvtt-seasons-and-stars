@@ -39,7 +39,11 @@
     "link-copy": "node ../foundry-dev-tools/scripts/link-module.js --copy"
   },
   "lint-staged": {
-    "packages/**/*.{ts,js}": [
+    "packages/core/src/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "packages/core/scripts/**/*.{ts,js}": [
       "eslint --fix",
       "prettier --write"
     ],

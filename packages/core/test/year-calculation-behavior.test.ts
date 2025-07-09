@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { compatibilityManager } from '../src/core/compatibility-manager';
-import type { SeasonsStarsCalendar, ICalendarDate } from '../src/types/calendar-types';
+import type { SeasonsStarsCalendar, CalendarDate } from '../src/types/calendar';
 import golarionCalendarData from '../calendars/golarion-pf2e.json';
 import { setupRealPF2eEnvironment } from './setup-pf2e';
 
