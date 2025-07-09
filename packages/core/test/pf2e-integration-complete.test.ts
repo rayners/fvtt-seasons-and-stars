@@ -199,7 +199,7 @@ describe('PF2e Integration Complete Solution', () => {
     console.log('Testing backward compatibility:');
 
     testCalendars.forEach(calendarFile => {
-      const calendarPath = path.join('calendars', calendarFile);
+      const calendarPath = path.join('packages/core/calendars', calendarFile);
       const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
 
       // Test in PF2e environment (should not affect other calendars)
