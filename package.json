@@ -47,6 +47,9 @@
       "eslint --fix",
       "prettier --write"
     ],
+    "packages/core/test/**/*.{ts,js}": [
+      "prettier --write"
+    ],
     "*.{json,md}": [
       "prettier --write"
     ],
