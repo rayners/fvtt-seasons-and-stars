@@ -60,7 +60,6 @@ export default [
     },
   },
 
-
   // Node.js scripts with appropriate environment
   {
     files: ['packages/*/scripts/**/*.js'],
