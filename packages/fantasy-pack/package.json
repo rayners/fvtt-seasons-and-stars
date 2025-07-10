@@ -1,0 +1,18 @@
+{
+  "name": "seasons-and-stars-fantasy",
+  "version": "1.0.0",
+  "description": "Fantasy RPG calendar collection for Seasons & Stars",
+  "type": "module",
+  "scripts": {
+    "prebuild": "node scripts/generate-calendar-list.js",
+    "build": "npm run copy",
+    "copy": "mkdir -p ../../dist/fantasy-pack && cp module.json ../../dist/fantasy-pack/ && cp -r calendars ../../dist/fantasy-pack/",
+    "test": "vitest run",
+    "validate:calendars": "node scripts/validate-calendars.js"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.2"
+  },
+  "author": "David Raynes",
+  "license": "MIT"
+}

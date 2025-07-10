@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18, 20]
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,4 +30,5 @@ jobs:
           coverage-node-version: '18'
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
           junit-output: true
-          test-command: 'npm run validate'
+          test-command: 'npm run test:coverage:junit'
+          validate-command: 'npm run lint && npm run format:check && npm run typecheck && npm run validate:calendars && npm run build'

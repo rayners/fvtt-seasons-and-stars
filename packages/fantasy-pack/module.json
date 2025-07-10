@@ -1,0 +1,33 @@
+{
+  "id": "seasons-and-stars-fantasy",
+  "title": "Seasons & Stars - Fantasy Calendar Pack",
+  "description": "Fantasy RPG calendar collection for Seasons & Stars - includes calendars for D&D 5e, Pathfinder, Critical Role, and other fantasy settings",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "David Raynes",
+      "email": "rayners@gmail.com",
+      "discord": "rayners78",
+      "github": "rayners"
+    }
+  ],
+  "relationships": {
+    "requires": [
+      {
+        "id": "seasons-and-stars",
+        "type": "module",
+        "compatibility": {
+          "minimum": "0.6.0"
+        }
+      }
+    ]
+  },
+  "url": "https://github.com/rayners/fvtt-seasons-and-stars",
+  "manifest": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/seasons-and-stars-fantasy-module.json",
+  "download": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/seasons-and-stars-fantasy-module.zip",
+  "bugs": "https://github.com/rayners/fvtt-seasons-and-stars/issues"
+}

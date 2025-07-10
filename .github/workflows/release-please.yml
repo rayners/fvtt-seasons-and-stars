@@ -14,8 +14,7 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
+      releases_created: ${{ steps.release.outputs.releases_created }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,19 +23,6 @@ jobs:
         id: release
         uses: googleapis/release-please-action@v4
         with:
-          config-file: .release-please-config.json
+          config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
-
-      # Build and attach release assets when a release is created
-      - name: Build and Release Module
-        if: ${{ steps.release.outputs.release_created }}
-        uses: rayners/foundry-module-actions/release@main
-        with:
-          tag: ${{ steps.release.outputs.tag_name }}
-          node-version: '18'
-          build-command: 'npm run build'
-          working-directory: 'dist'
-          module-files: 'module.js module.json templates/ calendars/ styles/ languages/ README.md CHANGELOG.md LICENSE'
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 

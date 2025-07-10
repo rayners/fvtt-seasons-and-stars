@@ -1,0 +1,45 @@
+{
+  "id": "test-warhammer-intercalary",
+  "translations": {
+    "en": {
+      "label": "Test Warhammer (Intercalary)",
+      "description": "Test calendar with intercalary days based on Warhammer",
+      "setting": "Test"
+    }
+  },
+  "year": {
+    "epoch": 0,
+    "currentYear": 2522,
+    "prefix": "",
+    "suffix": "",
+    "startDay": 0
+  },
+  "leapYear": {
+    "rule": "none"
+  },
+  "months": [
+    { "name": "Nachexen", "abbreviation": "Nac", "days": 32, "description": "Test month 1" },
+    { "name": "Jahrdrung", "abbreviation": "Jah", "days": 33, "description": "Test month 2" },
+    { "name": "Pflugzeit", "abbreviation": "Pfl", "days": 33, "description": "Test month 3" }
+  ],
+  "weekdays": [
+    { "name": "Wellentag", "abbreviation": "We", "description": "Test day 1" },
+    { "name": "Aubentag", "abbreviation": "Au", "description": "Test day 2" },
+    { "name": "Marktag", "abbreviation": "Ma", "description": "Test day 3" },
+    { "name": "Backertag", "abbreviation": "Ba", "description": "Test day 4" }
+  ],
+  "intercalary": [
+    {
+      "name": "Mitterfruhl",
+      "after": "Jahrdrung",
+      "leapYearOnly": false,
+      "countsForWeekdays": false,
+      "description": "Middle Spring"
+    }
+  ],
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}

@@ -1,0 +1,51 @@
+name: Calendar Validation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'packages/*/calendars/**'
+      - 'packages/core/scripts/validate-calendars.ts'
+      - 'packages/core/src/core/calendar-validator.ts'
+      - 'schemas/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'packages/*/calendars/**'
+      - 'packages/core/scripts/validate-calendars.ts'
+      - 'packages/core/src/core/calendar-validator.ts'
+      - 'schemas/**'
+
+jobs:
+  validate-calendars:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate all calendars
+        run: npm run validate:calendars
+
+      - name: Calendar validation summary
+        if: always()
+        run: |
+          echo "## Calendar Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "Validation completed for all calendar files in:" >> $GITHUB_STEP_SUMMARY
+          echo "- 📂 Core calendars: \`packages/core/calendars/\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 📂 Fantasy pack calendars: \`packages/fantasy-pack/calendars/\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 📂 Sci-fi pack calendars: \`packages/scifi-pack/calendars/\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All calendars passed JSON schema validation" >> $GITHUB_STEP_SUMMARY

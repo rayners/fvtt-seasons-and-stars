@@ -1,7 +1,7 @@
-# Seasons & Stars Manual Release Workflow
-# Manual builds for specific tags - automatic releases now handled by release-please.yml
+# Seasons & Stars Monorepo Release Workflow
+# Handles releases for core module and calendar packs
 
-name: Release Module (Manual)
+name: Release Modules
 
 on:
   release:
@@ -12,6 +12,15 @@ on:
         description: 'Tag to release (e.g., v0.3.1)'
         required: true
         type: string
+      module:
+        description: 'Module to release'
+        required: true
+        type: choice
+        options:
+          - core
+          - fantasy-pack
+          - scifi-pack
+          - all
       release_type:
         description: 'Type of release'
         required: false
@@ -21,8 +30,44 @@ on:
           - release
           - prerelease
 
+permissions:
+  contents: write
+  packages: read
+
 jobs:
-  build:
+  detect-module:
+    runs-on: ubuntu-latest
+    outputs:
+      module: ${{ steps.detect.outputs.module }}
+      tag: ${{ steps.detect.outputs.tag }}
+    steps:
+      - name: Detect module from tag
+        id: detect
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "module=${{ github.event.inputs.module }}" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            TAG="${{ github.ref_name }}"
+            # release-please monorepo tagging: package@version
+            if [[ "$TAG" == seasons-and-stars-fantasy@* ]]; then
+              echo "module=fantasy-pack" >> "$GITHUB_OUTPUT"
+            elif [[ "$TAG" == seasons-and-stars-scifi@* ]]; then
+              echo "module=scifi-pack" >> "$GITHUB_OUTPUT"
+            elif [[ "$TAG" == seasons-and-stars@* ]]; then
+              echo "module=core" >> "$GITHUB_OUTPUT"
+            # Legacy/manual tagging support
+            elif [[ "$TAG" == v* ]]; then
+              echo "module=core" >> "$GITHUB_OUTPUT"
+            else
+              echo "module=core" >> "$GITHUB_OUTPUT"
+            fi
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          fi
+
+  release-core:
+    needs: detect-module
+    if: needs.detect-module.outputs.module == 'core' || needs.detect-module.outputs.module == 'all'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -31,25 +76,62 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Required for version tag extraction
-          ref: ${{ github.event.inputs.tag || github.ref }}
+          fetch-depth: 0
+          ref: ${{ needs.detect-module.outputs.tag }}
 
-      - name: Display Release Info
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "🚀 Manual release triggered for tag: ${{ github.event.inputs.tag }}"
-            echo "📦 Release type: ${{ github.event.inputs.release_type }}"
-          else
-            echo "🚀 Automatic release triggered by published release"
-            echo "📦 Release tag: ${{ github.ref_name }}"
-          fi
-
-      - name: Release Seasons & Stars
+      - name: Release Core Module
         uses: rayners/foundry-module-actions/release@v4
         with:
           node-version: '18'
-          build-command: 'npm run build'
-          working-directory: 'dist'
-          module-files: 'module.js module.json templates/ calendars/ styles/ languages/ README.md CHANGELOG.md LICENSE'
+          build-command: 'npm run build:core'
+          working-directory: 'dist/core'
+          module-files: 'module.js module.json templates/ calendars/ styles/ languages/ schemas/ README.md CHANGELOG.md LICENSE'
+          release-name: 'seasons-and-stars'
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+  release-fantasy:
+    needs: detect-module
+    if: needs.detect-module.outputs.module == 'fantasy-pack' || needs.detect-module.outputs.module == 'all'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.detect-module.outputs.tag }}
+
+      - name: Release Fantasy Pack
+        uses: rayners/foundry-module-actions/release@v4
+        with:
+          node-version: '18'
+          build-command: 'npm run build:fantasy'
+          working-directory: 'dist/fantasy-pack'
+          module-files: 'module.json calendars/'
+          release-name: 'seasons-and-stars-fantasy-module'
+
+  release-scifi:
+    needs: detect-module
+    if: needs.detect-module.outputs.module == 'scifi-pack' || needs.detect-module.outputs.module == 'all'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.detect-module.outputs.tag }}
+
+      - name: Release Sci-Fi Pack
+        uses: rayners/foundry-module-actions/release@v4
+        with:
+          node-version: '18'
+          build-command: 'npm run build:scifi'
+          working-directory: 'dist/scifi-pack'
+          module-files: 'module.json calendars/'
+          release-name: 'seasons-and-stars-scifi-module'
