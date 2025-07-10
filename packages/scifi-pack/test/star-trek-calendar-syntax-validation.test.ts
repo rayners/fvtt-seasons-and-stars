@@ -27,11 +27,7 @@ describe('Star Trek Calendar Syntax Validation', () => {
     DateFormatter.resetHelpersForTesting();
 
     // Load the actual Star Trek calendar file
-    const calendarPath = path.join(
-      __dirname,
-      '../calendars',
-      'gregorian-star-trek-variants.json'
-    );
+    const calendarPath = path.join(__dirname, '../calendars', 'gregorian-star-trek-variants.json');
     const calendarData = fs.readFileSync(calendarPath, 'utf8');
     starTrekCalendar = JSON.parse(calendarData);
 

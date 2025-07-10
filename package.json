@@ -46,13 +46,16 @@
       "eslint --fix",
       "prettier --write"
     ],
-    "packages/core/test/**/*.{ts,js}": [
+    "packages/*/test/**/*.{ts,js}": [
       "prettier --write"
     ],
-    "*.{json,md}": [
+    "*.{json,md,yml,yaml}": [
       "prettier --write"
     ],
     "packages/**/*.{json,md}": [
+      "prettier --write"
+    ],
+    ".github/**/*.{yml,yaml}": [
       "prettier --write"
     ]
   },

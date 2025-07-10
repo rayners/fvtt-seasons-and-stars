@@ -25,10 +25,7 @@ describe('Star Trek Calendar Comprehensive Tests', () => {
     // Load the actual Star Trek date formats
     const fs = await import('fs/promises');
     const path = await import('path');
-    const starTrekPath = path.resolve(
-      __dirname,
-      '../calendars/gregorian-star-trek-variants.json'
-    );
+    const starTrekPath = path.resolve(__dirname, '../calendars/gregorian-star-trek-variants.json');
     const starTrekData = await fs.readFile(starTrekPath, 'utf-8');
     const starTrekVariants = JSON.parse(starTrekData);
 

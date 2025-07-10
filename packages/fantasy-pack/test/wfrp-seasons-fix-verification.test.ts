@@ -12,10 +12,7 @@ describe('WFRP Seasons Fix Verification (Issue #83)', () => {
   let warhammerData: SeasonsStarsCalendar;
 
   it('should load WFRP calendar successfully', () => {
-    const warhammerPath = resolve(
-      __dirname,
-      '../calendars/warhammer.json'
-    );
+    const warhammerPath = resolve(__dirname, '../calendars/warhammer.json');
     warhammerData = JSON.parse(readFileSync(warhammerPath, 'utf8'));
 
     expect(warhammerData.id).toBe('warhammer');

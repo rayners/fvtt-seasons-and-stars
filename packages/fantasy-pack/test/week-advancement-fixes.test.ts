@@ -17,10 +17,7 @@ describe('Week Advancement Fixes (Phase 2)', () => {
 
   beforeAll(() => {
     // Load WFRP calendar (8-day weeks)
-    const warhammerPath = resolve(
-      __dirname,
-      '../calendars/warhammer.json'
-    );
+    const warhammerPath = resolve(__dirname, '../calendars/warhammer.json');
     const warhammerData = JSON.parse(readFileSync(warhammerPath, 'utf8'));
     warhammerEngine = new CalendarEngine(warhammerData);
     warhammerConverter = new TimeConverter(warhammerEngine);

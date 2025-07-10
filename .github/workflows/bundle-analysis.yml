@@ -24,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Required for bundle size comparison
+          fetch-depth: 0 # Required for bundle size comparison
 
       - name: Core Module Bundle Analysis
         uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
