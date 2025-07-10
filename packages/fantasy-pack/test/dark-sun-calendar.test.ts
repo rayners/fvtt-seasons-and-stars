@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import darkSunCalendar from '../../../packages/fantasy-pack/calendars/dark-sun.json';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import darkSunCalendar from '../calendars/dark-sun.json';
 
 describe('Dark Sun Calendar', () => {
   let engine: CalendarEngine;

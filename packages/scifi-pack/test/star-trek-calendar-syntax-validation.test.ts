@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DateFormatter } from '../src/core/date-formatter';
-import { CalendarDate } from '../src/core/calendar-date';
+import { DateFormatter } from '../../core/src/core/date-formatter';
+import { CalendarDate } from '../../core/src/core/calendar-date';
 import fs from 'fs';
 import path from 'path';
 
@@ -28,8 +28,8 @@ describe('Star Trek Calendar Syntax Validation', () => {
 
     // Load the actual Star Trek calendar file
     const calendarPath = path.join(
-      process.cwd(),
-      'packages/scifi-pack/calendars',
+      __dirname,
+      '../calendars',
       'gregorian-star-trek-variants.json'
     );
     const calendarData = fs.readFileSync(calendarPath, 'utf8');

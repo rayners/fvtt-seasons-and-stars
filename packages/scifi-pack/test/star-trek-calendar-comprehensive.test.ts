@@ -5,10 +5,10 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import Handlebars from 'handlebars';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import { CalendarDate } from '../src/core/calendar-date';
-import { DateFormatter } from '../src/core/date-formatter';
-import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import { CalendarDate } from '../../core/src/core/calendar-date';
+import { DateFormatter } from '../../core/src/core/date-formatter';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 
 // Use REAL Handlebars for Star Trek comprehensive testing
 global.Handlebars = Handlebars;
@@ -27,7 +27,7 @@ describe('Star Trek Calendar Comprehensive Tests', () => {
     const path = await import('path');
     const starTrekPath = path.resolve(
       __dirname,
-      '../../../packages/scifi-pack/calendars/gregorian-star-trek-variants.json'
+      '../calendars/gregorian-star-trek-variants.json'
     );
     const starTrekData = await fs.readFile(starTrekPath, 'utf-8');
     const starTrekVariants = JSON.parse(starTrekData);

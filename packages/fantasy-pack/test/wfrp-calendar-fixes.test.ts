@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -16,7 +16,7 @@ describe('WFRP Calendar Bug Fixes (Issue #21)', () => {
     // Load the WFRP calendar
     const warhammerPath = resolve(
       __dirname,
-      '../../../packages/fantasy-pack/calendars/warhammer.json'
+      '../calendars/warhammer.json'
     );
     warhammerData = JSON.parse(readFileSync(warhammerPath, 'utf8'));
     engine = new CalendarEngine(warhammerData);

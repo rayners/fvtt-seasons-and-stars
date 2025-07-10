@@ -7,14 +7,14 @@
  */
 
 import { describe, test, expect, beforeEach } from 'vitest';
-import { CalendarEngine } from '../../src/core/calendar-engine';
-import type { SeasonsStarsCalendar } from '../../src/types/calendar';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 import * as fs from 'fs';
 import * as path from 'path';
 
 // Load Exandrian calendar for testing
 function loadCalendar(): SeasonsStarsCalendar {
-  const calendarPath = path.join('packages/fantasy-pack/calendars', 'exandrian.json');
+  const calendarPath = path.join(__dirname, '../calendars', 'exandrian.json');
   const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
   return calendarData;
 }

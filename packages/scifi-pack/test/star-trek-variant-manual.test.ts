@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CalendarManager } from '../src/core/calendar-manager';
-import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import { CalendarManager } from '../../core/src/core/calendar-manager';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 
 /**
  * Manual test to verify Star Trek variant processing works correctly
@@ -27,14 +27,14 @@ describe('Star Trek Variant Manual Test', () => {
     const path = await import('path');
 
     // Load base gregorian calendar
-    const gregorianPath = path.resolve(__dirname, '../calendars/gregorian.json');
+    const gregorianPath = path.resolve(__dirname, '../../core/calendars/gregorian.json');
     const gregorianData = await fs.readFile(gregorianPath, 'utf-8');
     const baseCalendar: SeasonsStarsCalendar = JSON.parse(gregorianData);
 
     // Load Star Trek variants
     const starTrekPath = path.resolve(
       __dirname,
-      '../../../packages/scifi-pack/calendars/gregorian-star-trek-variants.json'
+      '../calendars/gregorian-star-trek-variants.json'
     );
     const starTrekData = await fs.readFile(starTrekPath, 'utf-8');
     const starTrekVariants = JSON.parse(starTrekData);

@@ -14,7 +14,7 @@ describe('WFRP Seasons Fix Verification (Issue #83)', () => {
   it('should load WFRP calendar successfully', () => {
     const warhammerPath = resolve(
       __dirname,
-      '../../../packages/fantasy-pack/calendars/warhammer.json'
+      '../calendars/warhammer.json'
     );
     warhammerData = JSON.parse(readFileSync(warhammerPath, 'utf8'));
 

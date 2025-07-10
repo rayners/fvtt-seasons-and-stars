@@ -5,6 +5,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./packages/core/test/setup.ts'],
+    include: ['packages/*/test/**/*.test.ts'],
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
@@ -15,14 +16,14 @@ export default defineConfig({
       reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
         'node_modules/',
-        'packages/core/test/',
+        'packages/*/test/',
         'dist/',
         '**/*.d.ts',
         '*.config.*',
         'packages/core/docs/',
         'packages/core/templates/',
         'packages/core/src/styles/',
-        'packages/core/calendars/',
+        'packages/*/calendars/',
         'languages/',
         'packages/core/scripts/',
         'packages/core/src/quench-tests.ts', // Quench integration tests (not unit tests)

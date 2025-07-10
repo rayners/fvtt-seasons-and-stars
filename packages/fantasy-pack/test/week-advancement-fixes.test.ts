@@ -4,8 +4,8 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import { TimeConverter } from '../src/core/time-converter';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import { TimeConverter } from '../../core/src/core/time-converter';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
@@ -19,14 +19,14 @@ describe('Week Advancement Fixes (Phase 2)', () => {
     // Load WFRP calendar (8-day weeks)
     const warhammerPath = resolve(
       __dirname,
-      '../../../packages/fantasy-pack/calendars/warhammer.json'
+      '../calendars/warhammer.json'
     );
     const warhammerData = JSON.parse(readFileSync(warhammerPath, 'utf8'));
     warhammerEngine = new CalendarEngine(warhammerData);
     warhammerConverter = new TimeConverter(warhammerEngine);
 
     // Load Gregorian calendar (7-day weeks)
-    const gregorianPath = resolve(__dirname, '../calendars/gregorian.json');
+    const gregorianPath = resolve(__dirname, '../../core/calendars/gregorian.json');
     const gregorianData = JSON.parse(readFileSync(gregorianPath, 'utf8'));
     gregorianEngine = new CalendarEngine(gregorianData);
     gregorianConverter = new TimeConverter(gregorianEngine);

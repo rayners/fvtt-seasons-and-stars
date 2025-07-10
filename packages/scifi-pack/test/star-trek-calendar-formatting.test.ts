@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import { CalendarDate } from '../src/core/calendar-date';
-import { DateFormatter } from '../src/core/date-formatter';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import { CalendarDate } from '../../core/src/core/calendar-date';
+import { DateFormatter } from '../../core/src/core/date-formatter';
 
 describe('Star Trek Calendar Formatting', () => {
   let engine: CalendarEngine;
@@ -11,14 +11,14 @@ describe('Star Trek Calendar Formatting', () => {
     // Load the base Gregorian calendar (Star Trek extends from this)
     const fs = await import('fs/promises');
     const path = await import('path');
-    const calendarPath = path.resolve(__dirname, '../calendars/gregorian.json');
+    const calendarPath = path.resolve(__dirname, '../../core/calendars/gregorian.json');
     const calendarData = await fs.readFile(calendarPath, 'utf-8');
     const baseCalendar = JSON.parse(calendarData);
 
     // Load the Star Trek dateFormats to test
     const starTrekPath = path.resolve(
       __dirname,
-      '../../../packages/scifi-pack/calendars/gregorian-star-trek-variants.json'
+      '../calendars/gregorian-star-trek-variants.json'
     );
     const starTrekData = await fs.readFile(starTrekPath, 'utf-8');
     const starTrekVariants = JSON.parse(starTrekData);
