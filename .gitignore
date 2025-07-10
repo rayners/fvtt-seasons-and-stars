@@ -6,6 +6,7 @@ dist/
 
 # Generated files
 src/generated/
+packages/*/src/generated/
 
 # Generated calendar index files (rebuilt during build)
 packages/*/calendars/index.json
