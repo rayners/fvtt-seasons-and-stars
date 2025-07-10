@@ -42,9 +42,6 @@ import type {
 // Import integrations (they register their own hooks independently)
 import './integrations/pf2e-integration';
 
-// Import quench tests - they self-register via the quenchReady hook
-import './quench-tests';
-
 // Module instances
 let calendarManager: CalendarManager;
 let notesManager: NotesManager;

@@ -1,0 +1,18 @@
+{
+  "name": "seasons-and-stars-scifi",
+  "version": "1.0.0",
+  "description": "Science fiction calendar collection for Seasons & Stars",
+  "type": "module",
+  "scripts": {
+    "prebuild": "node scripts/generate-calendar-list.js",
+    "build": "npm run copy",
+    "copy": "mkdir -p ../../dist/scifi-pack && cp module.json ../../dist/scifi-pack/ && cp -r calendars ../../dist/scifi-pack/",
+    "test": "vitest run",
+    "validate:calendars": "node scripts/validate-calendars.js"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.2"
+  },
+  "author": "David Raynes",
+  "license": "MIT"
+}

@@ -1,0 +1,42 @@
+{
+  "id": "test-seasons-and-stars",
+  "title": "Seasons & Stars - Test Module",
+  "description": "Testing, diagnostic, and development tools for Seasons & Stars. Contains test calendars and validation utilities - install only for debugging or development.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "David Raynes",
+      "email": "rayners@gmail.com",
+      "discord": "rayners78",
+      "github": "rayners"
+    }
+  ],
+  "relationships": {
+    "requires": [
+      {
+        "id": "seasons-and-stars",
+        "type": "module",
+        "compatibility": {
+          "minimum": "0.7.0"
+        }
+      }
+    ],
+    "recommends": [
+      {
+        "id": "quench",
+        "type": "module"
+      }
+    ]
+  },
+  "url": "https://github.com/rayners/fvtt-seasons-and-stars",
+  "manifest": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/test-seasons-and-stars-module.json",
+  "download": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/test-seasons-and-stars-module.zip",
+  "bugs": "https://github.com/rayners/fvtt-seasons-and-stars/issues",
+  "flags": {
+    "developmentOnly": true
+  }
+}

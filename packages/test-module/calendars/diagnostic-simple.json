@@ -1,0 +1,37 @@
+{
+  "id": "diagnostic-simple",
+  "translations": {
+    "en": {
+      "label": "Diagnostic Simple",
+      "description": "Ultra-simple calendar for diagnostic tests and debugging",
+      "setting": "Diagnostic"
+    }
+  },
+  "year": {
+    "epoch": 1,
+    "currentYear": 1,
+    "prefix": "Year ",
+    "suffix": "",
+    "startDay": 0
+  },
+  "leapYear": {
+    "rule": "none"
+  },
+  "months": [
+    { "name": "FirstMonth", "days": 10 },
+    { "name": "SecondMonth", "days": 10 }
+  ],
+  "weekdays": [
+    { "name": "Day1" },
+    { "name": "Day2" },
+    { "name": "Day3" },
+    { "name": "Day4" },
+    { "name": "Day5" }
+  ],
+  "intercalary": [],
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}

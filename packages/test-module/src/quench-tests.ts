@@ -5,20 +5,18 @@
  * Based on Journeys & Jamborees Quench test patterns
  */
 
-import type * as Quench from '@ethaks/fvtt-quench';
-
-// Use module declaration instead of global to avoid conflicts with package's own globals
-declare const quench: Quench.Quench | undefined;
+// Quench is available globally when the Quench module is loaded
 
 /* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Register Quench test batches
  */
-function registerSeasonsStarsQuenchTests(): void {
-  if (!quench) return;
+function registerSeasonsStarsQuenchTests() {
+  if (!globalThis.quench) return;
 
+  const quench = globalThis.quench;
+  
   // Register Diagnostic tests
   quench.registerBatch(
     'seasons-stars.diagnostics',
@@ -32,14 +30,14 @@ function registerSeasonsStarsQuenchTests(): void {
           console.log('📋 Copy this entire report when reporting date mismatch issues');
           console.log('='.repeat(50));
 
-          const seasonsStars = (game as any).seasonsStars;
-          const diagnosticData: any = {
+          const seasonsStars = game.seasonsStars;
+          const diagnosticData = {
             timestamp: new Date().toISOString(),
-            foundryVersion: (game as any).version,
-            systemId: (game as any).system?.id || 'unknown',
-            systemVersion: (game as any).system?.version || 'unknown',
+            foundryVersion: game.version,
+            systemId: game.system?.id || 'unknown',
+            systemVersion: game.system?.version || 'unknown',
             moduleName: 'seasons-and-stars',
-            moduleVersion: (game as any).modules?.get('seasons-and-stars')?.version || 'unknown',
+            moduleVersion: game.modules?.get('seasons-and-stars')?.version || 'unknown',
           };
 
           // Basic S&S availability
@@ -53,10 +51,10 @@ function registerSeasonsStarsQuenchTests(): void {
           // Core Foundry time data
           try {
             diagnosticData.foundry = {
-              worldTime: (game as any).time?.worldTime || 'unknown',
-              worldCreationTimestamp: (game as any).time?.worldCreationTimestamp || 'unknown',
-              worldCreatedDate: (game as any).time?.worldCreationTimestamp
-                ? new Date((game as any).time.worldCreationTimestamp * 1000).toISOString()
+              worldTime: game.time?.worldTime || 'unknown',
+              worldCreationTimestamp: game.time?.worldCreationTimestamp || 'unknown',
+              worldCreatedDate: game.time?.worldCreationTimestamp
+                ? new Date(game.time.worldCreationTimestamp * 1000).toISOString()
                 : 'unknown',
             };
           } catch (error) {
@@ -81,10 +79,10 @@ function registerSeasonsStarsQuenchTests(): void {
           }
 
           // PF2e specific data (if available)
-          if ((game as any).system?.id === 'pf2e') {
+          if (game.system?.id === 'pf2e') {
             try {
-              const pf2eWorldClock = (game as any).pf2e?.worldClock;
-              const pf2eSettings = (game as any).pf2e?.settings?.worldClock;
+              const pf2eWorldClock = game.pf2e?.worldClock;
+              const pf2eSettings = game.pf2e?.settings?.worldClock;
 
               diagnosticData.pf2e = {
                 worldClockAvailable: !!pf2eWorldClock,
@@ -127,7 +125,7 @@ function registerSeasonsStarsQuenchTests(): void {
 
           // Module compatibility data
           try {
-            const modules = (game as any).modules;
+            const modules = game.modules;
             diagnosticData.modules = {
               simpleCalendar: {
                 active: modules?.get('foundryvtt-simple-calendar')?.active || false,
@@ -150,12 +148,12 @@ function registerSeasonsStarsQuenchTests(): void {
           try {
             diagnosticData.environment = {
               userAgent: navigator.userAgent,
-              memoryUsage: (performance as any).memory
+              memoryUsage: performance.memory
                 ? {
                     usedJSHeapSize:
-                      Math.round((performance as any).memory.usedJSHeapSize / 1024 / 1024) + 'MB',
+                      Math.round(performance.memory.usedJSHeapSize / 1024 / 1024) + 'MB',
                     totalJSHeapSize:
-                      Math.round((performance as any).memory.totalJSHeapSize / 1024 / 1024) + 'MB',
+                      Math.round(performance.memory.totalJSHeapSize / 1024 / 1024) + 'MB',
                   }
                 : 'not available',
               windowSize: `${window.innerWidth}x${window.innerHeight}`,
@@ -208,31 +206,35 @@ function registerSeasonsStarsQuenchTests(): void {
       const { describe, it, assert, beforeEach, afterEach } = context;
 
       describe('PF2e Integration - GitHub Issue #91', function () {
-        let initialDate: any;
+        let initialDate;
 
-        beforeEach?.(function () {
-          // Store initial date for restoration
-          const seasonsStars = (game as any).seasonsStars;
-          if (seasonsStars?.api?.getCurrentDate) {
-            initialDate = seasonsStars.api.getCurrentDate();
-          }
-        });
-
-        afterEach?.(async function () {
-          // Restore initial date using S&S API
-          const seasonsStars = (game as any).seasonsStars;
-          if (initialDate && seasonsStars?.api?.setCurrentDate) {
-            try {
-              await seasonsStars.api.setCurrentDate(initialDate);
-            } catch (error) {
-              console.warn('Failed to restore initial date:', error);
+        if (beforeEach) {
+          beforeEach(function () {
+            // Store initial date for restoration
+            const seasonsStars = game.seasonsStars;
+            if (seasonsStars?.api?.getCurrentDate) {
+              initialDate = seasonsStars.api.getCurrentDate();
             }
-          }
-        });
+          });
+        }
+
+        if (afterEach) {
+          afterEach(async function () {
+            // Restore initial date using S&S API
+            const seasonsStars = game.seasonsStars;
+            if (initialDate && seasonsStars?.api?.setCurrentDate) {
+              try {
+                await seasonsStars.api.setCurrentDate(initialDate);
+              } catch (error) {
+                console.warn('Failed to restore initial date:', error);
+              }
+            }
+          });
+        }
 
         it('should not be stuck at epoch year', function () {
           // The main issue: widgets stuck at year 2700 (epoch)
-          const seasonsStars = (game as any).seasonsStars;
+          const seasonsStars = game.seasonsStars;
           if (!seasonsStars?.api?.getCurrentDate) {
             assert.ok(false, 'Seasons & Stars API not available');
             return;
@@ -252,7 +254,7 @@ function registerSeasonsStarsQuenchTests(): void {
         });
 
         it('should advance dates correctly', async function () {
-          const seasonsStars = (game as any).seasonsStars;
+          const seasonsStars = game.seasonsStars;
           if (!seasonsStars?.api?.getCurrentDate || !seasonsStars?.api?.advanceDays) {
             assert.ok(false, 'Seasons & Stars API not available');
             return;
@@ -280,19 +282,19 @@ function registerSeasonsStarsQuenchTests(): void {
         });
 
         it('should sync with PF2e if available', function () {
-          if ((game as any).system?.id !== 'pf2e') {
+          if (game.system?.id !== 'pf2e') {
             console.log('Skipping PF2e sync test - not running PF2e system');
             return;
           }
 
-          const seasonsStars = (game as any).seasonsStars;
+          const seasonsStars = game.seasonsStars;
           if (!seasonsStars?.api?.getCurrentDate) {
             assert.ok(false, 'Seasons & Stars API not available');
             return;
           }
 
           const ssDate = seasonsStars.api.getCurrentDate();
-          const pf2eWorldClock = (game as any).pf2e?.worldClock;
+          const pf2eWorldClock = game.pf2e?.worldClock;
 
           if (pf2eWorldClock) {
             console.log('PF2e sync test:', {
