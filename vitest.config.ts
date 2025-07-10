@@ -14,6 +14,9 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
+      include: [
+        'packages/core/src/**/*.ts',
+      ],
       exclude: [
         'node_modules/',
         'packages/*/test/',
@@ -24,9 +27,11 @@ export default defineConfig({
         'packages/core/templates/',
         'packages/core/src/styles/',
         'packages/*/calendars/',
-        'languages/',
+        'shared/',
         'packages/core/scripts/',
         'packages/core/src/quench-tests.ts', // Quench integration tests (not unit tests)
+        'packages/fantasy-pack/**', // Data-only pack, no source code to cover
+        'packages/scifi-pack/**', // Data-only pack, no source code to cover
       ],
       thresholds: {
         global: {
