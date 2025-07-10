@@ -7,5 +7,5 @@
     "esModuleInterop": true,
     "moduleResolution": "node"
   },
-  "include": ["packages/core/test/**/*", "packages/core/src/**/*"]
+  "include": ["packages/*/test/**/*", "packages/core/src/**/*"]
 }

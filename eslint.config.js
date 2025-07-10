@@ -22,7 +22,7 @@ export default [
     },
   },
 
-  // Test files with relaxed rules
+  // Core test files with TypeScript project
   {
     files: ['packages/core/test/**/*.{js,ts}'],
     languageOptions: {
@@ -31,16 +31,35 @@ export default [
       },
     },
     rules: {
-      // Allow more flexibility in test files
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'error', // CodeQL compliance
       '@typescript-eslint/no-unsafe-function-type': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
-      '@typescript-eslint/ban-ts-comment': 'off', // Allow @ts-ignore in tests for mock types
+      '@typescript-eslint/ban-ts-comment': 'off',
       'no-console': 'off',
       'prefer-const': 'warn',
     },
   },
+
+  // Pack test files without TypeScript project (simpler unused var checking)
+  {
+    files: ['packages/fantasy-pack/test/**/*.{js,ts}', 'packages/scifi-pack/test/**/*.{js,ts}'],
+    languageOptions: {
+      parserOptions: {
+        project: null, // Disable TypeScript project checking
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'error', // CodeQL compliance
+      '@typescript-eslint/no-unsafe-function-type': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      'no-console': 'off',
+      'prefer-const': 'warn',
+    },
+  },
+
 
   // Node.js scripts with appropriate environment
   {

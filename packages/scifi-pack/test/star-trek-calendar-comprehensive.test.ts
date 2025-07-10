@@ -3,9 +3,8 @@
  * Tests actual date formatting functionality with all variants
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import Handlebars from 'handlebars';
-import { CalendarEngine } from '../../core/src/core/calendar-engine';
 import { CalendarDate } from '../../core/src/core/calendar-date';
 import { DateFormatter } from '../../core/src/core/date-formatter';
 import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
