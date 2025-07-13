@@ -2,22 +2,43 @@
   "id": "dark-sun",
   "translations": {
     "en": {
-      "label": "Athasian Calendar (Dark Sun)",
+      "label": "Athasian Calendar",
       "description": "The harsh calendar of the dying world of Athas from the Dark Sun D&D setting. Features a complex system of named years that cycle through 77 different combinations, with intercalary periods marking the deadly seasonal extremes.",
       "setting": "D&D Dark Sun"
     }
   },
-
   "year": {
     "epoch": 0,
-    "currentYear": 102,
+    "currentYear": 14579,
     "prefix": "",
     "suffix": "",
     "startDay": 0
   },
-
   "extensions": {
     "seasons-and-stars": {
+      "seasons": [
+        {
+          "name": "High Sun",
+          "monthStart": 11,
+          "monthEnd": 2,
+          "dayStart": 311,
+          "dayEnd": 60
+        },
+        {
+          "name": "Sun Descending",
+          "monthStart": 3,
+          "monthEnd": 6,
+          "dayStart": 61,
+          "dayEnd": 185
+        },
+        {
+          "name": "Sun Ascending",
+          "monthStart": 7,
+          "monthEnd": 10,
+          "dayStart": 186,
+          "dayEnd": 310
+        }
+      ],
       "namedYears": {
         "rule": "repeat",
         "startYear": 0,
@@ -103,11 +124,9 @@
       }
     }
   },
-
   "leapYear": {
     "rule": "none"
   },
-
   "months": [
     {
       "name": "Scorch",
@@ -182,7 +201,6 @@
       "description": "The final month before the sun's peak fury, when the very air seems to burn and the world smolders in anticipation."
     }
   ],
-
   "weekdays": [
     {
       "name": "1 Day",
@@ -215,7 +233,6 @@
       "description": "Sixth and final day of the Athasian week, offering no true rest, only preparation for the next cycle"
     }
   ],
-
   "intercalary": [
     {
       "name": "Cooling Sun",
@@ -242,52 +259,138 @@
       "description": "The most dreaded five days of the Athasian year when the sun reaches its absolute peak of killing power. Even the strongest creatures seek shelter from this ultimate test of survival."
     }
   ],
-
   "moons": [
     {
       "name": "Ral",
-      "cycleLength": 30,
-      "firstNewMoon": { "year": 1, "month": 1, "day": 5 },
+      "cycleLength": 33,
+      "firstNewMoon": {
+        "year": 1,
+        "month": 1,
+        "day": 17
+      },
       "phases": [
-        { "name": "New Moon", "length": 2, "singleDay": false, "icon": "new" },
-        { "name": "Waxing Crescent", "length": 6, "singleDay": false, "icon": "waxing-crescent" },
-        { "name": "First Quarter", "length": 2, "singleDay": false, "icon": "first-quarter" },
-        { "name": "Waxing Gibbous", "length": 5, "singleDay": false, "icon": "waxing-gibbous" },
-        { "name": "Full Moon", "length": 2, "singleDay": false, "icon": "full" },
-        { "name": "Waning Gibbous", "length": 5, "singleDay": false, "icon": "waning-gibbous" },
-        { "name": "Last Quarter", "length": 2, "singleDay": false, "icon": "last-quarter" },
-        { "name": "Waning Crescent", "length": 6, "singleDay": false, "icon": "waning-crescent" }
+        {
+          "name": "New Moon",
+          "length": 2,
+          "singleDay": false,
+          "icon": "new"
+        },
+        {
+          "name": "Waxing Crescent",
+          "length": 7,
+          "singleDay": false,
+          "icon": "waxing-crescent"
+        },
+        {
+          "name": "First Quarter",
+          "length": 2,
+          "singleDay": false,
+          "icon": "first-quarter"
+        },
+        {
+          "name": "Waxing Gibbous",
+          "length": 6,
+          "singleDay": false,
+          "icon": "waxing-gibbous"
+        },
+        {
+          "name": "Full Moon",
+          "length": 1,
+          "singleDay": false,
+          "icon": "full"
+        },
+        {
+          "name": "Waning Gibbous",
+          "length": 6,
+          "singleDay": false,
+          "icon": "waning-gibbous"
+        },
+        {
+          "name": "Last Quarter",
+          "length": 2,
+          "singleDay": false,
+          "icon": "last-quarter"
+        },
+        {
+          "name": "Waning Crescent",
+          "length": 7,
+          "singleDay": false,
+          "icon": "waning-crescent"
+        }
       ],
-      "color": "#d4af37",
+      "color": "#8de715",
       "translations": {
         "en": {
-          "description": "The golden moon of dying Athas, scorched by the crimson sun"
+          "description": "The smaller, green-yellow moon of Athas, companion to Guthay in the hostile sky"
         }
       }
     },
     {
       "name": "Guthay",
-      "cycleLength": 40,
-      "firstNewMoon": { "year": 1, "month": 1, "day": 20 },
+      "cycleLength": 125,
+      "firstNewMoon": {
+        "year": 1,
+        "month": 3,
+        "day": 3
+      },
       "phases": [
-        { "name": "New Moon", "length": 3, "singleDay": false, "icon": "new" },
-        { "name": "Waxing Crescent", "length": 8, "singleDay": false, "icon": "waxing-crescent" },
-        { "name": "First Quarter", "length": 2, "singleDay": false, "icon": "first-quarter" },
-        { "name": "Waxing Gibbous", "length": 7, "singleDay": false, "icon": "waxing-gibbous" },
-        { "name": "Full Moon", "length": 3, "singleDay": false, "icon": "full" },
-        { "name": "Waning Gibbous", "length": 7, "singleDay": false, "icon": "waning-gibbous" },
-        { "name": "Last Quarter", "length": 2, "singleDay": false, "icon": "last-quarter" },
-        { "name": "Waning Crescent", "length": 8, "singleDay": false, "icon": "waning-crescent" }
+        {
+          "name": "New Moon",
+          "length": 9,
+          "singleDay": false,
+          "icon": "new"
+        },
+        {
+          "name": "Waxing Crescent",
+          "length": 25,
+          "singleDay": false,
+          "icon": "waxing-crescent"
+        },
+        {
+          "name": "First Quarter",
+          "length": 6,
+          "singleDay": false,
+          "icon": "first-quarter"
+        },
+        {
+          "name": "Waxing Gibbous",
+          "length": 22,
+          "singleDay": false,
+          "icon": "waxing-gibbous"
+        },
+        {
+          "name": "Full Moon",
+          "length": 9,
+          "singleDay": false,
+          "icon": "full"
+        },
+        {
+          "name": "Waning Gibbous",
+          "length": 22,
+          "singleDay": false,
+          "icon": "waning-gibbous"
+        },
+        {
+          "name": "Last Quarter",
+          "length": 7,
+          "singleDay": false,
+          "icon": "last-quarter"
+        },
+        {
+          "name": "Waning Crescent",
+          "length": 25,
+          "singleDay": false,
+          "icon": "waning-crescent"
+        }
       ],
-      "color": "#cd853f",
+      "color": "#e7dd15",
       "translations": {
         "en": {
-          "description": "The smaller, burnt-orange moon of Athas, companion to Ral in the hostile sky"
+          "description": "The golden moon of dying Athas, scorched by the crimson sun"
         }
       }
     }
   ],
-
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
