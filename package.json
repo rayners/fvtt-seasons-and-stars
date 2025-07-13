@@ -5,7 +5,10 @@
   "type": "module",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "packages/core",
+    "packages/fantasy-pack",
+    "packages/scifi-pack",
+    "packages/test-module"
   ],
   "scripts": {
     "prebuild": "npm run prebuild --workspaces",
@@ -14,15 +17,17 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint packages/core/src",
     "lint:fix": "eslint packages/core/src --fix",
-    "format": "prettier --write \"packages/**/*.{ts,js,json}\" \"*.{js,json,md}\"",
-    "format:check": "prettier --check \"packages/**/*.{ts,js,json}\" \"*.{js,json,md}\"",
+    "format": "prettier --write \"packages/core/**/*.{ts,js,json}\" \"packages/fantasy-pack/**/*.{ts,js,json}\" \"packages/scifi-pack/**/*.{ts,js,json}\" \"packages/test-module/**/*.{ts,js,json}\" \"*.{js,json,md}\"",
+    "format:check": "prettier --check \"packages/core/**/*.{ts,js,json}\" \"packages/fantasy-pack/**/*.{ts,js,json}\" \"packages/scifi-pack/**/*.{ts,js,json}\" \"packages/test-module/**/*.{ts,js,json}\" \"*.{js,json,md}\"",
     "test": "npm run test --workspaces --if-present",
     "test:ui": "npm run test:ui --workspace=packages/core",
     "test:run": "npm run test:run --workspaces --if-present",
     "test:coverage": "npm run test:coverage --workspace=packages/core",
     "test:junit": "npm run test:junit --workspace=packages/core",
     "test:coverage:junit": "npm run test:coverage:junit --workspace=packages/core",
+    "prevalidate:calendars": "npm run prebuild --workspaces --if-present",
     "validate:calendars": "npm run validate:calendars --workspaces --if-present",
+    "prebuild:all": "npm run prebuild --workspaces --if-present",
     "validate": "npm run lint && npm run format:check && npm run typecheck && npm run test:run && npm run validate:calendars && npm run build",
     "prepare": "husky",
     "link-electron": "node ../foundry-dev-tools/scripts/link-module.js ~/Library/Application\\ Support/FoundryVTT/Data/modules",
