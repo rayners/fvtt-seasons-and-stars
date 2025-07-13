@@ -80,7 +80,7 @@ jobs:
           ref: ${{ needs.detect-module.outputs.tag }}
 
       - name: Release Core Module
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v5
         with:
           node-version: '18'
           build-command: 'npm run build:core'
@@ -105,7 +105,7 @@ jobs:
           ref: ${{ needs.detect-module.outputs.tag }}
 
       - name: Release Fantasy Pack
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v5
         with:
           node-version: '18'
           build-command: 'npm run build:fantasy'
@@ -128,7 +128,7 @@ jobs:
           ref: ${{ needs.detect-module.outputs.tag }}
 
       - name: Release Sci-Fi Pack
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v5
         with:
           node-version: '18'
           build-command: 'npm run build:scifi'

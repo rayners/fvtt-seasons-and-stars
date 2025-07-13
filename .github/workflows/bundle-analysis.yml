@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0 # Required for bundle size comparison
 
       - name: Core Module Bundle Analysis
-        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
+        uses: rayners/foundry-module-actions/bundle-analysis@v5
         with:
           node-version: '18'
           github-packages: true
@@ -38,7 +38,7 @@ jobs:
           label-prefix: 'Core Module'
 
       - name: Fantasy Pack Bundle Analysis
-        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
+        uses: rayners/foundry-module-actions/bundle-analysis@v5
         with:
           node-version: '18'
           github-packages: true
@@ -49,7 +49,7 @@ jobs:
           label-prefix: 'Fantasy Pack'
 
       - name: Sci-Fi Pack Bundle Analysis
-        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
+        uses: rayners/foundry-module-actions/bundle-analysis@v5
         with:
           node-version: '18'
           github-packages: true
