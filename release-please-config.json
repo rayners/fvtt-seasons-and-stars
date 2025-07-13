@@ -6,7 +6,8 @@
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "draft": false,
-      "prerelease": false
+      "prerelease": false,
+      "extra-files": ["module.json"]
     },
     "packages/fantasy-pack": {
       "package-name": "seasons-and-stars-fantasy",
