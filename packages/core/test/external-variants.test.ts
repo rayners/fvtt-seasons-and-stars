@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Use real TestLogger instead of mocks for better testing
 import { TestLogger } from './utils/test-logger';
+import { mockCalendarFetch } from './utils/mock-calendar-fetch';
 vi.mock('../src/core/logger', () => ({
   Logger: TestLogger,
 }));
@@ -24,10 +25,7 @@ vi.stubGlobal('Hooks', {
 // Mock fetch to return different responses for different files
 vi.stubGlobal('fetch', vi.fn());
 
-// Mock the built-in calendars list to include only gregorian (variants are now in scifi-pack)
-vi.mock('../src/generated/calendar-list', () => ({
-  BUILT_IN_CALENDARS: ['gregorian'],
-}));
+// Note: No longer using generated calendar list - calendars loaded dynamically from index.json
 
 // Mock CalendarValidator
 vi.mock('../src/core/calendar-validator', () => ({
@@ -59,52 +57,8 @@ describe('External Calendar Variants System', () => {
     vi.clearAllMocks();
     TestLogger.clearLogs();
 
-    // Mock responses for calendar files
-    vi.mocked(fetch).mockImplementation((url: string) => {
-      if (url === 'modules/seasons-and-stars/calendars/gregorian.json') {
-        // Mock gregorian base calendar
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              id: 'gregorian',
-              translations: {
-                en: { label: 'Gregorian Calendar', description: 'Standard Earth calendar' },
-              },
-              months: [
-                { name: 'January', days: 31 },
-                { name: 'February', days: 28 },
-                { name: 'March', days: 31 },
-                { name: 'April', days: 30 },
-                { name: 'May', days: 31 },
-                { name: 'June', days: 30 },
-                { name: 'July', days: 31 },
-                { name: 'August', days: 31 },
-                { name: 'September', days: 30 },
-                { name: 'October', days: 31 },
-                { name: 'November', days: 30 },
-                { name: 'December', days: 31 },
-              ],
-              weekdays: [
-                { name: 'Sunday' },
-                { name: 'Monday' },
-                { name: 'Tuesday' },
-                { name: 'Wednesday' },
-                { name: 'Thursday' },
-                { name: 'Friday' },
-                { name: 'Saturday' },
-              ],
-              year: { epoch: 0, suffix: ' AD' },
-            }),
-        } as Response);
-      } else {
-        // File not found
-        return Promise.resolve({
-          ok: false,
-          status: 404,
-        } as Response);
-      }
-    });
+    // Mock fetch to read actual calendar files from disk
+    mockCalendarFetch();
 
     calendarManager = new CalendarManager();
   });
@@ -113,9 +67,10 @@ describe('External Calendar Variants System', () => {
     it('should load base calendar and external variants successfully', async () => {
       await calendarManager.loadBuiltInCalendars();
 
-      // Should have only base calendar since variants are now in scifi-pack, not core
-      expect(calendarManager.calendars.size).toBe(1);
+      // Should have 2 base calendars (gregorian and golarion-pf2e with its 4 variants)
+      expect(calendarManager.calendars.size).toBe(6); // gregorian + golarion-pf2e + 4 golarion variants
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
+      expect(calendarManager.calendars.has('golarion-pf2e')).toBe(true);
 
       // Manually load the external variant file to test the functionality
       const variantFileData = {
@@ -176,8 +131,8 @@ describe('External Calendar Variants System', () => {
       // Apply external variants manually
       calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
 
-      // Now should have base calendar + 4 Star Trek variants = 5 total
-      expect(calendarManager.calendars.size).toBe(5);
+      // Now should have initial 6 calendars + 4 Star Trek variants = 10 total
+      expect(calendarManager.calendars.size).toBe(10);
 
       // Check Star Trek variants
       expect(calendarManager.calendars.has('gregorian(earth-stardate)')).toBe(true);
@@ -300,7 +255,7 @@ describe('External Calendar Variants System', () => {
 
     it('should handle missing base calendar gracefully', async () => {
       // Mock fetch to return 404 for gregorian calendar
-      vi.mocked(fetch).mockImplementation((url: string) => {
+      vi.mocked(fetch).mockImplementation(() => {
         return Promise.resolve({ ok: false, status: 404 } as Response);
       });
 
@@ -311,29 +266,23 @@ describe('External Calendar Variants System', () => {
     });
 
     it('should handle invalid external variant file format', async () => {
-      // Mock gregorian calendar loading successfully
-      vi.mocked(fetch).mockImplementation((url: string) => {
-        if (url.includes('modules/seasons-and-stars/calendars/gregorian.json')) {
-          return Promise.resolve({
-            ok: true,
-            json: () =>
-              Promise.resolve({
-                id: 'gregorian',
-                translations: { en: { label: 'Gregorian' } },
-                months: [{ name: 'January', days: 31 }],
-                weekdays: [{ name: 'Sunday' }],
-                year: { epoch: 0 },
-              }),
-          } as Response);
-        }
-        return Promise.resolve({ ok: false, status: 404 } as Response);
-      });
-
+      // Use the shared mock (no need to override for this test)
       await calendarManager.loadBuiltInCalendars();
 
-      // Should only have base calendar, no variants since we're not loading external variant files
-      expect(calendarManager.calendars.size).toBe(1);
+      // Should have the 6 base calendars, no additional external variants since we're not loading external variant files
+      expect(calendarManager.calendars.size).toBe(6);
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
+
+      // Test the invalid variant file handling by calling the method directly
+      const invalidVariantFileData = {
+        id: 'invalid-variant',
+        // Missing required baseCalendar field
+        variants: {},
+      };
+
+      // This should fail validation and not load any variants
+      const isValid = calendarManager['validateExternalVariantFile'](invalidVariantFileData);
+      expect(isValid).toBe(false);
     });
 
     it('should not auto-resolve to external variants when setting base calendar', async () => {

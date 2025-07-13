@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import * as path from 'path';
 
 // Use real TestLogger instead of mocks for better testing
 import { TestLogger } from './utils/test-logger';
+import { mockCalendarFetch } from './utils/mock-calendar-fetch';
 vi.mock('../src/core/logger', () => ({
   Logger: TestLogger,
 }));
@@ -25,10 +25,7 @@ vi.stubGlobal('Hooks', {
 // Mock fetch to return the actual Golarion calendar
 vi.stubGlobal('fetch', vi.fn());
 
-// Mock the built-in calendars list to include golarion-pf2e
-vi.mock('../src/generated/calendar-list', () => ({
-  BUILT_IN_CALENDARS: ['golarion-pf2e'],
-}));
+// Note: No longer using generated calendar list - calendars loaded dynamically from index.json
 
 // Mock CalendarValidator
 vi.mock('../src/core/calendar-validator', () => ({
@@ -60,32 +57,19 @@ describe('Golarion Variants Integration', () => {
     vi.clearAllMocks();
     TestLogger.clearLogs();
 
-    // Mock fetch to return the actual Golarion calendar file
-    const golarionCalendarResponse = await import('fs/promises').then(fs =>
-      fs.readFile(path.join(__dirname, '..', 'calendars', 'golarion-pf2e.json'), 'utf-8')
-    );
-    const golarionCalendar = JSON.parse(golarionCalendarResponse);
-
-    vi.mocked(fetch).mockImplementation((url: string) => {
-      if (url.includes('modules/seasons-and-stars/calendars/golarion-pf2e.json')) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(golarionCalendar),
-        } as any);
-      }
-      return Promise.resolve({ ok: false, status: 404 } as Response);
-    });
+    // Mock fetch to read actual calendar files from disk
+    mockCalendarFetch();
 
     // Create calendar manager
     calendarManager = new CalendarManager();
   });
 
   it('should load Golarion calendar with all 4 variants plus base calendar', async () => {
-    // Load built-in calendars (including golarion-pf2e)
+    // Load built-in calendars (including golarion-pf2e and gregorian)
     await calendarManager.loadBuiltInCalendars();
 
-    // Should have 5 calendars: base + 4 variants
-    expect(calendarManager.calendars.size).toBe(5);
+    // Should have 6 calendars: gregorian + golarion-pf2e + 4 golarion variants
+    expect(calendarManager.calendars.size).toBe(6);
 
     // Check base calendar
     expect(calendarManager.calendars.has('golarion-pf2e')).toBe(true);
