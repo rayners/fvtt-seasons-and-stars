@@ -6,6 +6,7 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarSelectionDialog } from './calendar-selection-dialog';
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
+import { templateContextProviders } from '../core/template-context-provider';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -88,7 +89,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Check if SmallTime is available and active
     const hasSmallTime = this.detectSmallTime();
 
-    return Object.assign(context, {
+    // Build core context
+    const coreContext = {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
       formattedDate: currentDate.toLongString(),
@@ -99,7 +101,31 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       hasSmallTime: hasSmallTime,
       showTimeControls: !hasSmallTime, // Only show time controls if SmallTime is not available
       sidebarButtons: this.sidebarButtons, // Include sidebar buttons for template
-    });
+    };
+
+    // Merge with base context
+    const baseContext = Object.assign(context, coreContext);
+
+    // Apply context providers for additional template data
+    try {
+      const extendedContext = await templateContextProviders.mergeContext(
+        'main',
+        baseContext,
+        activeCalendar,
+        currentDate as any // CalendarDate from manager is compatible
+      );
+
+      Logger.debug('Main widget context prepared with providers', {
+        providerCount: templateContextProviders.getProvidersFor('main').length,
+        contextKeys: Object.keys(extendedContext),
+      });
+
+      return extendedContext;
+    } catch (error) {
+      Logger.error('Error applying template context providers to main widget:', error instanceof Error ? error : new Error(String(error)));
+      // Fallback to core context if providers fail
+      return baseContext;
+    }
   }
 
   /**
