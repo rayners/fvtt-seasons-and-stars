@@ -23,5 +23,5 @@ async function loadDiagnosticCalendar() {
 // Global export for module initialization
 globalThis.testSeasonsStars = {
   loadTestCalendar,
-  loadDiagnosticCalendar
+  loadDiagnosticCalendar,
 };

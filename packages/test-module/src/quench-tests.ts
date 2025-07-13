@@ -16,7 +16,7 @@ function registerSeasonsStarsQuenchTests() {
   if (!globalThis.quench) return;
 
   const quench = globalThis.quench;
-  
+
   // Register Diagnostic tests
   quench.registerBatch(
     'seasons-stars.diagnostics',
