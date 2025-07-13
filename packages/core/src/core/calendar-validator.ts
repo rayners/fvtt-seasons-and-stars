@@ -52,12 +52,12 @@ async function getAjvValidators() {
       const fs = await import('fs');
       const path = await import('path');
 
-      // Find the project root by looking for package.json
+      // Find the project root by looking for shared/schemas directory
       let currentDir = process.cwd();
-      while (!fs.existsSync(path.join(currentDir, 'package.json'))) {
+      while (!fs.existsSync(path.join(currentDir, 'shared', 'schemas'))) {
         const parentDir = path.dirname(currentDir);
         if (parentDir === currentDir) {
-          throw new Error('Could not find project root (package.json not found)');
+          throw new Error('Could not find project root (shared/schemas not found)');
         }
         currentDir = parentDir;
       }

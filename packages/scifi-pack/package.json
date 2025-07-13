@@ -8,7 +8,7 @@
     "build": "npm run copy",
     "copy": "mkdir -p ../../dist/scifi-pack && cp module.json ../../dist/scifi-pack/ && cp -r calendars ../../dist/scifi-pack/",
     "test": "vitest run",
-    "validate:calendars": "node scripts/validate-calendars.js"
+    "validate:calendars": "tsx ../core/scripts/validate-calendars.ts"
   },
   "devDependencies": {
     "vitest": "^3.2.2"
