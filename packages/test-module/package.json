@@ -7,15 +7,16 @@
     "prebuild": "node scripts/generate-calendar-list.js",
     "build": "cd ../../ && rollup -c rollup.config.test.js",
     "test": "echo 'This module contains tests for other modules'",
-    "validate:calendars": "node ../core/scripts/validate-calendars.ts"
+    "validate:calendars": "tsx ../core/scripts/validate-calendars.ts"
   },
   "devDependencies": {
     "@ethaks/fvtt-quench": "^0.10.0",
-    "rollup": "^4.24.0",
-    "@rollup/plugin-typescript": "^11.0.0",
-    "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "rollup": "^4.24.0",
     "rollup-plugin-copy": "^3.4.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.0.4"
   },
   "author": "David Raynes",
