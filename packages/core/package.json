@@ -23,6 +23,7 @@
     "test:coverage": "cd ../../ && vitest run --coverage",
     "test:junit": "cd ../../ && vitest run --reporter=junit --reporter=default",
     "test:coverage:junit": "cd ../../ && vitest run --coverage --reporter=junit --reporter=default",
+    "prevalidate:calendars": "node ../../scripts/generate-calendar-list.js core",
     "validate:calendars": "tsx scripts/validate-calendars.ts"
   },
   "devDependencies": {

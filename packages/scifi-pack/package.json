@@ -16,6 +16,7 @@
     "build": "npm run copy",
     "copy": "mkdir -p ../../dist/scifi-pack && cp module.json ../../dist/scifi-pack/ && cp -r calendars ../../dist/scifi-pack/",
     "test": "vitest run",
+    "prevalidate:calendars": "node ../../scripts/generate-calendar-list.js scifi-pack",
     "validate:calendars": "tsx ../core/scripts/validate-calendars.ts"
   },
   "devDependencies": {

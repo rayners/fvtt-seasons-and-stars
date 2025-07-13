@@ -16,6 +16,7 @@
     "build": "npm run copy",
     "copy": "mkdir -p ../../dist/fantasy-pack && cp module.json ../../dist/fantasy-pack/ && cp -r calendars ../../dist/fantasy-pack/",
     "test": "vitest run",
+    "prevalidate:calendars": "node ../../scripts/generate-calendar-list.js fantasy-pack",
     "validate:calendars": "tsx ../core/scripts/validate-calendars.ts"
   },
   "devDependencies": {
