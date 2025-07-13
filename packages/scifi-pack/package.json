@@ -4,7 +4,7 @@
   "description": "Science fiction calendar collection for Seasons & Stars",
   "type": "module",
   "scripts": {
-    "prebuild": "node scripts/generate-calendar-list.js",
+    "prebuild": "node ../../scripts/generate-calendar-list.js scifi",
     "build": "npm run copy",
     "copy": "mkdir -p ../../dist/scifi-pack && cp module.json ../../dist/scifi-pack/ && cp -r calendars ../../dist/scifi-pack/",
     "test": "vitest run",

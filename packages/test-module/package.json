@@ -4,7 +4,7 @@
   "description": "Test calendars and diagnostic tools for Seasons & Stars",
   "type": "module",
   "scripts": {
-    "prebuild": "node scripts/generate-calendar-list.js",
+    "prebuild": "node ../../scripts/generate-calendar-list.js test",
     "build": "cd ../../ && rollup -c rollup.config.test.js",
     "test": "echo 'This module contains tests for other modules'",
     "validate:calendars": "tsx ../core/scripts/validate-calendars.ts"
