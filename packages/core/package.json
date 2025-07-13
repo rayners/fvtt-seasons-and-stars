@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/module.js",
   "scripts": {
-    "prebuild": "node scripts/generate-calendar-list.js",
+    "prebuild": "node ../../scripts/generate-calendar-list.js core",
     "build": "rollup -c ../../rollup.config.core.js",
     "watch": "rollup -c ../../rollup.config.core.js -w",
     "typecheck": "tsc --noEmit",
