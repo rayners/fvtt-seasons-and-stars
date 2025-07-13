@@ -11,6 +11,10 @@ export default defineConfig({
       '**/dist/**',
       '**/packages/core/test/fixtures/**', // Exclude downloaded game system test files
     ],
+    reporters: ['default', 'junit'],
+    outputFile: {
+      junit: './test-results/junit.xml',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

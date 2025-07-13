@@ -17,10 +17,12 @@
     "build": "rollup -c ../../rollup.config.core.js",
     "watch": "rollup -c ../../rollup.config.core.js -w",
     "typecheck": "tsc --noEmit",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "test": "cd ../../ && vitest",
+    "test:ui": "cd ../../ && vitest --ui",
+    "test:run": "cd ../../ && vitest run",
+    "test:coverage": "cd ../../ && vitest run --coverage",
+    "test:junit": "cd ../../ && vitest run --reporter=junit --reporter=default",
+    "test:coverage:junit": "cd ../../ && vitest run --coverage --reporter=junit --reporter=default",
     "validate:calendars": "tsx scripts/validate-calendars.ts"
   },
   "devDependencies": {
