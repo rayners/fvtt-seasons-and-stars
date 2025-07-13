@@ -8,7 +8,7 @@
     "build": "npm run copy",
     "copy": "mkdir -p ../../dist/fantasy-pack && cp module.json ../../dist/fantasy-pack/ && cp -r calendars ../../dist/fantasy-pack/",
     "test": "vitest run",
-    "validate:calendars": "node scripts/validate-calendars.js"
+    "validate:calendars": "node ../core/scripts/validate-calendars.js"
   },
   "devDependencies": {
     "vitest": "^3.2.2"
