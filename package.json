@@ -29,7 +29,7 @@
     "validate:calendars": "npm run validate:calendars --workspaces --if-present",
     "prebuild:all": "npm run prebuild --workspaces --if-present",
     "validate": "npm run lint && npm run format:check && npm run typecheck && npm run test:run && npm run validate:calendars && npm run build",
-    "prepare": "husky",
+    "prepare": "husky && npm run prebuild --workspaces",
     "link-electron": "node ../foundry-dev-tools/scripts/link-module.js ~/Library/Application\\ Support/FoundryVTT/Data/modules",
     "link-node": "node ../foundry-dev-tools/scripts/link-module.js ~/foundry-versions/13.344-data/modules",
     "link-copy": "node ../foundry-dev-tools/scripts/link-module.js --copy"
