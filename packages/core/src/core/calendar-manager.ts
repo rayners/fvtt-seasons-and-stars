@@ -10,7 +10,7 @@ import { CalendarDate } from './calendar-date';
 import { CalendarLocalization } from './calendar-localization';
 import { CalendarLoader, type ExternalCalendarSource, type LoadResult } from './calendar-loader';
 import { Logger } from './logger';
-import { BUILT_IN_CALENDARS } from '../generated/calendar-list';
+// Calendar list is now loaded dynamically from calendars/index.json
 
 export class CalendarManager {
   public calendars: Map<string, SeasonsStarsCalendar> = new Map();
@@ -55,10 +55,30 @@ export class CalendarManager {
   }
 
   /**
+   * Get list of built-in calendar IDs from index.json
+   */
+  private async getBuiltInCalendarList(): Promise<string[]> {
+    try {
+      const results = await this.loadCalendarCollection('module:seasons-and-stars', {
+        validate: false,
+      });
+      const successfulResults = results.filter(r => r.success);
+      return successfulResults.map(r => r.calendar!.id);
+    } catch (error) {
+      Logger.error(
+        'Failed to load built-in calendar list:',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      // Fallback to known calendars
+      return ['gregorian'];
+    }
+  }
+
+  /**
    * Load built-in calendar definitions
    */
   async loadBuiltInCalendars(): Promise<void> {
-    const builtInCalendars = BUILT_IN_CALENDARS;
+    const builtInCalendars = await this.getBuiltInCalendarList();
 
     // First, load all base calendars (excluding external variant files)
     for (const calendarId of builtInCalendars) {
@@ -537,7 +557,7 @@ export class CalendarManager {
    * Load external variant files that reference existing calendars
    */
   private async loadExternalVariantFiles(): Promise<void> {
-    const builtInCalendars = BUILT_IN_CALENDARS;
+    const builtInCalendars = await this.getBuiltInCalendarList();
 
     // Find all variant files in the calendar list
     const variantFiles = builtInCalendars.filter(calendarId => calendarId.includes('-variants'));

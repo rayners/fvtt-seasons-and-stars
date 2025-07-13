@@ -3,6 +3,14 @@
   "version": "1.0.0",
   "description": "Fantasy RPG calendar collection for Seasons & Stars",
   "type": "module",
+  "calendar-pack": {
+    "type": "fantasy",
+    "name": "Fantasy Calendar Pack",
+    "description": "Fantasy RPG calendar collection for D&D 5e, Pathfinder, Critical Role, and other fantasy settings",
+    "tags": [
+      "fantasy"
+    ]
+  },
   "scripts": {
     "prebuild": "node ../../scripts/generate-calendar-list.js fantasy-pack",
     "build": "npm run copy",

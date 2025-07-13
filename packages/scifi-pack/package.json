@@ -3,8 +3,16 @@
   "version": "1.0.0",
   "description": "Science fiction calendar collection for Seasons & Stars",
   "type": "module",
+  "calendar-pack": {
+    "type": "sci-fi",
+    "name": "Sci-Fi Calendar Pack",
+    "description": "Science fiction calendar collection for Starfinder, Traveller, Star Trek, and other sci-fi settings",
+    "tags": [
+      "sci-fi"
+    ]
+  },
   "scripts": {
-    "prebuild": "node ../../scripts/generate-calendar-list.js scifi",
+    "prebuild": "node ../../scripts/generate-calendar-list.js scifi-pack",
     "build": "npm run copy",
     "copy": "mkdir -p ../../dist/scifi-pack && cp module.json ../../dist/scifi-pack/ && cp -r calendars ../../dist/scifi-pack/",
     "test": "vitest run",

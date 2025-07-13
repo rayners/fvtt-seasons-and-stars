@@ -3,6 +3,14 @@
   "version": "0.7.0",
   "description": "A clean calendar and timekeeping module for Foundry VTT v13+",
   "type": "module",
+  "calendar-pack": {
+    "type": "core",
+    "name": "Core Calendars",
+    "description": "Built-in calendar collection for Seasons & Stars",
+    "tags": [
+      "built-in"
+    ]
+  },
   "main": "dist/module.js",
   "scripts": {
     "prebuild": "node ../../scripts/generate-calendar-list.js core",
