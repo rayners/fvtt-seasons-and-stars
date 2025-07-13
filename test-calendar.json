@@ -1,0 +1,39 @@
+{
+  "id": "test-external",
+  "translations": {
+    "en": {
+      "label": "Test External Calendar",
+      "description": "A simple test calendar for external loading"
+    }
+  },
+  "year": {
+    "epoch": 1,
+    "currentYear": 2024,
+    "prefix": "",
+    "suffix": " CE"
+  },
+  "months": [
+    { "name": "January", "days": 31 },
+    { "name": "February", "days": 28 },
+    { "name": "March", "days": 31 }
+  ],
+  "weekdays": [
+    { "name": "Sunday" },
+    { "name": "Monday" },
+    { "name": "Tuesday" },
+    { "name": "Wednesday" },
+    { "name": "Thursday" },
+    { "name": "Friday" },
+    { "name": "Saturday" }
+  ],
+  "leapYear": {
+    "rule": "gregorian",
+    "month": "February",
+    "extraDays": 1
+  },
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}

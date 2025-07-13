@@ -10,12 +10,16 @@
     "declaration": false,
     "noImplicitAny": false,
     "strictNullChecks": true,
-    "outDir": "./dist",
+    "outDir": "./dist/core",
     "baseUrl": ".",
     "types": ["jquery", "node"],
-    "typeRoots": ["./node_modules/@types", "./src/types", "./test"],
+    "typeRoots": ["./node_modules/@types", "./packages/core/src/types", "./packages/core/test"],
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "src/types/**/*.d.ts", "scripts/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "packages/core/src/**/*",
+    "packages/core/src/types/**/*.d.ts",
+    "packages/core/scripts/**/*.ts"
+  ],
+  "exclude": ["node_modules", "packages/core/test/**/*.ts", "**/*.test.ts", "**/*.spec.ts"]
 }

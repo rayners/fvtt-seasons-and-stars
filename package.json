@@ -1,72 +1,68 @@
 {
-  "name": "seasons-and-stars",
+  "name": "seasons-and-stars-monorepo",
   "version": "0.7.0",
-  "description": "A clean calendar and timekeeping module for Foundry VTT v13+",
+  "description": "Seasons & Stars module collection: core module with fantasy and sci-fi calendar packs",
   "type": "module",
-  "main": "dist/module.js",
+  "private": true,
+  "workspaces": [
+    "packages/core",
+    "packages/fantasy-pack",
+    "packages/scifi-pack",
+    "packages/test-module"
+  ],
   "scripts": {
-    "prebuild": "node scripts/generate-calendar-list.js",
-    "build": "rollup -c",
-    "watch": "rollup -c -w",
-    "typecheck": "npm run prebuild && tsc --noEmit",
-    "lint": "eslint src",
-    "lint:fix": "eslint src --fix",
-    "format": "prettier --write \"src/**/*.{ts,js,json}\" \"test/**/*.{ts,js}\" \"*.{js,json,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,js,json}\" \"test/**/*.{ts,js}\" \"*.{js,json,md}\"",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:junit": "vitest run --reporter=default --reporter=junit --outputFile=test-report.junit.xml",
-    "test:coverage:junit": "vitest run --coverage --reporter=default --reporter=junit --outputFile=test-report.junit.xml",
-    "validate:calendars": "tsx scripts/validate-calendars.ts",
+    "prebuild": "npm run prebuild --workspaces",
+    "build": "npm run build --workspaces",
+    "watch": "npm run watch --workspace=packages/core",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint packages/core/src",
+    "lint:fix": "eslint packages/core/src --fix",
+    "format": "prettier --write \"packages/core/**/*.{ts,js,json}\" \"packages/fantasy-pack/**/*.{ts,js,json}\" \"packages/scifi-pack/**/*.{ts,js,json}\" \"packages/test-module/**/*.{ts,js,json}\" \"*.{js,json,md}\"",
+    "format:check": "prettier --check \"packages/core/**/*.{ts,js,json}\" \"packages/fantasy-pack/**/*.{ts,js,json}\" \"packages/scifi-pack/**/*.{ts,js,json}\" \"packages/test-module/**/*.{ts,js,json}\" \"*.{js,json,md}\"",
+    "test": "npm run test --workspaces --if-present",
+    "test:ui": "npm run test:ui --workspace=packages/core",
+    "test:run": "npm run test:run --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspace=packages/core",
+    "test:junit": "npm run test:junit --workspace=packages/core",
+    "test:coverage:junit": "npm run test:coverage:junit --workspace=packages/core",
+    "prevalidate:calendars": "npm run prebuild --workspaces --if-present",
+    "validate:calendars": "npm run validate:calendars --workspaces --if-present",
+    "prebuild:all": "npm run prebuild --workspaces --if-present",
     "validate": "npm run lint && npm run format:check && npm run typecheck && npm run test:run && npm run validate:calendars && npm run build",
-    "prepare": "husky",
+    "prepare": "husky && npm run prebuild --workspaces",
     "link-electron": "node ../foundry-dev-tools/scripts/link-module.js ~/Library/Application\\ Support/FoundryVTT/Data/modules",
     "link-node": "node ../foundry-dev-tools/scripts/link-module.js ~/foundry-versions/13.344-data/modules",
     "link-copy": "node ../foundry-dev-tools/scripts/link-module.js --copy"
   },
   "lint-staged": {
-    "*.{ts,js}": [
+    "packages/core/src/**/*.{ts,js}": [
       "eslint --fix",
       "prettier --write"
     ],
-    "*.{json,md}": [
+    "packages/core/scripts/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "packages/*/test/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{js,json,md,yml,yaml}": [
+      "prettier --write"
+    ],
+    "packages/**/*.{json,md}": [
+      "prettier --write"
+    ],
+    ".github/**/*.{yml,yaml}": [
       "prettier --write"
     ]
   },
   "author": "David Raynes",
   "license": "MIT",
   "devDependencies": {
-    "@ethaks/fvtt-quench": "^0.10.0",
-    "@rayners/foundry-dev-tools": "^1.5.1",
-    "@rayners/foundry-test-utils": "^1.1.0",
-    "@rollup/plugin-commonjs": "^28.0.6",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^15.0.0",
-    "@rollup/plugin-typescript": "^11.0.0",
-    "@types/jquery": "^3.5.32",
-    "@types/node": "^24.0.10",
-    "@vitest/coverage-v8": "^3.2.4",
-    "@vitest/ui": "^3.2.2",
     "eslint": "^9.28.0",
     "husky": "^9.1.7",
-    "jsdom": "^26.1.0",
     "lint-staged": "^16.1.2",
-    "prettier": "^3.5.3",
-    "rollup": "^4.24.0",
-    "rollup-plugin-copy": "^3.4.0",
-    "rollup-plugin-livereload": "^2.0.5",
-    "rollup-plugin-scss": "^4.0.0",
-    "rollup-plugin-serve": "^2.0.2",
-    "sass": "^1.89.2",
-    "tslib": "^2.5.0",
-    "tsx": "^4.20.3",
-    "typescript": "^5.0.4",
-    "vitest": "^3.2.2"
-  },
-  "dependencies": {
-    "ajv": "^8.17.1",
-    "ajv-formats": "^3.0.1"
+    "prettier": "^3.5.3"
   }
 }

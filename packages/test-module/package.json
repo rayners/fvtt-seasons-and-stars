@@ -1,0 +1,33 @@
+{
+  "name": "test-seasons-and-stars",
+  "version": "1.0.0",
+  "description": "Test calendars and diagnostic tools for Seasons & Stars",
+  "type": "module",
+  "scripts": {
+    "prebuild": "node ../../scripts/generate-calendar-list.js test-module",
+    "build": "cd ../../ && rollup -c rollup.config.test.js",
+    "test": "echo 'This module contains tests for other modules'",
+    "validate:calendars": "tsx ../core/scripts/validate-calendars.ts"
+  },
+  "calendar-pack": {
+    "type": "test",
+    "name": "Test Calendars",
+    "description": "Test calendars and diagnostic tools for Seasons & Stars",
+    "tags": [
+      "test",
+      "diagnostic"
+    ]
+  },
+  "devDependencies": {
+    "@ethaks/fvtt-quench": "^0.10.0",
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "rollup": "^4.24.0",
+    "rollup-plugin-copy": "^3.4.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.0.4"
+  },
+  "author": "David Raynes",
+  "license": "MIT"
+}

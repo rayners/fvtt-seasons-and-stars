@@ -1,0 +1,27 @@
+{
+  "name": "seasons-and-stars-scifi",
+  "version": "1.0.0",
+  "description": "Science fiction calendar collection for Seasons & Stars",
+  "type": "module",
+  "calendar-pack": {
+    "type": "sci-fi",
+    "name": "Sci-Fi Calendar Pack",
+    "description": "Science fiction calendar collection for Starfinder, Traveller, Star Trek, and other sci-fi settings",
+    "tags": [
+      "sci-fi"
+    ]
+  },
+  "scripts": {
+    "prebuild": "node ../../scripts/generate-calendar-list.js scifi-pack",
+    "build": "npm run copy",
+    "copy": "mkdir -p ../../dist/scifi-pack && cp module.json ../../dist/scifi-pack/ && cp -r calendars ../../dist/scifi-pack/",
+    "test": "vitest run",
+    "prevalidate:calendars": "node ../../scripts/generate-calendar-list.js scifi-pack",
+    "validate:calendars": "tsx ../core/scripts/validate-calendars.ts"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.2"
+  },
+  "author": "David Raynes",
+  "license": "MIT"
+}

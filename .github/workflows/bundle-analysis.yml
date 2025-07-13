@@ -4,10 +4,14 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'src/**'
+      - 'packages/*/src/**'
+      - 'packages/*/calendars/**'
+      - 'packages/*/module.json'
+      - 'shared/**'
       - 'package.json'
-      - 'rollup.config.js'
+      - 'rollup.config.*.js'
       - 'tsconfig.json'
+      - 'vitest.config.ts'
 
 jobs:
   analyze:
@@ -20,14 +24,37 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Required for bundle size comparison
+          fetch-depth: 0 # Required for bundle size comparison
 
-      - name: Bundle Analysis
+      - name: Core Module Bundle Analysis
         uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
         with:
           node-version: '18'
           github-packages: true
           minimum-change-threshold: 100
           analyze-zip: true
-          zip-files: 'module.js module.json templates/ calendars/ styles/ languages/ README.md CHANGELOG.md LICENSE'
-          working-directory: 'dist'
+          zip-files: 'module.js module.json templates/ calendars/ styles/ languages/ schemas/ README.md CHANGELOG.md LICENSE'
+          working-directory: 'dist/core'
+          label-prefix: 'Core Module'
+
+      - name: Fantasy Pack Bundle Analysis
+        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
+        with:
+          node-version: '18'
+          github-packages: true
+          minimum-change-threshold: 50
+          analyze-zip: true
+          zip-files: 'module.json calendars/'
+          working-directory: 'dist/fantasy-pack'
+          label-prefix: 'Fantasy Pack'
+
+      - name: Sci-Fi Pack Bundle Analysis
+        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
+        with:
+          node-version: '18'
+          github-packages: true
+          minimum-change-threshold: 50
+          analyze-zip: true
+          zip-files: 'module.json calendars/'
+          working-directory: 'dist/scifi-pack'
+          label-prefix: 'Sci-Fi Pack'

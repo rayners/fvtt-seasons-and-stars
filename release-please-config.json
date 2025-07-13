@@ -1,0 +1,32 @@
+{
+  "packages": {
+    "packages/core": {
+      "package-name": "seasons-and-stars",
+      "release-type": "node",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "draft": false,
+      "prerelease": false,
+      "extra-files": ["module.json"]
+    },
+    "packages/fantasy-pack": {
+      "package-name": "seasons-and-stars-fantasy",
+      "release-type": "simple",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "draft": false,
+      "prerelease": false,
+      "extra-files": ["module.json"]
+    },
+    "packages/scifi-pack": {
+      "package-name": "seasons-and-stars-scifi",
+      "release-type": "simple",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "draft": false,
+      "prerelease": false,
+      "extra-files": ["module.json"]
+    }
+  },
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
+}
