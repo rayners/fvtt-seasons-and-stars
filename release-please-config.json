@@ -7,7 +7,13 @@
       "bump-patch-for-minor-pre-major": true,
       "draft": false,
       "prerelease": false,
-      "extra-files": ["module.json"]
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "module.json",
+          "jsonpath": "$.version"
+        }
+      ]
     },
     "packages/fantasy-pack": {
       "package-name": "seasons-and-stars-fantasy",
@@ -16,7 +22,13 @@
       "bump-patch-for-minor-pre-major": true,
       "draft": false,
       "prerelease": false,
-      "extra-files": ["module.json"]
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "module.json",
+          "jsonpath": "$.version"
+        }
+      ]
     },
     "packages/scifi-pack": {
       "package-name": "seasons-and-stars-scifi",
@@ -25,7 +37,13 @@
       "bump-patch-for-minor-pre-major": true,
       "draft": false,
       "prerelease": false,
-      "extra-files": ["module.json"]
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "module.json",
+          "jsonpath": "$.version"
+        }
+      ]
     }
   },
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
