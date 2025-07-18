@@ -3,6 +3,7 @@
     "packages/core": {
       "package-name": "seasons-and-stars",
       "release-type": "node",
+      "initial-version": "0.7.0",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "draft": false,
@@ -18,6 +19,7 @@
     "packages/fantasy-pack": {
       "package-name": "seasons-and-stars-fantasy",
       "release-type": "simple",
+      "initial-version": "0.1.0",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "draft": false,
@@ -33,6 +35,7 @@
     "packages/scifi-pack": {
       "package-name": "seasons-and-stars-scifi",
       "release-type": "simple",
+      "initial-version": "0.1.0",
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "draft": false,
