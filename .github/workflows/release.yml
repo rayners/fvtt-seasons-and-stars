@@ -86,7 +86,6 @@ jobs:
           build-command: 'npm run build --workspace=packages/core'
           working-directory: 'dist/core'
           module-files: 'module.js module.json templates/ calendars/ styles/ languages/ schemas/ README.md CHANGELOG.md LICENSE'
-          tag: ${{ needs.detect-module.outputs.tag }}
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
@@ -111,7 +110,6 @@ jobs:
           build-command: 'npm run build --workspace=packages/fantasy-pack'
           working-directory: 'dist/fantasy-pack'
           module-files: 'module.json calendars/'
-          tag: ${{ needs.detect-module.outputs.tag }}
 
   release-scifi:
     needs: detect-module
@@ -134,4 +132,3 @@ jobs:
           build-command: 'npm run build --workspace=packages/scifi-pack'
           working-directory: 'dist/scifi-pack'
           module-files: 'module.json calendars/'
-          tag: ${{ needs.detect-module.outputs.tag }}
