@@ -1,5 +1,5 @@
 {
-  "packages/core": "0.7.0",
-  "packages/fantasy-pack": "0.1.0",
-  "packages/scifi-pack": "0.1.0"
+  "packages/core": "0.8.0",
+  "packages/fantasy-pack": "0.2.0",
+  "packages/scifi-pack": "0.2.0"
 }
