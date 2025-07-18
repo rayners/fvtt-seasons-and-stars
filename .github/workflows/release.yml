@@ -49,12 +49,12 @@ jobs:
             echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
           else
             TAG="${{ github.ref_name }}"
-            # release-please monorepo tagging: package@version
-            if [[ "$TAG" == seasons-and-stars-fantasy@* ]]; then
+            # release-please monorepo tagging: package-version
+            if [[ "$TAG" == seasons-and-stars-fantasy-v* ]]; then
               echo "module=fantasy-pack" >> "$GITHUB_OUTPUT"
-            elif [[ "$TAG" == seasons-and-stars-scifi@* ]]; then
+            elif [[ "$TAG" == seasons-and-stars-scifi-v* ]]; then
               echo "module=scifi-pack" >> "$GITHUB_OUTPUT"
-            elif [[ "$TAG" == seasons-and-stars@* ]]; then
+            elif [[ "$TAG" == seasons-and-stars-v* ]]; then
               echo "module=core" >> "$GITHUB_OUTPUT"
             # Legacy/manual tagging support
             elif [[ "$TAG" == v* ]]; then
@@ -82,8 +82,8 @@ jobs:
       - name: Release Core Module
         uses: rayners/foundry-module-actions/release@v4
         with:
-          node-version: '18'
-          build-command: 'npm run build:core'
+          node-version: '20'
+          build-command: 'npm run build --workspace=packages/core'
           working-directory: 'dist/core'
           module-files: 'module.js module.json templates/ calendars/ styles/ languages/ schemas/ README.md CHANGELOG.md LICENSE'
           release-name: 'seasons-and-stars'
@@ -107,8 +107,8 @@ jobs:
       - name: Release Fantasy Pack
         uses: rayners/foundry-module-actions/release@v4
         with:
-          node-version: '18'
-          build-command: 'npm run build:fantasy'
+          node-version: '20'
+          build-command: 'npm run build --workspace=packages/fantasy-pack'
           working-directory: 'dist/fantasy-pack'
           module-files: 'module.json calendars/'
           release-name: 'seasons-and-stars-fantasy-module'
@@ -130,8 +130,8 @@ jobs:
       - name: Release Sci-Fi Pack
         uses: rayners/foundry-module-actions/release@v4
         with:
-          node-version: '18'
-          build-command: 'npm run build:scifi'
+          node-version: '20'
+          build-command: 'npm run build --workspace=packages/scifi-pack'
           working-directory: 'dist/scifi-pack'
           module-files: 'module.json calendars/'
           release-name: 'seasons-and-stars-scifi-module'

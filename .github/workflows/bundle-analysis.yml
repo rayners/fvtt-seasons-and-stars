@@ -29,7 +29,7 @@ jobs:
       - name: Core Module Bundle Analysis
         uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
         with:
-          node-version: '18'
+          node-version: '20'
           github-packages: true
           minimum-change-threshold: 100
           analyze-zip: true
@@ -40,7 +40,7 @@ jobs:
       - name: Fantasy Pack Bundle Analysis
         uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
         with:
-          node-version: '18'
+          node-version: '20'
           github-packages: true
           minimum-change-threshold: 50
           analyze-zip: true
@@ -51,7 +51,7 @@ jobs:
       - name: Sci-Fi Pack Bundle Analysis
         uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
         with:
-          node-version: '18'
+          node-version: '20'
           github-packages: true
           minimum-change-threshold: 50
           analyze-zip: true

@@ -27,7 +27,7 @@ jobs:
           github-packages: true
           codecov: true
           codecov-slug: rayners/fvtt-seasons-and-stars
-          coverage-node-version: '18'
+          coverage-node-version: '20'
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
           junit-output: true
           test-command: 'npm run test:coverage:junit'
