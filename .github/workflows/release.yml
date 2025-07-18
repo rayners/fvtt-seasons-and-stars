@@ -77,7 +77,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ needs.detect-module.outputs.tag }}
 
       - name: Release Core Module
         uses: rayners/foundry-module-actions/release@v4
@@ -101,7 +100,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ needs.detect-module.outputs.tag }}
 
       - name: Release Fantasy Pack
         uses: rayners/foundry-module-actions/release@v4
@@ -123,7 +121,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ needs.detect-module.outputs.tag }}
 
       - name: Release Sci-Fi Pack
         uses: rayners/foundry-module-actions/release@v4
