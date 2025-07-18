@@ -21,7 +21,7 @@
         "id": "seasons-and-stars",
         "type": "module",
         "compatibility": {
-          "minimum": "0.6.0"
+          "minimum": "0.7.0"
         }
       }
     ]
