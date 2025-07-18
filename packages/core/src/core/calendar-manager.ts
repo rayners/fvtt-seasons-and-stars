@@ -28,6 +28,9 @@ export class CalendarManager {
     // Load built-in calendars
     await this.loadBuiltInCalendars();
 
+    // Fire hook to allow external modules to register calendars
+    this.fireExternalCalendarRegistrationHook();
+
     // Complete initialization after settings are registered
     await this.completeInitialization();
   }
@@ -990,5 +993,41 @@ export class CalendarManager {
    */
   getCalendarLoader(): CalendarLoader {
     return this.calendarLoader;
+  }
+
+  /**
+   * Fire hook to allow external modules to register calendars
+   */
+  private fireExternalCalendarRegistrationHook(): void {
+    Logger.debug('Firing external calendar registration hook');
+
+    // Create registration callback that modules can use to add calendars
+    const registerCalendar = (
+      calendarData: SeasonsStarsCalendar,
+      sourceInfo?: CalendarSourceInfo
+    ) => {
+      // Validate that we have valid calendar data
+      if (!calendarData || !calendarData.id) {
+        Logger.error('Invalid calendar data provided to registration hook');
+        return false;
+      }
+
+      // Use existing loadCalendar method for validation and registration
+      const success = this.loadCalendar(calendarData, sourceInfo);
+
+      if (success) {
+        Logger.info(`External calendar registered: ${calendarData.id}`);
+      } else {
+        Logger.warn(`Failed to register external calendar: ${calendarData.id}`);
+      }
+
+      return success;
+    };
+
+    // Fire the hook with registration callback
+    Hooks.callAll('seasons-stars:registerExternalCalendars', {
+      registerCalendar,
+      manager: this,
+    });
   }
 }
