@@ -502,6 +502,20 @@ export class CalendarManager {
       translation.label = `${translation.label} (${variant.name})`;
     }
 
+    // Apply config-based modifications (e.g., yearOffset)
+    if (variant.config?.yearOffset !== undefined) {
+      const offsetDifference = variant.config.yearOffset - baseCalendar.year.epoch;
+      variantCalendar.year.epoch = variant.config.yearOffset;
+      variantCalendar.year.currentYear = baseCalendar.year.currentYear + offsetDifference;
+
+      // Also update worldTime if present
+      if (variantCalendar.worldTime && baseCalendar.worldTime) {
+        variantCalendar.worldTime.epochYear = variant.config.yearOffset;
+        variantCalendar.worldTime.currentYear =
+          baseCalendar.worldTime.currentYear + offsetDifference;
+      }
+    }
+
     // Apply overrides
     if (variant.overrides) {
       // Apply year overrides
