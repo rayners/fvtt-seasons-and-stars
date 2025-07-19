@@ -483,7 +483,7 @@ export class CalendarLoader {
     const base = name
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '-')
-      .replace(/-+/g, '-')
+      .replace(/-{2,}/g, '-')
       .replace(/^-+|-+$/g, '');
     let id = base;
     let counter = 1;
