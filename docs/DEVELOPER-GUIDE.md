@@ -707,6 +707,60 @@ Hooks.on('seasons-stars:ready', data => {
 });
 ```
 
+#### `seasons-stars:registerExternalCalendars` (Added in v0.8.0)
+
+Fired during initialization to allow modules to register calendars programmatically. This provides an alternative to calendar packs for dynamic calendar registration.
+
+```javascript
+Hooks.on('seasons-stars:registerExternalCalendars', ({ registerCalendar, manager }) => {
+  // Register a custom calendar
+  const myCalendar = {
+    id: 'my-custom-calendar',
+    name: 'My Custom Calendar',
+    months: [
+      { name: 'First Month', days: 30 },
+      { name: 'Second Month', days: 31 },
+    ],
+    weekdays: ['Day1', 'Day2', 'Day3', 'Day4', 'Day5'],
+    // ... full calendar definition
+  };
+
+  const sourceInfo = {
+    name: 'My Calendar Module',
+    version: '1.0.0',
+    type: 'external',
+  };
+
+  const success = registerCalendar(myCalendar, sourceInfo);
+  console.log('Calendar registered:', success);
+
+  // Register multiple calendars
+  calendarsToRegister.forEach(calendar => {
+    registerCalendar(calendar, sourceInfo);
+  });
+});
+```
+
+**Registration Callback Parameters:**
+
+```typescript
+interface ExternalCalendarRegistration {
+  registerCalendar: (calendar: CalendarDefinition, source: SourceInfo) => boolean;
+  manager: CalendarManager;
+}
+
+interface SourceInfo {
+  name: string; // Module/source name
+  version: string; // Module version
+  type: 'external'; // Source type identifier
+}
+```
+
+**When to Use:**
+
+- **Calendar Packs**: Best for distributable collections, auto-detection, no JavaScript required
+- **External Registration Hook**: Best for runtime registration, dynamic calendars, programmatic control
+
 ### Simple Calendar Hook Compatibility
 
 **Use the Simple Calendar Compatibility Bridge** for automatic hook translation:

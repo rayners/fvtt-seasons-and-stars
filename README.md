@@ -13,8 +13,9 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Convenient Defaults**: Gregorian calendars can initialize with current date/time
 - **Module Integration**: Clean APIs for weather modules and other integrations via compatibility bridges
 - **SmallTime Integration**: Seamless positioning and visual consistency with enhanced styling
-- **16 Built-in Calendars**: Switch between Gregorian, fantasy calendars (D&D, PF2e, Critical Role, etc.), sci-fi calendars (Star Trek, Starfinder, Traveller), and custom formats based on official game sources
+- **16 Available Calendars**: Switch between core calendars (Gregorian, Golarion PF2e) and calendar pack collections featuring fantasy calendars (D&D, Critical Role, etc.), sci-fi calendars (Star Trek, Starfinder, Traveller), and custom formats based on official game sources
 - **Calendar Pack Auto-Detection**: Automatically discovers and loads calendar modules following the `seasons-and-stars-*` naming convention - no JavaScript required, just JSON data files
+- **External Calendar Registration**: New hook system (v0.8.0+) allows modules to register calendars programmatically for dynamic calendar loading
 - **Advanced Date Formatting**: Handlebars-based templates with mathematical operations, format embedding, and era-specific calculations (like Star Trek stardates)
 - **Calendar Variants System**: Cultural and regional calendar variations (e.g., Golarion has Absalom Reckoning, Imperial, Varisian, and Earth Historical variants)
 
@@ -236,9 +237,9 @@ Your support helps fund:
 
 ## 📚 Calendar Information
 
-The 15 built-in calendar systems are designed to work with popular RPG settings including D&D, Pathfinder, Critical Role, and other systems. These implementations focus on practical gameplay functionality and may be simplified from official sources.
+The 16 available calendar systems are designed to work with popular RPG settings including D&D, Pathfinder, Critical Role, and other systems. These implementations focus on practical gameplay functionality and may be simplified from official sources.
 
-⚠️ **Alpha Status**: Calendar data is currently optimized for gameplay functionality. We plan to verify these implementations against official sources soon and add proper citations to the calendar files.
+⚠️ **Alpha Status**: Calendar data is currently optimized for gameplay functionality. Calendar verification against official sources and proper citation additions are planned for a future release.
 
 🤝 **Community Contributions Welcome**: We welcome submissions to make calendar configurations more accurate to their official sources. If you have access to official publications and notice discrepancies, please open an issue or submit a pull request with corrections and proper source citations.
 

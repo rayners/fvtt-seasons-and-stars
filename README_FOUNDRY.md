@@ -61,7 +61,7 @@ Designed to work with most game systems, including:
 - Forbidden Lands
 - Simple Worldbuilding
 
-_Note: This is an alpha release. While designed for broad compatibility, not all systems have been extensively tested._
+_Note: This is an alpha release. Testing has been focused on D&D 5e, Pathfinder 2e, and selected other systems listed above._
 
 ## Module Integration
 
