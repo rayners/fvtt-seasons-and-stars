@@ -7,6 +7,7 @@
 import './styles/seasons-and-stars.scss';
 
 import { Logger } from './core/logger';
+import { UI_CONSTANTS } from './core/constants';
 import { CalendarManager } from './core/calendar-manager';
 import { NotesManager } from './core/notes-manager';
 import { compatibilityManager } from './core/compatibility-manager';
@@ -417,7 +418,7 @@ function registerSettings(): void {
     scope: 'world',
     config: true,
     type: String,
-    default: '15,30,60,240',
+    default: UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS.join(','),
     onChange: () => {
       // Trigger widget refresh when settings change
       try {

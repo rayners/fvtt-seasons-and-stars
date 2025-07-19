@@ -3,6 +3,7 @@
  */
 
 import { Logger } from './logger';
+import { UI_CONSTANTS } from './constants';
 import type { SeasonsStarsCalendar } from '../types/calendar';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
@@ -15,7 +16,7 @@ export function parseQuickTimeButtons(
 ): number[] {
   if (!settingValue || typeof settingValue !== 'string') {
     Logger.warn('Invalid quick time buttons setting value, using default');
-    return [15, 30, 60, 240]; // Default values
+    return UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS.slice(); // Default values
   }
 
   const hoursPerDay = calendar?.time?.hoursInDay || 24;
@@ -63,7 +64,7 @@ export function parseQuickTimeButtons(
       .sort((a, b) => a - b); // Sort numerically: negatives first, then positives
   } catch (error) {
     Logger.error('Error parsing quick time buttons setting', error as Error);
-    return [15, 30, 60, 240]; // Fallback to default
+    return UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS.slice(); // Fallback to default
   }
 }
 
@@ -126,7 +127,8 @@ export function getQuickTimeButtonsFromSettings(
   try {
     // Get setting value
     const settingValue =
-      (game.settings?.get('seasons-and-stars', 'quickTimeButtons') as string) || '15,30,60,240';
+      (game.settings?.get('seasons-and-stars', 'quickTimeButtons') as string) ||
+      UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS.join(',');
 
     // Get current calendar for parsing
     const manager = game.seasonsStars?.manager;
@@ -140,12 +142,11 @@ export function getQuickTimeButtonsFromSettings(
 
     // If no valid buttons, fall back to defaults
     if (buttons.length === 0) {
-      return [
-        { amount: 15, unit: 'minutes', label: '15m' },
-        { amount: 30, unit: 'minutes', label: '30m' },
-        { amount: 60, unit: 'minutes', label: '1h' },
-        { amount: 240, unit: 'minutes', label: '4h' },
-      ];
+      return UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS.map(minutes => ({
+        amount: minutes,
+        unit: 'minutes',
+        label: formatTimeButton(minutes, null),
+      }));
     }
 
     // Convert to template format
@@ -157,12 +158,11 @@ export function getQuickTimeButtonsFromSettings(
   } catch (error) {
     Logger.error('Error getting quick time buttons from settings', error as Error);
     // Fallback to default
-    return [
-      { amount: 15, unit: 'minutes', label: '15m' },
-      { amount: 30, unit: 'minutes', label: '30m' },
-      { amount: 60, unit: 'minutes', label: '1h' },
-      { amount: 240, unit: 'minutes', label: '4h' },
-    ];
+    return UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS.map(minutes => ({
+      amount: minutes,
+      unit: 'minutes',
+      label: formatTimeButton(minutes, null),
+    }));
   }
 }
 
