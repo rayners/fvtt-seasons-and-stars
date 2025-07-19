@@ -331,7 +331,7 @@ export class DateFormatter {
 
     // Match both old colon syntax and new parameter syntax
     const embeddedFormatRegex =
-      /\{\{\s*ss-dateFmt\s*(?::\s*([^}\s]+)|.*?formatName\s*=\s*["']([^"']+)["']|\s+["']([^"']+)["'])\s*\}\}/g;
+      /\{\{\s*ss-dateFmt\s*(?::\s*([^}\s]+)|[^}]*?formatName\s*=\s*["']([^"']+)["']|\s+["']([^"']+)["'])\s*\}\}/g;
 
     return template.replace(
       embeddedFormatRegex,
