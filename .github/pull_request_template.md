@@ -2,6 +2,24 @@
 
 <!-- Provide a brief description of what this PR does -->
 
+## PR Title Format
+
+**Important:** Please ensure your PR title follows [conventional commit format](https://www.conventionalcommits.org/):
+
+```
+type(scope): description
+
+Examples:
+feat: add negative quick time button
+fix(ui): resolve calendar widget positioning
+docs: update installation guide
+refactor(core): consolidate default constants
+test: add coverage for date parsing
+```
+
+**Valid types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`, `revert`  
+**Optional scopes:** `ui`, `core`, `api`, `docs`, `tests`, `ci`, `deps`
+
 ## Type of Change
 
 - [ ] Bug fix (non-breaking change which fixes an issue)
@@ -51,6 +69,7 @@
 ## Related Issues
 
 <!-- Link any related issues -->
+
 Fixes #
 Closes #
 Related to #
