@@ -14,7 +14,7 @@ import { mockStandardCalendar, mockCustomCalendar } from './mocks/calendar-mocks
 globalThis.game = {
   user: { isGM: true },
   settings: {
-    get: vi.fn().mockReturnValue('15,30,60,240'),
+    get: vi.fn().mockReturnValue('-15,15,30,60,240'),
     set: vi.fn(),
   },
   seasonsStars: {
@@ -59,7 +59,7 @@ describe('parseQuickTimeButtons', () => {
 
     it('should handle empty input gracefully', () => {
       const result = parseQuickTimeButtons('', mockStandardCalendar);
-      expect(result).toEqual([15, 30, 60, 240]); // Returns default values for empty input
+      expect(result).toEqual([-15, 15, 30, 60, 240]); // Returns default values for empty input
     });
 
     it('should filter out invalid entries', () => {

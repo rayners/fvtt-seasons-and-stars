@@ -14,7 +14,7 @@ globalThis.game = {
   user: { isGM: true },
   settings: {
     get: vi.fn((module: string, key: string) => {
-      return mockSettings.get(`${module}.${key}`) || '15,30,60,240';
+      return mockSettings.get(`${module}.${key}`) || '-15,15,30,60,240';
     }),
     set: vi.fn((module: string, key: string, value: any) => {
       mockSettings.set(`${module}.${key}`, value);
@@ -70,6 +70,7 @@ describe('Quick Time Buttons Integration Tests', () => {
       const result = getQuickTimeButtonsFromSettings(false);
 
       expect(result).toEqual([
+        { amount: -15, unit: 'minutes', label: '-15m' },
         { amount: 15, unit: 'minutes', label: '15m' },
         { amount: 30, unit: 'minutes', label: '30m' },
         { amount: 60, unit: 'minutes', label: '1h' },
@@ -113,6 +114,7 @@ describe('Quick Time Buttons Integration Tests', () => {
       // Since parseQuickTimeButtons filters out invalid values, we get empty array
       // getQuickTimeButtonsFromSettings then falls back to default
       expect(result).toEqual([
+        { amount: -15, unit: 'minutes', label: '-15m' },
         { amount: 15, unit: 'minutes', label: '15m' },
         { amount: 30, unit: 'minutes', label: '30m' },
         { amount: 60, unit: 'minutes', label: '1h' },
@@ -128,6 +130,7 @@ describe('Quick Time Buttons Integration Tests', () => {
 
       // Should use fallback default values
       expect(result).toEqual([
+        { amount: -15, unit: 'minutes', label: '-15m' },
         { amount: 15, unit: 'minutes', label: '15m' },
         { amount: 30, unit: 'minutes', label: '30m' },
         { amount: 60, unit: 'minutes', label: '1h' },
@@ -145,6 +148,7 @@ describe('Quick Time Buttons Integration Tests', () => {
 
       // Should still work with fallback calendar values
       expect(result).toEqual([
+        { amount: -15, unit: 'minutes', label: '-15m' },
         { amount: 15, unit: 'minutes', label: '15m' },
         { amount: 30, unit: 'minutes', label: '30m' },
         { amount: 60, unit: 'minutes', label: '1h' },
@@ -223,15 +227,15 @@ describe('Quick Time Buttons Integration Tests', () => {
     it('should handle parseQuickTimeButtons with invalid input types', () => {
       // Test null input
       const result1 = parseQuickTimeButtons(null as any);
-      expect(result1).toEqual([15, 30, 60, 240]);
+      expect(result1).toEqual([-15, 15, 30, 60, 240]);
 
       // Test undefined input
       const result2 = parseQuickTimeButtons(undefined as any);
-      expect(result2).toEqual([15, 30, 60, 240]);
+      expect(result2).toEqual([-15, 15, 30, 60, 240]);
 
       // Test number input
       const result3 = parseQuickTimeButtons(123 as any);
-      expect(result3).toEqual([15, 30, 60, 240]);
+      expect(result3).toEqual([-15, 15, 30, 60, 240]);
     });
 
     it('should handle formatTimeButton with invalid input', () => {
@@ -248,7 +252,7 @@ describe('Quick Time Buttons Integration Tests', () => {
       });
 
       const result = parseQuickTimeButtons('15,30,60');
-      expect(result).toEqual([15, 30, 60, 240]); // Should return default
+      expect(result).toEqual([-15, 15, 30, 60, 240]); // Should return default
 
       globalThis.parseInt = originalParseInt;
     });
@@ -280,6 +284,7 @@ describe('Quick Time Buttons Integration Tests', () => {
 
         // Should return default fallback values when error occurs
         expect(result).toEqual([
+          { amount: -15, unit: 'minutes', label: '-15m' },
           { amount: 15, unit: 'minutes', label: '15m' },
           { amount: 30, unit: 'minutes', label: '30m' },
           { amount: 60, unit: 'minutes', label: '1h' },
@@ -299,11 +304,12 @@ describe('Quick Time Buttons Integration Tests', () => {
         const result = getQuickTimeButtonsFromSettings(false);
 
         // Should still work with null calendar (using defaults)
-        expect(result).toHaveLength(4);
-        expect(result[0].amount).toBe(15);
-        expect(result[1].amount).toBe(30);
-        expect(result[2].amount).toBe(60);
-        expect(result[3].amount).toBe(240);
+        expect(result).toHaveLength(5);
+        expect(result[0].amount).toBe(-15);
+        expect(result[1].amount).toBe(15);
+        expect(result[2].amount).toBe(30);
+        expect(result[3].amount).toBe(60);
+        expect(result[4].amount).toBe(240);
       } finally {
         globalThis.game.seasonsStars = originalSeasonsStars;
       }
