@@ -37,7 +37,9 @@ export class PF2eIntegration {
   private activate(): void {
     if (this.isActive) return;
 
-    console.log('Seasons & Stars PF2e Pack: PF2e system detected - enabling enhanced compatibility mode');
+    console.log(
+      'Seasons & Stars PF2e Pack: PF2e system detected - enabling enhanced compatibility mode'
+    );
     this.isActive = true;
   }
 
@@ -91,13 +93,17 @@ export class PF2eIntegration {
       // Get the active calendar to use its structure
       const calendarManager = game.seasonsStars?.manager as any;
       if (!calendarManager) {
-        console.error('Seasons & Stars PF2e Pack: Calendar manager not available for PF2e date mapping');
+        console.error(
+          'Seasons & Stars PF2e Pack: Calendar manager not available for PF2e date mapping'
+        );
         return null;
       }
 
       const activeCalendar = calendarManager.getActiveCalendar();
       if (!activeCalendar || activeCalendar.id !== 'golarion-pf2e') {
-        console.log('Seasons & Stars PF2e Pack: PF2e integration only works with Golarion calendar');
+        console.log(
+          'Seasons & Stars PF2e Pack: PF2e integration only works with Golarion calendar'
+        );
         return null;
       }
 
@@ -137,7 +143,10 @@ export class PF2eIntegration {
         second: golarionSecond,
       };
     } catch (error) {
-      console.error('Seasons & Stars PF2e Pack: Error calculating PF2e base date:', error instanceof Error ? error : undefined);
+      console.error(
+        'Seasons & Stars PF2e Pack: Error calculating PF2e base date:',
+        error instanceof Error ? error : undefined
+      );
       return null;
     }
   }
