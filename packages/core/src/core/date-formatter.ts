@@ -186,14 +186,11 @@ export class DateFormatter {
     }
 
     try {
-      // Preprocess template to resolve embedded formats with visited set
-      const processedTemplate = this.preprocessEmbeddedFormats(date, template, visited);
-
       // Use consolidated template caching
-      const compiledTemplate = this.compileAndCacheTemplate(processedTemplate);
+      const compiledTemplate = this.compileAndCacheTemplate(template);
 
-      // Prepare context data for template
-      const context = this.prepareTemplateContext(date);
+      // Prepare context data for template with visited formats for circular reference detection
+      const context = this.prepareTemplateContext(date, visited);
 
       // Execute template with context
       const result = compiledTemplate(context);
@@ -316,54 +313,6 @@ export class DateFormatter {
   }
 
   /**
-   * Preprocess template to resolve embedded format references
-   */
-  private preprocessEmbeddedFormats(
-    date: CalendarDate,
-    template: string,
-    visited: Set<string> = new Set()
-  ): string {
-    // Type safety check - ensure template is actually a string
-    if (typeof template !== 'string') {
-      console.debug('[S&S] Invalid template type, falling back to basic format');
-      return this.getBasicFormat(date);
-    }
-
-    // Match both old colon syntax and new parameter syntax
-    const embeddedFormatRegex =
-      /\{\{ *ss-dateFmt *(?:: *([^}\s]+)| +(?:formatName *= *)?["']([^"']+)["']) *\}\}/g;
-
-    return template.replace(embeddedFormatRegex, (match, colonFormatName, quotedFormatName) => {
-      try {
-        // Use whichever format name was captured (colon or quoted syntax)
-        const formatName = colonFormatName || quotedFormatName;
-        if (!formatName) {
-          console.debug(`[S&S] Could not extract format name from: ${match}`);
-          return this.getBasicFormat(date);
-        }
-
-        // Check if the format actually exists before trying to resolve it
-        // If it doesn't exist, return the original match to let the helper handle it
-        if (!this.calendar.dateFormats || !this.calendar.dateFormats[formatName]) {
-          return match; // Return original match to let helper handle unresolved formats
-        }
-
-        // Recursively format the embedded format with the same visited set (to detect cycles)
-        // The circular reference detection happens in formatNamedRecursive
-        const embeddedResult = this.formatNamedRecursive(date, formatName, visited);
-        return embeddedResult;
-      } catch (error) {
-        console.debug(
-          `[S&S] Failed to resolve embedded format '${colonFormatName || quotedFormatName}':`,
-          error
-        );
-        // Return original match to let helper handle the error
-        return match;
-      }
-    });
-  }
-
-  /**
    * Format named with circular reference protection
    */
   private formatNamedRecursive(
@@ -378,7 +327,7 @@ export class DateFormatter {
   /**
    * Prepare template context with date data
    */
-  private prepareTemplateContext(date: CalendarDate): Record<string, any> {
+  private prepareTemplateContext(date: CalendarDate, visited?: Set<string>): Record<string, any> {
     return {
       year: date.year,
       month: date.month,
@@ -389,6 +338,7 @@ export class DateFormatter {
       second: date.time?.second,
       dayOfYear: this.calculateDayOfYear(date),
       _calendarId: this.calendar.id, // Add calendar ID to context for helper access
+      _visitedFormats: visited || new Set(), // Add visited formats for circular reference detection
     };
   }
 
@@ -566,36 +516,54 @@ export class DateFormatter {
       // Handlebars passes options as the last argument
       const options = args[args.length - 1];
 
-      // Get format name from first argument (if not undefined/null) or hash parameter
-      const formatName =
-        args.length > 1 && args[0] !== undefined && args[0] !== null
-          ? args[0]
-          : options?.hash?.formatName;
+      // Get format name from first argument
+      const formatName = args.length > 1 ? args[0] : null;
 
-      // Get the calendar ID from context and return basic format for non-existent formats
+      if (!formatName) {
+        return '[ss-dateFmt: No format name provided]';
+      }
+
+      // Get the calendar ID and formatter from context
       const calendarId = options?.data?.root?._calendarId;
       const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
 
-      if (formatter) {
-        // Create a basic format manually since we don't have a full CalendarDate instance
-        const context = options?.data?.root;
-        const year = context?.year || 2024;
-        const month = context?.month || 1;
-        const day = context?.day || 1;
-        const weekday = context?.weekday || 0;
-
-        // Use the formatter's helper methods directly
-        const monthName = formatter.getMonthName(month);
-        const weekdayName = formatter.getWeekdayName(weekday);
-        const dayOrdinal = formatter.addOrdinalSuffix(day);
-        const yearString =
-          `${formatter.calendar.year?.prefix || ''}${year}${formatter.calendar.year?.suffix || ''}`.trim();
-
-        return `${weekdayName}, ${dayOrdinal} ${monthName} ${yearString}`;
+      if (!formatter) {
+        return `[ss-dateFmt: No formatter available for ${formatName}]`;
       }
 
-      // Fallback for debugging when no calendar context available
-      return `[Unresolved: ${formatName}]`;
+      // Check if the format exists
+      if (!formatter.calendar.dateFormats || !formatter.calendar.dateFormats[formatName]) {
+        return `[ss-dateFmt: Format '${formatName}' not found]`;
+      }
+
+      // Get current date context
+      const context = options?.data?.root;
+      const date = {
+        year: context?.year || 2024,
+        month: context?.month || 1,
+        day: context?.day || 1,
+        weekday: context?.weekday || 0,
+        intercalary: context?.intercalary,
+        time: context?.time,
+        calendar: formatter.calendar,
+        formatter: formatter,
+      } as CalendarDate;
+
+      // Check for circular references
+      const visited = context?._visitedFormats || new Set();
+      if (visited.has(formatName)) {
+        return `[ss-dateFmt: Circular reference detected for '${formatName}']`;
+      }
+
+      // Add to visited set and format recursively
+      const newVisited = new Set(visited);
+      newVisited.add(formatName);
+
+      try {
+        return formatter.formatNamedRecursive(date, formatName, newVisited);
+      } catch (error) {
+        return `[ss-dateFmt: Error formatting '${formatName}': ${error.message}]`;
+      }
     });
 
     // Mathematical operations helper
