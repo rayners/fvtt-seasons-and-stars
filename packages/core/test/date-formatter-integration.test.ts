@@ -60,9 +60,9 @@ describe('DateFormatter Integration Tests', () => {
 
         // Test format embedding
         'test-embed-simple':
-          'Date: {{ss-dateFmt formatName="test-day-ordinal"}} {{ss-dateFmt formatName="test-month-name"}}',
+          'Date: {{ss-dateFmt "test-day-ordinal"}} {{ss-dateFmt "test-month-name"}}',
         'test-embed-complex':
-          '{{ss-dateFmt formatName="test-weekday-name"}}, {{ss-dateFmt formatName="test-embed-simple"}} {{year}} CE',
+          '{{ss-dateFmt "test-weekday-name"}}, {{ss-dateFmt "test-embed-simple"}} {{year}} CE',
 
         // Test real-world scenarios
         'iso-format': '{{year}}-{{ss-month format="pad"}}-{{ss-day format="pad"}}',

@@ -2,7 +2,8 @@
  * Date Formatter - Handlebars-based date formatting for Seasons & Stars
  */
 
-import type { CalendarDate } from './calendar-date';
+import type { CalendarDate as ICalendarDate } from './calendar-date';
+import { CalendarDate } from './calendar-date';
 import type { SeasonsStarsCalendar } from '../types/calendar';
 
 export class DateFormatter {
@@ -151,7 +152,7 @@ export class DateFormatter {
   /**
    * Format a date using a Handlebars template string
    */
-  format(date: CalendarDate, template: string): string {
+  format(date: ICalendarDate, template: string): string {
     return this.formatWithContext(date, template);
   }
 
@@ -174,7 +175,7 @@ export class DateFormatter {
    * Format a date using a Handlebars template string with error context
    */
   private formatWithContext(
-    date: CalendarDate,
+    date: ICalendarDate,
     template: string,
     formatName?: string,
     visited: Set<string> = new Set()
@@ -224,7 +225,7 @@ export class DateFormatter {
    * Format a date using a named format from calendar dateFormats
    */
   formatNamed(
-    date: CalendarDate,
+    date: ICalendarDate,
     formatName: string,
     variant?: string,
     visited: Set<string> = new Set()
@@ -278,25 +279,18 @@ export class DateFormatter {
       return this.getBasicFormat(date);
     }
 
-    // Pre-analyze for circular references in this format's embedded references
-    if (this.containsCircularReference(formatString, formatName, visited)) {
-      console.debug(
-        `[S&S] Format '${formatName}' contains circular references, using basic format`
-      );
-      return this.getBasicFormat(date);
-    }
+    // Add current format to visited set before processing template to prevent circular references
+    const newVisited = new Set(visited);
+    newVisited.add(formatName);
 
-    // Add to visited set AFTER circular check but BEFORE processing
-    visited.add(formatName);
-
-    // Process the format
-    return this.formatWithContext(date, formatString, formatDisplayName, visited);
+    // Process the format with updated visited set
+    return this.formatWithContext(date, formatString, formatDisplayName, newVisited);
   }
 
   /**
    * Format a date using widget-specific format from calendar dateFormats
    */
-  formatWidget(date: CalendarDate, widgetType: 'mini' | 'main' | 'grid'): string {
+  formatWidget(date: ICalendarDate, widgetType: 'mini' | 'main' | 'grid'): string {
     const dateFormats = this.calendar.dateFormats;
 
     if (!dateFormats?.widgets) {
@@ -316,7 +310,7 @@ export class DateFormatter {
    * Format named with circular reference protection
    */
   private formatNamedRecursive(
-    date: CalendarDate,
+    date: ICalendarDate,
     formatName: string,
     visited: Set<string>
   ): string {
@@ -327,7 +321,7 @@ export class DateFormatter {
   /**
    * Prepare template context with date data
    */
-  private prepareTemplateContext(date: CalendarDate, visited?: Set<string>): Record<string, any> {
+  private prepareTemplateContext(date: ICalendarDate, visited?: Set<string>): Record<string, any> {
     return {
       year: date.year,
       month: date.month,
@@ -345,7 +339,7 @@ export class DateFormatter {
   /**
    * Calculate day of year for stardate and other calculations
    */
-  private calculateDayOfYear(date: CalendarDate): number {
+  private calculateDayOfYear(date: ICalendarDate): number {
     // Bounds checking for month value - only warn for severely out-of-range values
     // Built-in calendars (like Traveller Imperial with 1 month) should not trigger warnings
     if (
@@ -380,7 +374,18 @@ export class DateFormatter {
   /**
    * Fallback basic format when template compilation fails
    */
-  private getBasicFormat(date: CalendarDate): string {
+  private getBasicFormat(
+    date:
+      | ICalendarDate
+      | {
+          year: number;
+          month: number;
+          day: number;
+          weekday: number;
+          intercalary?: string;
+          time?: { hour: number; minute: number; second: number };
+        }
+  ): string {
     // For calendars without dateFormats, return a simple format
     const monthName = this.getMonthName(date.month);
     const weekdayName = this.getWeekdayName(date.weekday);
@@ -509,7 +514,7 @@ export class DateFormatter {
       }
     });
 
-    // Format embedding helper - use {{ss-dateFmt formatName="name"}} syntax
+    // Format embedding helper - use "{{ss-dateFmt \"name\"}}" syntax
     // Note: This helper is mainly for documentation. The actual format embedding
     // is handled by preprocessing in the format() method to avoid circular issues.
     Handlebars.registerHelper('ss-dateFmt', function (this: any, ...args: any[]) {
@@ -531,38 +536,37 @@ export class DateFormatter {
         return `[ss-dateFmt: No formatter available for ${formatName}]`;
       }
 
-      // Check if the format exists
-      if (!formatter.calendar.dateFormats || !formatter.calendar.dateFormats[formatName]) {
-        return `[ss-dateFmt: Format '${formatName}' not found]`;
-      }
-
       // Get current date context
       const context = options?.data?.root;
-      const date = {
+      const dateData = {
         year: context?.year || 2024,
         month: context?.month || 1,
         day: context?.day || 1,
         weekday: context?.weekday || 0,
         intercalary: context?.intercalary,
         time: context?.time,
-        calendar: formatter.calendar,
-        formatter: formatter,
-      } as CalendarDate;
+      };
 
-      // Check for circular references
-      const visited = context?._visitedFormats || new Set();
-      if (visited.has(formatName)) {
-        return `[ss-dateFmt: Circular reference detected for '${formatName}']`;
+      // Check if the format exists - if not, fall back to basic format like the old system
+      if (!formatter.calendar.dateFormats || !formatter.calendar.dateFormats[formatName]) {
+        return formatter.getBasicFormat(dateData);
       }
 
-      // Add to visited set and format recursively
-      const newVisited = new Set(visited);
-      newVisited.add(formatName);
+      // Check for circular references
+      const visited = (context?._visitedFormats as Set<string>) || new Set<string>();
+      if (visited.has(formatName)) {
+        return formatter.getBasicFormat(dateData);
+      }
 
+      // Pass the current visited set to formatNamed, which will handle adding
+      // the current format to visited when processing its template content
       try {
-        return formatter.formatNamedRecursive(date, formatName, newVisited);
+        // Create a CalendarDate object for the formatNamed call
+        const calendarDate = new CalendarDate(dateData, formatter.calendar);
+        return formatter.formatNamed(calendarDate, formatName, undefined, visited);
       } catch (error) {
-        return `[ss-dateFmt: Error formatting '${formatName}': ${error.message}]`;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return `[ss-dateFmt: Error formatting '${formatName}': ${errorMessage}]`;
       }
     });
 
@@ -792,29 +796,6 @@ export class DateFormatter {
       return name.substring(0, 3);
     }
     return 'Unk';
-  }
-
-  /**
-   * Check if a format string contains circular references
-   */
-  private containsCircularReference(
-    formatString: string,
-    currentFormat: string,
-    visited: Set<string>
-  ): boolean {
-    // Find all embedded format references in this format
-    const embeddedFormatRegex =
-      /\{\{ *ss-dateFmt *(?:: *([^}\s]+)| +(?:formatName *= *)?["']([^"']+)["']) *\}\}/g;
-
-    let match;
-    while ((match = embeddedFormatRegex.exec(formatString)) !== null) {
-      const embeddedFormatName = match[1] || match[2];
-      if (embeddedFormatName && visited.has(embeddedFormatName)) {
-        return true; // Found a circular reference
-      }
-    }
-
-    return false;
   }
 
   /**

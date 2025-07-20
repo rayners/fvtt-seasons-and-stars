@@ -217,8 +217,8 @@ const formatted = date.format(); // Uses calendar's default format
 ```javascript
 // Calendar defines:
 // "tng-stardate": "{{ss-stardate year prefix=\"47\" baseYear=2370 dayOfYear=dayOfYear}}"
-// "starfleet": "Stardate {{ss-dateFmt formatName=\"tng-stardate\"}}"
-// "command-log": "{{ss-dateFmt formatName=\"starfleet\"}} - {{ss-dateFmt formatName=\"federation\"}}"
+// "starfleet": "Stardate {{ss-dateFmt \"tng-stardate\"}}"
+// "command-log": "{{ss-dateFmt \"starfleet\"}} - {{ss-dateFmt \"federation\"}}"
 
 // Access complex formats through calendar's dateFormats configuration
 const calendar = game.seasonsStars.api.getActiveCalendar();
@@ -234,9 +234,9 @@ Define advanced formats in your calendar JSON:
   "dateFormats": {
     "stardate": "{{ss-stardate year prefix=\"47\" baseYear=2370 dayOfYear=dayOfYear}}",
     "mathematical": "Year {{ss-math year op=\"add\" value=1000}} of the Empire",
-    "embedded": "Today is {{ss-dateFmt formatName=\"stardate\"}} ({{ss-dateFmt formatName=\"federation\"}})",
+    "embedded": "Today is {{ss-dateFmt \"stardate\"}} ({{ss-dateFmt \"federation\"}})",
     "widgets": {
-      "mini": "SD {{ss-dateFmt formatName=\"stardate\"}}",
+      "mini": "SD {{ss-dateFmt \"stardate\"}}",
       "main": "{{ss-weekday format=\"abbr\"}}, Day {{dayOfYear}}",
       "grid": "{{ss-day}}"
     }

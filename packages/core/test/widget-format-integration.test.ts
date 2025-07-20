@@ -182,9 +182,11 @@ describe('Widget Format Integration Tests', () => {
   describe('Widget Format Helper Integration', () => {
     it('should use proper helper syntax with ss- namespace', () => {
       // Verify all widget formats use namespaced helpers
-      const miniFormat = mockCalendar.dateFormats.widgets!.mini;
-      const mainFormat = mockCalendar.dateFormats.widgets!.main;
-      const gridFormat = mockCalendar.dateFormats.widgets!.grid;
+      const widgets = mockCalendar.dateFormats.widgets;
+      expect(widgets).toBeDefined();
+      const miniFormat = widgets?.mini;
+      const mainFormat = widgets?.main;
+      const gridFormat = widgets?.grid;
 
       // All helpers should be namespaced with 'ss-'
       expect(miniFormat).toContain('ss-month');
@@ -203,7 +205,7 @@ describe('Widget Format Integration Tests', () => {
           ...mockCalendar.dateFormats,
           widgets: {
             mini: '{{ss-month format="abbr"}} {{ss-day}}',
-            main: '{{ss-weekday format="abbr"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} ({{ss-dateFmt formatName="iso"}})',
+            main: '{{ss-weekday format="abbr"}}, {{ss-day format="ordinal"}} {{ss-month format="name"}} ("{{ss-dateFmt "iso"}}")',
             grid: '{{ss-day format="pad"}}',
           },
         },
