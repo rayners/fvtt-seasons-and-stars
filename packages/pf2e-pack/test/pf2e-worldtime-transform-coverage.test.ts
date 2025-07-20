@@ -19,7 +19,7 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
   let engine: CalendarEngine;
   let timeConverter: TimeConverter;
   let calendar: SeasonsStarsCalendar;
-  let originalGame: any;
+  let originalGame: typeof globalThis.game;
 
   beforeEach(() => {
     calendar = golarionCalendar as SeasonsStarsCalendar;
@@ -41,7 +41,7 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
       // Setup system
       global.game = {
         system: { id: 'test-system' },
-      } as any;
+      } as typeof globalThis.game;
 
       // Test the real compatibility manager methods used in the PF2e fix
       const mockTransform = vi.fn((worldTime: number) => [worldTime + 1000, 500]);
@@ -65,7 +65,8 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
       expect(typeof retrievedTransform).toBe('function');
 
       // Test the transform function behavior
-      const [transformedWorldTime, systemTimeOffset] = retrievedTransform!(0, undefined);
+      expect(retrievedTransform).toBeDefined();
+      const [transformedWorldTime, systemTimeOffset] = retrievedTransform?.(0, undefined) ?? [0, 0];
       expect(transformedWorldTime).toBe(1000); // worldTime + 1000
       expect(systemTimeOffset).toBe(500);
     });
@@ -73,7 +74,7 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
     it('should handle missing data providers gracefully', () => {
       global.game = {
         system: { id: 'nonexistent-system' },
-      } as any;
+      } as typeof globalThis.game;
 
       // Test hasDataProvider with nonexistent provider
       expect(compatibilityManager.hasDataProvider('nonexistent-system', 'worldTimeTransform')).toBe(
@@ -88,7 +89,7 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
     it('should handle error in data provider function', () => {
       global.game = {
         system: { id: 'error-system' },
-      } as any;
+      } as typeof globalThis.game;
 
       // Register a provider that throws an error
       compatibilityManager.registerDataProvider('error-system', 'worldTimeTransform', () => {
@@ -120,7 +121,7 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
           worldTime: 0,
           advance: vi.fn(),
         },
-      } as any;
+      } as typeof globalThis.game;
 
       // Register a mock transform that returns system time offset
       const mockTransform = vi.fn((worldTime: number) => [worldTime, 98765]);
@@ -152,7 +153,7 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
           worldTime: 0,
           advance: vi.fn(),
         },
-      } as any;
+      } as typeof globalThis.game;
 
       // Register a transform that throws an error
       compatibilityManager.registerDataProvider('error-system', 'worldTimeTransform', () => {
@@ -185,7 +186,7 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
           worldTime: 0,
           advance: vi.fn(),
         },
-      } as any;
+      } as typeof globalThis.game;
 
       // Register a transform that returns null offset
       const mockTransform = vi.fn((worldTime: number) => [worldTime, null]);
@@ -212,11 +213,11 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
       global.game = {
         system: { id: 'test-system' },
         user: { isGM: false },
-      } as any;
+      } as typeof globalThis.game;
 
       global.ui = {
         notifications: mockNotifications,
-      } as any;
+      } as typeof globalThis.game;
 
       const testDate = new CalendarDate({ year: 4725, month: 1, day: 2, weekday: 1 }, calendar);
 

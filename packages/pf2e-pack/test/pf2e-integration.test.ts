@@ -41,7 +41,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
   const EXPECTED_PF2E_YEAR = WORLD_CREATION_YEAR + PF2E_YEAR_OFFSET; // 4725
   const SECONDS_PER_DAY = 86400;
 
-  beforeAll(() => {
+  beforeAll((): void => {
     // Set up basic Foundry environment
     setupFoundryEnvironment();
 
@@ -63,7 +63,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
     pf2eCalculations = createPF2eCalculations();
   });
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Use real Golarion calendar definition from JSON
     golarionCalendar = golarionCalendarData as SeasonsStarsCalendar;
 
@@ -75,7 +75,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
     manager.loadCalendar(golarionCalendar);
 
     // Clear compatibility manager for clean tests
-    (compatibilityManager as any).dataProviderRegistry.clear();
+    (compatibilityManager as Record<string, unknown>).dataProviderRegistry.clear();
 
     // Reset world time
     global.game.time.worldTime = 0;
@@ -85,7 +85,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
   });
 
   describe('GitHub Issue #91 Core Bug Reproduction', () => {
-    it('reproduces the exact widget synchronization issue', () => {
+    it('reproduces the exact widget synchronization issue', (): void => {
       // BACKGROUND: Issue #91 reported widgets showing different years
       // Main issue: "The monthly calendar widget still thinks its 4725"
       // while system shows different year
@@ -207,11 +207,13 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
         expect(ssDate.year).toBe(pf2eYear);
         expect(ssDate.year).toBe(EXPECTED_PF2E_YEAR + Math.floor(testCase.elapsedDays / 365));
 
-        console.log(`✅ Day ${testCase.elapsedDays}: S&S=${ssDate.year}, PF2e=${pf2eYear}`);
+        // Verify both calculations match
+        expect(ssDate.year).toBe(pf2eYear);
+        expect(ssDate.year).toBe(EXPECTED_PF2E_YEAR + Math.floor(testCase.elapsedDays / 365));
       }
     });
 
-    it('explains the 4725 vs 6749 year discrepancy', () => {
+    it('explains the 4725 vs 6749 year discrepancy', (): void => {
       // ANALYSIS: The issue mentioned 4725 AR vs 6749 - let's understand this
 
       const worldCreationTimestamp = new Date(WORLD_CREATION_DATE).getTime() / 1000;
@@ -225,11 +227,10 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
 
       // This suggests someone might be using a different calendar standard
       // or there's a calculation error adding an extra ~2024 years
-      console.log(`Alternative offset calculation: ${alternativeOffset}`);
-
-      console.log(`Correct PF2e year: ${correctPF2eYear} (2025 + 2700)`);
-      console.log(`Reported discrepancy: 6749`);
-      console.log(`Difference: ${6749 - 4725} years`);
+      // Verify the calculations
+      expect(correctPF2eYear).toBe(4725);
+      expect(alternativeOffset).toBe(4724);
+      expect(6749 - 4725).toBe(2024); // 2024 years difference
 
       // The 6749 vs 4725 discrepancy (2024 years) suggests either:
       // 1. Different calendar theme/standard being used
@@ -248,7 +249,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
   });
 
   describe('Widget Synchronization Chain Validation', () => {
-    it('validates time converter and engine use world creation timestamp', () => {
+    it('validates time converter and engine use world creation timestamp', (): void => {
       // GOAL: Ensure the core widget methods (TimeConverter + Engine) use world creation timestamp correctly
       // These are the methods actually used by Calendar widgets for date display
 
@@ -275,12 +276,13 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       expect(timeConverterDate.year).toBe(EXPECTED_PF2E_YEAR);
       expect(engineDate.year).toBe(EXPECTED_PF2E_YEAR);
 
-      console.log(
-        `✅ Widget methods synchronized: ${timeConverterDate.year}-${timeConverterDate.month}-${timeConverterDate.day}`
-      );
+      // Verify synchronization details
+      expect(timeConverterDate.year).toBeGreaterThan(4700);
+      expect(timeConverterDate.month).toBeGreaterThan(0);
+      expect(timeConverterDate.day).toBeGreaterThan(0);
     });
 
-    it('validates round-trip date conversion accuracy', () => {
+    it('validates round-trip date conversion accuracy', (): void => {
       // GOAL: Setting a date and reading it back should return the same date
 
       const worldCreationTimestamp = new Date(WORLD_CREATION_DATE).getTime() / 1000;
@@ -314,14 +316,16 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       expect(resultDate.time.minute).toBe(testDate.time.minute);
       expect(resultDate.time.second).toBe(testDate.time.second);
 
-      console.log(
-        `✅ Round-trip accuracy: ${testDate.year}-${testDate.month}-${testDate.day} ${testDate.time.hour}:${testDate.time.minute}:${testDate.time.second}`
-      );
+      // Verify complete round-trip accuracy
+      expect(resultDate.time.hour).toBeGreaterThanOrEqual(0);
+      expect(resultDate.time.hour).toBeLessThan(24);
+      expect(resultDate.time.minute).toBeGreaterThanOrEqual(0);
+      expect(resultDate.time.minute).toBeLessThan(60);
     });
   });
 
   describe('Cross-System Compatibility', () => {
-    it('maintains backward compatibility for non-PF2e systems', () => {
+    it('maintains backward compatibility for non-PF2e systems', (): void => {
       // GOAL: Ensure the fix doesn't break other game systems
 
       // STEP 1: Set up non-PF2e system
@@ -341,10 +345,12 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       // Should NOT use PF2e year calculation
       expect(resultDate.year).not.toBe(EXPECTED_PF2E_YEAR);
 
-      console.log(`✅ Non-PF2e system uses epoch calculation: ${resultDate.year}`);
+      // Verify epoch calculation details
+      expect(resultDate.month).toBeGreaterThan(0);
+      expect(resultDate.day).toBeGreaterThan(0);
     });
 
-    it('handles data provider errors gracefully', () => {
+    it('handles data provider errors gracefully', (): void => {
       // GOAL: Ensure errors in data providers don't crash the system
 
       // STEP 1: Register a broken data provider
@@ -361,7 +367,9 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
         expect(resultDate.year).toBe(2700); // Should fall back to epoch
       }).not.toThrow();
 
-      console.log(`✅ Error handling works - falls back to epoch calculation`);
+      // Verify error handling worked
+      expect(typeof resultDate.year).toBe('number');
+      expect(resultDate.year).toBeGreaterThan(0);
     });
   });
 });

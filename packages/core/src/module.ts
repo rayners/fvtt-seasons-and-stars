@@ -41,7 +41,7 @@ import type {
 } from './types/calendar';
 
 // Import integrations (they register their own hooks independently)
-import './integrations/pf2e-integration';
+// PF2e integration moved to separate pf2e-pack module
 
 // Module instances
 let calendarManager: CalendarManager;

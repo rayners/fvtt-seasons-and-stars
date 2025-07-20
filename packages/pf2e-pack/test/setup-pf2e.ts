@@ -126,7 +126,7 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
     );
   }
 
-  console.log(`✅ PF2e environment setup complete:`, {
+  console.log('✅ PF2e environment setup complete:', {
     worldCreatedOn,
     currentWorldTime,
     dateTheme,
@@ -141,7 +141,7 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
 export function createPF2eCalculations(): PF2eWorldClockCalculations {
   // NOTE: These calculations replicate the logic from the actual PF2e WorldClock class
   // but are simplified to work without full PF2e system dependencies
-  const calculations = {
+  const calculations: PF2eWorldClockCalculations = {
     calculateYear(worldTime: number, worldCreatedOn: string, dateTheme: string): number {
       // Replicates: this.worldTime.year + CONFIG.PF2E.worldClock[this.dateTheme].yearOffset
       const creationDate = new Date(worldCreatedOn);
@@ -166,7 +166,7 @@ export function createPF2eCalculations(): PF2eWorldClockCalculations {
       return `${weekday}, ${day}${ordinal} ${monthName} ${year} AR`;
     },
 
-    getMonthName(worldTime: number, worldCreatedOn: string, dateTheme: string): string {
+    getMonthName(worldTime: number, worldCreatedOn: string, _dateTheme: string): string {
       const creationDate = new Date(worldCreatedOn);
       const currentDate = new Date(creationDate.getTime() + worldTime * 1000);
       const monthNames = [
@@ -186,7 +186,7 @@ export function createPF2eCalculations(): PF2eWorldClockCalculations {
       return monthNames[currentDate.getUTCMonth()];
     },
 
-    getWeekday(worldTime: number, worldCreatedOn: string, dateTheme: string): string {
+    getWeekday(worldTime: number, worldCreatedOn: string, _dateTheme: string): string {
       const creationDate = new Date(worldCreatedOn);
       const currentDate = new Date(creationDate.getTime() + worldTime * 1000);
       const weekdays = ['Sunday', 'Moonday', 'Toilday', 'Wealday', 'Oathday', 'Fireday', 'Starday'];
@@ -274,7 +274,7 @@ export function validatePF2eEnvironment(): boolean {
     }
 
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('PF2e environment validation failed:', error);
     return false;
   }

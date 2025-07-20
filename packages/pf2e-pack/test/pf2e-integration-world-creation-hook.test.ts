@@ -11,12 +11,25 @@ import { describe, it, expect, beforeEach, vi, beforeAll, afterEach } from 'vite
 // So we'll mock the environment and then import to trigger the registration
 
 describe('PF2e Integration - Data Provider Registry', () => {
-  let mockHooks: any;
-  let mockLogger: any;
-  let mockCompatibilityManager: any;
-  let registeredDataProvider: Function;
+  let mockHooks: {
+    on: ReturnType<typeof vi.fn>;
+    callAll: ReturnType<typeof vi.fn>;
+    once: ReturnType<typeof vi.fn>;
+    off: ReturnType<typeof vi.fn>;
+  };
+  let mockLogger: {
+    debug: ReturnType<typeof vi.fn>;
+    error: ReturnType<typeof vi.fn>;
+    info: ReturnType<typeof vi.fn>;
+    warn: ReturnType<typeof vi.fn>;
+  };
+  let mockCompatibilityManager: {
+    registerTimeSource: ReturnType<typeof vi.fn>;
+    registerDataProvider: ReturnType<typeof vi.fn>;
+  };
+  let registeredDataProvider: (() => number | null) | undefined;
 
-  beforeAll(() => {
+  beforeAll((): void => {
     // Setup comprehensive Foundry mocks
     mockHooks = {
       on: vi.fn(),
@@ -47,7 +60,7 @@ describe('PF2e Integration - Data Provider Registry', () => {
           },
         },
       },
-    } as any;
+    } as typeof globalThis.game;
 
     // Mock the Logger module
     vi.doMock('../src/core/logger', () => ({
@@ -55,16 +68,16 @@ describe('PF2e Integration - Data Provider Registry', () => {
     }));
   });
 
-  beforeEach(() => {
+  beforeEach((): void => {
     vi.clearAllMocks();
   });
 
-  afterEach(() => {
+  afterEach((): void => {
     vi.clearAllMocks();
   });
 
   describe('Data Provider Registration', () => {
-    it('should register data provider for world creation timestamp', async () => {
+    it('should register data provider for world creation timestamp', async (): Promise<void> => {
       // Import the integration module to trigger hook registration
       await import('../src/integrations/pf2e-integration');
 
@@ -99,16 +112,17 @@ describe('PF2e Integration - Data Provider Registry', () => {
   });
 
   describe('Data Provider Logic', () => {
-    let dataProvider: Function;
+    let dataProvider: (() => number | null) | undefined;
 
-    beforeAll(() => {
+    beforeAll((): void => {
       // Use the data provider stored from the registration test
       dataProvider = registeredDataProvider;
     });
 
-    it('should provide world creation timestamp when PF2e data is available', () => {
+    it('should provide world creation timestamp when PF2e data is available', (): void => {
       // Execute data provider
-      const result = dataProvider();
+      expect(dataProvider).toBeDefined();
+      const result = dataProvider?.();
 
       // Verify timestamp was provided
       expect(result).toBeDefined();
@@ -120,31 +134,33 @@ describe('PF2e Integration - Data Provider Registry', () => {
       expect(result).toBe(expectedTimestamp);
     });
 
-    it('should handle missing PF2e game object gracefully', () => {
+    it('should handle missing PF2e game object gracefully', (): void => {
       // Setup - remove PF2e game object
       global.game.pf2e = undefined;
 
       // Execute - should not throw
-      expect(() => {
-        const result = dataProvider();
+      expect((): void => {
+        expect(dataProvider).toBeDefined();
+        const result = dataProvider?.();
         // Verify null was returned (no timestamp available)
         expect(result).toBeNull();
       }).not.toThrow();
     });
 
-    it('should handle missing worldClock settings gracefully', () => {
+    it('should handle missing worldClock settings gracefully', (): void => {
       // Setup - remove worldClock settings
       global.game.pf2e = { settings: {} };
 
       // Execute - should not throw
-      expect(() => {
-        const result = dataProvider();
+      expect((): void => {
+        expect(dataProvider).toBeDefined();
+        const result = dataProvider?.();
         // Verify null was returned
         expect(result).toBeNull();
       }).not.toThrow();
     });
 
-    it('should handle missing worldCreatedOn setting gracefully', () => {
+    it('should handle missing worldCreatedOn setting gracefully', (): void => {
       // Setup - remove worldCreatedOn setting
       global.game.pf2e = {
         settings: {
@@ -153,14 +169,15 @@ describe('PF2e Integration - Data Provider Registry', () => {
       };
 
       // Execute - should not throw
-      expect(() => {
-        const result = dataProvider();
+      expect((): void => {
+        expect(dataProvider).toBeDefined();
+        const result = dataProvider?.();
         // Verify null was returned
         expect(result).toBeNull();
       }).not.toThrow();
     });
 
-    it('should handle invalid date strings gracefully', () => {
+    it('should handle invalid date strings gracefully', (): void => {
       const invalidDates = ['invalid-date', '', 'not-a-date', '2025-13-01', '2025-01-32'];
 
       invalidDates.forEach(invalidDate => {
@@ -174,15 +191,16 @@ describe('PF2e Integration - Data Provider Registry', () => {
         };
 
         // Execute - should not throw
-        expect(() => {
-          const result = dataProvider();
+        expect((): void => {
+          expect(dataProvider).toBeDefined();
+          const result = dataProvider?.();
           // Verify null was returned for invalid dates
           expect(result).toBeNull();
         }).not.toThrow();
       });
     });
 
-    it('should validate timestamp is finite and positive', () => {
+    it('should validate timestamp is finite and positive', (): void => {
       // Test edge case where Date constructor succeeds but produces invalid timestamp
       const testCases = [
         { date: '2020-01-01T00:00:00.000Z', shouldProvide: true }, // Valid recent date
@@ -201,7 +219,8 @@ describe('PF2e Integration - Data Provider Registry', () => {
         };
 
         // Execute
-        const result = dataProvider();
+        expect(dataProvider).toBeDefined();
+        const result = dataProvider?.();
 
         // Verify
         if (shouldProvide) {
@@ -215,42 +234,44 @@ describe('PF2e Integration - Data Provider Registry', () => {
   });
 
   describe('Error Handling and Logging', () => {
-    let dataProvider: Function;
+    let dataProvider: (() => number | null) | undefined;
 
-    beforeAll(() => {
+    beforeAll((): void => {
       // Use the data provider stored from the registration test
       dataProvider = registeredDataProvider;
     });
 
-    it('should handle exception gracefully and return null', () => {
+    it('should handle exception gracefully and return null', (): void => {
       // Setup - mock game object that throws when accessed
       Object.defineProperty(global, 'game', {
-        get: () => {
+        get: (): never => {
           throw new Error('Mock access error');
         },
         configurable: true,
       });
 
       // Execute - should not throw
-      expect(() => {
-        const result = dataProvider();
+      expect((): void => {
+        expect(dataProvider).toBeDefined();
+        const result = dataProvider?.();
         // Verify null was returned on error
         expect(result).toBeNull();
       }).not.toThrow();
     });
 
-    it('should handle non-Error exceptions properly', () => {
+    it('should handle non-Error exceptions properly', (): void => {
       // Setup - mock game object that throws non-Error
       Object.defineProperty(global, 'game', {
-        get: () => {
+        get: (): never => {
           throw 'String exception';
         },
         configurable: true,
       });
 
       // Execute - should not throw
-      expect(() => {
-        const result = dataProvider();
+      expect((): void => {
+        expect(dataProvider).toBeDefined();
+        const result = dataProvider?.();
         // Verify null was returned on error
         expect(result).toBeNull();
       }).not.toThrow();

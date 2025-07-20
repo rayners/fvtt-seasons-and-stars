@@ -11,13 +11,13 @@
  * For manual testing, use console commands in a test world.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { compatibilityManager } from '../src/core/compatibility-manager';
 import golarionCalendar from '../calendars/golarion-pf2e.json';
 
 // Mock Foundry globals
-const mockFoundryGlobals = () => {
+const mockFoundryGlobals = (): void => {
   global.game = {
     system: { id: 'pf2e' },
     time: { worldTime: 0 },
@@ -26,7 +26,7 @@ const mockFoundryGlobals = () => {
         getActiveCalendar: () => golarionCalendar,
       },
     },
-  } as any;
+  } as typeof globalThis.game;
 };
 
 describe('PF2e Date/Time Synchronization Bugfix', () => {
@@ -34,10 +34,10 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
 
   beforeEach(() => {
     mockFoundryGlobals();
-    engine = new CalendarEngine(golarionCalendar as any);
+    engine = new CalendarEngine(golarionCalendar as typeof golarionCalendar);
 
     // Clear any existing data providers
-    (compatibilityManager as any).dataProviderRegistry.clear();
+    (compatibilityManager as Record<string, unknown>).dataProviderRegistry.clear();
   });
 
   describe('Bug Reproduction: Date Mismatch', () => {
@@ -264,7 +264,7 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
             worldCreatedOn: pf2eWorldCreatedOn,
           },
         },
-      } as any;
+      } as typeof globalThis.game;
 
       // STEP 3: PF2e integration calculates systemBaseDate
       const creationDate = new Date(pf2eWorldCreatedOn);
