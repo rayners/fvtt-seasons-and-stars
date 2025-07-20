@@ -44,7 +44,7 @@ describe('Star Trek Variant Manual Test', () => {
     // Test that the variant has the expected dateFormats structure
     const dateFormats = federationVariant.overrides.dateFormats;
     expect(dateFormats.widgets).toBeDefined();
-    expect(dateFormats.widgets.mini).toBe('SD {{ss-dateFmt formatName="tng-stardate"}}');
+    expect(dateFormats.widgets.mini).toBe('SD {{ss-dateFmt "tng-stardate"}}');
     expect(dateFormats['tng-stardate']).toBeDefined();
 
     // Load the base calendar into the manager
@@ -71,7 +71,7 @@ describe('Star Trek Variant Manual Test', () => {
       // Verify that dateFormats were applied
       expect(federationCalendar.dateFormats).toBeDefined();
       expect(federationCalendar.dateFormats?.widgets?.mini).toBe(
-        'SD {{ss-dateFmt formatName="tng-stardate"}}'
+        'SD {{ss-dateFmt "tng-stardate"}}'
       );
       expect(federationCalendar.dateFormats?.['tng-stardate']).toBeDefined();
     }

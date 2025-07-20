@@ -63,10 +63,10 @@ describe('CalendarDate Formatting', () => {
 
         // Time formats
         time: '{{ss-hour format="pad"}}:{{ss-minute format="pad"}}:{{ss-second format="pad"}}',
-        datetime: '{{ss-dateFmt formatName="long"}} {{ss-dateFmt formatName="time"}}',
+        datetime: '{{ss-dateFmt "long"}} {{ss-dateFmt "time"}}',
 
         // Complex formats with embedding
-        formal: 'On {{ss-dateFmt formatName="long"}} at {{ss-dateFmt formatName="time"}}',
+        formal: 'On {{ss-dateFmt "long"}} at {{ss-dateFmt "time"}}',
 
         // Variant formats (object style)
         date: {

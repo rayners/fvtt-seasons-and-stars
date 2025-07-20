@@ -157,7 +157,7 @@
     "short": "{{ss-month format=\"abbr\"}} {{ss-day}}",
     "date": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} AG",
     "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}} GST",
-    "datetime": "{{ss-dateFmt formatName=\"date\"}} at {{ss-dateFmt formatName=\"time\"}}",
+    "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}}",
     "standard": "{{ss-day}}/{{ss-month}}/{{year}} AG",
     "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, in the year {{year}} After the Gap",
     "starship": "Stardate {{year}}.{{ss-month format=\"pad\"}}{{ss-day format=\"pad\"}}",

@@ -222,7 +222,7 @@ export class CalendarLocalization {
       let baseCalendarId = calendar.id;
 
       if (isVariant) {
-        const match = calendar.id.match(/^(.+)\((.+)\)$/);
+        const match = calendar.id.match(/^([^(]+)\(([^)]+)\)$/);
         if (match) {
           baseCalendarId = match[1];
         }

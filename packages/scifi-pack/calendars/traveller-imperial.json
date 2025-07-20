@@ -90,7 +90,7 @@
     "short": "{{ss-day format=\"pad\"}}/{{year}}",
     "date": "{{ss-weekday format=\"name\"}}, Day {{ss-day}} of {{year}}",
     "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
-    "datetime": "{{ss-dateFmt formatName=\"date\"}} at {{ss-dateFmt formatName=\"time\"}} Imperial Standard Time",
+    "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}} Imperial Standard Time",
     "administrative": "Imperial Date: {{year}}.{{ss-day format=\"pad\"}}",
     "formal": "The {{ss-day format=\"ordinal\"}} day of the Imperial year {{year}}",
     "widgets": {

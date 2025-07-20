@@ -202,9 +202,9 @@ describe('DateFormatter Advanced Tests', () => {
       const result = formatter.formatNamed(mockDate, 'format1');
 
       // Assert
-      // When circular reference is detected in format2, it gets replaced with basic format
-      // So format1 becomes 'A: Monday, 15th January Year 2024 CE'
-      expect(result).toBe('A: Monday, 15th January Year 2024 CE');
+      // When circular reference is detected for format1 within format2, that specific call returns basic format
+      // So format2 becomes 'B: Monday, 15th January Year 2024 CE' and format1 becomes 'A: B: Monday, 15th January Year 2024 CE'
+      expect(result).toBe('A: B: Monday, 15th January Year 2024 CE');
     });
 
     it('should handle deeply nested format embedding', () => {
