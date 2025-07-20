@@ -331,39 +331,36 @@ export class DateFormatter {
 
     // Match both old colon syntax and new parameter syntax
     const embeddedFormatRegex =
-      /\{\{\s*ss-dateFmt\s*(?::\s*([^}\s]+)|(?:[^}](?!formatName))*formatName\s*=\s*["']([^"']+)["']|\s+["']([^"']+)["'])\s*\}\}/g;
+      /\{\{\s*ss-dateFmt\s*(?::\s*([^}\s]+)|\s+(?:formatName\s*=\s*)?["']([^"']+)["'])\s*\}\}/g;
 
-    return template.replace(
-      embeddedFormatRegex,
-      (match, colonFormatName, paramFormatName, quotedFormatName) => {
-        try {
-          // Use whichever format name was captured (colon, parameter, or quoted syntax)
-          const formatName = colonFormatName || paramFormatName || quotedFormatName;
-          if (!formatName) {
-            console.debug(`[S&S] Could not extract format name from: ${match}`);
-            return this.getBasicFormat(date);
-          }
-
-          // Check if the format actually exists before trying to resolve it
-          // If it doesn't exist, return the original match to let the helper handle it
-          if (!this.calendar.dateFormats || !this.calendar.dateFormats[formatName]) {
-            return match; // Return original match to let helper handle unresolved formats
-          }
-
-          // Recursively format the embedded format with the same visited set (to detect cycles)
-          // The circular reference detection happens in formatNamedRecursive
-          const embeddedResult = this.formatNamedRecursive(date, formatName, visited);
-          return embeddedResult;
-        } catch (error) {
-          console.debug(
-            `[S&S] Failed to resolve embedded format '${colonFormatName || paramFormatName || quotedFormatName}':`,
-            error
-          );
-          // Return original match to let helper handle the error
-          return match;
+    return template.replace(embeddedFormatRegex, (match, colonFormatName, quotedFormatName) => {
+      try {
+        // Use whichever format name was captured (colon or quoted syntax)
+        const formatName = colonFormatName || quotedFormatName;
+        if (!formatName) {
+          console.debug(`[S&S] Could not extract format name from: ${match}`);
+          return this.getBasicFormat(date);
         }
+
+        // Check if the format actually exists before trying to resolve it
+        // If it doesn't exist, return the original match to let the helper handle it
+        if (!this.calendar.dateFormats || !this.calendar.dateFormats[formatName]) {
+          return match; // Return original match to let helper handle unresolved formats
+        }
+
+        // Recursively format the embedded format with the same visited set (to detect cycles)
+        // The circular reference detection happens in formatNamedRecursive
+        const embeddedResult = this.formatNamedRecursive(date, formatName, visited);
+        return embeddedResult;
+      } catch (error) {
+        console.debug(
+          `[S&S] Failed to resolve embedded format '${colonFormatName || paramFormatName || quotedFormatName}':`,
+          error
+        );
+        // Return original match to let helper handle the error
+        return match;
       }
-    );
+    });
   }
 
   /**
@@ -839,11 +836,11 @@ export class DateFormatter {
   ): boolean {
     // Find all embedded format references in this format
     const embeddedFormatRegex =
-      /\{\{\s*ss-dateFmt\s*(?::\s*([^}\s]+)|(?:[^}](?!formatName))*formatName\s*=\s*["']([^"']+)["']|\s+["']([^"']+)["'])\s*\}\}/g;
+      /\{\{\s*ss-dateFmt\s*(?::\s*([^}\s]+)|\s+(?:formatName\s*=\s*)?["']([^"']+)["'])\s*\}\}/g;
 
     let match;
     while ((match = embeddedFormatRegex.exec(formatString)) !== null) {
-      const embeddedFormatName = match[1] || match[2] || match[3];
+      const embeddedFormatName = match[1] || match[2];
       if (embeddedFormatName && visited.has(embeddedFormatName)) {
         return true; // Found a circular reference
       }
