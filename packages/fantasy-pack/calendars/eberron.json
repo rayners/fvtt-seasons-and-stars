@@ -147,21 +147,21 @@
     "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} YK",
     "date": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} YK",
     "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
-    "datetime": "{{ss-dateFmt formatName=\"date\"}} at {{ss-dateFmt formatName=\"time\"}}",
+    "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}}",
     "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
     "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, in the {{year}} year of the Kingdom",
     "day-of-year": "Day {{dayOfYear}} of {{year}} YK",
     "week-number": "Week {{ss-math dayOfYear op=\"divide\" value=7}} of {{year}} YK",
     "historical": "{{ss-math year op=\"subtract\" value=894}} years since the Last War ended",
-    "treaty": "{{ss-dateFmt formatName=\"date\"}} (Treaty of Thronehold +{{ss-math year op=\"subtract\" value=996}})",
+    "treaty": "{{ss-dateFmt \"date\"}} (Treaty of Thronehold +{{ss-math year op=\"subtract\" value=996}})",
     "variants": {
       "dragonmarked": {
         "short": "{{ss-month format=\"name\"}} {{ss-day}}, {{year}} YK",
-        "long": "{{ss-dateFmt formatName=\"date\"}} - {{ss-dateFmt formatName=\"historical\"}}"
+        "long": "{{ss-dateFmt \"date\"}} - {{ss-dateFmt \"historical\"}}"
       },
       "common": {
         "short": "{{ss-day}} {{ss-month format=\"abbr\"}} {{year}}",
-        "long": "{{ss-dateFmt formatName=\"formal\"}}"
+        "long": "{{ss-dateFmt \"formal\"}}"
       }
     },
     "widgets": {

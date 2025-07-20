@@ -72,6 +72,7 @@ describe('Day of Year Bounds Checking', () => {
         second: undefined,
         dayOfYear: 1, // Improved: meaningful fallback value
         _calendarId: 'test-calendar',
+        _visitedFormats: new Set(), // Added after refactoring for circular reference detection
       });
     });
 
@@ -105,6 +106,7 @@ describe('Day of Year Bounds Checking', () => {
         second: undefined,
         dayOfYear: 1, // Improved: consistent fallback behavior
         _calendarId: 'test-calendar',
+        _visitedFormats: new Set(), // Added after refactoring for circular reference detection
       });
     });
 

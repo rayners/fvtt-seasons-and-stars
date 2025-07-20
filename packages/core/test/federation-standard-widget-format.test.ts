@@ -23,17 +23,14 @@ describe('Calendar Variant DateFormats Override', () => {
           let result = template;
 
           // Replace ss-dateFmt calls - need to handle formatName parameter syntax
-          result = result.replace(
-            /\{\{ss-dateFmt formatName="([^"]+)"\}\}/g,
-            (match, formatName) => {
-              if (formatName === 'tng-stardate') {
-                // Mock stardate calculation: should return something like "47015.0"
-                const stardate = `${47000 + Math.floor(context.dayOfYear || 15)}.0`;
-                return stardate;
-              }
-              return match;
+          result = result.replace(/\{\{ss-dateFmt "([^"]+)"\}\}/g, (match, formatName) => {
+            if (formatName === 'tng-stardate') {
+              // Mock stardate calculation: should return something like "47015.0"
+              const stardate = `${47000 + Math.floor(context.dayOfYear || 15)}.0`;
+              return stardate;
             }
-          );
+            return match;
+          });
 
           // Replace ss-stardate helper calls
           result = result.replace(
@@ -118,7 +115,7 @@ describe('Calendar Variant DateFormats Override', () => {
               'tng-stardate':
                 '{{ss-stardate year prefix="47" baseYear=2370 dayOfYear=dayOfYear precision=1}}',
               widgets: {
-                mini: 'SD {{ss-dateFmt formatName="tng-stardate"}}',
+                mini: 'SD {{ss-dateFmt "tng-stardate"}}',
                 main: '{{ss-weekday format="abbr"}}, {{ss-month format="name"}} {{ss-day format="ordinal"}}',
                 grid: '{{ss-day}}',
               },
@@ -146,9 +143,7 @@ describe('Calendar Variant DateFormats Override', () => {
     expect(federationCalendar.dateFormats).toBeDefined();
     expect(federationCalendar.dateFormats?.widgets).toBeDefined();
     expect(federationCalendar.dateFormats?.widgets?.mini).toBeDefined();
-    expect(federationCalendar.dateFormats?.widgets?.mini).toBe(
-      'SD {{ss-dateFmt formatName="tng-stardate"}}'
-    );
+    expect(federationCalendar.dateFormats?.widgets?.mini).toBe('SD {{ss-dateFmt "tng-stardate"}}');
   });
 
   it('should format mini widget using variant dateFormats', () => {
@@ -181,7 +176,7 @@ describe('Calendar Variant DateFormats Override', () => {
               'tng-stardate':
                 '{{ss-stardate year prefix="47" baseYear=2370 dayOfYear=dayOfYear precision=1}}',
               widgets: {
-                mini: 'SD {{ss-dateFmt formatName="tng-stardate"}}',
+                mini: 'SD {{ss-dateFmt "tng-stardate"}}',
                 main: '{{ss-weekday format="abbr"}}, {{ss-month format="name"}} {{ss-day format="ordinal"}}',
                 grid: '{{ss-day}}',
               },
