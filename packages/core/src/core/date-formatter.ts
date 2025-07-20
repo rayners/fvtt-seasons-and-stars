@@ -354,7 +354,7 @@ export class DateFormatter {
         return embeddedResult;
       } catch (error) {
         console.debug(
-          `[S&S] Failed to resolve embedded format '${colonFormatName || paramFormatName || quotedFormatName}':`,
+          `[S&S] Failed to resolve embedded format '${colonFormatName || quotedFormatName}':`,
           error
         );
         // Return original match to let helper handle the error
