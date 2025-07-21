@@ -31,6 +31,7 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
 
   static override PARTS = {
     form: {
+      id: 'form',
       template: 'modules/seasons-and-stars/templates/calendar-deprecation-warning.hbs',
     },
   };
@@ -75,11 +76,7 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
   /**
    * Handle form submission (dismiss button clicked)
    */
-  static async #onSubmit(
-    event: Event,
-    form: HTMLFormElement,
-    formData: FormDataExtended
-  ): Promise<void> {
+  static async #onSubmit(event: Event, form: HTMLFormElement, formData: any): Promise<void> {
     try {
       const dontRemind = formData.object.dontRemind === true;
 
