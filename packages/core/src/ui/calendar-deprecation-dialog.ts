@@ -22,9 +22,6 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
       width: 500,
       height: 650,
     },
-    actions: {
-      dismiss: CalendarDeprecationDialog.#onDismiss,
-    },
   };
 
   static override PARTS = {
@@ -71,32 +68,35 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
     };
   }
 
-  /**
-   * Handle dismiss button clicked
-   */
-  static async #onDismiss(event: Event, target: HTMLElement): Promise<void> {
-    try {
-      // Find the checkbox in the dialog
-      const dialog = target.closest('.seasons-stars-deprecation-warning');
-      const checkbox = dialog?.querySelector('input[name="dontRemind"]') as HTMLInputElement;
-      const dontRemind = checkbox?.checked === true;
+  override async _onRender(context: any, options: any): Promise<void> {
+    await super._onRender(context, options);
 
-      if (dontRemind) {
-        // Mark the warning as shown so it won't appear again
-        await game.settings?.set('seasons-and-stars', 'calendarDeprecationWarningShown', true);
-        Logger.info('Calendar deprecation warning dismissed by GM');
-      }
+    // Add simple click handler to the dismiss button
+    const dismissButton = this.element?.querySelector('.dismiss-button');
+    if (dismissButton) {
+      dismissButton.addEventListener('click', async () => {
+        try {
+          // Check if "don't remind" is checked
+          const checkbox = this.element?.querySelector(
+            'input[name="dontRemind"]'
+          ) as HTMLInputElement;
+          const dontRemind = checkbox?.checked === true;
 
-      // Close the dialog by dispatching a close event
-      const closeButton = target.closest('.application')?.querySelector('.window-header .close');
-      if (closeButton) {
-        (closeButton as HTMLElement).click();
-      }
-    } catch (error) {
-      Logger.error(
-        'Failed to save calendar deprecation warning preference',
-        error instanceof Error ? error : new Error(String(error))
-      );
+          if (dontRemind) {
+            // Mark the warning as shown so it won't appear again
+            await game.settings?.set('seasons-and-stars', 'calendarDeprecationWarningShown', true);
+            Logger.info('Calendar deprecation warning dismissed by GM');
+          }
+
+          // Close this dialog
+          await this.close();
+        } catch (error) {
+          Logger.error(
+            'Failed to save calendar deprecation warning preference',
+            error instanceof Error ? error : new Error(String(error))
+          );
+        }
+      });
     }
   }
 }
