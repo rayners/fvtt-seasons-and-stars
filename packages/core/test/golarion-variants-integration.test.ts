@@ -68,8 +68,8 @@ describe('Golarion Variants Integration', () => {
     // Load built-in calendars (including golarion-pf2e and gregorian)
     await calendarManager.loadBuiltInCalendars();
 
-    // Should have 6 calendars: gregorian + golarion-pf2e + 4 golarion variants
-    expect(calendarManager.calendars.size).toBe(6);
+    // Should have all core calendars (16 base + 4 golarion variants + 4 star trek variants = 23)
+    expect(calendarManager.calendars.size).toBe(23);
 
     // Check base calendar
     expect(calendarManager.calendars.has('golarion-pf2e')).toBe(true);

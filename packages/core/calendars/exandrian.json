@@ -1,0 +1,182 @@
+{
+  "id": "exandrian",
+  "translations": {
+    "en": {
+      "label": "Exandrian Calendar (Critical Role)",
+      "description": "The calendar system used in Critical Role's world of Exandria, featuring unique month names and festival days. Created by Matthew Mercer for his campaign world.",
+      "setting": "Critical Role"
+    }
+  },
+
+  "year": {
+    "epoch": 0,
+    "currentYear": 812,
+    "prefix": "",
+    "suffix": " P.D.",
+    "startDay": 3
+  },
+
+  "leapYear": {
+    "rule": "none"
+  },
+
+  "months": [
+    {
+      "name": "Horisal",
+      "abbreviation": "Hor",
+      "days": 29,
+      "description": "The month of renewal. The shortest month, marking the transition from winter to spring when the days begin to lengthen."
+    },
+    {
+      "name": "Misuthar",
+      "abbreviation": "Mis",
+      "days": 30,
+      "description": "The month of new growth. Early spring brings the first stirrings of life as nature awakens from winter's slumber."
+    },
+    {
+      "name": "Dualahei",
+      "abbreviation": "Dua",
+      "days": 30,
+      "description": "The month of flourishing. Mid-spring sees plants and flowers coming into full bloom across the lands."
+    },
+    {
+      "name": "Thunsheer",
+      "abbreviation": "Thu",
+      "days": 31,
+      "description": "The month of storms. Late spring brings powerful weather patterns as the seasons shift toward summer."
+    },
+    {
+      "name": "Unndilar",
+      "abbreviation": "Unn",
+      "days": 28,
+      "description": "The month of balance. The shortest regular month, representing the brief equilibrium between spring and summer."
+    },
+    {
+      "name": "Brussendar",
+      "abbreviation": "Bru",
+      "days": 31,
+      "description": "The month of plenty. Early summer brings abundance as crops grow and the land reaches peak fertility."
+    },
+    {
+      "name": "Sydenstar",
+      "abbreviation": "Syd",
+      "days": 32,
+      "description": "The month of high sun. The longest month of the year, marking the peak of summer when daylight reaches its maximum."
+    },
+    {
+      "name": "Fessuran",
+      "abbreviation": "Fes",
+      "days": 29,
+      "description": "The month of harvest joy. Late summer brings the first harvests and celebrations of the year's bounty."
+    },
+    {
+      "name": "Quen'pillar",
+      "abbreviation": "Que",
+      "days": 27,
+      "description": "The month of reflection. The shortest month, marking the transition from summer to autumn in contemplative stillness."
+    },
+    {
+      "name": "Cuersaar",
+      "abbreviation": "Cue",
+      "days": 29,
+      "description": "The month of gathering. Early autumn sees communities preparing for winter through harvest and stockpiling."
+    },
+    {
+      "name": "Duscar",
+      "abbreviation": "Dus",
+      "days": 32,
+      "description": "The month of endings. The final month of the year, longest of autumn, when nature prepares for winter's return."
+    }
+  ],
+
+  "weekdays": [
+    {
+      "name": "Miresen",
+      "abbreviation": "Mi",
+      "description": "First day of the week, traditionally a day for new beginnings and planning"
+    },
+    {
+      "name": "Grissen",
+      "abbreviation": "Gr",
+      "description": "Second day of the week, often devoted to community gatherings and shared work"
+    },
+    {
+      "name": "Whelsen",
+      "abbreviation": "Wh",
+      "description": "Third day of the week, a common day for travel and exploration"
+    },
+    {
+      "name": "Conthsen",
+      "abbreviation": "Co",
+      "description": "Fourth day of the week, traditionally devoted to craft and trade"
+    },
+    {
+      "name": "Folsen",
+      "abbreviation": "Fo",
+      "description": "Fifth day of the week, often used for learning and study"
+    },
+    {
+      "name": "Yulisen",
+      "abbreviation": "Yu",
+      "description": "Sixth day of the week, a day for worship and spiritual reflection"
+    },
+    {
+      "name": "Da'leysen",
+      "abbreviation": "Da",
+      "description": "Seventh day of the week, traditionally a day of rest and family time"
+    }
+  ],
+
+  "intercalary": [],
+
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  },
+
+  "moons": [
+    {
+      "name": "Catha",
+      "cycleLength": 33,
+      "firstNewMoon": { "year": 812, "month": 1, "day": 1 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 7, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 7, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 7, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 8, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#e0e0e0",
+      "translations": {
+        "en": {
+          "description": "The larger and brighter of Exandria's two moons, following a regular monthly cycle"
+        }
+      }
+    },
+    {
+      "name": "Ruidus",
+      "cycleLength": 328,
+      "firstNewMoon": { "year": 812, "month": 1, "day": 15 },
+      "phases": [
+        { "name": "New Moon", "length": 41, "singleDay": false, "icon": "new" },
+        { "name": "Full Moon", "length": 41, "singleDay": false, "icon": "full" },
+        { "name": "New Moon", "length": 41, "singleDay": false, "icon": "new" },
+        { "name": "Full Moon", "length": 41, "singleDay": false, "icon": "full" },
+        { "name": "New Moon", "length": 41, "singleDay": false, "icon": "new" },
+        { "name": "Full Moon", "length": 41, "singleDay": false, "icon": "full" },
+        { "name": "New Moon", "length": 41, "singleDay": false, "icon": "new" },
+        { "name": "Full Moon", "length": 41, "singleDay": false, "icon": "full" }
+      ],
+      "color": "#800020",
+      "translations": {
+        "en": {
+          "description": "The smaller, reddish moon of Exandria with an irregular cycle spanning nearly a year"
+        }
+      }
+    }
+  ]
+}

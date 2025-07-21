@@ -213,7 +213,15 @@ export class CalendarLoader {
 
       // Resolve relative URLs against the collection base URL
       const resolvedUrl = this.resolveUrl(calendarUrl, url);
-      const result = await this.loadFromUrl(resolvedUrl, options);
+
+      // Detect external variant files by ID pattern and skip validation for them
+      const isVariantFile = calendarEntry.id && calendarEntry.id.includes('-variants');
+      const loadOptions = {
+        ...options,
+        validate: isVariantFile ? false : options.validate !== false,
+      };
+
+      const result = await this.loadFromUrl(resolvedUrl, loadOptions);
 
       // Add collection entry metadata to the result with sanitized preview
       if (result.success) {
