@@ -21,14 +21,19 @@
     margin-bottom: 1rem;
   }
 
-  // Override Foundry's notification warning to be more prominent
+  // Override Foundry's notification warning to be more prominent and readable
   .notification.warning {
     border-left-color: #f39c12;
     background: rgba(243, 156, 18, 0.1);
+    color: var(--color-text-dark-primary); // Ensure dark text for readability
     
     h4 {
-      color: var(--color-text-light-heading);
+      color: var(--color-text-dark-primary); // Dark text for heading too
       margin-bottom: 0.5rem;
+    }
+    
+    p {
+      color: var(--color-text-dark-primary); // Dark text for paragraph
     }
   }
 
