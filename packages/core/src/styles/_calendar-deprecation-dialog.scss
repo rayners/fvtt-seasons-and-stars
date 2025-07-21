@@ -1,0 +1,142 @@
+/**
+ * Calendar Deprecation Warning Dialog Styles
+ */
+
+.seasons-stars-deprecation-warning {
+  .warning-content {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--color-bg-alt);
+    border: 1px solid var(--color-border-light-tertiary);
+    border-radius: 6px;
+    
+    .warning-icon {
+      flex-shrink: 0;
+      font-size: 24px;
+      color: var(--color-text-light-highlight);
+      margin-top: 4px;
+    }
+    
+    .warning-text {
+      flex: 1;
+      
+      h3 {
+        margin: 0 0 12px 0;
+        color: var(--color-text-light-heading);
+        font-size: 16px;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 0 0 12px 0;
+        line-height: 1.5;
+        color: var(--color-text-light-primary);
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+      
+      ul {
+        margin: 8px 0 12px 20px;
+        padding: 0;
+        
+        li {
+          margin-bottom: 6px;
+          line-height: 1.4;
+          color: var(--color-text-light-primary);
+          
+          &:last-child {
+            margin-bottom: 0;
+          }
+          
+          ul {
+            margin: 6px 0 0 20px;
+            
+            li {
+              margin-bottom: 4px;
+              color: var(--color-text-light-secondary);
+            }
+          }
+        }
+      }
+      
+      strong {
+        color: var(--color-text-light-heading);
+        font-weight: 600;
+      }
+    }
+  }
+  
+  .form-group {
+    margin-bottom: 16px;
+    
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--color-text-light-primary);
+      
+      input[type="checkbox"] {
+        margin: 0;
+        cursor: pointer;
+      }
+      
+      &:hover {
+        color: var(--color-text-light-heading);
+      }
+    }
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border-light-tertiary);
+    
+    button {
+      padding: 8px 16px;
+      border: 1px solid var(--color-border-light-secondary);
+      background: var(--color-bg-option);
+      color: var(--color-text-light-primary);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      
+      &:hover {
+        background: var(--color-bg-alt);
+        border-color: var(--color-border-light-primary);
+        transform: translateY(-1px);
+      }
+      
+      &:active {
+        transform: translateY(0);
+      }
+      
+      &.bright {
+        background: var(--color-text-light-highlight);
+        color: var(--color-text-dark-primary);
+        border-color: var(--color-text-light-highlight);
+        
+        &:hover {
+          background: var(--color-text-light-heading);
+          border-color: var(--color-text-light-heading);
+        }
+      }
+      
+      i {
+        font-size: 12px;
+      }
+    }
+  }
+}
