@@ -22,16 +22,14 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
       width: 500,
       height: 650,
     },
-    form: {
-      handler: CalendarDeprecationDialog.#onSubmit,
-      submitOnChange: false,
-      closeOnSubmit: true,
+    actions: {
+      dismiss: CalendarDeprecationDialog.#onDismiss,
     },
   };
 
   static override PARTS = {
-    form: {
-      id: 'form',
+    content: {
+      id: 'content',
       template: 'modules/seasons-and-stars/templates/calendar-deprecation-warning.hbs',
     },
   };
@@ -74,16 +72,25 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
   }
 
   /**
-   * Handle form submission (dismiss button clicked)
+   * Handle dismiss button clicked
    */
-  static async #onSubmit(event: Event, form: HTMLFormElement, formData: any): Promise<void> {
+  static async #onDismiss(event: Event, target: HTMLElement): Promise<void> {
     try {
-      const dontRemind = formData.object.dontRemind === true;
+      // Find the checkbox in the dialog
+      const dialog = target.closest('.seasons-stars-deprecation-warning');
+      const checkbox = dialog?.querySelector('input[name="dontRemind"]') as HTMLInputElement;
+      const dontRemind = checkbox?.checked === true;
 
       if (dontRemind) {
         // Mark the warning as shown so it won't appear again
         await game.settings?.set('seasons-and-stars', 'calendarDeprecationWarningShown', true);
         Logger.info('Calendar deprecation warning dismissed by GM');
+      }
+
+      // Close the dialog by dispatching a close event
+      const closeButton = target.closest('.application')?.querySelector('.window-header .close');
+      if (closeButton) {
+        (closeButton as HTMLElement).click();
       }
     } catch (error) {
       Logger.error(
