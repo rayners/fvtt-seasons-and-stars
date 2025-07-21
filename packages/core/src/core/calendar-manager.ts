@@ -737,6 +737,14 @@ export class CalendarManager {
 
     for (const result of results) {
       if (result.success && result.calendar) {
+        // Skip external variant files - they should be processed separately
+        const isVariantFile = result.calendar.id && result.calendar.id.includes('-variants');
+        if (isVariantFile) {
+          // Mark as successful but don't try to load as a regular calendar
+          successCount++;
+          continue;
+        }
+
         // Determine source information based on URL
         const sourceInfo = this.determineSourceInfo(url, result);
 
