@@ -128,6 +128,12 @@ export class CalendarManager {
    * Load a calendar from data
    */
   loadCalendar(calendarData: SeasonsStarsCalendar, sourceInfo?: CalendarSourceInfo): boolean {
+    // Check for duplicate calendar ID and skip if already loaded
+    if (this.calendars.has(calendarData.id)) {
+      Logger.debug(`Calendar ${calendarData.id} already loaded, skipping duplicate`);
+      return true; // Return true since the calendar exists and is usable
+    }
+
     // Validate the calendar data (using synchronous legacy validation for performance)
     const validation = CalendarValidator.validateWithHelp(calendarData);
 

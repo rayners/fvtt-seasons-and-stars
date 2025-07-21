@@ -1,0 +1,219 @@
+{
+  "id": "vale-reckoning",
+  "translations": {
+    "en": {
+      "label": "The Vale Reckoning",
+      "description": "A fantasy calendar used in northern mountain valleys, where each season breathes myth and memory. Features an 8-month cycle, 6-day week, and sacred festival days.",
+      "setting": "Fantasy"
+    }
+  },
+
+  "year": {
+    "epoch": 0,
+    "currentYear": 1542,
+    "prefix": "",
+    "suffix": " VR",
+    "startDay": 0
+  },
+
+  "leapYear": {
+    "rule": "none"
+  },
+
+  "months": [
+    {
+      "name": "Frostwane",
+      "abbreviation": "Fro",
+      "days": 45,
+      "description": "The dying of winter. A time of silence, hunger, and huddled survival."
+    },
+    {
+      "name": "Thawmarch",
+      "abbreviation": "Tha",
+      "days": 45,
+      "description": "The breaking thaw. Ice splits, rivers churn, and wolves hunt the weak."
+    },
+    {
+      "name": "Greenspire",
+      "abbreviation": "Gre",
+      "days": 45,
+      "description": "First blooms and returning birds. Rains soften the land for planting."
+    },
+    {
+      "name": "Embertide",
+      "abbreviation": "Emb",
+      "days": 45,
+      "description": "The burn months. Smoke, sowing, and the dance of ash over fields."
+    },
+    {
+      "name": "Highsun",
+      "abbreviation": "Hig",
+      "days": 45,
+      "description": "Midyear heat. Dreams burn bright, tempers burn brighter."
+    },
+    {
+      "name": "Harvestwane",
+      "abbreviation": "Har",
+      "days": 45,
+      "description": "Golden dusk. Crops ripen, blades are sharpened, debts are settled."
+    },
+    {
+      "name": "Gravecall",
+      "abbreviation": "Gra",
+      "days": 45,
+      "description": "Long shadows and whispered names. The living and dead walk closest."
+    },
+    {
+      "name": "Deepfrost",
+      "abbreviation": "Dee",
+      "days": 45,
+      "description": "The world stills again. Fires dim, and breath clouds in the chill."
+    }
+  ],
+
+  "weekdays": [
+    {
+      "name": "Brightday",
+      "abbreviation": "Bri",
+      "description": "Auspicious. New journeys, clear skies, and clean starts."
+    },
+    {
+      "name": "Graftday",
+      "abbreviation": "Gra",
+      "description": "Work and toil. Markets bustle, and fields are plowed."
+    },
+    {
+      "name": "Stoneday",
+      "abbreviation": "Sto",
+      "description": "Hearth and holdfast. A day for home, rest, and repairs."
+    },
+    {
+      "name": "Bitterday",
+      "abbreviation": "Bit",
+      "description": "Ill omens and arguments. Avoid risk and stay wary."
+    },
+    {
+      "name": "Wyrdday",
+      "abbreviation": "Wyr",
+      "description": "Mystic alignments. Tales are told, stars watched, and truths divined."
+    },
+    {
+      "name": "Graveday",
+      "abbreviation": "Grv",
+      "description": "Remembrance and endings. The dead are honored, the past weighed."
+    }
+  ],
+
+  "intercalary": [
+    {
+      "name": "Hearthmoor",
+      "after": "Frostwane",
+      "leapYearOnly": false,
+      "countsForWeekdays": true,
+      "description": "A night of survival rites and shared flame. The long dark wanes."
+    },
+    {
+      "name": "Stormrest",
+      "after": "Greenspire",
+      "leapYearOnly": false,
+      "countsForWeekdays": true,
+      "description": "Offerings are left to the storm spirits. Farmers call this the floodwatch."
+    },
+    {
+      "name": "Suncrest",
+      "after": "Highsun",
+      "leapYearOnly": false,
+      "countsForWeekdays": true,
+      "description": "The longest day. Madness, passion, and visions flare under the open sky."
+    },
+    {
+      "name": "Ashfall",
+      "after": "Gravecall",
+      "leapYearOnly": false,
+      "countsForWeekdays": true,
+      "description": "Ashes of the year are buried or scattered. Old names are sung, and debts burned."
+    }
+  ],
+
+  "moons": [
+    {
+      "name": "Máni",
+      "cycleLength": 29,
+      "firstNewMoon": { "year": 1542, "month": 1, "day": 8 },
+      "phases": [
+        { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 7, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 6, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 6, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#b0c4de",
+      "translations": {
+        "en": {
+          "description": "The main moon, personification of the moon in Norse mythology, brother to Sól"
+        }
+      }
+    },
+    {
+      "name": "Nótt",
+      "cycleLength": 37,
+      "firstNewMoon": { "year": 1542, "month": 2, "day": 15 },
+      "phases": [
+        { "name": "New Moon", "length": 2, "singleDay": false, "icon": "new" },
+        { "name": "Waxing Crescent", "length": 8, "singleDay": false, "icon": "waxing-crescent" },
+        { "name": "First Quarter", "length": 2, "singleDay": false, "icon": "first-quarter" },
+        { "name": "Waxing Gibbous", "length": 7, "singleDay": false, "icon": "waxing-gibbous" },
+        { "name": "Full Moon", "length": 2, "singleDay": false, "icon": "full" },
+        { "name": "Waning Gibbous", "length": 7, "singleDay": false, "icon": "waning-gibbous" },
+        { "name": "Last Quarter", "length": 2, "singleDay": false, "icon": "last-quarter" },
+        { "name": "Waning Crescent", "length": 7, "singleDay": false, "icon": "waning-crescent" }
+      ],
+      "color": "#483d8b",
+      "translations": {
+        "en": {
+          "description": "The night moon, Norse goddess of night who rides her horse across the sky"
+        }
+      }
+    }
+  ],
+
+  "seasons": [
+    {
+      "name": "Winter",
+      "startMonth": 10,
+      "endMonth": 12,
+      "icon": "winter",
+      "description": "The cold season culminating in Deepwinter's harsh embrace."
+    },
+    {
+      "name": "Spring",
+      "startMonth": 1,
+      "endMonth": 3,
+      "icon": "spring",
+      "description": "The season of renewal beginning with Hammer's thaw and ending with Ches's growth."
+    },
+    {
+      "name": "Summer",
+      "startMonth": 4,
+      "endMonth": 6,
+      "icon": "summer",
+      "description": "The warm season of Tarsakh's melting through Kythorn's height."
+    },
+    {
+      "name": "Autumn",
+      "startMonth": 7,
+      "endMonth": 9,
+      "icon": "fall",
+      "description": "The harvest season from Flamerule through Marpenoth's end."
+    }
+  ],
+
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}
