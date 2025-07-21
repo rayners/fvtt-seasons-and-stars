@@ -735,13 +735,14 @@ export class CalendarManager {
     let successCount = 0;
     let errorCount = 0;
 
+    // Two-pass loading: first regular calendars, then variants
+
+    // Pass 1: Load regular calendars
     for (const result of results) {
       if (result.success && result.calendar) {
-        // Skip external variant files - they should be processed separately
         const isVariantFile = result.calendar.id && result.calendar.id.includes('-variants');
         if (isVariantFile) {
-          // Mark as successful but don't try to load as a regular calendar
-          successCount++;
+          // Skip variants in first pass
           continue;
         }
 
@@ -758,6 +759,42 @@ export class CalendarManager {
         }
       } else {
         errorCount++;
+      }
+    }
+
+    // Pass 2: Process variant files as external variants
+    for (const result of results) {
+      if (result.success && result.calendar) {
+        const isVariantFile = result.calendar.id && result.calendar.id.includes('-variants');
+        if (isVariantFile) {
+          // Process as external variant
+          try {
+            const variantFileData = result.calendar as unknown as {
+              baseCalendar: string;
+              variants: Record<string, CalendarVariant>;
+            };
+
+            if (this.validateExternalVariantFile(variantFileData)) {
+              const baseCalendar = this.calendars.get(variantFileData.baseCalendar);
+              if (baseCalendar) {
+                this.applyExternalVariants(baseCalendar, variantFileData);
+                successCount++;
+              } else {
+                result.success = false;
+                result.error = `Base calendar '${variantFileData.baseCalendar}' not found for variant file`;
+                errorCount++;
+              }
+            } else {
+              result.success = false;
+              result.error = 'Invalid external variant file structure';
+              errorCount++;
+            }
+          } catch (error) {
+            result.success = false;
+            result.error = `Error processing variant file: ${(error as Error).message}`;
+            errorCount++;
+          }
+        }
       }
     }
 
