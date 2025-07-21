@@ -27,18 +27,38 @@ vi.stubGlobal('fetch', vi.fn());
 
 // Note: No longer using generated calendar list - calendars loaded dynamically from index.json
 
-// Mock CalendarValidator
+// Mock CalendarValidator - will return invalid for calendars missing currentYear
 vi.mock('../src/core/calendar-validator', () => ({
   CalendarValidator: {
-    validate: vi.fn().mockReturnValue({
-      isValid: true,
-      errors: [],
-      warnings: [],
+    validate: vi.fn().mockImplementation(calendar => {
+      // Return invalid for calendars missing currentYear
+      if (!calendar.year?.currentYear) {
+        return {
+          isValid: false,
+          errors: ['Missing year.currentYear field'],
+          warnings: [],
+        };
+      }
+      return {
+        isValid: true,
+        errors: [],
+        warnings: [],
+      };
     }),
-    validateWithHelp: vi.fn().mockReturnValue({
-      isValid: true,
-      errors: [],
-      warnings: [],
+    validateWithHelp: vi.fn().mockImplementation(calendar => {
+      // Return invalid for calendars missing currentYear
+      if (!calendar.year?.currentYear) {
+        return {
+          isValid: false,
+          errors: ['Missing year.currentYear field'],
+          warnings: [],
+        };
+      }
+      return {
+        isValid: true,
+        errors: [],
+        warnings: [],
+      };
     }),
   },
 }));
@@ -446,6 +466,289 @@ describe('External Calendar Variants System', () => {
       for (const invalid of invalidData) {
         expect(validateMethod.call(manager, invalid)).toBe(false);
       }
+    });
+  });
+
+  describe('Calendar Collection Two-Pass Loading', () => {
+    it('should handle mixed regular calendars and external variant files in collections', async () => {
+      // Create a mock collection that contains both regular calendars and variant files
+      const mockCollectionIndex = {
+        $schema: 'https://example.com/calendar-collection-schema.json',
+        name: 'Mixed Calendar Collection',
+        description: 'Collection with both regular calendars and external variants',
+        version: '1.0.0',
+        calendars: [
+          {
+            id: 'test-regular-calendar',
+            name: 'Test Regular Calendar',
+            file: 'test-regular.json',
+            description: 'A regular calendar for testing',
+            author: 'Test Author',
+          },
+          {
+            id: 'gregorian-test-variants',
+            name: 'Test Gregorian Variants',
+            file: 'gregorian-test-variants.json',
+            description: 'External variants for testing',
+            author: 'Test Author',
+          },
+        ],
+      };
+
+      // Mock regular calendar file
+      const mockRegularCalendar = {
+        id: 'test-regular-calendar',
+        translations: {
+          en: {
+            label: 'Test Regular Calendar',
+            description: 'A regular calendar for testing',
+          },
+        },
+        year: {
+          epoch: 0,
+          currentYear: 2024,
+          prefix: '',
+          suffix: ' CE',
+          startDay: 0,
+        },
+        months: [
+          { name: 'January', abbreviation: 'Jan', days: 31, description: 'First month' },
+          { name: 'February', abbreviation: 'Feb', days: 28, description: 'Second month' },
+        ],
+        weekdays: [
+          { name: 'Monday', abbreviation: 'Mon' },
+          { name: 'Tuesday', abbreviation: 'Tue' },
+        ],
+        leapYear: { rule: 'none' },
+        intercalary: [],
+        moons: [],
+        seasons: [],
+        time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+      };
+
+      // Mock external variant file
+      const mockVariantFile = {
+        id: 'gregorian-test-variants',
+        baseCalendar: 'gregorian',
+        variants: {
+          'test-variant': {
+            name: 'Test Variant',
+            description: 'A test variant',
+            overrides: {
+              year: {
+                prefix: 'Test ',
+                suffix: ' TV',
+              },
+            },
+          },
+        },
+      };
+
+      // First load the gregorian calendar so the variant has a base to reference
+      await calendarManager.loadBuiltInCalendars();
+      const initialCalendarCount = calendarManager.calendars.size;
+
+      // Now setup fetch mock to return appropriate responses for our test collection
+      // This extends the existing mockCalendarFetch to handle our test URLs
+      const fetchMock = vi.mocked(fetch);
+      const originalImpl = fetchMock.getMockImplementation();
+      fetchMock.mockImplementation(async (url: string) => {
+        const urlStr = url.toString();
+
+        if (urlStr.includes('mixed-collection')) {
+          return new Response(JSON.stringify(mockCollectionIndex), { status: 200 });
+        } else if (urlStr.includes('test-regular.json')) {
+          return new Response(JSON.stringify(mockRegularCalendar), { status: 200 });
+        } else if (urlStr.includes('gregorian-test-variants.json')) {
+          return new Response(JSON.stringify(mockVariantFile), { status: 200 });
+        }
+
+        // Fall back to original implementation for built-in calendar loading
+        return originalImpl ? originalImpl(url) : new Response('Not Found', { status: 404 });
+      });
+
+      // Load the mixed collection
+      const results = await calendarManager.loadCalendarCollection(
+        'https://example.com/mixed-collection'
+      );
+
+      // Verify results
+      expect(results).toHaveLength(2);
+
+      // Both should be successful (regular calendar loaded in pass 1, variant processed in pass 2)
+      expect(results[0].success).toBe(true);
+      expect(results[1].success).toBe(true);
+
+      // Verify the regular calendar was loaded
+      expect(calendarManager.calendars.has('test-regular-calendar')).toBe(true);
+      expect(calendarManager.calendars.get('test-regular-calendar')?.year.currentYear).toBe(2024);
+
+      // Verify the variant was applied to the base gregorian calendar
+      expect(calendarManager.calendars.has('gregorian(test-variant)')).toBe(true);
+      const variant = calendarManager.calendars.get('gregorian(test-variant)');
+      expect(variant?.year.prefix).toBe('Test ');
+      expect(variant?.year.suffix).toBe(' TV');
+
+      // Total calendar count should be initial count + 1 regular + 1 variant
+      expect(calendarManager.calendars.size).toBe(initialCalendarCount + 2);
+    });
+
+    it('should handle variant files without base calendar gracefully', async () => {
+      const mockCollectionIndex = {
+        $schema: 'https://example.com/calendar-collection-schema.json',
+        name: 'Orphaned Variants Collection',
+        description: 'Collection with variant file but no base calendar',
+        version: '1.0.0',
+        calendars: [
+          {
+            id: 'orphaned-variants',
+            name: 'Orphaned Variants',
+            file: 'orphaned-variants.json',
+            description: 'Variants without base calendar',
+            author: 'Test Author',
+          },
+        ],
+      };
+
+      const mockOrphanedVariantFile = {
+        id: 'orphaned-variants',
+        baseCalendar: 'nonexistent-calendar',
+        variants: {
+          'orphan-variant': {
+            name: 'Orphan Variant',
+            description: 'A variant without a base',
+          },
+        },
+      };
+
+      // Setup fetch mock to handle our test collection URLs while preserving built-in calendar loading
+      const fetchMock = vi.mocked(fetch);
+      const originalImpl = fetchMock.getMockImplementation();
+      fetchMock.mockImplementation(async (url: string) => {
+        const urlStr = url.toString();
+
+        if (urlStr.includes('orphaned-collection')) {
+          return new Response(JSON.stringify(mockCollectionIndex), { status: 200 });
+        } else if (urlStr.includes('orphaned-variants.json')) {
+          return new Response(JSON.stringify(mockOrphanedVariantFile), { status: 200 });
+        }
+
+        // Fall back to original implementation for built-in calendar loading
+        return originalImpl ? originalImpl(url) : new Response('Not Found', { status: 404 });
+      });
+
+      // Load the collection with orphaned variant
+      const results = await calendarManager.loadCalendarCollection(
+        'https://example.com/orphaned-collection'
+      );
+
+      // Should have one result that failed due to missing base calendar
+      expect(results).toHaveLength(1);
+      expect(results[0].success).toBe(false);
+      expect(results[0].error).toContain("Base calendar 'nonexistent-calendar' not found");
+
+      // Variant should not be loaded
+      expect(calendarManager.calendars.has('nonexistent-calendar(orphan-variant)')).toBe(false);
+    });
+
+    it('should skip validation for variant files but validate regular calendars', async () => {
+      const mockCollectionIndex = {
+        $schema: 'https://example.com/calendar-collection-schema.json',
+        name: 'Validation Test Collection',
+        description: 'Tests validation behavior for mixed collections',
+        version: '1.0.0',
+        calendars: [
+          {
+            id: 'invalid-regular-calendar',
+            name: 'Invalid Regular Calendar',
+            file: 'invalid-regular.json',
+            description: 'A calendar missing required fields',
+            author: 'Test Author',
+          },
+          {
+            id: 'valid-test-variants',
+            name: 'Valid Test Variants',
+            file: 'valid-test-variants.json',
+            description: 'Valid external variants',
+            author: 'Test Author',
+          },
+        ],
+      };
+
+      // Invalid regular calendar (missing required fields)
+      const mockInvalidCalendar = {
+        id: 'invalid-regular-calendar',
+        translations: {
+          en: {
+            label: 'Invalid Calendar',
+            description: 'Missing required fields',
+          },
+        },
+        year: {
+          epoch: 0,
+          // Missing currentYear to trigger validation error
+          prefix: '',
+          suffix: '',
+          startDay: 0,
+        },
+        months: [],
+        weekdays: [],
+        leapYear: { rule: 'none' },
+        intercalary: [],
+        moons: [],
+        seasons: [],
+        time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+      };
+
+      // Valid variant file (should not be validated as regular calendar)
+      const mockValidVariantFile = {
+        id: 'valid-test-variants',
+        baseCalendar: 'gregorian',
+        variants: {
+          'validation-test-variant': {
+            name: 'Validation Test Variant',
+            description: 'Testing validation behavior',
+          },
+        },
+      };
+
+      // Ensure gregorian calendar exists for the variant
+      await calendarManager.loadBuiltInCalendars();
+
+      // Setup fetch mock to handle our test collection URLs while preserving built-in calendar loading
+      const fetchMock = vi.mocked(fetch);
+      const originalImpl = fetchMock.getMockImplementation();
+      fetchMock.mockImplementation(async (url: string) => {
+        const urlStr = url.toString();
+
+        if (urlStr.includes('validation-collection')) {
+          return new Response(JSON.stringify(mockCollectionIndex), { status: 200 });
+        } else if (urlStr.includes('invalid-regular.json')) {
+          return new Response(JSON.stringify(mockInvalidCalendar), { status: 200 });
+        } else if (urlStr.includes('valid-test-variants.json')) {
+          return new Response(JSON.stringify(mockValidVariantFile), { status: 200 });
+        }
+
+        // Fall back to original implementation for built-in calendar loading
+        return originalImpl ? originalImpl(url) : new Response('Not Found', { status: 404 });
+      });
+
+      // Load the collection
+      const results = await calendarManager.loadCalendarCollection(
+        'https://example.com/validation-collection'
+      );
+
+      expect(results).toHaveLength(2);
+
+      // Regular calendar should fail validation
+      expect(results[0].success).toBe(false);
+      expect(results[0].error).toContain('validation');
+
+      // Variant file should succeed (processed without calendar validation)
+      expect(results[1].success).toBe(true);
+
+      // Variant should be applied successfully
+      expect(calendarManager.calendars.has('gregorian(validation-test-variant)')).toBe(true);
     });
   });
 });
