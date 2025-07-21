@@ -68,35 +68,30 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
     };
   }
 
-  override async _onRender(context: any, options: any): Promise<void> {
-    await super._onRender(context, options);
+  override _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
+    super._attachPartListeners(partId, htmlElement, options);
 
-    // Add simple click handler to the dismiss button
-    const dismissButton = this.element?.querySelector('.dismiss-button');
-    if (dismissButton) {
-      dismissButton.addEventListener('click', async () => {
-        try {
-          // Check if "don't remind" is checked
-          const checkbox = this.element?.querySelector(
-            'input[name="dontRemind"]'
-          ) as HTMLInputElement;
-          const dontRemind = checkbox?.checked === true;
+    // Add click handler to the dismiss button
+    htmlElement.querySelector('.dismiss-button')?.addEventListener('click', async () => {
+      try {
+        // Check if "don't remind" is checked
+        const checkbox = htmlElement.querySelector('input[name="dontRemind"]') as HTMLInputElement;
+        const dontRemind = checkbox?.checked === true;
 
-          if (dontRemind) {
-            // Mark the warning as shown so it won't appear again
-            await game.settings?.set('seasons-and-stars', 'calendarDeprecationWarningShown', true);
-            Logger.info('Calendar deprecation warning dismissed by GM');
-          }
-
-          // Close this dialog
-          await this.close();
-        } catch (error) {
-          Logger.error(
-            'Failed to save calendar deprecation warning preference',
-            error instanceof Error ? error : new Error(String(error))
-          );
+        if (dontRemind) {
+          // Mark the warning as shown so it won't appear again
+          await game.settings?.set('seasons-and-stars', 'calendarDeprecationWarningShown', true);
+          Logger.info('Calendar deprecation warning dismissed by GM');
         }
-      });
-    }
+
+        // Close this dialog
+        await this.close();
+      } catch (error) {
+        Logger.error(
+          'Failed to save calendar deprecation warning preference',
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+    });
   }
 }
