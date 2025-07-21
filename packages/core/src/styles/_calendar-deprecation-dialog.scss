@@ -21,29 +21,13 @@
     margin-bottom: 1rem;
   }
 
-  // Action callout using the same pattern as .ss-status.warning but larger
-  .action-callout {
-    background: rgba(255, 193, 7, 0.15);
-    color: #ffc107;
-    border: 1px solid rgba(255, 193, 7, 0.3);
-    border-left: 4px solid #ffc107;
-    border-radius: 4px;
-    padding: 1rem;
+  // Simple action section - let Foundry handle all the colors
+  .action-section {
     margin-bottom: 1rem;
     
     h4 {
-      color: #ffc107;
-      margin: 0 0 0.5rem 0;
+      margin-bottom: 0.5rem;
       font-weight: 600;
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    
-    p {
-      color: #ffc107;
-      margin: 0;
-      font-weight: 500;
     }
   }
 
