@@ -53,8 +53,8 @@ describe('PF2e Integration - Data Provider Registry', () => {
       registerDataProvider: vi.fn(),
     };
 
-    global.Hooks = mockHooks;
-    global.game = {
+    (globalThis as any).Hooks = mockHooks;
+    (globalThis as any).game = {
       system: { id: 'pf2e' },
       pf2e: {
         settings: {
@@ -63,7 +63,7 @@ describe('PF2e Integration - Data Provider Registry', () => {
           },
         },
       },
-    } as typeof globalThis.game;
+    } as any;
 
     // Mock the Logger module from core package
     vi.doMock('../../core/src/core/logger', () => ({
@@ -95,7 +95,9 @@ describe('PF2e Integration - Data Provider Registry', () => {
       const systemDetectedHook = mockHooks.on.mock.calls.find(
         call => call[0] === 'seasons-stars:pf2e:systemDetected'
       );
-      const systemDetectedCallback = systemDetectedHook[1];
+      expect(systemDetectedHook).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const systemDetectedCallback = systemDetectedHook![1];
 
       // Execute the system detected callback with mock compatibility manager
       systemDetectedCallback(mockCompatibilityManager);
@@ -111,7 +113,9 @@ describe('PF2e Integration - Data Provider Registry', () => {
       const dataProviderCall = mockCompatibilityManager.registerDataProvider.mock.calls.find(
         call => call[0] === 'pf2e' && call[1] === 'worldCreationTimestamp'
       );
-      registeredDataProvider = dataProviderCall[2];
+      expect(dataProviderCall).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      registeredDataProvider = dataProviderCall![2];
     });
   });
 
@@ -140,7 +144,7 @@ describe('PF2e Integration - Data Provider Registry', () => {
 
     it('should handle missing PF2e game object gracefully', (): void => {
       // Setup - remove PF2e game object
-      global.game.pf2e = undefined;
+      (globalThis as any).game.pf2e = undefined;
 
       // Execute - should not throw
       expect((): void => {
@@ -153,7 +157,7 @@ describe('PF2e Integration - Data Provider Registry', () => {
 
     it('should handle missing worldClock settings gracefully', (): void => {
       // Setup - remove worldClock settings
-      global.game.pf2e = { settings: {} };
+      (globalThis as any).game.pf2e = { settings: {} };
 
       // Execute - should not throw
       expect((): void => {
@@ -166,7 +170,7 @@ describe('PF2e Integration - Data Provider Registry', () => {
 
     it('should handle missing worldCreatedOn setting gracefully', (): void => {
       // Setup - remove worldCreatedOn setting
-      global.game.pf2e = {
+      (globalThis as any).game.pf2e = {
         settings: {
           worldClock: {},
         },
@@ -186,7 +190,7 @@ describe('PF2e Integration - Data Provider Registry', () => {
 
       invalidDates.forEach(invalidDate => {
         // Setup
-        global.game.pf2e = {
+        (globalThis as any).game.pf2e = {
           settings: {
             worldClock: {
               worldCreatedOn: invalidDate,
@@ -214,7 +218,7 @@ describe('PF2e Integration - Data Provider Registry', () => {
 
       testCases.forEach(({ date, shouldProvide }) => {
         // Setup
-        global.game.pf2e = {
+        (globalThis as any).game.pf2e = {
           settings: {
             worldClock: {
               worldCreatedOn: date,
@@ -247,7 +251,7 @@ describe('PF2e Integration - Data Provider Registry', () => {
 
     it('should handle exception gracefully and return null', (): void => {
       // Setup - mock game object that throws when accessed
-      Object.defineProperty(global, 'game', {
+      Object.defineProperty(globalThis, 'game', {
         get: (): never => {
           throw new Error('Mock access error');
         },
@@ -265,7 +269,7 @@ describe('PF2e Integration - Data Provider Registry', () => {
 
     it('should handle non-Error exceptions properly', (): void => {
       // Setup - mock game object that throws non-Error
-      Object.defineProperty(global, 'game', {
+      Object.defineProperty(globalThis, 'game', {
         get: (): never => {
           throw 'String exception';
         },

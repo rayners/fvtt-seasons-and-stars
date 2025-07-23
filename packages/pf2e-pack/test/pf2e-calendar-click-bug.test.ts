@@ -12,6 +12,7 @@
  */
 
 /* eslint-disable @typescript-eslint/triple-slash-reference */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /// <reference path="../../core/test/test-types.d.ts" />
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -24,12 +25,12 @@ const mockPF2eGame = (): { worldCreatedOn: string; initialWorldTime: number } =>
   const worldCreatedOn = '2025-07-04T12:00:00.000Z'; // Today's date in real world
   const initialWorldTime = 0; // Fresh world
 
-  global.game = {
+  (globalThis as any).game = {
     system: { id: 'pf2e' },
     time: {
       worldTime: initialWorldTime,
       advance: vi.fn((seconds: number) => {
-        global.game.time.worldTime += seconds;
+        (globalThis as any).game.time.worldTime += seconds;
       }),
     },
     pf2e: {
@@ -45,7 +46,7 @@ const mockPF2eGame = (): { worldCreatedOn: string; initialWorldTime: number } =>
       get: vi.fn(),
       set: vi.fn(),
     },
-  } as typeof globalThis.game;
+  } as any;
 
   return { worldCreatedOn, initialWorldTime };
 };

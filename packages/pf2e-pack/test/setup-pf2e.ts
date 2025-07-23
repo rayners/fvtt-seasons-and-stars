@@ -56,8 +56,8 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
   } = config;
 
   // Set up PF2e system ID
-  (global as any).game = (global as any).game || {};
-  global.game.system = { id: 'pf2e' };
+  (globalThis as any).game = (globalThis as any).game || {};
+  (globalThis as any).game.system = { id: 'pf2e' };
 
   // Set up world creation timestamp
   const worldCreatedOn = new Date(worldCreationTimestamp * 1000).toISOString();
@@ -73,20 +73,20 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
   };
 
   // Set up PF2e settings structure matching real PF2e
-  global.game.pf2e = {
+  (globalThis as any).game.pf2e = {
     settings: {
       worldClock: worldClockSettings,
     },
   };
 
   // Set up Foundry world time
-  global.game.time = {
+  (globalThis as any).game.time = {
     worldTime: currentWorldTime,
   };
 
   // Set up PF2e CONFIG constants (simplified for testing)
-  (global as any).CONFIG = (global as any).CONFIG || {};
-  global.CONFIG.PF2E = {
+  (globalThis as any).CONFIG = (globalThis as any).CONFIG || {};
+  (globalThis as any).CONFIG.PF2E = {
     worldClock: {
       AR: {
         Era: 'PF2E.WorldClock.AR.Era',
@@ -120,7 +120,8 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
   };
 
   // Validate setup
-  const actualYear = expectedWorldCreationYear + global.CONFIG.PF2E.worldClock.AR.yearOffset;
+  const actualYear =
+    expectedWorldCreationYear + (globalThis as any).CONFIG.PF2E.worldClock.AR.yearOffset;
   if (actualYear !== expectedWorldCreationYear + 2700) {
     throw new Error(
       `PF2e environment setup validation failed: Expected year offset 2700, got ${
@@ -149,7 +150,7 @@ export function createPF2eCalculations(): PF2eWorldClockCalculations {
       // Replicates: this.worldTime.year + CONFIG.PF2E.worldClock[this.dateTheme].yearOffset
       const creationDate = new Date(worldCreatedOn);
       const currentDate = new Date(creationDate.getTime() + worldTime * 1000);
-      const yearOffset = (global as any).CONFIG?.PF2E?.worldClock?.[dateTheme]?.yearOffset || 0;
+      const yearOffset = (globalThis as any).CONFIG?.PF2E?.worldClock?.[dateTheme]?.yearOffset || 0;
       return currentDate.getUTCFullYear() + yearOffset;
     },
 
@@ -228,19 +229,19 @@ function getOrdinalSuffix(day: number): string {
 export function validatePF2eEnvironment(): boolean {
   try {
     // Check required game objects
-    if (!global.game?.system?.id || global.game.system.id !== 'pf2e') {
+    if (!(globalThis as any).game?.system?.id || (globalThis as any).game.system.id !== 'pf2e') {
       throw new Error('PF2e system ID not set');
     }
 
-    if (!global.game?.pf2e?.settings?.worldClock) {
+    if (!(globalThis as any).game?.pf2e?.settings?.worldClock) {
       throw new Error('PF2e world clock settings not configured');
     }
 
-    if (global.game?.time?.worldTime === undefined) {
+    if ((globalThis as any).game?.time?.worldTime === undefined) {
       throw new Error('Foundry world time not set');
     }
 
-    if (!global.CONFIG?.PF2E?.worldClock) {
+    if (!(globalThis as any).CONFIG?.PF2E?.worldClock) {
       throw new Error('PF2e CONFIG constants not set');
     }
 

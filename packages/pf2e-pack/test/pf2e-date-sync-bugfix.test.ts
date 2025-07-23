@@ -23,7 +23,7 @@ import golarionCalendar from '../calendars/golarion-pf2e.json';
 
 // Mock Foundry globals
 const mockFoundryGlobals = (): void => {
-  global.game = {
+  (globalThis as any).game = {
     system: { id: 'pf2e' },
     time: { worldTime: 0 },
     seasonsStars: {
@@ -31,7 +31,7 @@ const mockFoundryGlobals = (): void => {
         getActiveCalendar: () => golarionCalendar,
       },
     },
-  } as typeof globalThis.game;
+  } as any;
 };
 
 describe('PF2e Date/Time Synchronization Bugfix', () => {
@@ -243,7 +243,7 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
     });
 
     it('works correctly for non-PF2e systems', () => {
-      global.game.system.id = 'dnd5e';
+      (globalThis as any).game.system.id = 'dnd5e';
 
       // No systemBaseDate provider for D&D 5e
       const worldTime = 86400; // 1 day
@@ -259,17 +259,17 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
   describe('Integration Test: Complete PF2e Workflow', () => {
     it('simulates complete PF2e integration workflow', () => {
       // STEP 1: PF2e system detected, integration initialized
-      global.game.system.id = 'pf2e';
+      (globalThis as any).game.system.id = 'pf2e';
 
       // STEP 2: PF2e provides worldCreatedOn
       const pf2eWorldCreatedOn = '2025-07-02T06:41:03.473Z';
-      global.game.pf2e = {
+      (globalThis as any).game.pf2e = {
         settings: {
           worldClock: {
             worldCreatedOn: pf2eWorldCreatedOn,
           },
         },
-      } as typeof globalThis.game;
+      } as any;
 
       // STEP 3: PF2e integration calculates systemBaseDate
       const creationDate = new Date(pf2eWorldCreatedOn);
@@ -283,7 +283,7 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
       }));
 
       // STEP 4: S&S calendar engine uses systemBaseDate
-      global.game.time.worldTime = 0; // Fresh world
+      (globalThis as any).game.time.worldTime = 0; // Fresh world
       const worldCreationTimestamp = Math.floor(creationDate.getTime() / 1000);
 
       const ssResult = engine.worldTimeToDate(0, worldCreationTimestamp);
