@@ -26,9 +26,6 @@
     "prevalidate:calendars": "node ../../scripts/generate-calendar-list.js pf2e-pack",
     "validate:calendars": "tsx ../../packages/core/scripts/validate-calendars.ts"
   },
-  "dependencies": {
-    "seasons-and-stars": "^0.8.0"
-  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-json": "^6.1.0",
