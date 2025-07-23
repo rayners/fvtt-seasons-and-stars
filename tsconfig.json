@@ -19,7 +19,9 @@
   "include": [
     "packages/core/src/**/*",
     "packages/core/src/types/**/*.d.ts",
-    "packages/core/scripts/**/*.ts"
+    "packages/core/scripts/**/*.ts",
+    "packages/pf2e-pack/src/**/*",
+    "packages/pf2e-pack/test/**/*"
   ],
-  "exclude": ["node_modules", "packages/core/test/**/*.ts", "**/*.test.ts", "**/*.spec.ts"]
+  "exclude": ["node_modules"]
 }

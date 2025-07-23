@@ -96,6 +96,7 @@ async function validateAllCalendars(): Promise<void> {
     { path: path.join(rootDir, 'packages', 'core', 'calendars'), name: 'core' },
     { path: path.join(rootDir, 'packages', 'fantasy-pack', 'calendars'), name: 'fantasy-pack' },
     { path: path.join(rootDir, 'packages', 'scifi-pack', 'calendars'), name: 'scifi-pack' },
+    { path: path.join(rootDir, 'packages', 'pf2e-pack', 'calendars'), name: 'pf2e-pack' },
   ];
 
   // Validate calendars in each directory

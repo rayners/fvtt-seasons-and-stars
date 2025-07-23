@@ -11,14 +11,19 @@
  * For manual testing, use console commands in a test world.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import { compatibilityManager } from '../src/core/compatibility-manager';
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/// <reference path="../../core/test/test-types.d.ts" />
+
+import { describe, it, expect, beforeEach } from 'vitest';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import { compatibilityManager } from '../../core/src/core/compatibility-manager';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 import golarionCalendar from '../calendars/golarion-pf2e.json';
 
 // Mock Foundry globals
-const mockFoundryGlobals = () => {
-  global.game = {
+const mockFoundryGlobals = (): void => {
+  (globalThis as any).game = {
     system: { id: 'pf2e' },
     time: { worldTime: 0 },
     seasonsStars: {
@@ -34,7 +39,7 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
 
   beforeEach(() => {
     mockFoundryGlobals();
-    engine = new CalendarEngine(golarionCalendar as any);
+    engine = new CalendarEngine(golarionCalendar as unknown as SeasonsStarsCalendar);
 
     // Clear any existing data providers
     (compatibilityManager as any).dataProviderRegistry.clear();
@@ -49,9 +54,9 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
       // S&S would show: "1st Abadius" (month 1, day 1)
       expect(dateWithoutIntegration.month).toBe(1); // Abadius
       expect(dateWithoutIntegration.day).toBe(1);
-      expect(dateWithoutIntegration.time.hour).toBe(0);
-      expect(dateWithoutIntegration.time.minute).toBe(0);
-      expect(dateWithoutIntegration.time.second).toBe(0);
+      expect(dateWithoutIntegration.time?.hour).toBe(0);
+      expect(dateWithoutIntegration.time?.minute).toBe(0);
+      expect(dateWithoutIntegration.time?.second).toBe(0);
     });
 
     it('demonstrates the fix - matching dates with PF2e integration', () => {
@@ -76,9 +81,9 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
       expect(dateWithIntegration.year).toBe(4725);
       expect(dateWithIntegration.month).toBe(7); // Erastus
       expect(dateWithIntegration.day).toBe(2);
-      expect(dateWithIntegration.time.hour).toBe(6);
-      expect(dateWithIntegration.time.minute).toBe(41);
-      expect(dateWithIntegration.time.second).toBe(3);
+      expect(dateWithIntegration.time?.hour).toBe(6);
+      expect(dateWithIntegration.time?.minute).toBe(41);
+      expect(dateWithIntegration.time?.second).toBe(3);
     });
   });
 
@@ -138,9 +143,9 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
       const timestamp = Math.floor(date.getTime() / 1000);
       const result = engine.worldTimeToDate(worldTime, timestamp);
 
-      expect(result.time.hour).toBe(14);
-      expect(result.time.minute).toBe(25);
-      expect(result.time.second).toBe(37);
+      expect(result.time?.hour).toBe(14);
+      expect(result.time?.minute).toBe(25);
+      expect(result.time?.second).toBe(37);
     });
   });
 
@@ -166,9 +171,9 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
 
       expect(resultAfterOneHour.month).toBe(7); // Still Erastus
       expect(resultAfterOneHour.day).toBe(2); // Still 2nd
-      expect(resultAfterOneHour.time.hour).toBe(7); // Advanced to 7:41:03
-      expect(resultAfterOneHour.time.minute).toBe(41);
-      expect(resultAfterOneHour.time.second).toBe(3);
+      expect(resultAfterOneHour.time?.hour).toBe(7); // Advanced to 7:41:03
+      expect(resultAfterOneHour.time?.minute).toBe(41);
+      expect(resultAfterOneHour.time?.second).toBe(3);
 
       // Test progression: +1 day
       const oneDay = 86400;
@@ -176,9 +181,9 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
 
       expect(resultAfterOneDay.month).toBe(7); // Still Erastus
       expect(resultAfterOneDay.day).toBe(3); // Advanced to 3rd
-      expect(resultAfterOneDay.time.hour).toBe(6); // Same time
-      expect(resultAfterOneDay.time.minute).toBe(41);
-      expect(resultAfterOneDay.time.second).toBe(3);
+      expect(resultAfterOneDay.time?.hour).toBe(6); // Same time
+      expect(resultAfterOneDay.time?.minute).toBe(41);
+      expect(resultAfterOneDay.time?.second).toBe(3);
     });
 
     it('handles month transitions correctly', () => {
@@ -202,9 +207,9 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
 
       expect(resultAfterOneSecond.month).toBe(8); // Arodus
       expect(resultAfterOneSecond.day).toBe(1); // 1st
-      expect(resultAfterOneSecond.time.hour).toBe(0);
-      expect(resultAfterOneSecond.time.minute).toBe(0);
-      expect(resultAfterOneSecond.time.second).toBe(0);
+      expect(resultAfterOneSecond.time?.hour).toBe(0);
+      expect(resultAfterOneSecond.time?.minute).toBe(0);
+      expect(resultAfterOneSecond.time?.second).toBe(0);
     });
   });
 
@@ -238,7 +243,7 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
     });
 
     it('works correctly for non-PF2e systems', () => {
-      global.game.system.id = 'dnd5e';
+      (globalThis as any).game.system.id = 'dnd5e';
 
       // No systemBaseDate provider for D&D 5e
       const worldTime = 86400; // 1 day
@@ -254,11 +259,11 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
   describe('Integration Test: Complete PF2e Workflow', () => {
     it('simulates complete PF2e integration workflow', () => {
       // STEP 1: PF2e system detected, integration initialized
-      global.game.system.id = 'pf2e';
+      (globalThis as any).game.system.id = 'pf2e';
 
       // STEP 2: PF2e provides worldCreatedOn
       const pf2eWorldCreatedOn = '2025-07-02T06:41:03.473Z';
-      global.game.pf2e = {
+      (globalThis as any).game.pf2e = {
         settings: {
           worldClock: {
             worldCreatedOn: pf2eWorldCreatedOn,
@@ -278,7 +283,7 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
       }));
 
       // STEP 4: S&S calendar engine uses systemBaseDate
-      global.game.time.worldTime = 0; // Fresh world
+      (globalThis as any).game.time.worldTime = 0; // Fresh world
       const worldCreationTimestamp = Math.floor(creationDate.getTime() / 1000);
 
       const ssResult = engine.worldTimeToDate(0, worldCreationTimestamp);
@@ -287,9 +292,9 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
       expect(ssResult.year).toBe(4725);
       expect(ssResult.month).toBe(7); // Erastus (July)
       expect(ssResult.day).toBe(2); // 2nd
-      expect(ssResult.time.hour).toBe(6);
-      expect(ssResult.time.minute).toBe(41);
-      expect(ssResult.time.second).toBe(3);
+      expect(ssResult.time?.hour).toBe(6);
+      expect(ssResult.time?.minute).toBe(41);
+      expect(ssResult.time?.second).toBe(3);
 
       // STEP 6: Simulate PF2e calculation to verify match
       const pf2eExpected = {
@@ -304,9 +309,9 @@ describe('PF2e Date/Time Synchronization Bugfix', () => {
       expect(ssResult.year).toBe(pf2eExpected.year);
       expect(ssResult.month).toBe(pf2eExpected.month);
       expect(ssResult.day).toBe(pf2eExpected.day);
-      expect(ssResult.time.hour).toBe(pf2eExpected.hour);
-      expect(ssResult.time.minute).toBe(pf2eExpected.minute);
-      expect(ssResult.time.second).toBe(pf2eExpected.second);
+      expect(ssResult.time?.hour).toBe(pf2eExpected.hour);
+      expect(ssResult.time?.minute).toBe(pf2eExpected.minute);
+      expect(ssResult.time?.second).toBe(pf2eExpected.second);
     });
   });
 });

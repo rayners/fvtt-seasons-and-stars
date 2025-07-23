@@ -10,11 +10,11 @@ import { CalendarEngine } from '../src/core/calendar-engine';
 import { CalendarDate } from '../src/core/calendar-date';
 import { compatibilityManager } from '../src/core/compatibility-manager';
 import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
-import golarionCalendarData from '../calendars/golarion-pf2e.json';
-import { setupRealPF2eEnvironment } from './setup-pf2e';
+import { loadTestCalendar } from './utils/calendar-loader';
+import { setupRealPF2eEnvironment } from '../../pf2e-pack/test/setup-pf2e';
 
 // Use the actual Golarion calendar JSON file instead of duplicating definitions
-const golarionCalendar: SeasonsStarsCalendar = golarionCalendarData as SeasonsStarsCalendar;
+const golarionCalendar: SeasonsStarsCalendar = loadTestCalendar('golarion-pf2e.json');
 
 describe('CalendarEngine - World Creation Timestamp Support', () => {
   let engine: CalendarEngine;

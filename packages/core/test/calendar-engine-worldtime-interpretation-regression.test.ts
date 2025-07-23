@@ -14,10 +14,10 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
-import golarionCalendarData from '../calendars/golarion-pf2e.json';
+import { loadTestCalendar } from './utils/calendar-loader';
 
 // Use the actual Golarion calendar JSON file as base instead of duplicating definitions
-const baseGolarionCalendar: SeasonsStarsCalendar = golarionCalendarData as SeasonsStarsCalendar;
+const baseGolarionCalendar: SeasonsStarsCalendar = loadTestCalendar('golarion-pf2e.json');
 
 // Create test calendar variants based on the imported Golarion calendar
 // Test calendar with epoch-based interpretation (traditional fantasy)

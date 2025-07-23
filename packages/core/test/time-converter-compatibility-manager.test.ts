@@ -10,10 +10,10 @@ import { TimeConverter } from '../src/core/time-converter';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { compatibilityManager } from '../src/core/compatibility-manager';
 import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
-import golarionCalendarData from '../calendars/golarion-pf2e.json';
+import { loadTestCalendar } from './utils/calendar-loader';
 
 // Use the actual Golarion calendar JSON file instead of duplicating definitions
-const golarionCalendar: SeasonsStarsCalendar = golarionCalendarData as SeasonsStarsCalendar;
+const golarionCalendar: SeasonsStarsCalendar = loadTestCalendar('golarion-pf2e.json');
 
 describe('TimeConverter - CompatibilityManager Integration', () => {
   let engine: CalendarEngine;
@@ -140,7 +140,6 @@ describe('TimeConverter - CompatibilityManager Integration', () => {
 
       // Simulate a world time update
       const newTime = 86400; // 1 day
-      const delta = 86400;
 
       // Call the private method via the time converter's public interface
       // We'll trigger this indirectly by calling getCurrentDate after setting worldTime

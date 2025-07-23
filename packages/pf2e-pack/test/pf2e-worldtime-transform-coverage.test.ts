@@ -6,13 +6,17 @@
  * - Compatibility manager data provider functionality (simpler approach)
  */
 
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/// <reference path="../../core/test/test-types.d.ts" />
+
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import { TimeConverter } from '../src/core/time-converter';
-import { CalendarDate } from '../src/core/calendar-date';
-import { compatibilityManager } from '../src/core/compatibility-manager';
-import { Logger } from '../src/core/logger';
-import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import { TimeConverter } from '../../core/src/core/time-converter';
+import { CalendarDate } from '../../core/src/core/calendar-date';
+import { compatibilityManager } from '../../core/src/core/compatibility-manager';
+import { Logger } from '../../core/src/core/logger';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 import golarionCalendar from '../calendars/golarion-pf2e.json';
 
 describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
@@ -22,24 +26,24 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
   let originalGame: any;
 
   beforeEach(() => {
-    calendar = golarionCalendar as SeasonsStarsCalendar;
+    calendar = golarionCalendar as unknown as SeasonsStarsCalendar;
     engine = new CalendarEngine(calendar);
     timeConverter = new TimeConverter(engine);
 
     // Store original game object
-    originalGame = global.game;
+    originalGame = (globalThis as any).game;
   });
 
   afterEach(() => {
     // Restore original game object
-    global.game = originalGame;
+    (globalThis as any).game = originalGame;
     vi.clearAllMocks();
   });
 
   describe('Compatibility Manager Data Provider Coverage', () => {
     it('should register and retrieve worldTimeTransform data provider', () => {
       // Setup system
-      global.game = {
+      (globalThis as any).game = {
         system: { id: 'test-system' },
       } as any;
 
@@ -65,13 +69,14 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
       expect(typeof retrievedTransform).toBe('function');
 
       // Test the transform function behavior
-      const [transformedWorldTime, systemTimeOffset] = retrievedTransform!(0, undefined);
+      expect(retrievedTransform).toBeDefined();
+      const [transformedWorldTime, systemTimeOffset] = retrievedTransform?.(0, undefined) ?? [0, 0];
       expect(transformedWorldTime).toBe(1000); // worldTime + 1000
       expect(systemTimeOffset).toBe(500);
     });
 
     it('should handle missing data providers gracefully', () => {
-      global.game = {
+      (globalThis as any).game = {
         system: { id: 'nonexistent-system' },
       } as any;
 
@@ -86,7 +91,7 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
     });
 
     it('should handle error in data provider function', () => {
-      global.game = {
+      (globalThis as any).game = {
         system: { id: 'error-system' },
       } as any;
 
@@ -113,7 +118,7 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
   describe('TimeConverter setCurrentDate Coverage', () => {
     it('should apply system time offset when transform is available', async () => {
       // Setup game with system and user
-      global.game = {
+      (globalThis as any).game = {
         system: { id: 'test-system' },
         user: { isGM: true },
         time: {
@@ -140,12 +145,12 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
 
       // Verify transform was called with 0 to get offset (real behavior)
       expect(mockTransform).toHaveBeenCalledWith(0);
-      expect(global.game.time.advance).toHaveBeenCalled();
+      expect((globalThis as any).game.time.advance).toHaveBeenCalled();
     });
 
     it('should handle transform errors gracefully in setCurrentDate', async () => {
       // Setup game with system and user
-      global.game = {
+      (globalThis as any).game = {
         system: { id: 'error-system' },
         user: { isGM: true },
         time: {
@@ -171,14 +176,14 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
         'Error getting system data error-system.worldTimeTransform:',
         expect.any(Error)
       );
-      expect(global.game.time.advance).toHaveBeenCalled();
+      expect((globalThis as any).game.time.advance).toHaveBeenCalled();
 
       warnSpy.mockRestore();
     });
 
     it('should handle case where transform returns null offset', async () => {
       // Setup game with system
-      global.game = {
+      (globalThis as any).game = {
         system: { id: 'null-system' },
         user: { isGM: true },
         time: {
@@ -200,7 +205,7 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
       // Should work with null offset (falls back to no offset)
       await timeConverter.setCurrentDate(testDate);
       expect(mockTransform).toHaveBeenCalledWith(0);
-      expect(global.game.time.advance).toHaveBeenCalled();
+      expect((globalThis as any).game.time.advance).toHaveBeenCalled();
     });
 
     it('should handle non-GM users appropriately', async () => {
@@ -209,12 +214,12 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
         warn: vi.fn(),
       };
 
-      global.game = {
+      (globalThis as any).game = {
         system: { id: 'test-system' },
         user: { isGM: false },
       } as any;
 
-      global.ui = {
+      (globalThis as any).ui = {
         notifications: mockNotifications,
       } as any;
 

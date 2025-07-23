@@ -2,6 +2,10 @@
  * Test setup for Seasons & Stars
  */
 
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+
+/// <reference path="test-types.d.ts" />
+
 import { vi, beforeEach } from 'vitest';
 import { DateFormatter } from '../src/core/date-formatter';
 
@@ -13,11 +17,11 @@ import { DateFormatter } from '../src/core/date-formatter';
   i18n: {
     lang: 'en',
   },
-};
+} as any;
 
 (globalThis as any).ui = {
   notifications: undefined,
-};
+} as any;
 
 // Mock Foundry application framework
 (globalThis as any).foundry = {
@@ -45,14 +49,14 @@ import { DateFormatter } from '../src/core/date-formatter';
         },
     },
   },
-};
+} as any;
 
 // Mock ApplicationV2 directly for imports
-(globalThis as any).ApplicationV2 = (globalThis as any).foundry.applications.api.ApplicationV2;
+(global as any).ApplicationV2 = (globalThis as any).foundry.applications.api.ApplicationV2;
 
 // Basic Handlebars mock for tests that don't set up their own
 // Individual test files can override this with more specific mocks
-(globalThis as any).Handlebars = {
+(global as any).Handlebars = {
   compile: vi.fn().mockReturnValue(vi.fn().mockReturnValue('mock-template-result')),
   registerHelper: vi.fn(),
 };
@@ -62,47 +66,51 @@ import { DateFormatter } from '../src/core/date-formatter';
  */
 export function setupFoundryEnvironment(): void {
   // Ensure game object exists
-  (global as any).game = (global as any).game || {};
+  (globalThis as any).game = (globalThis as any).game || ({} as any);
 
   // Set up basic game properties
-  global.game.settings = global.game.settings || {
+  (globalThis as any).game.settings = (globalThis as any).game.settings || {
     get: vi.fn(),
     set: vi.fn(),
     register: vi.fn(),
   };
 
-  global.game.time = global.game.time || {
+  (globalThis as any).game.time = (globalThis as any).game.time || {
     worldTime: 0,
   };
 
-  global.game.user = global.game.user || {
+  (globalThis as any).game.user = (globalThis as any).game.user || {
     isGM: true,
   };
 
-  global.game.i18n = global.game.i18n || {
+  (globalThis as any).game.i18n = (globalThis as any).game.i18n || {
     lang: 'en',
     localize: vi.fn((key: string) => key),
-    format: vi.fn((key: string, data?: any) => key),
+    format: vi.fn((key: string, _data?: any) => key),
   };
 
-  global.game.system = global.game.system || {
+  (globalThis as any).game.system = (globalThis as any).game.system || {
     id: 'pf2e',
   };
 
   // Set up UI
-  (global as any).ui = (global as any).ui || {
-    notifications: {
-      warn: vi.fn(),
-      error: vi.fn(),
-      info: vi.fn(),
-    },
-  };
+  (globalThis as any).ui =
+    (globalThis as any).ui ||
+    ({
+      notifications: {
+        warn: vi.fn(),
+        error: vi.fn(),
+        info: vi.fn(),
+      },
+    } as any);
 
   // Set up Hooks
-  (global as any).Hooks = (global as any).Hooks || {
-    on: vi.fn(),
-    callAll: vi.fn(),
-  };
+  (globalThis as any).Hooks =
+    (globalThis as any).Hooks ||
+    ({
+      on: vi.fn(),
+      callAll: vi.fn(),
+    } as any);
 }
 
 // Enhanced Hook system mock that actually registers and executes callbacks
@@ -162,14 +170,14 @@ class MockHooks {
 }
 
 // Override the Hooks system from foundry-test-utils with our enhanced version
-(globalThis as any).Hooks = MockHooks;
+(globalThis as any).Hooks = MockHooks as any;
 
 // Mock Logger for integration modules
 class MockLogger {
-  static debug(...args: any[]): void {
+  static debug(..._args: any[]): void {
     // Silent in tests
   }
-  static info(...args: any[]): void {
+  static info(..._args: any[]): void {
     // Silent in tests
   }
   static warn(...args: any[]): void {
@@ -181,7 +189,7 @@ class MockLogger {
 }
 
 // Make Logger available for imports
-(globalThis as any).__mockLogger = MockLogger;
+(global as any).__mockLogger = MockLogger;
 
 // PF2e Environment Setup Utility
 export function setupPF2eEnvironment(
@@ -199,7 +207,7 @@ export function setupPF2eEnvironment(
 
   // Mock PF2e-specific game object extensions
   if (!(globalThis as any).game) {
-    (globalThis as any).game = {};
+    (globalThis as any).game = {} as any;
   }
 
   // Add PF2e world clock settings

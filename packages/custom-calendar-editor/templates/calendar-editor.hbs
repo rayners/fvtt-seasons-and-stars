@@ -1,0 +1,285 @@
+{{!-- Custom Calendar Editor Template --}}
+<div class="custom-calendar-editor">
+  {{#if isWizardMode}}
+    {{!-- Wizard Mode Header --}}
+    <div class="wizard-header">
+      <div class="wizard-progress">
+        {{#each wizardSteps as |step index|}}
+          <div class="step {{#if (eq index ../currentStep)}}active{{/if}} {{#if (lt index ../currentStep)}}completed{{/if}}">
+            <span class="step-number">{{add index 1}}</span>
+            <span class="step-name">{{localize (concat "custom-calendar-editor.wizard.step-" step)}}</span>
+          </div>
+        {{/each}}
+      </div>
+      <h2 class="step-title">{{stepTitle}}</h2>
+    </div>
+  {{/if}}
+
+  <form class="calendar-form">
+    {{!-- Basic Information Step --}}
+    {{#if (or (not isWizardMode) (eq wizardSteps.[currentStep] "basic"))}}
+      <div class="form-section basic-info">
+        <h3>{{localize "custom-calendar-editor.wizard.step-basic"}}</h3>
+        
+        <div class="form-group">
+          <label for="calendar-id">Calendar ID:</label>
+          <input type="text" id="calendar-id" name="id" value="{{calendar.id}}" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="calendar-name">{{localize "custom-calendar-editor.editor.calendar-name"}}:</label>
+          <input type="text" id="calendar-name" name="name" value="{{calendar.name}}" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="calendar-description">{{localize "custom-calendar-editor.editor.calendar-description"}}:</label>
+          <textarea id="calendar-description" name="description" rows="3">{{calendar.description}}</textarea>
+        </div>
+        
+        {{#if (eq mode "variant")}}
+          <div class="form-group">
+            <label>Base Calendar:</label>
+            <span class="base-calendar-name">{{baseCalendar.name}}</span>
+          </div>
+        {{/if}}
+      </div>
+    {{/if}}
+
+    {{!-- Time Configuration Step --}}
+    {{#if (or (not isWizardMode) (eq wizardSteps.[currentStep] "time"))}}
+      <div class="form-section time-config">
+        <h3>{{localize "custom-calendar-editor.wizard.step-time"}}</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="hours-in-day">Hours in Day:</label>
+            <input type="number" id="hours-in-day" name="time.hoursInDay" value="{{calendar.time.hoursInDay}}" min="1" max="48" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="minutes-in-hour">Minutes in Hour:</label>
+            <input type="number" id="minutes-in-hour" name="time.minutesInHour" value="{{calendar.time.minutesInHour}}" min="1" max="120" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="seconds-in-minute">Seconds in Minute:</label>
+            <input type="number" id="seconds-in-minute" name="time.secondsInMinute" value="{{calendar.time.secondsInMinute}}" min="1" max="120" required>
+          </div>
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- Months Configuration Step --}}
+    {{#if (or (not isWizardMode) (eq wizardSteps.[currentStep] "months"))}}
+      <div class="form-section months-config">
+        <h3>{{localize "custom-calendar-editor.wizard.step-months"}}</h3>
+        
+        <div class="months-list">
+          {{#each calendar.months as |month index|}}
+            <div class="month-item">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Month Name:</label>
+                  <input type="text" name="months.{{index}}.name" value="{{month.name}}" required>
+                </div>
+                
+                <div class="form-group">
+                  <label>Days:</label>
+                  <input type="number" name="months.{{index}}.days" value="{{month.days}}" min="1" max="50" required>
+                </div>
+                
+                <div class="form-actions">
+                  <button type="button" class="remove-month" data-index="{{index}}">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+        
+        <button type="button" class="add-month">
+          <i class="fas fa-plus"></i> Add Month
+        </button>
+      </div>
+    {{/if}}
+
+    {{!-- Weekdays Configuration Step --}}
+    {{#if (or (not isWizardMode) (eq wizardSteps.[currentStep] "weekdays"))}}
+      <div class="form-section weekdays-config">
+        <h3>{{localize "custom-calendar-editor.wizard.step-weekdays"}}</h3>
+        
+        <div class="weekdays-list">
+          {{#each calendar.weekdays as |weekday index|}}
+            <div class="weekday-item">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Weekday Name:</label>
+                  <input type="text" name="weekdays.{{index}}.name" value="{{weekday.name}}" required>
+                </div>
+                
+                <div class="form-group">
+                  <label>Abbreviation:</label>
+                  <input type="text" name="weekdays.{{index}}.abbreviation" value="{{weekday.abbreviation}}" maxlength="4" required>
+                </div>
+                
+                <div class="form-actions">
+                  <button type="button" class="remove-weekday" data-index="{{index}}">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+        
+        <button type="button" class="add-weekday">
+          <i class="fas fa-plus"></i> Add Weekday
+        </button>
+      </div>
+    {{/if}}
+
+    {{!-- Advanced Features Step --}}
+    {{#if (or (not isWizardMode) (eq wizardSteps.[currentStep] "advanced"))}}
+      <div class="form-section advanced-config">
+        <h3>{{localize "custom-calendar-editor.wizard.step-advanced"}}</h3>
+        
+        {{!-- Leap Year Configuration --}}
+        <div class="subsection">
+          <h4>Leap Year Rules</h4>
+          <div class="form-group">
+            <label for="leap-year-rule">Rule:</label>
+            <select id="leap-year-rule" name="leapYear.rule">
+              <option value="none" {{#if (eq calendar.leapYear.rule "none")}}selected{{/if}}>None</option>
+              <option value="gregorian" {{#if (eq calendar.leapYear.rule "gregorian")}}selected{{/if}}>Gregorian</option>
+              <option value="custom" {{#if (eq calendar.leapYear.rule "custom")}}selected{{/if}}>Custom</option>
+            </select>
+          </div>
+          
+          {{#if (eq calendar.leapYear.rule "custom")}}
+            <div class="form-group">
+              <label for="leap-year-interval">Interval (years):</label>
+              <input type="number" id="leap-year-interval" name="leapYear.interval" value="{{calendar.leapYear.interval}}" min="2" max="100">
+            </div>
+          {{/if}}
+        </div>
+        
+        {{!-- Intercalary Days --}}
+        <div class="subsection">
+          <h4>Intercalary Days</h4>
+          <div class="intercalary-list">
+            {{#each calendar.intercalary as |intercalary index|}}
+              <div class="intercalary-item">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" name="intercalary.{{index}}.name" value="{{intercalary.name}}" required>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label>After Month:</label>
+                    <select name="intercalary.{{index}}.month">
+                      {{#each ../calendar.months as |month|}}
+                        <option value="{{month.name}}" {{#if (eq month.name ../intercalary.month)}}selected{{/if}}>{{month.name}}</option>
+                      {{/each}}
+                    </select>
+                  </div>
+                  
+                  <div class="form-actions">
+                    <button type="button" class="remove-intercalary" data-index="{{index}}">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            {{/each}}
+          </div>
+          
+          <button type="button" class="add-intercalary">
+            <i class="fas fa-plus"></i> Add Intercalary Day
+          </button>
+        </div>
+      </div>
+    {{/if}}
+
+    {{!-- Review Step --}}
+    {{#if (or (not isWizardMode) (eq wizardSteps.[currentStep] "review"))}}
+      <div class="form-section review-config">
+        <h3>{{localize "custom-calendar-editor.wizard.step-review"}}</h3>
+        
+        <div class="calendar-summary">
+          <h4>Calendar Summary</h4>
+          <dl>
+            <dt>Name:</dt>
+            <dd>{{calendar.name}}</dd>
+            
+            <dt>Months:</dt>
+            <dd>{{calendar.months.length}} months</dd>
+            
+            <dt>Weekdays:</dt>
+            <dd>{{calendar.weekdays.length}} days per week</dd>
+            
+            <dt>Time:</dt>
+            <dd>{{calendar.time.hoursInDay}}h {{calendar.time.minutesInHour}}m {{calendar.time.secondsInMinute}}s</dd>
+            
+            {{#if calendar.intercalary}}
+              <dt>Intercalary Days:</dt>
+              <dd>{{calendar.intercalary.length}} days</dd>
+            {{/if}}
+            
+            <dt>Leap Year:</dt>
+            <dd>{{calendar.leapYear.rule}}</dd>
+          </dl>
+        </div>
+        
+        <div class="calendar-preview">
+          <h4>{{localize "custom-calendar-editor.editor.preview"}}</h4>
+          {{!-- Calendar preview would be rendered here --}}
+          <div class="preview-placeholder">
+            Calendar preview will be displayed here
+          </div>
+        </div>
+      </div>
+    {{/if}}
+  </form>
+
+  {{!-- Footer with navigation/action buttons --}}
+  <footer class="editor-footer">
+    {{#if isWizardMode}}
+      <div class="wizard-navigation">
+        {{#if canGoPrevious}}
+          <button type="button" class="wizard-previous">
+            <i class="fas fa-chevron-left"></i>
+            {{localize "custom-calendar-editor.buttons.previous"}}
+          </button>
+        {{/if}}
+        
+        <div class="spacer"></div>
+        
+        {{#if isLastStep}}
+          <button type="button" class="wizard-finish">
+            <i class="fas fa-check"></i>
+            {{localize "custom-calendar-editor.buttons.finish"}}
+          </button>
+        {{else}}
+          <button type="button" class="wizard-next">
+            {{localize "custom-calendar-editor.buttons.next"}}
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        {{/if}}
+      </div>
+    {{else}}
+      <div class="editor-actions">
+        <button type="button" class="cancel-editor">
+          <i class="fas fa-times"></i>
+          {{localize "custom-calendar-editor.buttons.cancel"}}
+        </button>
+        
+        <button type="button" class="save-calendar">
+          <i class="fas fa-save"></i>
+          {{localize "custom-calendar-editor.buttons.save"}}
+        </button>
+      </div>
+    {{/if}}
+  </footer>
+</div>

@@ -22,7 +22,7 @@ jobs:
     permissions:
       contents: read
       packages: read
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,5 +47,6 @@ jobs:
           echo "- 📂 Core calendars: \`packages/core/calendars/\`" >> $GITHUB_STEP_SUMMARY
           echo "- 📂 Fantasy pack calendars: \`packages/fantasy-pack/calendars/\`" >> $GITHUB_STEP_SUMMARY
           echo "- 📂 Sci-fi pack calendars: \`packages/scifi-pack/calendars/\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 📂 PF2e pack calendars: \`packages/pf2e-pack/calendars/\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ All calendars passed JSON schema validation" >> $GITHUB_STEP_SUMMARY

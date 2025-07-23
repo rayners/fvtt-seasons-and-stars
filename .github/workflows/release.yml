@@ -20,6 +20,7 @@ on:
           - core
           - fantasy-pack
           - scifi-pack
+          - pf2e-pack
           - all
       release_type:
         description: 'Type of release'
@@ -54,6 +55,8 @@ jobs:
               echo "module=fantasy-pack" >> "$GITHUB_OUTPUT"
             elif [[ "$TAG" == seasons-and-stars-scifi-v* ]]; then
               echo "module=scifi-pack" >> "$GITHUB_OUTPUT"
+            elif [[ "$TAG" == seasons-and-stars-pf2e-v* ]]; then
+              echo "module=pf2e-pack" >> "$GITHUB_OUTPUT"
             elif [[ "$TAG" == seasons-and-stars-v* ]]; then
               echo "module=core" >> "$GITHUB_OUTPUT"
             # Legacy/manual tagging support
@@ -129,3 +132,24 @@ jobs:
           build-command: 'npm run build --workspace=packages/scifi-pack'
           working-directory: 'dist/scifi-pack'
           module-files: 'module.json calendars/'
+
+  release-pf2e:
+    needs: detect-module
+    if: needs.detect-module.outputs.module == 'pf2e-pack' || needs.detect-module.outputs.module == 'all'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Release PF2e Pack
+        uses: rayners/foundry-module-actions/release@v4
+        with:
+          node-version: '20'
+          build-command: 'npm run build --workspace=packages/pf2e-pack'
+          working-directory: 'dist/pf2e-pack'
+          module-files: 'pf2e-pack.js module.json calendars/ README.md CHANGELOG.md LICENSE'

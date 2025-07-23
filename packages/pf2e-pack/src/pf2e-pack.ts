@@ -1,11 +1,9 @@
 /**
- * PF2e Game System Integration for Seasons & Stars
+ * Seasons & Stars - Pathfinder 2e Integration Pack
  *
  * Provides PF2e-specific time sources and compatibility features.
- * Only loaded when PF2e system is detected.
+ * Requires the main Seasons & Stars module to be installed and active.
  */
-
-import { Logger } from '../core/logger';
 
 /**
  * Simple PF2e Integration Manager
@@ -39,7 +37,9 @@ export class PF2eIntegration {
   private activate(): void {
     if (this.isActive) return;
 
-    Logger.info('PF2e system detected - enabling enhanced compatibility mode');
+    console.log(
+      'Seasons & Stars PF2e Pack: PF2e system detected - enabling enhanced compatibility mode'
+    );
     this.isActive = true;
   }
 
@@ -54,8 +54,8 @@ export class PF2eIntegration {
       ).pf2e?.settings?.worldClock?.worldCreatedOn;
       return worldCreatedOn || null;
     } catch (error) {
-      Logger.error(
-        'Error accessing PF2e worldCreatedOn:',
+      console.error(
+        'Seasons & Stars PF2e Pack: Error accessing PF2e worldCreatedOn:',
         error instanceof Error ? error : undefined
       );
       return null;
@@ -77,14 +77,14 @@ export class PF2eIntegration {
     try {
       const worldCreatedOn = this.getWorldCreatedOn();
       if (!worldCreatedOn) {
-        Logger.debug('No PF2e worldCreatedOn found');
+        console.log('Seasons & Stars PF2e Pack: No PF2e worldCreatedOn found');
         return null;
       }
 
       const pf2eCreationDate = new Date(worldCreatedOn);
       if (isNaN(pf2eCreationDate.getTime())) {
-        Logger.error(
-          'Invalid PF2e worldCreatedOn format:',
+        console.error(
+          'Seasons & Stars PF2e Pack: Invalid PF2e worldCreatedOn format:',
           new Error(`Invalid date format: ${worldCreatedOn}`)
         );
         return null;
@@ -93,13 +93,17 @@ export class PF2eIntegration {
       // Get the active calendar to use its structure
       const calendarManager = game.seasonsStars?.manager as any;
       if (!calendarManager) {
-        Logger.error('Calendar manager not available for PF2e date mapping');
+        console.error(
+          'Seasons & Stars PF2e Pack: Calendar manager not available for PF2e date mapping'
+        );
         return null;
       }
 
       const activeCalendar = calendarManager.getActiveCalendar();
       if (!activeCalendar || activeCalendar.id !== 'golarion-pf2e') {
-        Logger.debug('PF2e integration only works with Golarion calendar');
+        console.log(
+          'Seasons & Stars PF2e Pack: PF2e integration only works with Golarion calendar'
+        );
         return null;
       }
 
@@ -111,15 +115,15 @@ export class PF2eIntegration {
 
       // Validate month is within calendar bounds
       if (golarionMonth < 1 || golarionMonth > activeCalendar.months.length) {
-        Logger.error(
-          `Invalid month ${golarionMonth} for calendar with ${activeCalendar.months.length} months`
+        console.error(
+          `Seasons & Stars PF2e Pack: Invalid month ${golarionMonth} for calendar with ${activeCalendar.months.length} months`
         );
         return null;
       }
 
       const monthName = activeCalendar.months[golarionMonth - 1]?.name || 'Unknown';
 
-      Logger.debug('PF2e base date calculation:', {
+      console.log('Seasons & Stars PF2e Pack: PF2e base date calculation:', {
         worldCreatedOn,
         realWorldDate: pf2eCreationDate.toISOString(),
         golarionBaseDate: `${golarionDay} ${monthName}, ${golarionYear} AR`,
@@ -139,7 +143,10 @@ export class PF2eIntegration {
         second: golarionSecond,
       };
     } catch (error) {
-      Logger.error('Error calculating PF2e base date:', error instanceof Error ? error : undefined);
+      console.error(
+        'Seasons & Stars PF2e Pack: Error calculating PF2e base date:',
+        error instanceof Error ? error : undefined
+      );
       return null;
     }
   }
@@ -152,21 +159,21 @@ export class PF2eIntegration {
     try {
       const worldCreatedOn = this.getWorldCreatedOn();
       if (!worldCreatedOn) {
-        Logger.debug('No PF2e worldCreatedOn found');
+        console.log('Seasons & Stars PF2e Pack: No PF2e worldCreatedOn found');
         return null;
       }
 
       const pf2eCreationDate = new Date(worldCreatedOn);
       if (isNaN(pf2eCreationDate.getTime())) {
-        Logger.error(
-          'Invalid PF2e worldCreatedOn format:',
+        console.error(
+          'Seasons & Stars PF2e Pack: Invalid PF2e worldCreatedOn format:',
           new Error(`Invalid date format: ${worldCreatedOn}`)
         );
         return null;
       }
 
       const timestamp = Math.floor(pf2eCreationDate.getTime() / 1000);
-      Logger.debug('PF2e world creation timestamp:', {
+      console.log('Seasons & Stars PF2e Pack: PF2e world creation timestamp:', {
         worldCreatedOn,
         timestamp,
         readableDate: pf2eCreationDate.toISOString(),
@@ -174,8 +181,8 @@ export class PF2eIntegration {
 
       return timestamp;
     } catch (error) {
-      Logger.error(
-        'Error getting PF2e world creation timestamp:',
+      console.error(
+        'Seasons & Stars PF2e Pack: Error getting PF2e world creation timestamp:',
         error instanceof Error ? error : undefined
       );
       return null;
@@ -210,8 +217,8 @@ Hooks.on(
   (compatibilityManager: {
     registerDataProvider: (system: string, key: string, provider: () => unknown) => void;
   }) => {
-    Logger.debug(
-      'PF2e system detected - registering time source and data providers with compatibility manager'
+    console.log(
+      'Seasons & Stars PF2e Pack: PF2e system detected - registering time source and data providers with compatibility manager'
     );
 
     // Initialize PF2e integration
@@ -252,3 +259,8 @@ Hooks.on(
     });
   }
 );
+
+// Initialize when ready
+Hooks.once('ready', () => {
+  console.log('Seasons & Stars PF2e Pack: Module loaded and ready');
+});
