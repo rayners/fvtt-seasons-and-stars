@@ -5,14 +5,17 @@
  * adjusts weekday calculations to match PF2e World Clock expectations.
  */
 
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/// <reference path="../../core/test/test-types.d.ts" />
+
 import { describe, test, expect, beforeEach } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import { compatibilityManager } from '../src/core/compatibility-manager';
-import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import { compatibilityManager } from '../../core/src/core/compatibility-manager';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 import * as fs from 'fs';
 import * as path from 'path';
-// Import PF2e integration to register hooks
-import '../src/integrations/pf2e-integration';
+// Note: PF2e integration moved to separate pf2e-pack module
 
 // Mock the global game object to simulate PF2e environment
 const mockGame = {
@@ -39,13 +42,13 @@ describe('PF2e Compatibility Verification', () => {
     // Reset the mock to ensure PF2e environment
     (global as Record<string, unknown>).game = mockGame;
 
-    const calendarPath = path.join('packages/core/calendars', 'golarion-pf2e.json');
+    const calendarPath = path.join('packages/pf2e-pack/calendars', 'golarion-pf2e.json');
     const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
-    golarionCalendar = calendarData;
-    golarionEngine = new CalendarEngine(calendarData);
+    golarionCalendar = calendarData as unknown as SeasonsStarsCalendar;
+    golarionEngine = new CalendarEngine(calendarData as unknown as SeasonsStarsCalendar);
 
     // Clear any existing registrations first
-    (compatibilityManager as Record<string, unknown>).dataProviderRegistry.clear();
+    (compatibilityManager as any).dataProviderRegistry.clear();
 
     // Trigger the PF2e system detection hook manually (since 'ready' hook doesn't fire in tests)
     Hooks.callAll('seasons-stars:pf2e:systemDetected', compatibilityManager);
@@ -141,8 +144,15 @@ describe('PF2e Compatibility Verification', () => {
       time: { hour: 4, minute: 59, second: 30 },
     };
 
+    // Create a proper CalendarDate object
+    const calendarDate = golarionEngine.worldTimeToDate(0);
+    calendarDate.year = testDate.year;
+    calendarDate.month = testDate.month;
+    calendarDate.day = testDate.day;
+    calendarDate.time = testDate.time;
+
     // Convert to worldTime
-    const worldTime = golarionEngine.dateToWorldTime(testDate);
+    const worldTime = golarionEngine.dateToWorldTime(calendarDate);
     expect(typeof worldTime).toBe('number');
     expect(worldTime).toBeGreaterThan(0);
 

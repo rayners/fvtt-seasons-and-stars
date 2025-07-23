@@ -6,13 +6,16 @@
  * - Compatibility manager data provider functionality (simpler approach)
  */
 
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/// <reference path="../../core/test/test-types.d.ts" />
+
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import { TimeConverter } from '../src/core/time-converter';
-import { CalendarDate } from '../src/core/calendar-date';
-import { compatibilityManager } from '../src/core/compatibility-manager';
-import { Logger } from '../src/core/logger';
-import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import { TimeConverter } from '../../core/src/core/time-converter';
+import { CalendarDate } from '../../core/src/core/calendar-date';
+import { compatibilityManager } from '../../core/src/core/compatibility-manager';
+import { Logger } from '../../core/src/core/logger';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 import golarionCalendar from '../calendars/golarion-pf2e.json';
 
 describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
@@ -22,7 +25,7 @@ describe('PF2e WorldTime Transform - Real Module Code Coverage', () => {
   let originalGame: typeof globalThis.game;
 
   beforeEach(() => {
-    calendar = golarionCalendar as SeasonsStarsCalendar;
+    calendar = golarionCalendar as unknown as SeasonsStarsCalendar;
     engine = new CalendarEngine(calendar);
     timeConverter = new TimeConverter(engine);
 

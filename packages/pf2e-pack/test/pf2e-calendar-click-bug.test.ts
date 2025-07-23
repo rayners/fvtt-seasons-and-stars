@@ -11,9 +11,12 @@
  * 4. This causes a massive year jump due to epoch/real-time interpretation mismatch
  */
 
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/// <reference path="../../core/test/test-types.d.ts" />
+
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 import golarionCalendar from '../calendars/golarion-pf2e.json';
 
 // Mock Foundry game object with PF2e world clock settings
@@ -52,7 +55,7 @@ describe('PF2e Calendar Click Bug', () => {
   let calendar: SeasonsStarsCalendar;
 
   beforeEach(() => {
-    calendar = golarionCalendar as SeasonsStarsCalendar;
+    calendar = golarionCalendar as unknown as SeasonsStarsCalendar;
     engine = new CalendarEngine(calendar);
   });
 

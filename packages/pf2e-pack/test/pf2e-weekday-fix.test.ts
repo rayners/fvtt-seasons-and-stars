@@ -7,9 +7,12 @@
  * Issue: For date 4712/10/21, PF2e shows "Sunday" but S&S shows "Toilday"
  */
 
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/// <reference path="../../core/test/test-types.d.ts" />
+
 import { describe, test, expect, beforeEach } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -18,10 +21,10 @@ describe('PF2e Weekday Fix Investigation', () => {
   let golarionCalendar: SeasonsStarsCalendar;
 
   beforeEach((): void => {
-    const calendarPath = path.join('packages/core/calendars', 'golarion-pf2e.json');
+    const calendarPath = path.join('packages/pf2e-pack/calendars', 'golarion-pf2e.json');
     const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
-    golarionCalendar = calendarData;
-    golarionEngine = new CalendarEngine(calendarData);
+    golarionCalendar = calendarData as unknown as SeasonsStarsCalendar;
+    golarionEngine = new CalendarEngine(calendarData as unknown as SeasonsStarsCalendar);
   });
 
   test('🔍 Analyze weekday mapping for problematic date', (): void => {

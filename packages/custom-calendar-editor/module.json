@@ -1,0 +1,51 @@
+{
+  "id": "seasons-and-stars-custom-calendar-editor",
+  "title": "Seasons & Stars: Custom Calendar Editor",
+  "description": "Create, edit, import, and export custom calendars for the Seasons & Stars timekeeping system. Includes wizard-based creation, Simple Calendar import, and calendar variant support.",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "David Raynes",
+      "email": "rayners@gmail.com",
+      "discord": "rayners78",
+      "github": "rayners"
+    }
+  ],
+  "esmodules": [
+    "module.js"
+  ],
+  "styles": [
+    "styles/custom-calendar-editor.css"
+  ],
+  "packs": [],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "relationships": {
+    "requires": [
+      {
+        "id": "seasons-and-stars",
+        "type": "module",
+        "manifest": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.json",
+        "compatibility": {
+          "minimum": "0.9.0"
+        }
+      }
+    ]
+  },
+  "socket": false,
+  "url": "https://github.com/rayners/fvtt-seasons-and-stars",
+  "manifest": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/custom-calendar-editor.json",
+  "download": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/custom-calendar-editor.zip",
+  "documentation": "https://docs.rayners.dev/seasons-and-stars",
+  "bugs": "https://github.com/rayners/fvtt-seasons-and-stars/issues",
+  "changelog": "https://github.com/rayners/fvtt-seasons-and-stars/blob/main/packages/custom-calendar-editor/CHANGELOG.md"
+}

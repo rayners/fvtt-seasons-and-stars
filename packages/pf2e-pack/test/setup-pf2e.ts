@@ -5,7 +5,10 @@
  * Uses PF2e-compatible implementation for authentic testing.
  */
 
-import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
+/// <reference path="../../core/test/test-types.d.ts" />
 
 interface PF2eEnvironmentConfig {
   /** World creation timestamp (Date.getTime() / 1000) */
@@ -197,41 +200,9 @@ export function createPF2eCalculations(): PF2eWorldClockCalculations {
   return calculations;
 }
 
-/**
- * Get Golarion calendar definition that matches PF2e expectations
- */
-export function getGolarionCalendarForPF2eTests(): SeasonsStarsCalendar {
-  return {
-    id: 'golarion-pf2e',
-    name: 'Golarion (Pathfinder 2e)',
-    description: 'The calendar of Golarion as used in Pathfinder 2e, with Absalom Reckoning dates.',
-    epoch: 2700, // Year offset to match PF2e AR calculations
-    months: [
-      { name: 'Abadius', length: 31, season: 'winter' },
-      { name: 'Calistril', length: 28, season: 'winter' },
-      { name: 'Pharast', length: 31, season: 'spring' },
-      { name: 'Gozren', length: 30, season: 'spring' },
-      { name: 'Desnus', length: 31, season: 'spring' },
-      { name: 'Sarenith', length: 30, season: 'summer' },
-      { name: 'Erastus', length: 31, season: 'summer' },
-      { name: 'Arodus', length: 31, season: 'summer' },
-      { name: 'Rova', length: 30, season: 'autumn' },
-      { name: 'Lamashan', length: 31, season: 'autumn' },
-      { name: 'Neth', length: 30, season: 'autumn' },
-      { name: 'Kuthona', length: 31, season: 'winter' },
-    ],
-    weekdays: ['Sunday', 'Moonday', 'Toilday', 'Wealday', 'Oathday', 'Fireday', 'Starday'],
-    year: {
-      prefix: '',
-      suffix: ' AR',
-    },
-    leapYear: {
-      frequency: 4,
-      month: 2, // Calistril
-      day: 29,
-    },
-  };
-}
+// Note: Use the actual golarion-pf2e.json calendar file in tests instead of creating duplicate data.
+// Import with: import golarionCalendar from '../calendars/golarion-pf2e.json';
+// Cast with: const calendar = golarionCalendar as unknown as SeasonsStarsCalendar;
 
 /**
  * Helper function to get ordinal suffix for days

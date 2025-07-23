@@ -5,6 +5,9 @@
  * timestamp requests via the Enhanced CompatibilityManager Data Registry.
  */
 
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/// <reference path="../../core/test/test-types.d.ts" />
+
 import { describe, it, expect, beforeEach, vi, beforeAll, afterEach } from 'vitest';
 
 // We need to test the data provider registration which happens at module level
@@ -62,8 +65,8 @@ describe('PF2e Integration - Data Provider Registry', () => {
       },
     } as typeof globalThis.game;
 
-    // Mock the Logger module
-    vi.doMock('../src/core/logger', () => ({
+    // Mock the Logger module from core package
+    vi.doMock('../../core/src/core/logger', () => ({
       Logger: mockLogger,
     }));
   });
@@ -79,7 +82,8 @@ describe('PF2e Integration - Data Provider Registry', () => {
   describe('Data Provider Registration', () => {
     it('should register data provider for world creation timestamp', async (): Promise<void> => {
       // Import the integration module to trigger hook registration
-      await import('../src/integrations/pf2e-integration');
+      // Note: PF2e integration is now in the main pf2e-pack module
+      await import('../src/pf2e-pack');
 
       // Verify the system detected hook was registered
       expect(mockHooks.on).toHaveBeenCalledWith(

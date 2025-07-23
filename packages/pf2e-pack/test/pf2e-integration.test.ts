@@ -13,18 +13,25 @@
  * but simplified for testing without full PF2e system dependencies.
  */
 
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/// <reference path="../../core/test/test-types.d.ts" />
+
 import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import { TimeConverter } from '../src/core/time-converter';
-import { CalendarManager } from '../src/core/calendar-manager';
-import { compatibilityManager } from '../src/core/compatibility-manager';
-import type { SeasonsStarsCalendar, ICalendarDate } from '../src/types/calendar-types';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import { TimeConverter } from '../../core/src/core/time-converter';
+import { CalendarManager } from '../../core/src/core/calendar-manager';
+import { compatibilityManager } from '../../core/src/core/compatibility-manager';
+import type {
+  SeasonsStarsCalendar,
+  CalendarDate as ICalendarDate,
+} from '../../core/src/types/calendar';
 import {
   setupRealPF2eEnvironment,
   createPF2eCalculations,
   validatePF2eEnvironment,
 } from './setup-pf2e';
-import { setupFoundryEnvironment } from './setup';
+import { setupFoundryEnvironment } from '../../core/test/setup';
 import golarionCalendarData from '../calendars/golarion-pf2e.json';
 
 describe('PF2e Integration Tests - GitHub Issue #91', () => {
@@ -65,7 +72,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
 
   beforeEach((): void => {
     // Use real Golarion calendar definition from JSON
-    golarionCalendar = golarionCalendarData as SeasonsStarsCalendar;
+    golarionCalendar = golarionCalendarData as unknown as SeasonsStarsCalendar;
 
     engine = new CalendarEngine(golarionCalendar);
     manager = new CalendarManager();
@@ -75,7 +82,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
     manager.loadCalendar(golarionCalendar);
 
     // Clear compatibility manager for clean tests
-    (compatibilityManager as Record<string, unknown>).dataProviderRegistry.clear();
+    (compatibilityManager as any).dataProviderRegistry.clear();
 
     // Reset world time
     global.game.time.worldTime = 0;
@@ -312,15 +319,15 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       expect(resultDate.year).toBe(testDate.year);
       expect(resultDate.month).toBe(testDate.month);
       expect(resultDate.day).toBe(testDate.day);
-      expect(resultDate.time.hour).toBe(testDate.time.hour);
-      expect(resultDate.time.minute).toBe(testDate.time.minute);
-      expect(resultDate.time.second).toBe(testDate.time.second);
+      expect(resultDate.time?.hour).toBe(testDate.time?.hour);
+      expect(resultDate.time?.minute).toBe(testDate.time?.minute);
+      expect(resultDate.time?.second).toBe(testDate.time?.second);
 
       // Verify complete round-trip accuracy
-      expect(resultDate.time.hour).toBeGreaterThanOrEqual(0);
-      expect(resultDate.time.hour).toBeLessThan(24);
-      expect(resultDate.time.minute).toBeGreaterThanOrEqual(0);
-      expect(resultDate.time.minute).toBeLessThan(60);
+      expect(resultDate.time?.hour).toBeGreaterThanOrEqual(0);
+      expect(resultDate.time?.hour).toBeLessThan(24);
+      expect(resultDate.time?.minute).toBeGreaterThanOrEqual(0);
+      expect(resultDate.time?.minute).toBeLessThan(60);
     });
   });
 
@@ -362,8 +369,9 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       global.game.time.worldTime = testWorldTime;
 
       // STEP 2: Should not throw and should fall back gracefully
+      let resultDate;
       expect(() => {
-        const resultDate = timeConverter.getCurrentDate();
+        resultDate = timeConverter.getCurrentDate();
         expect(resultDate.year).toBe(2700); // Should fall back to epoch
       }).not.toThrow();
 

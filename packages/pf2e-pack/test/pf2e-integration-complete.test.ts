@@ -15,10 +15,13 @@
  * 4. Maintained backward compatibility with all other game systems
  */
 
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/// <reference path="../../core/test/test-types.d.ts" />
+
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import { TimeConverter } from '../src/core/time-converter';
-import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import { TimeConverter } from '../../core/src/core/time-converter';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -48,9 +51,9 @@ describe('PF2e Integration Complete Solution', () => {
   let golarionCalendar: SeasonsStarsCalendar;
 
   beforeEach(() => {
-    const calendarPath = path.join('packages/core/calendars', 'golarion-pf2e.json');
+    const calendarPath = path.join('packages/pf2e-pack/calendars', 'golarion-pf2e.json');
     const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
-    golarionCalendar = calendarData;
+    golarionCalendar = calendarData as unknown as SeasonsStarsCalendar;
   });
 
   test('🎯 SOLUTION VERIFICATION: Complete user issue resolution', () => {
