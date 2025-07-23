@@ -14,7 +14,7 @@ import { TimeConverter } from '../src/core/time-converter';
 import { compatibilityManager } from '../src/core/compatibility-manager';
 import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
 import { setupPF2eEnvironment } from './setup';
-import golarionCalendarData from '../calendars/golarion-pf2e.json';
+import { loadTestCalendar } from './utils/calendar-loader';
 
 describe('Widget Synchronization Integration', () => {
   let golarionCalendar: SeasonsStarsCalendar;
@@ -35,7 +35,7 @@ describe('Widget Synchronization Integration', () => {
 
   beforeEach(() => {
     // Use the actual Golarion calendar JSON file instead of duplicating definitions
-    golarionCalendar = golarionCalendarData as SeasonsStarsCalendar;
+    golarionCalendar = loadTestCalendar('golarion-pf2e.json');
 
     engine = new CalendarEngine(golarionCalendar);
     timeConverter = new TimeConverter(engine);
