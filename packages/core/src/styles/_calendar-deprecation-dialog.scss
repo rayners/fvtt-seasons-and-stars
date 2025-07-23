@@ -1,0 +1,47 @@
+/**
+ * Calendar Deprecation Warning Dialog Styles
+ * Uses native Foundry classes where possible
+ */
+
+.seasons-stars-deprecation-warning {
+  // Use Foundry's native header styling
+  .warning-header {
+    h2 {
+      color: var(--color-text-light-heading);
+      
+      i {
+        color: #f39c12;
+        margin-right: 8px;
+      }
+    }
+  }
+
+  // Content section uses default Foundry styling
+  .content {
+    margin-bottom: 1rem;
+  }
+
+  // Simple action section - let Foundry handle all the colors
+  .action-section {
+    margin-bottom: 1rem;
+    
+    h4 {
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+  }
+
+  // Enhance footer layout slightly
+  .sheet-footer {
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0;
+    }
+  }
+}

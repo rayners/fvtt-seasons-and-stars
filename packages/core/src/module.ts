@@ -18,6 +18,7 @@ import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
 import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
+import { CalendarDeprecationDialog } from './ui/calendar-deprecation-dialog';
 // Note editing dialog imported when needed
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
@@ -341,6 +342,9 @@ Hooks.once('ready', async () => {
     api: game.seasonsStars?.api,
   });
 
+  // Show deprecation warning to GMs
+  await CalendarDeprecationDialog.showWarningIfNeeded();
+
   Logger.info('Module ready');
 });
 
@@ -486,6 +490,16 @@ function registerSettings(): void {
     config: false, // Hidden from config UI
     type: Array,
     default: [],
+  });
+
+  // Hidden world settings for internal tracking
+  game.settings.register('seasons-and-stars', 'calendarDeprecationWarningShown', {
+    name: 'Calendar Deprecation Warning Shown',
+    hint: 'Internal setting to track if the GM has dismissed the calendar deprecation warning',
+    scope: 'world',
+    config: false, // Hidden from config UI
+    type: Boolean,
+    default: false,
   });
 
   // Development and debugging settings (last for developers)

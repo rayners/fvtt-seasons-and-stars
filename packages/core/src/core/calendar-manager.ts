@@ -128,6 +128,12 @@ export class CalendarManager {
    * Load a calendar from data
    */
   loadCalendar(calendarData: SeasonsStarsCalendar, sourceInfo?: CalendarSourceInfo): boolean {
+    // Check for duplicate calendar ID and skip if already loaded
+    if (this.calendars.has(calendarData.id)) {
+      Logger.debug(`Calendar ${calendarData.id} already loaded, skipping duplicate`);
+      return true; // Return true since the calendar exists and is usable
+    }
+
     // Validate the calendar data (using synchronous legacy validation for performance)
     const validation = CalendarValidator.validateWithHelp(calendarData);
 
@@ -502,6 +508,20 @@ export class CalendarManager {
       translation.label = `${translation.label} (${variant.name})`;
     }
 
+    // Apply config-based modifications (e.g., yearOffset)
+    if (variant.config?.yearOffset !== undefined) {
+      const offsetDifference = variant.config.yearOffset - baseCalendar.year.epoch;
+      variantCalendar.year.epoch = variant.config.yearOffset;
+      variantCalendar.year.currentYear = baseCalendar.year.currentYear + offsetDifference;
+
+      // Also update worldTime if present
+      if (variantCalendar.worldTime && baseCalendar.worldTime) {
+        variantCalendar.worldTime.epochYear = variant.config.yearOffset;
+        variantCalendar.worldTime.currentYear =
+          baseCalendar.worldTime.currentYear + offsetDifference;
+      }
+    }
+
     // Apply overrides
     if (variant.overrides) {
       // Apply year overrides
@@ -729,8 +749,17 @@ export class CalendarManager {
     let successCount = 0;
     let errorCount = 0;
 
+    // Two-pass loading: first regular calendars, then variants
+
+    // Pass 1: Load regular calendars
     for (const result of results) {
       if (result.success && result.calendar) {
+        const isVariantFile = result.calendar.id && result.calendar.id.includes('-variants');
+        if (isVariantFile) {
+          // Skip variants in first pass
+          continue;
+        }
+
         // Determine source information based on URL
         const sourceInfo = this.determineSourceInfo(url, result);
 
@@ -744,6 +773,42 @@ export class CalendarManager {
         }
       } else {
         errorCount++;
+      }
+    }
+
+    // Pass 2: Process variant files as external variants
+    for (const result of results) {
+      if (result.success && result.calendar) {
+        const isVariantFile = result.calendar.id && result.calendar.id.includes('-variants');
+        if (isVariantFile) {
+          // Process as external variant
+          try {
+            const variantFileData = result.calendar as unknown as {
+              baseCalendar: string;
+              variants: Record<string, CalendarVariant>;
+            };
+
+            if (this.validateExternalVariantFile(variantFileData)) {
+              const baseCalendar = this.calendars.get(variantFileData.baseCalendar);
+              if (baseCalendar) {
+                this.applyExternalVariants(baseCalendar, variantFileData);
+                successCount++;
+              } else {
+                result.success = false;
+                result.error = `Base calendar '${variantFileData.baseCalendar}' not found for variant file`;
+                errorCount++;
+              }
+            } else {
+              result.success = false;
+              result.error = 'Invalid external variant file structure';
+              errorCount++;
+            }
+          } catch (error) {
+            result.success = false;
+            result.error = `Error processing variant file: ${(error as Error).message}`;
+            errorCount++;
+          }
+        }
       }
     }
 
