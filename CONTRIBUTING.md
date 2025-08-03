@@ -2,9 +2,22 @@
 
 Thank you for your interest in contributing to Seasons & Stars! This document provides guidelines for contributing to the project.
 
+## Project Structure
+
+Seasons & Stars is organized as a **monorepo with split modules**:
+
+- **`packages/core/`** - Core calendar engine and widgets (`seasons-and-stars`)
+- **`packages/pf2e-pack/`** - PF2e-specific calendars (`seasons-and-stars-pf2e`) _[Coming Soon]_
+- **`packages/fantasy-pack/`** - Fantasy calendar collection (`seasons-and-stars-fantasy`)
+- **`packages/scifi-pack/`** - Sci-fi calendar collection (`seasons-and-stars-scifi`)
+- **`packages/test-module/`** - Integration testing helpers
+
+Each module can be installed independently, with the core module required for calendar pack functionality.
+
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
+- [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Development Setup](#development-setup)
 - [Making Changes](#making-changes)
@@ -12,6 +25,7 @@ Thank you for your interest in contributing to Seasons & Stars! This document pr
 - [Coding Standards](#coding-standards)
 - [Testing](#testing)
 - [Documentation](#documentation)
+- [Module-Specific Guidelines](#module-specific-guidelines)
 
 ## Code of Conduct
 
@@ -35,52 +49,77 @@ This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.
    cd fvtt-seasons-and-stars
    ```
 
-2. **Install Dependencies**
+2. **Install Dependencies** (installs for all modules)
 
    ```bash
    npm install
    ```
 
-3. **Build the Module**
+3. **Build All Modules**
 
    ```bash
    npm run build
    ```
 
-4. **Link to Foundry** (optional)
+4. **Link to Foundry** (optional - links all modules)
 
    ```bash
-   ./link-module.sh
+   npm run link-electron  # For Electron app
+   npm run link-node      # For Node.js version
    ```
 
-5. **Run Tests**
+5. **Run Tests** (tests all modules)
    ```bash
    npm run test:run
    ```
+
+### Module-Specific Development
+
+To work on a specific module:
+
+```bash
+# Build only core module
+npm run build --workspace=packages/core
+
+# Test only core module
+npm run test --workspace=packages/core
+
+# Watch mode for core development
+npm run watch --workspace=packages/core
+
+# Validate calendars in specific pack
+npm run validate:calendars --workspace=packages/fantasy-pack
+```
 
 ## Making Changes
 
 ### Branch Naming
 
-Use descriptive branch names:
+Use descriptive branch names with module context:
 
-- `feature/calendar-widget-enhancement`
-- `fix/smalltime-integration-positioning`
-- `docs/api-reference-update`
+- `feature/core-calendar-widget-enhancement`
+- `fix/core-smalltime-integration-positioning`
+- `feat/fantasy-pack-eberron-calendar`
+- `fix/scifi-pack-traveller-date-format`
+- `docs/contributing-split-modules`
 
 ### Commit Messages
 
-Follow conventional commit format:
+Follow conventional commit format with module-specific scopes:
 
 ```
 type(scope): description
 
-feat(calendar): add monthly grid widget
-fix(bridge): resolve Simple Weather integration issue
-docs(api): update calendar engine documentation
+feat(core): add monthly grid widget
+fix(core): resolve SmallTime integration positioning
+feat(fantasy-pack): add Eberron calendar definition
+fix(scifi-pack): correct Traveller date formatting
+docs(contributing): update for split modules
+chore(monorepo): update workspace configuration
 ```
 
-Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+**Scopes**: `core`, `fantasy-pack`, `scifi-pack`, `pf2e-pack`, `monorepo`, `docs`
 
 ## Submitting Changes
 
@@ -143,14 +182,40 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 ### File Organization
 
+**Monorepo Structure:**
+
 ```
-src/
-  core/        # Business logic and data management
-  ui/          # User interface components
-  types/       # TypeScript type definitions
-  styles/      # SCSS styling
-templates/     # Handlebars templates
-test/          # Unit tests
+packages/
+  core/
+    src/
+      core/        # Calendar engine and business logic
+      ui/          # UI widgets and components
+      types/       # TypeScript type definitions
+      styles/      # SCSS styling
+    templates/     # Handlebars templates
+    test/          # Unit tests
+  fantasy-pack/
+    calendars/     # Calendar JSON definitions
+    test/          # Calendar validation tests
+  scifi-pack/
+    calendars/     # Calendar JSON definitions
+    test/          # Calendar validation tests
+```
+
+**Core Module File Organization:**
+
+```
+packages/core/src/
+  core/
+    calendar-manager.ts    # Main calendar orchestration
+    calendar-engine.ts     # Date arithmetic and conversion
+    time-converter.ts      # World time integration
+  ui/
+    widgets/              # Calendar display widgets
+    applications/         # Settings and configuration UIs
+  types/
+    calendar.ts           # Calendar definition interfaces
+    foundry.ts           # Foundry VTT type extensions
 ```
 
 ### Naming Conventions
@@ -209,32 +274,45 @@ npm run coverage      # Generate coverage report
 
 ## Issue Guidelines
 
-### Bug Reports
+### Choosing the Right Issue Template
 
-Use the Bug Report template and include:
+**Bug Report** - Use for unexpected behavior in any module:
 
+- Include the specific affected module (Core, Fantasy Pack, Sci-Fi Pack, etc.)
 - Steps to reproduce
 - Expected vs actual behavior
-- Console errors
-- Module versions
-- Browser information
+- Console errors and Foundry/module versions
 
-### Feature Requests
+**Feature Request** - Use for new functionality:
 
-Use the Feature Request template and include:
+- Specify target module (Core for engine features, specific pack for calendars)
+- Include problem statement and proposed solution
+- Consider cross-module implications
 
-- Problem or use case
-- Proposed solution
-- Alternative approaches considered
-- Priority level
+**Calendar Pack Issue** - Use for calendar-specific problems:
 
-### Bridge Integration Issues
+- Calendar definition errors
+- Incorrect date calculations for specific calendars
+- Pack-specific integration issues
+- Calendar validation failures
 
-Use the Bridge Integration template for:
+**Module Integration Issue** - Use for cross-module problems:
 
-- Simple Calendar Compatibility Bridge issues
-- Simple Weather integration problems
-- Module compatibility concerns
+- Issues involving multiple S&S modules
+- Compatibility with external modules
+- System integration problems
+- Cross-module dependency issues
+
+### GitHub Project Board
+
+We use [@rayners's Foundry Modules](https://github.com/users/rayners/projects/3) project board for task management. After creating an issue:
+
+1. **Module Assignment**: Issue will be tagged with the appropriate S&S module
+2. **Priority Triage**: Maintainers will assign priority and size estimates
+3. **Contributor Views**: Use filtered views to find work matching your interests:
+   - "S&S Core Contributors" - Core engine work
+   - "Calendar Pack Contributors" - Calendar definitions and pack work
+   - "External Contributors Welcome" - Good first issues and help wanted
 
 ## Module Integration
 
@@ -258,10 +336,75 @@ Releases follow semantic versioning:
 - **Minor** (v0.1.0): New features, backward compatible
 - **Patch** (v0.1.1): Bug fixes, backward compatible
 
+## Module-Specific Guidelines
+
+### Core Module (`packages/core/`)
+
+**Focus**: Calendar engine, widgets, time conversion, Foundry integration
+
+**Key Areas**:
+
+- Calendar arithmetic and date conversion logic
+- UI widgets (calendar grid, mini widget, time controls)
+- Foundry VTT API integration and compatibility
+- Performance optimization and memory management
+
+**Testing Requirements**:
+
+- Unit tests for all calendar arithmetic
+- Integration tests for Foundry API usage
+- Cross-system compatibility testing
+- Widget positioning and responsiveness tests
+
+### Calendar Packs (`packages/*-pack/`)
+
+**Focus**: Calendar definitions, cultural accuracy, system integration
+
+**Key Areas**:
+
+- JSON calendar definitions following the schema
+- Historical and cultural accuracy research
+- Game system-specific adaptations
+- Localization and translation support
+
+**Testing Requirements**:
+
+- Calendar validation tests (automatic)
+- Date arithmetic verification tests
+- Round-trip conversion tests (worldTime ↔ calendar date)
+- Cultural accuracy review by subject matter experts
+
+**Calendar Definition Guidelines**:
+
+- Research historical sources when possible
+- Include cultural context in calendar descriptions
+- Test edge cases (leap years, intercalary days, calendar reforms)
+- Provide multiple date format options for user preference
+- Document sources and inspirations in calendar metadata
+
+### PF2e Pack (Coming Soon)
+
+The PF2e pack will focus on:
+
+- Pathfinder 2e-specific calendar integration
+- Golarion calendar systems (Absalom Reckoning, etc.)
+- Campaign-specific calendar variants
+- Enhanced worldTime synchronization
+
+### Cross-Module Development
+
+When working across multiple modules:
+
+1. **Core API Changes**: Test impact on all calendar packs
+2. **Calendar Schema Updates**: Validate all existing calendar definitions
+3. **Release Coordination**: Use "Release Coordination" project field to track dependencies
+4. **Breaking Changes**: Coordinate major version bumps across affected modules
+
 ## Getting Help
 
-- **Issues**: Check existing issues first
-- **Discussions**: Use GitHub Discussions for questions
+- **Issues**: Check existing issues first, use appropriate template
+- **Project Board**: Check [@rayners's Foundry Modules](https://github.com/users/rayners/projects/3) for current priorities
+- **Discussions**: Use GitHub Discussions for questions and design discussions
 - **Discord**: Find @rayners78 on the Foundry VTT Discord
 - **Documentation**: Check docs.rayners.dev for comprehensive guides
 
