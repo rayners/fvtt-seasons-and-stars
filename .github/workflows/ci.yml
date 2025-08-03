@@ -31,4 +31,6 @@ jobs:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
           junit-output: true
           test-command: 'npm run test:coverage:junit'
-          validate-command: 'npm run lint && npm run format:check && npm run typecheck && npm run validate:calendars && npm run build'
+          lint-command: 'npm run lint'
+          format-check-command: 'npm run format:check'
+          build-command: 'npm run typecheck && npm run validate:calendars && npm run build'
