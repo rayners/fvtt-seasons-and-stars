@@ -20,6 +20,7 @@ export default defineConfig({
       reporter: ['text', 'json', 'html', 'lcov'],
       include: [
         'packages/core/src/**/*.ts',
+        'packages/pf2e-pack/src/**/*.ts',
       ],
       exclude: [
         'node_modules/',
