@@ -1,0 +1,155 @@
+name: Calendar Pack Issue
+description: Report issues with calendar definitions or pack-specific functionality
+title: '[Calendar Pack]: '
+labels: ['bug', 'type:compatibility']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is for issues specifically related to calendar packs (PF2e, Fantasy, Sci-Fi) or their calendar definitions.
+
+        For core module issues, please use the Bug Report template instead.
+
+  - type: dropdown
+    id: affected-pack
+    attributes:
+      label: Affected Calendar Pack
+      description: Which calendar pack is having issues?
+      options:
+        - PF2e Pack (seasons-and-stars-pf2e)
+        - Fantasy Pack (seasons-and-stars-fantasy)
+        - Sci-Fi Pack (seasons-and-stars-scifi)
+        - Multiple packs
+    validations:
+      required: true
+
+  - type: dropdown
+    id: calendar-name
+    attributes:
+      label: Calendar Name
+      description: Which specific calendar is having issues?
+      options:
+        - Golarion (PF2e)
+        - Dark Sun
+        - Eberron
+        - Exandrian (Critical Role)
+        - Forbidden Lands
+        - Forgotten Realms
+        - Greyhawk
+        - Symbaroum
+        - Traditional Fantasy Epoch
+        - Vale Reckoning
+        - Warhammer Fantasy
+        - Gregorian Star Trek Variants
+        - Starfinder Absalom Station
+        - Traveller Imperial
+        - Custom/Other (please specify below)
+
+  - type: input
+    id: pack-version
+    attributes:
+      label: Calendar Pack Version
+      description: What version of the calendar pack are you using?
+      placeholder: 'v0.1.0'
+    validations:
+      required: true
+
+  - type: input
+    id: core-version
+    attributes:
+      label: Core Module Version
+      description: What version of the core Seasons & Stars module are you using?
+      placeholder: 'v0.9.0'
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What type of calendar pack issue is this?
+      options:
+        - label: Calendar not loading/appearing
+        - label: Incorrect date calculations
+        - label: Wrong weekday assignments
+        - label: Leap year calculation errors
+        - label: Month/season boundary issues
+        - label: Moon phase calculation problems
+        - label: Calendar widget display issues
+        - label: JSON schema validation errors
+        - label: Pack installation/loading problems
+        - label: Other (please describe below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Issue Description
+      description: Describe the calendar pack issue in detail
+      placeholder: |
+        For example:
+        - The Golarion calendar shows the wrong weekday for specific dates
+        - Leap year calculations are incorrect for Forgotten Realms
+        - The Fantasy Pack won't install or load
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Calendar Behavior
+      description: What should the calendar be showing/doing?
+      placeholder: |
+        Reference official sources if possible:
+        - Game system rulebooks
+        - Published adventure dates
+        - Official calendar references
+    validations:
+      required: true
+
+  - type: textarea
+    id: specific-dates
+    attributes:
+      label: Specific Dates/Examples
+      description: |
+        If this affects specific dates, please provide examples.
+        Include both the incorrect behavior and what it should be.
+      placeholder: |
+        For example:
+        - Date: 15th of Calistril, 4725 AR
+        - Currently shows: Wednesday
+        - Should show: Thursday
+    validations:
+      required: true
+
+  - type: textarea
+    id: console-errors
+    attributes:
+      label: Console Errors
+      description: Check the browser console (F12) for any pack-related errors
+      render: javascript
+      placeholder: Paste any calendar pack console errors here
+
+  - type: textarea
+    id: calendar-config
+    attributes:
+      label: Calendar Configuration
+      description: |
+        If you have custom calendar settings or modifications, please describe them.
+        Export your calendar configuration if relevant.
+      placeholder: Describe any custom settings or configuration changes
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Information
+      description: |
+        Any other context about the calendar pack issue.
+
+        Helpful information:
+        - Game system being used
+        - Other calendar modules installed
+        - Screenshots of incorrect dates
+        - References to official calendar sources
+      placeholder: Any additional context or information

@@ -1,12 +1,29 @@
 name: Feature Request
 description: Suggest a new feature or enhancement for Seasons & Stars
-title: "[Feature]: "
-labels: ["enhancement"]
+title: '[Feature]: '
+labels: ['enhancement']
 body:
   - type: markdown
     attributes:
       value: |
         Thank you for suggesting a feature! Please provide details about your idea below.
+
+  - type: dropdown
+    id: target-module
+    attributes:
+      label: Target Module
+      description: Which module should this feature be added to?
+      options:
+        - Core (seasons-and-stars)
+        - PF2e Pack (seasons-and-stars-pf2e)
+        - Fantasy Pack (seasons-and-stars-fantasy)
+        - Sci-Fi Pack (seasons-and-stars-scifi)
+        - Custom Calendar Editor
+        - New module/pack
+        - Multiple modules
+        - Unsure
+    validations:
+      required: true
 
   - type: textarea
     id: problem
@@ -42,12 +59,15 @@ body:
       description: What type of feature is this?
       options:
         - label: Calendar widget enhancement
-        - label: New calendar format or system
+        - label: New calendar definition for existing pack
+        - label: New calendar pack creation
+        - label: Calendar editor enhancement
         - label: Integration with other modules
         - label: User interface improvement
         - label: API or developer feature
         - label: Performance improvement
         - label: Accessibility enhancement
+        - label: Cross-module feature
         - label: Other (please specify below)
 
   - type: checkboxes
@@ -90,7 +110,7 @@ body:
       label: Additional Context
       description: |
         Add any other context, examples, or information about the feature request here.
-        
+
         For example:
         - Similar features in other calendar software
         - Specific game systems this would benefit

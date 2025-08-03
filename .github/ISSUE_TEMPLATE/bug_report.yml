@@ -1,7 +1,7 @@
 name: Bug Report
 description: Report a bug or unexpected behavior in Seasons & Stars
-title: "[Bug]: "
-labels: ["bug"]
+title: '[Bug]: '
+labels: ['bug']
 body:
   - type: markdown
     attributes:
@@ -13,7 +13,7 @@ body:
     attributes:
       label: Seasons & Stars Version
       description: What version of Seasons & Stars are you using?
-      placeholder: "v0.1.0"
+      placeholder: 'v0.1.0'
     validations:
       required: true
 
@@ -22,7 +22,23 @@ body:
     attributes:
       label: Foundry VTT Version
       description: What version of Foundry VTT are you using?
-      placeholder: "v13.331"
+      placeholder: 'v13.331'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected-module
+    attributes:
+      label: Affected Module
+      description: Which module is this issue related to?
+      options:
+        - Core (seasons-and-stars)
+        - PF2e Pack (seasons-and-stars-pf2e)
+        - Fantasy Pack (seasons-and-stars-fantasy)
+        - Sci-Fi Pack (seasons-and-stars-scifi)
+        - Custom Calendar Editor
+        - Multiple modules
+        - Unsure
     validations:
       required: true
 
@@ -96,7 +112,7 @@ body:
       label: Additional Information
       description: |
         Add any other context about the problem here.
-        
+
         Tips:
         - Screenshots or video recordings are very helpful
         - If this worked before, mention when it started failing
