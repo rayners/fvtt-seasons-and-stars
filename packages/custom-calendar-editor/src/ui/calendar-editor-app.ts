@@ -385,18 +385,33 @@ export class CalendarEditorApp extends foundry.applications.api.ApplicationV2 {
   private _updateCalendarField(field: string, value: any): void {
     if (!this.calendar) return;
     
-    // Handle nested field updates
+    // Handle nested field updates with prototype pollution protection
     const fieldParts = field.split('.');
     let target: any = this.calendar;
     
-    for (let i = 0; i < fieldParts.length - 1; i++) {
-      if (!target[fieldParts[i]]) {
-        target[fieldParts[i]] = {};
+    // Validate all field parts for dangerous keys
+    for (const part of fieldParts) {
+      if (this._isDangerousKey(part)) {
+        Logger.warn(`Blocked potentially dangerous field update: ${field}`);
+        return;
       }
-      target = target[fieldParts[i]];
     }
     
-    target[fieldParts[fieldParts.length - 1]] = value;
+    for (let i = 0; i < fieldParts.length - 1; i++) {
+      const key = fieldParts[i];
+      if (!target[key]) {
+        target[key] = {};
+      }
+      target = target[key];
+    }
+    
+    const finalKey = fieldParts[fieldParts.length - 1];
+    target[finalKey] = value;
+  }
+  
+  private _isDangerousKey(key: string): boolean {
+    const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
+    return dangerousKeys.includes(key);
   }
   
   private _validateCurrentStep(): boolean {

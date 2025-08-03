@@ -4,7 +4,6 @@ import json from '@rollup/plugin-json';
 import typescript from '@rollup/plugin-typescript';
 import copy from 'rollup-plugin-copy';
 import scss from 'rollup-plugin-scss';
-import packageJson from './package.json' with { type: 'json' };
 
 export default {
   input: 'src/module.ts',

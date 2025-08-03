@@ -66,15 +66,15 @@ describe('PF2e Calendar Click Bug', () => {
 
     // STEP 1: Initial state - both systems should show same date
 
-    // S&S calculates date from worldTime WITHOUT PF2e integration (the bug)
-    const initialSSDate = engine.worldTimeToDate(initialWorldTime);
-    // Verify S&S without integration shows epoch year
-    expect(initialSSDate.year).toBe(2700); // Should be epoch year without integration
-
     // PF2e calculates date using worldCreatedOn + worldTime
     const worldCreatedOnDate = new Date(worldCreatedOn);
     const pf2eDateTime = new Date(worldCreatedOnDate.getTime() + initialWorldTime * 1000);
     const pf2eYear = pf2eDateTime.getUTCFullYear() + 2700; // AR year offset
+
+    // S&S calculates date from worldTime WITHOUT PF2e integration (the bug)
+    const initialSSDate = engine.worldTimeToDate(initialWorldTime);
+    // Verify S&S without integration shows epoch year
+    expect(initialSSDate.year).toBe(2700); // Should be epoch year without integration
 
     // S&S calculates date WITH PF2e integration (the fix)
     const worldCreatedOnTimestamp = Math.floor(new Date(worldCreatedOn).getTime() / 1000);
