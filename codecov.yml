@@ -13,7 +13,7 @@ comment:
   require_changes: false
   require_base: no
   require_head: yes
-  after_n_builds: 3 # Expect test results from both matrix jobs + coverage from Node 20
+  after_n_builds: 1 # Only Node 20 job uploads coverage and test results
 
 github_checks:
   annotations: true
