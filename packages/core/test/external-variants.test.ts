@@ -87,10 +87,10 @@ describe('External Calendar Variants System', () => {
     it('should load base calendar and external variants successfully', async () => {
       await calendarManager.loadBuiltInCalendars();
 
-      // Should have all core calendars (16 base + 4 golarion variants + 4 star trek variants = 23)
-      expect(calendarManager.calendars.size).toBe(23);
+      // Should have all core calendars (14 base + 4 star trek variants = 18 total)
+      // Note: golarion-pf2e was moved to PF2e package during extraction
+      expect(calendarManager.calendars.size).toBe(18);
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
-      expect(calendarManager.calendars.has('golarion-pf2e')).toBe(true);
 
       // Manually load the external variant file to test the functionality
       const variantFileData = {
@@ -152,7 +152,7 @@ describe('External Calendar Variants System', () => {
       calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
 
       // Should still have all core calendars (Star Trek variants are already loaded)
-      expect(calendarManager.calendars.size).toBe(23);
+      expect(calendarManager.calendars.size).toBe(18);
 
       // Check Star Trek variants
       expect(calendarManager.calendars.has('gregorian(earth-stardate)')).toBe(true);
@@ -289,8 +289,9 @@ describe('External Calendar Variants System', () => {
       // Use the shared mock (no need to override for this test)
       await calendarManager.loadBuiltInCalendars();
 
-      // Should have all core calendars (16 base + 4 golarion variants + 4 star trek variants = 23)
-      expect(calendarManager.calendars.size).toBe(23);
+      // Should have all core calendars (14 base + 4 star trek variants = 18 total)
+      // Note: golarion-pf2e was moved to PF2e package during extraction
+      expect(calendarManager.calendars.size).toBe(18);
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
 
       // Test the invalid variant file handling by calling the method directly

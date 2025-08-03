@@ -13,18 +13,23 @@
  * but simplified for testing without full PF2e system dependencies.
  */
 
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/// <reference path="../../core/test/test-types.d.ts" />
+
 import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
-import { CalendarEngine } from '../src/core/calendar-engine';
-import { TimeConverter } from '../src/core/time-converter';
-import { CalendarManager } from '../src/core/calendar-manager';
-import { compatibilityManager } from '../src/core/compatibility-manager';
-import type { SeasonsStarsCalendar, ICalendarDate } from '../src/types/calendar-types';
+import { CalendarEngine } from '../../core/src/core/calendar-engine';
+import { TimeConverter } from '../../core/src/core/time-converter';
+import { CalendarManager } from '../../core/src/core/calendar-manager';
+import { CalendarDate } from '../../core/src/core/calendar-date';
+import { compatibilityManager } from '../../core/src/core/compatibility-manager';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 import {
   setupRealPF2eEnvironment,
   createPF2eCalculations,
   validatePF2eEnvironment,
 } from './setup-pf2e';
-import { setupFoundryEnvironment } from './setup';
+import { setupFoundryEnvironment } from '../../core/test/setup';
 import golarionCalendarData from '../calendars/golarion-pf2e.json';
 
 describe('PF2e Integration Tests - GitHub Issue #91', () => {
@@ -41,7 +46,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
   const EXPECTED_PF2E_YEAR = WORLD_CREATION_YEAR + PF2E_YEAR_OFFSET; // 4725
   const SECONDS_PER_DAY = 86400;
 
-  beforeAll(() => {
+  beforeAll((): void => {
     // Set up basic Foundry environment
     setupFoundryEnvironment();
 
@@ -63,9 +68,9 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
     pf2eCalculations = createPF2eCalculations();
   });
 
-  beforeEach(() => {
+  beforeEach((): void => {
     // Use real Golarion calendar definition from JSON
-    golarionCalendar = golarionCalendarData as SeasonsStarsCalendar;
+    golarionCalendar = golarionCalendarData as unknown as SeasonsStarsCalendar;
 
     engine = new CalendarEngine(golarionCalendar);
     manager = new CalendarManager();
@@ -78,21 +83,21 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
     (compatibilityManager as any).dataProviderRegistry.clear();
 
     // Reset world time
-    global.game.time.worldTime = 0;
+    (globalThis as any).game.time.worldTime = 0;
 
     // Reset mocks
     vi.clearAllMocks();
   });
 
   describe('GitHub Issue #91 Core Bug Reproduction', () => {
-    it('reproduces the exact widget synchronization issue', () => {
+    it('reproduces the exact widget synchronization issue', (): void => {
       // BACKGROUND: Issue #91 reported widgets showing different years
       // Main issue: "The monthly calendar widget still thinks its 4725"
       // while system shows different year
 
       // STEP 1: Set world time to 1 day elapsed
       const oneDayElapsed = SECONDS_PER_DAY;
-      global.game.time.worldTime = oneDayElapsed;
+      (globalThis as any).game.time.worldTime = oneDayElapsed;
 
       // STEP 2: Get date WITHOUT world creation timestamp (broken behavior)
       const brokenDate = engine.worldTimeToDate(oneDayElapsed);
@@ -122,7 +127,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
 
       // STEP 2: Set world time to multiple days elapsed
       const multipleDaysElapsed = SECONDS_PER_DAY * 7; // 7 days
-      global.game.time.worldTime = multipleDaysElapsed;
+      (globalThis as any).game.time.worldTime = multipleDaysElapsed;
 
       // STEP 3: TimeConverter should now use world creation timestamp
       const timeConverterDate = timeConverter.getCurrentDate();
@@ -149,19 +154,22 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       });
 
       // STEP 2: Calculate world time for August 3rd (Arodus is August in Golarion)
-      const august3rd: ICalendarDate = {
-        year: EXPECTED_PF2E_YEAR,
-        month: 8, // August = Arodus
-        day: 3,
-        weekday: 0, // Will be calculated
-        time: { hour: 12, minute: 0, second: 0 },
-      };
+      const august3rd = new CalendarDate(
+        {
+          year: EXPECTED_PF2E_YEAR,
+          month: 8, // August = Arodus
+          day: 3,
+          weekday: 0, // Will be calculated
+          time: { hour: 12, minute: 0, second: 0 },
+        },
+        golarionCalendar
+      );
 
       // STEP 3: Convert to world time using S&S engine WITH world creation timestamp
       const worldTimeForAugust3rd = engine.dateToWorldTime(august3rd, worldCreationTimestamp);
 
       // STEP 4: Set world time to that value
-      global.game.time.worldTime = worldTimeForAugust3rd;
+      (globalThis as any).game.time.worldTime = worldTimeForAugust3rd;
 
       // STEP 5: TimeConverter should return exactly "3rd Arodus" (not "22nd Rova")
       const resultDate = timeConverter.getCurrentDate();
@@ -195,7 +203,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
 
       for (const testCase of testCases) {
         const worldTime = testCase.elapsedDays * SECONDS_PER_DAY;
-        global.game.time.worldTime = worldTime;
+        (globalThis as any).game.time.worldTime = worldTime;
 
         // S&S calculation
         const ssDate = timeConverter.getCurrentDate();
@@ -207,11 +215,13 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
         expect(ssDate.year).toBe(pf2eYear);
         expect(ssDate.year).toBe(EXPECTED_PF2E_YEAR + Math.floor(testCase.elapsedDays / 365));
 
-        console.log(`✅ Day ${testCase.elapsedDays}: S&S=${ssDate.year}, PF2e=${pf2eYear}`);
+        // Verify both calculations match
+        expect(ssDate.year).toBe(pf2eYear);
+        expect(ssDate.year).toBe(EXPECTED_PF2E_YEAR + Math.floor(testCase.elapsedDays / 365));
       }
     });
 
-    it('explains the 4725 vs 6749 year discrepancy', () => {
+    it('explains the 4725 vs 6749 year discrepancy', (): void => {
       // ANALYSIS: The issue mentioned 4725 AR vs 6749 - let's understand this
 
       const worldCreationTimestamp = new Date(WORLD_CREATION_DATE).getTime() / 1000;
@@ -225,11 +235,10 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
 
       // This suggests someone might be using a different calendar standard
       // or there's a calculation error adding an extra ~2024 years
-      console.log(`Alternative offset calculation: ${alternativeOffset}`);
-
-      console.log(`Correct PF2e year: ${correctPF2eYear} (2025 + 2700)`);
-      console.log(`Reported discrepancy: 6749`);
-      console.log(`Difference: ${6749 - 4725} years`);
+      // Verify the calculations
+      expect(correctPF2eYear).toBe(4725);
+      expect(alternativeOffset).toBe(4724);
+      expect(6749 - 4725).toBe(2024); // 2024 years difference
 
       // The 6749 vs 4725 discrepancy (2024 years) suggests either:
       // 1. Different calendar theme/standard being used
@@ -248,7 +257,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
   });
 
   describe('Widget Synchronization Chain Validation', () => {
-    it('validates time converter and engine use world creation timestamp', () => {
+    it('validates time converter and engine use world creation timestamp', (): void => {
       // GOAL: Ensure the core widget methods (TimeConverter + Engine) use world creation timestamp correctly
       // These are the methods actually used by Calendar widgets for date display
 
@@ -258,7 +267,7 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       });
 
       const testWorldTime = SECONDS_PER_DAY * 30; // 30 days elapsed
-      global.game.time.worldTime = testWorldTime;
+      (globalThis as any).game.time.worldTime = testWorldTime;
 
       // Method 1: TimeConverter.getCurrentDate() - Used by Calendar widgets
       const timeConverterDate = timeConverter.getCurrentDate();
@@ -275,12 +284,13 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       expect(timeConverterDate.year).toBe(EXPECTED_PF2E_YEAR);
       expect(engineDate.year).toBe(EXPECTED_PF2E_YEAR);
 
-      console.log(
-        `✅ Widget methods synchronized: ${timeConverterDate.year}-${timeConverterDate.month}-${timeConverterDate.day}`
-      );
+      // Verify synchronization details
+      expect(timeConverterDate.year).toBeGreaterThan(4700);
+      expect(timeConverterDate.month).toBeGreaterThan(0);
+      expect(timeConverterDate.day).toBeGreaterThan(0);
     });
 
-    it('validates round-trip date conversion accuracy', () => {
+    it('validates round-trip date conversion accuracy', (): void => {
       // GOAL: Setting a date and reading it back should return the same date
 
       const worldCreationTimestamp = new Date(WORLD_CREATION_DATE).getTime() / 1000;
@@ -289,19 +299,22 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       });
 
       // Test date: 15th Sarenith 4725 (June 15th)
-      const testDate: ICalendarDate = {
-        year: EXPECTED_PF2E_YEAR,
-        month: 6, // June = Sarenith
-        day: 15,
-        weekday: 0, // Will be calculated
-        time: { hour: 14, minute: 30, second: 45 },
-      };
+      const testDate = new CalendarDate(
+        {
+          year: EXPECTED_PF2E_YEAR,
+          month: 6, // June = Sarenith
+          day: 15,
+          weekday: 0, // Will be calculated
+          time: { hour: 14, minute: 30, second: 45 },
+        },
+        golarionCalendar
+      );
 
       // Convert to world time
       const worldTime = engine.dateToWorldTime(testDate, worldCreationTimestamp);
 
       // Set as current world time
-      global.game.time.worldTime = worldTime;
+      (globalThis as any).game.time.worldTime = worldTime;
 
       // Read back via TimeConverter
       const resultDate = timeConverter.getCurrentDate();
@@ -310,28 +323,30 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       expect(resultDate.year).toBe(testDate.year);
       expect(resultDate.month).toBe(testDate.month);
       expect(resultDate.day).toBe(testDate.day);
-      expect(resultDate.time.hour).toBe(testDate.time.hour);
-      expect(resultDate.time.minute).toBe(testDate.time.minute);
-      expect(resultDate.time.second).toBe(testDate.time.second);
+      expect(resultDate.time?.hour).toBe(testDate.time?.hour);
+      expect(resultDate.time?.minute).toBe(testDate.time?.minute);
+      expect(resultDate.time?.second).toBe(testDate.time?.second);
 
-      console.log(
-        `✅ Round-trip accuracy: ${testDate.year}-${testDate.month}-${testDate.day} ${testDate.time.hour}:${testDate.time.minute}:${testDate.time.second}`
-      );
+      // Verify complete round-trip accuracy
+      expect(resultDate.time?.hour).toBeGreaterThanOrEqual(0);
+      expect(resultDate.time?.hour).toBeLessThan(24);
+      expect(resultDate.time?.minute).toBeGreaterThanOrEqual(0);
+      expect(resultDate.time?.minute).toBeLessThan(60);
     });
   });
 
   describe('Cross-System Compatibility', () => {
-    it('maintains backward compatibility for non-PF2e systems', () => {
+    it('maintains backward compatibility for non-PF2e systems', (): void => {
       // GOAL: Ensure the fix doesn't break other game systems
 
       // STEP 1: Set up non-PF2e system
-      global.game.system.id = 'dnd5e';
+      (globalThis as any).game.system.id = 'dnd5e';
 
       // STEP 2: No data provider registered for dnd5e
       // TimeConverter should fall back to epoch-based calculation
 
       const testWorldTime = SECONDS_PER_DAY * 10;
-      global.game.time.worldTime = testWorldTime;
+      (globalThis as any).game.time.worldTime = testWorldTime;
 
       const resultDate = timeConverter.getCurrentDate();
 
@@ -341,10 +356,12 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       // Should NOT use PF2e year calculation
       expect(resultDate.year).not.toBe(EXPECTED_PF2E_YEAR);
 
-      console.log(`✅ Non-PF2e system uses epoch calculation: ${resultDate.year}`);
+      // Verify epoch calculation details
+      expect(resultDate.month).toBeGreaterThan(0);
+      expect(resultDate.day).toBeGreaterThan(0);
     });
 
-    it('handles data provider errors gracefully', () => {
+    it('handles data provider errors gracefully', (): void => {
       // GOAL: Ensure errors in data providers don't crash the system
 
       // STEP 1: Register a broken data provider
@@ -353,15 +370,18 @@ describe('PF2e Integration Tests - GitHub Issue #91', () => {
       });
 
       const testWorldTime = SECONDS_PER_DAY * 5;
-      global.game.time.worldTime = testWorldTime;
+      (globalThis as any).game.time.worldTime = testWorldTime;
 
       // STEP 2: Should not throw and should fall back gracefully
+      let resultDate;
       expect(() => {
-        const resultDate = timeConverter.getCurrentDate();
+        resultDate = timeConverter.getCurrentDate();
         expect(resultDate.year).toBe(2700); // Should fall back to epoch
       }).not.toThrow();
 
-      console.log(`✅ Error handling works - falls back to epoch calculation`);
+      // Verify error handling worked
+      expect(typeof resultDate.year).toBe('number');
+      expect(resultDate.year).toBeGreaterThan(0);
     });
   });
 });

@@ -14,6 +14,15 @@ declare global {
     foundry?: any;
   }
 
+  interface GlobalThis {
+    game: any;
+    ui: any;
+    Hooks: any;
+    Canvas: any;
+    CONFIG: any;
+    foundry: any;
+  }
+
   // Foundry globals
   var game: any;
   var ui: any;

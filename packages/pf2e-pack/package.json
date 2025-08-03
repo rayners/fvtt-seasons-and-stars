@@ -1,0 +1,44 @@
+{
+  "name": "seasons-and-stars-pf2e",
+  "version": "0.1.0",
+  "description": "Pathfinder 2e integration pack for Seasons & Stars - includes Golarion calendar and time synchronization",
+  "type": "module",
+  "calendar-pack": {
+    "type": "system-integration",
+    "name": "Pathfinder 2e Pack",
+    "description": "Pathfinder 2e integration with Golarion calendar and time synchronization",
+    "tags": [
+      "pf2e",
+      "pathfinder",
+      "golarion",
+      "system-integration"
+    ]
+  },
+  "main": "dist/module.js",
+  "scripts": {
+    "prebuild": "node ../../scripts/generate-calendar-list.js pf2e-pack",
+    "build": "rollup -c ../../rollup.config.pf2e-pack.js",
+    "watch": "rollup -c ../../rollup.config.pf2e-pack.js -w",
+    "typecheck": "tsc --noEmit",
+    "test": "cd ../../ && vitest --config vitest.config.ts packages/pf2e-pack/test",
+    "test:ui": "cd ../../ && vitest --ui --config vitest.config.ts packages/pf2e-pack/test",
+    "test:run": "cd ../../ && vitest run --config vitest.config.ts packages/pf2e-pack/test",
+    "prevalidate:calendars": "node ../../scripts/generate-calendar-list.js pf2e-pack",
+    "validate:calendars": "tsx ../../packages/core/scripts/validate-calendars.ts"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@rayners/foundry-dev-tools": "^1.5.1",
+    "@rayners/foundry-test-utils": "^1.1.0",
+    "rollup": "^4.24.0",
+    "rollup-plugin-copy": "^3.4.0",
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.4",
+    "vitest": "^3.2.2"
+  },
+  "author": "David Raynes",
+  "license": "MIT"
+}

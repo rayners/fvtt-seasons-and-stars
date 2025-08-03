@@ -58,3 +58,14 @@ jobs:
           zip-files: 'module.json calendars/'
           working-directory: 'dist/scifi-pack'
           label-prefix: 'Sci-Fi Pack'
+
+      - name: PF2e Pack Bundle Analysis
+        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
+        with:
+          node-version: '20'
+          github-packages: true
+          minimum-change-threshold: 50
+          analyze-zip: true
+          zip-files: 'pf2e-pack.js module.json calendars/ README.md CHANGELOG.md LICENSE'
+          working-directory: 'dist/pf2e-pack'
+          label-prefix: 'PF2e Pack'

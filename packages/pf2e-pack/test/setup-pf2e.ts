@@ -5,7 +5,10 @@
  * Uses PF2e-compatible implementation for authentic testing.
  */
 
-import type { SeasonsStarsCalendar } from '../src/types/calendar-types';
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console */
+/// <reference path="../../core/test/test-types.d.ts" />
 
 interface PF2eEnvironmentConfig {
   /** World creation timestamp (Date.getTime() / 1000) */
@@ -53,8 +56,8 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
   } = config;
 
   // Set up PF2e system ID
-  (global as any).game = (global as any).game || {};
-  global.game.system = { id: 'pf2e' };
+  (globalThis as any).game = (globalThis as any).game || {};
+  (globalThis as any).game.system = { id: 'pf2e' };
 
   // Set up world creation timestamp
   const worldCreatedOn = new Date(worldCreationTimestamp * 1000).toISOString();
@@ -70,20 +73,20 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
   };
 
   // Set up PF2e settings structure matching real PF2e
-  global.game.pf2e = {
+  (globalThis as any).game.pf2e = {
     settings: {
       worldClock: worldClockSettings,
     },
   };
 
   // Set up Foundry world time
-  global.game.time = {
+  (globalThis as any).game.time = {
     worldTime: currentWorldTime,
   };
 
   // Set up PF2e CONFIG constants (simplified for testing)
-  (global as any).CONFIG = (global as any).CONFIG || {};
-  global.CONFIG.PF2E = {
+  (globalThis as any).CONFIG = (globalThis as any).CONFIG || {};
+  (globalThis as any).CONFIG.PF2E = {
     worldClock: {
       AR: {
         Era: 'PF2E.WorldClock.AR.Era',
@@ -117,7 +120,8 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
   };
 
   // Validate setup
-  const actualYear = expectedWorldCreationYear + global.CONFIG.PF2E.worldClock.AR.yearOffset;
+  const actualYear =
+    expectedWorldCreationYear + (globalThis as any).CONFIG.PF2E.worldClock.AR.yearOffset;
   if (actualYear !== expectedWorldCreationYear + 2700) {
     throw new Error(
       `PF2e environment setup validation failed: Expected year offset 2700, got ${
@@ -126,7 +130,7 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
     );
   }
 
-  console.log(`✅ PF2e environment setup complete:`, {
+  console.log('✅ PF2e environment setup complete:', {
     worldCreatedOn,
     currentWorldTime,
     dateTheme,
@@ -141,12 +145,12 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
 export function createPF2eCalculations(): PF2eWorldClockCalculations {
   // NOTE: These calculations replicate the logic from the actual PF2e WorldClock class
   // but are simplified to work without full PF2e system dependencies
-  const calculations = {
+  const calculations: PF2eWorldClockCalculations = {
     calculateYear(worldTime: number, worldCreatedOn: string, dateTheme: string): number {
       // Replicates: this.worldTime.year + CONFIG.PF2E.worldClock[this.dateTheme].yearOffset
       const creationDate = new Date(worldCreatedOn);
       const currentDate = new Date(creationDate.getTime() + worldTime * 1000);
-      const yearOffset = (global as any).CONFIG?.PF2E?.worldClock?.[dateTheme]?.yearOffset || 0;
+      const yearOffset = (globalThis as any).CONFIG?.PF2E?.worldClock?.[dateTheme]?.yearOffset || 0;
       return currentDate.getUTCFullYear() + yearOffset;
     },
 
@@ -166,7 +170,7 @@ export function createPF2eCalculations(): PF2eWorldClockCalculations {
       return `${weekday}, ${day}${ordinal} ${monthName} ${year} AR`;
     },
 
-    getMonthName(worldTime: number, worldCreatedOn: string, dateTheme: string): string {
+    getMonthName(worldTime: number, worldCreatedOn: string, _dateTheme: string): string {
       const creationDate = new Date(worldCreatedOn);
       const currentDate = new Date(creationDate.getTime() + worldTime * 1000);
       const monthNames = [
@@ -186,7 +190,7 @@ export function createPF2eCalculations(): PF2eWorldClockCalculations {
       return monthNames[currentDate.getUTCMonth()];
     },
 
-    getWeekday(worldTime: number, worldCreatedOn: string, dateTheme: string): string {
+    getWeekday(worldTime: number, worldCreatedOn: string, _dateTheme: string): string {
       const creationDate = new Date(worldCreatedOn);
       const currentDate = new Date(creationDate.getTime() + worldTime * 1000);
       const weekdays = ['Sunday', 'Moonday', 'Toilday', 'Wealday', 'Oathday', 'Fireday', 'Starday'];
@@ -197,41 +201,9 @@ export function createPF2eCalculations(): PF2eWorldClockCalculations {
   return calculations;
 }
 
-/**
- * Get Golarion calendar definition that matches PF2e expectations
- */
-export function getGolarionCalendarForPF2eTests(): SeasonsStarsCalendar {
-  return {
-    id: 'golarion-pf2e',
-    name: 'Golarion (Pathfinder 2e)',
-    description: 'The calendar of Golarion as used in Pathfinder 2e, with Absalom Reckoning dates.',
-    epoch: 2700, // Year offset to match PF2e AR calculations
-    months: [
-      { name: 'Abadius', length: 31, season: 'winter' },
-      { name: 'Calistril', length: 28, season: 'winter' },
-      { name: 'Pharast', length: 31, season: 'spring' },
-      { name: 'Gozren', length: 30, season: 'spring' },
-      { name: 'Desnus', length: 31, season: 'spring' },
-      { name: 'Sarenith', length: 30, season: 'summer' },
-      { name: 'Erastus', length: 31, season: 'summer' },
-      { name: 'Arodus', length: 31, season: 'summer' },
-      { name: 'Rova', length: 30, season: 'autumn' },
-      { name: 'Lamashan', length: 31, season: 'autumn' },
-      { name: 'Neth', length: 30, season: 'autumn' },
-      { name: 'Kuthona', length: 31, season: 'winter' },
-    ],
-    weekdays: ['Sunday', 'Moonday', 'Toilday', 'Wealday', 'Oathday', 'Fireday', 'Starday'],
-    year: {
-      prefix: '',
-      suffix: ' AR',
-    },
-    leapYear: {
-      frequency: 4,
-      month: 2, // Calistril
-      day: 29,
-    },
-  };
-}
+// Note: Use the actual golarion-pf2e.json calendar file in tests instead of creating duplicate data.
+// Import with: import golarionCalendar from '../calendars/golarion-pf2e.json';
+// Cast with: const calendar = golarionCalendar as unknown as SeasonsStarsCalendar;
 
 /**
  * Helper function to get ordinal suffix for days
@@ -257,24 +229,24 @@ function getOrdinalSuffix(day: number): string {
 export function validatePF2eEnvironment(): boolean {
   try {
     // Check required game objects
-    if (!global.game?.system?.id || global.game.system.id !== 'pf2e') {
+    if (!(globalThis as any).game?.system?.id || (globalThis as any).game.system.id !== 'pf2e') {
       throw new Error('PF2e system ID not set');
     }
 
-    if (!global.game?.pf2e?.settings?.worldClock) {
+    if (!(globalThis as any).game?.pf2e?.settings?.worldClock) {
       throw new Error('PF2e world clock settings not configured');
     }
 
-    if (global.game?.time?.worldTime === undefined) {
+    if ((globalThis as any).game?.time?.worldTime === undefined) {
       throw new Error('Foundry world time not set');
     }
 
-    if (!global.CONFIG?.PF2E?.worldClock) {
+    if (!(globalThis as any).CONFIG?.PF2E?.worldClock) {
       throw new Error('PF2e CONFIG constants not set');
     }
 
     return true;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('PF2e environment validation failed:', error);
     return false;
   }
