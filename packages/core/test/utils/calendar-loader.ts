@@ -16,13 +16,6 @@ export function loadTestCalendar(fileName: string): SeasonsStarsCalendar {
     return calendarData;
   }
 
-  // Try test fixtures (symlinks to external packages)
-  const fixturesPath = path.join(__dirname, '..', 'fixtures', 'calendars', fileName);
-  if (fs.existsSync(fixturesPath)) {
-    const calendarData = JSON.parse(fs.readFileSync(fixturesPath, 'utf8'));
-    return calendarData;
-  }
-
   // Try the fantasy pack
   const fantasyPackCalendarPath = path.join('packages/fantasy-pack/calendars', fileName);
   if (fs.existsSync(fantasyPackCalendarPath)) {
@@ -62,12 +55,6 @@ export function getTestCalendarPath(fileName: string): string {
   const coreCalendarPath = path.join('packages/core/calendars', fileName);
   if (fs.existsSync(coreCalendarPath)) {
     return path.resolve(coreCalendarPath);
-  }
-
-  // Try test fixtures (symlinks to external packages)
-  const fixturesPath = path.join(__dirname, '..', 'fixtures', 'calendars', fileName);
-  if (fs.existsSync(fixturesPath)) {
-    return path.resolve(fixturesPath);
   }
 
   // Try the fantasy pack
