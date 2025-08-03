@@ -8,28 +8,7 @@
 
 import { describe, test, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
-import type { SeasonsStarsCalendar } from '../src/types/calendar';
-import * as fs from 'fs';
-import * as path from 'path';
-
-// Load test calendars
-function loadCalendar(fileName: string): SeasonsStarsCalendar {
-  // Check if the calendar is in the core package first
-  const coreCalendarPath = path.join('packages/core/calendars', fileName);
-  if (fs.existsSync(coreCalendarPath)) {
-    const calendarData = JSON.parse(fs.readFileSync(coreCalendarPath, 'utf8'));
-    return calendarData;
-  }
-
-  // Otherwise, try the fantasy pack
-  const fantasyPackCalendarPath = path.join('packages/fantasy-pack/calendars', fileName);
-  if (fs.existsSync(fantasyPackCalendarPath)) {
-    const calendarData = JSON.parse(fs.readFileSync(fantasyPackCalendarPath, 'utf8'));
-    return calendarData;
-  }
-
-  throw new Error(`Calendar file not found: ${fileName}`);
-}
+import { loadTestCalendar } from './utils/calendar-loader';
 
 describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
   let gregorianEngine: CalendarEngine;
@@ -37,9 +16,9 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
   let valeReckoningEngine: CalendarEngine;
 
   beforeEach(() => {
-    gregorianEngine = new CalendarEngine(loadCalendar('gregorian.json'));
-    golarionEngine = new CalendarEngine(loadCalendar('golarion-pf2e.json'));
-    valeReckoningEngine = new CalendarEngine(loadCalendar('vale-reckoning.json'));
+    gregorianEngine = new CalendarEngine(loadTestCalendar('gregorian.json'));
+    golarionEngine = new CalendarEngine(loadTestCalendar('golarion-pf2e.json'));
+    valeReckoningEngine = new CalendarEngine(loadTestCalendar('vale-reckoning.json'));
   });
 
   describe('🔢 Extreme WorldTime Values', () => {

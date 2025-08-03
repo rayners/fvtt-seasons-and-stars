@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.9.0...seasons-and-stars-v0.9.1) (2025-07-23)
+
+
+### Bug Fixes
+
+* golarion calendar year offset bug for variants ([#154](https://github.com/rayners/fvtt-seasons-and-stars/issues/154)) ([80a9a81](https://github.com/rayners/fvtt-seasons-and-stars/commit/80a9a81c90e6d067299a7c33e7895463214217af))
+
 ## [0.9.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.8.0...seasons-and-stars-v0.9.0) (2025-07-21)
 
 

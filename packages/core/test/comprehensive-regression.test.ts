@@ -7,24 +7,23 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
-import * as fs from 'fs';
-import * as path from 'path';
+import { loadTestCalendar } from './utils/calendar-loader';
 
 describe('Comprehensive Regression Tests - Core Calendar Types', () => {
-  const calendarDir = path.join(__dirname, '..', 'calendars');
-  const calendarFiles = ['golarion-pf2e.json', 'gregorian.json'];
+  // Calendar files to test - use loadTestCalendar to find them in multiple packages
+  const testCalendars = [
+    'golarion-pf2e.json', // From pf2e-pack via loadTestCalendar
+    'gregorian.json', // From core calendars via loadTestCalendar
+  ];
 
-  calendarFiles.forEach(calendarFile => {
+  testCalendars.forEach(calendarFile => {
     const calendarName = calendarFile.replace('.json', '');
 
     describe(`${calendarName} Calendar Regression`, () => {
       let engine: CalendarEngine;
-      let calendar: any;
 
       beforeEach(() => {
-        const calendarPath = path.join(calendarDir, calendarFile);
-        const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
-        calendar = calendarData;
+        const calendarData = loadTestCalendar(calendarFile);
         engine = new CalendarEngine(calendarData);
       });
 
@@ -219,7 +218,7 @@ describe('Comprehensive Regression Tests - Core Calendar Types', () => {
         expect(Array.isArray(intercalaryDays)).toBe(true);
 
         // Test that each intercalary day can be navigated to and from
-        intercalaryDays.forEach((intercalary: any, index: number) => {
+        intercalaryDays.forEach((intercalary: any) => {
           const beforeIntercalary = {
             year,
             month: intercalary.month,
@@ -240,11 +239,10 @@ describe('Comprehensive Regression Tests - Core Calendar Types', () => {
     it('should handle core calendars consistently', () => {
       const allEngines: { [key: string]: CalendarEngine } = {};
 
-      // Load all core calendars
-      calendarFiles.forEach(calendarFile => {
+      // Load all test calendars
+      testCalendars.forEach(calendarFile => {
         const calendarName = calendarFile.replace('.json', '');
-        const calendarPath = path.join(calendarDir, calendarFile);
-        const calendarData = JSON.parse(fs.readFileSync(calendarPath, 'utf8'));
+        const calendarData = loadTestCalendar(calendarFile);
         allEngines[calendarName] = new CalendarEngine(calendarData);
       });
 

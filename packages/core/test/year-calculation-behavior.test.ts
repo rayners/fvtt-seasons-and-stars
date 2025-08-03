@@ -10,12 +10,12 @@
  * 3. Implement minimal fixes to make tests pass
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { compatibilityManager } from '../src/core/compatibility-manager';
-import type { SeasonsStarsCalendar, CalendarDate } from '../src/types/calendar';
-import golarionCalendarData from '../calendars/golarion-pf2e.json';
-import { setupRealPF2eEnvironment } from './setup-pf2e';
+import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import { loadTestCalendar } from './utils/calendar-loader';
+import { setupRealPF2eEnvironment } from '../../pf2e-pack/test/setup-pf2e';
 
 describe('Year Calculation Behavior', () => {
   let golarionCalendar: SeasonsStarsCalendar;
@@ -50,7 +50,7 @@ describe('Year Calculation Behavior', () => {
     });
 
     // Use the actual Golarion calendar JSON file instead of duplicating definitions
-    golarionCalendar = golarionCalendarData as SeasonsStarsCalendar;
+    golarionCalendar = loadTestCalendar('golarion-pf2e.json');
 
     engine = new CalendarEngine(golarionCalendar);
   });
@@ -196,7 +196,7 @@ describe('Current Implementation Issues (Failing Tests)', () => {
 
   beforeEach(() => {
     // Use the actual Golarion calendar JSON file instead of duplicating definitions
-    golarionCalendar = golarionCalendarData as SeasonsStarsCalendar;
+    golarionCalendar = loadTestCalendar('golarion-pf2e.json');
 
     engine = new CalendarEngine(golarionCalendar);
   });

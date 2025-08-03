@@ -13,10 +13,10 @@
 import { describe, test } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
-import golarionCalendarData from '../calendars/golarion-pf2e.json';
+import { loadTestCalendar } from './utils/calendar-loader';
 
 // Use the actual Golarion calendar JSON file instead of duplicating definitions
-const golarionCalendar: SeasonsStarsCalendar = golarionCalendarData as SeasonsStarsCalendar;
+const golarionCalendar: SeasonsStarsCalendar = loadTestCalendar('golarion-pf2e.json');
 
 describe('Leap Year Calculation Regression', () => {
   test('Check year 2700 length calculations', () => {
