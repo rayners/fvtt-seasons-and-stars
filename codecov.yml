@@ -1,3 +1,10 @@
+comment:
+  layout: 'condensed_header, condensed_files, condensed_footer'
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+
 coverage:
   status:
     project:
@@ -6,14 +13,3 @@ coverage:
     patch:
       default:
         threshold: 1%
-
-comment:
-  layout: 'condensed_header, condensed_files, condensed_footer'
-  behavior: default
-  require_changes: false
-  require_base: no
-  require_head: yes
-  after_n_builds: 1 # Only Node 20 job uploads coverage and test results
-
-github_checks:
-  annotations: true
