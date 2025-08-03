@@ -1,6 +1,6 @@
 /**
- * Calendar Deprecation Warning Dialog for Seasons & Stars
- * Shows a warning to GMs about upcoming calendar removal in favor of calendar packs
+ * Calendar Pack Migration Dialog for Seasons & Stars
+ * Informs GMs that calendars have been moved to separate calendar packs
  */
 
 import { Logger } from '../core/logger';
@@ -13,8 +13,8 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
     window: {
       frame: true,
       positioned: true,
-      title: 'Seasons & Stars - Important Update',
-      icon: 'fas fa-exclamation-triangle',
+      title: 'Seasons & Stars - Calendar Packs Available',
+      icon: 'fas fa-info-circle',
       minimizable: false,
       resizable: false,
     },
@@ -32,7 +32,7 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
   };
 
   /**
-   * Show the deprecation warning if it hasn't been dismissed by the GM
+   * Show the calendar pack information dialog if it hasn't been dismissed by the GM
    */
   static async showWarningIfNeeded(): Promise<void> {
     try {
@@ -41,21 +41,21 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
         return;
       }
 
-      // Check if warning was already shown and dismissed
+      // Check if dialog was already shown and dismissed
       const warningShown = game.settings?.get(
         'seasons-and-stars',
         'calendarDeprecationWarningShown'
       );
       if (warningShown) {
-        Logger.debug('Calendar deprecation warning already dismissed, skipping');
+        Logger.debug('Calendar pack information dialog already dismissed, skipping');
         return;
       }
 
-      Logger.info('Showing calendar deprecation warning to GM');
+      Logger.info('Showing calendar pack information dialog to GM');
       new CalendarDeprecationDialog().render(true);
     } catch (error) {
       Logger.error(
-        'Failed to show calendar deprecation warning',
+        'Failed to show calendar pack information dialog',
         error instanceof Error ? error : new Error(String(error))
       );
     }
@@ -79,16 +79,16 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
         const dontRemind = checkbox?.checked === true;
 
         if (dontRemind) {
-          // Mark the warning as shown so it won't appear again
+          // Mark the dialog as shown so it won't appear again
           await game.settings?.set('seasons-and-stars', 'calendarDeprecationWarningShown', true);
-          Logger.info('Calendar deprecation warning dismissed by GM');
+          Logger.info('Calendar pack information dialog dismissed by GM');
         }
 
         // Close this dialog
         await this.close();
       } catch (error) {
         Logger.error(
-          'Failed to save calendar deprecation warning preference',
+          'Failed to save calendar pack information dialog preference',
           error instanceof Error ? error : new Error(String(error))
         );
       }

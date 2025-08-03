@@ -25,11 +25,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           github-packages: true
-          codecov: true
+          codecov: ${{ matrix.node-version == '20' }}
           codecov-slug: rayners/fvtt-seasons-and-stars
           coverage-node-version: '20'
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
-          junit-output: true
+          junit-output: ${{ matrix.node-version == '20' }}
           test-command: 'npm run test:coverage:junit'
 
       - name: Validate Calendars

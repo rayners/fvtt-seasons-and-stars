@@ -87,9 +87,9 @@ describe('External Calendar Variants System', () => {
     it('should load base calendar and external variants successfully', async () => {
       await calendarManager.loadBuiltInCalendars();
 
-      // Should have all core calendars (14 base + 4 star trek variants = 18 total)
-      // Note: golarion-pf2e was moved to PF2e package during extraction
-      expect(calendarManager.calendars.size).toBe(18);
+      // Should have core calendar only (gregorian = 1 total)
+      // Note: All pack calendars moved to separate packages during extraction
+      expect(calendarManager.calendars.size).toBe(1);
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
 
       // Manually load the external variant file to test the functionality
@@ -151,8 +151,8 @@ describe('External Calendar Variants System', () => {
       // Apply external variants manually
       calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
 
-      // Should still have all core calendars (Star Trek variants are already loaded)
-      expect(calendarManager.calendars.size).toBe(18);
+      // Should now have core calendar + 4 Star Trek variants (1 + 4 = 5 total)
+      expect(calendarManager.calendars.size).toBe(5);
 
       // Check Star Trek variants
       expect(calendarManager.calendars.has('gregorian(earth-stardate)')).toBe(true);
@@ -289,9 +289,9 @@ describe('External Calendar Variants System', () => {
       // Use the shared mock (no need to override for this test)
       await calendarManager.loadBuiltInCalendars();
 
-      // Should have all core calendars (14 base + 4 star trek variants = 18 total)
-      // Note: golarion-pf2e was moved to PF2e package during extraction
-      expect(calendarManager.calendars.size).toBe(18);
+      // Should have core calendar only (gregorian = 1 total)
+      // Note: All pack calendars moved to separate packages during extraction
+      expect(calendarManager.calendars.size).toBe(1);
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
 
       // Test the invalid variant file handling by calling the method directly

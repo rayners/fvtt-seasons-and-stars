@@ -1,0 +1,19 @@
+comment:
+  layout: 'condensed_header, condensed_files, condensed_footer'
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+
+coverage:
+  status:
+    project:
+      default:
+        threshold: 1%
+        if_no_uploads: error
+        if_not_found: success
+    patch:
+      default:
+        threshold: 1%
+        if_no_uploads: error
+        if_not_found: success
