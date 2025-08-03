@@ -1,12 +1,13 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
+import typescript from '@rollup/plugin-typescript';
 import copy from 'rollup-plugin-copy';
 import { createSentryConfig } from '@rayners/foundry-dev-tools/sentry';
 import packageJson from './packages/pf2e-pack/package.json' with { type: 'json' };
 
 export default {
-  input: 'src/pf2e-pack.js',
+  input: 'src/pf2e-pack.ts',
   output: {
     file: '../../dist/pf2e-pack/pf2e-pack.js',
     format: 'es',
@@ -15,6 +16,17 @@ export default {
   },
   external: ['fs', 'path'],
   plugins: [
+    typescript({
+      tsconfig: '../../tsconfig.json',
+      include: ['src/**/*'],
+      compilerOptions: {
+        target: 'ES2020',
+        module: 'ESNext',
+        moduleResolution: 'node',
+        allowSyntheticDefaultImports: true,
+        esModuleInterop: true,
+      },
+    }),
     resolve({
       browser: true,
       preferBuiltins: false,
