@@ -10,6 +10,10 @@ coverage:
     project:
       default:
         threshold: 1%
+        if_no_uploads: error
+        if_not_found: success
     patch:
       default:
         threshold: 1%
+        if_no_uploads: error
+        if_not_found: success
