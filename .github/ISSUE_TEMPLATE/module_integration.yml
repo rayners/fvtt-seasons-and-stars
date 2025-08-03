@@ -1,0 +1,152 @@
+name: Module Integration Issue
+description: Report cross-module compatibility or integration problems
+title: '[Integration]: '
+labels: ['type:compatibility', 'system-integration']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is for issues involving integration between Seasons & Stars modules or with external modules.
+
+        For single-module bugs, please use the Bug Report template instead.
+
+  - type: checkboxes
+    id: involved-modules
+    attributes:
+      label: Seasons & Stars Modules Involved
+      description: Which S&S modules are involved in this integration issue?
+      options:
+        - label: Core (seasons-and-stars)
+        - label: PF2e Pack (seasons-and-stars-pf2e)
+        - label: Fantasy Pack (seasons-and-stars-fantasy)
+        - label: Sci-Fi Pack (seasons-and-stars-scifi)
+        - label: Custom Calendar Editor
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: external-modules
+    attributes:
+      label: External Modules Involved
+      description: Which external modules are part of this integration issue?
+      options:
+        - label: Simple Calendar Compatibility Bridge
+        - label: Simple Weather
+        - label: SmallTime
+        - label: About Time
+        - label: Journeys & Jamborees
+        - label: Realms & Reaches
+        - label: PF2e System
+        - label: D&D 5e System
+        - label: Other game system (please specify below)
+        - label: Other module (please specify below)
+
+  - type: input
+    id: game-system
+    attributes:
+      label: Game System
+      description: What game system are you using?
+      placeholder: 'pf2e, dnd5e, etc.'
+    validations:
+      required: true
+
+  - type: textarea
+    id: integration-problem
+    attributes:
+      label: Integration Problem
+      description: Describe the integration issue in detail
+      placeholder: |
+        For example:
+        - Core module and PF2e Pack show different dates
+        - Fantasy Pack calendars don't work with Simple Weather
+        - Cross-module API calls are failing
+        - Data synchronization issues between modules
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-integration
+    attributes:
+      label: Expected Integration Behavior
+      description: How should these modules work together?
+      placeholder: |
+        Describe the expected integration behavior:
+        - What data should be shared?
+        - How should the modules coordinate?
+        - What APIs should be working?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to Reproduce Integration Issue
+      description: Provide steps to reproduce the integration problem
+      placeholder: |
+        1. Install modules A, B, and C
+        2. Configure X setting in module A
+        3. Activate Y feature in module B
+        4. Observe integration failure
+    validations:
+      required: true
+
+  - type: textarea
+    id: module-versions
+    attributes:
+      label: Module Versions
+      description: List the versions of all involved modules
+      placeholder: |
+        - Core: v0.9.0
+        - PF2e Pack: v0.1.0
+        - Simple Weather: v2.3.1
+        - PF2e System: v6.5.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: console-output
+    attributes:
+      label: Console Output
+      description: Console errors or warnings related to the integration issue
+      render: javascript
+      placeholder: Paste integration-related console messages here
+
+  - type: textarea
+    id: api-debugging
+    attributes:
+      label: API Debugging Information
+      description: |
+        If this involves API integration, run these commands in the console and paste results:
+        ```
+        game.modules.get('seasons-and-stars')?.api
+        game.seasonsAndStars?.api
+        ```
+      render: javascript
+      placeholder: Paste API debugging output here
+
+  - type: checkboxes
+    id: workaround-attempted
+    attributes:
+      label: Attempted Workarounds
+      description: Have you tried any workarounds for this integration issue?
+      options:
+        - label: Disabled conflicting modules to isolate the issue
+        - label: Tried different module loading order
+        - label: Reset module configurations to defaults
+        - label: Tested with minimal module set
+        - label: Checked module compatibility documentation
+        - label: None attempted yet
+
+  - type: textarea
+    id: additional-integration
+    attributes:
+      label: Additional Information
+      description: |
+        Any other context about the integration issue.
+
+        Helpful information:
+        - Full module list export
+        - Module settings screenshots
+        - Integration workflow requirements
+        - Performance impact observations
+      placeholder: Any additional context about the integration issue
