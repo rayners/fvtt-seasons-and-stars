@@ -8,7 +8,8 @@
     "packages/core",
     "packages/fantasy-pack",
     "packages/scifi-pack",
-    "packages/test-module"
+    "packages/test-module",
+    "packages/custom-calendar-editor"
   ],
   "scripts": {
     "prebuild": "npm run prebuild --workspaces",
@@ -17,8 +18,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint packages/core/src",
     "lint:fix": "eslint packages/core/src --fix",
-    "format": "prettier --write \"packages/core/**/*.{ts,js,json}\" \"packages/fantasy-pack/**/*.{ts,js,json}\" \"packages/scifi-pack/**/*.{ts,js,json}\" \"packages/test-module/**/*.{ts,js,json}\" \"*.{js,json,md}\"",
-    "format:check": "prettier --check \"packages/core/**/*.{ts,js,json}\" \"packages/fantasy-pack/**/*.{ts,js,json}\" \"packages/scifi-pack/**/*.{ts,js,json}\" \"packages/test-module/**/*.{ts,js,json}\" \"*.{js,json,md}\"",
+    "format": "prettier --write \"packages/core/**/*.{ts,js,json}\" \"packages/fantasy-pack/**/*.{ts,js,json}\" \"packages/scifi-pack/**/*.{ts,js,json}\" \"packages/test-module/**/*.{ts,js,json}\" \"packages/custom-calendar-editor/**/*.{ts,js,json}\" \"*.{js,json,md}\"",
+    "format:check": "prettier --check \"packages/core/**/*.{ts,js,json}\" \"packages/fantasy-pack/**/*.{ts,js,json}\" \"packages/scifi-pack/**/*.{ts,js,json}\" \"packages/test-module/**/*.{ts,js,json}\" \"packages/custom-calendar-editor/**/*.{ts,js,json}\" \"*.{js,json,md}\"",
     "test": "npm run test --workspaces --if-present",
     "test:ui": "npm run test:ui --workspace=packages/core",
     "test:run": "npm run test:run --workspaces --if-present",
