@@ -88,6 +88,10 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Check if SmallTime is available and active
     const hasSmallTime = this.detectSmallTime();
 
+    // Check the always show quick time buttons setting
+    const alwaysShowQuickTimeButtons =
+      game.settings?.get('seasons-and-stars', 'alwaysShowQuickTimeButtons') || false;
+
     return Object.assign(context, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
@@ -97,7 +101,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       isGM: game.user?.isGM || false,
       canAdvanceTime: game.user?.isGM || false,
       hasSmallTime: hasSmallTime,
-      showTimeControls: !hasSmallTime, // Only show time controls if SmallTime is not available
+      showTimeControls: (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false),
       sidebarButtons: this.sidebarButtons, // Include sidebar buttons for template
     });
   }
@@ -361,7 +365,10 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
 
     // Update widget when settings change (especially quick time buttons)
     Hooks.on('seasons-stars:settingsChanged', (settingName: string) => {
-      if (settingName === 'quickTimeButtons' && CalendarWidget.activeInstance?.rendered) {
+      if (
+        (settingName === 'quickTimeButtons' || settingName === 'alwaysShowQuickTimeButtons') &&
+        CalendarWidget.activeInstance?.rendered
+      ) {
         CalendarWidget.activeInstance.render();
       }
     });
