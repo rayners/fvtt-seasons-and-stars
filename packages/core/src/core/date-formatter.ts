@@ -682,6 +682,90 @@ export class DateFormatter {
       }
     });
 
+    // Week helper - supports calculating week within month for Roshar-style calendars
+    Handlebars.registerHelper('ss-week', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // If day is provided as first argument (and not undefined/null), use it; otherwise use context
+      let dayValue =
+        args.length > 1 && args[0] !== undefined && args[0] !== null
+          ? args[0]
+          : options?.data?.root?.day;
+
+      // Handle undefined/null values gracefully
+      if (dayValue === undefined || dayValue === null) {
+        dayValue = 1;
+      }
+
+      const format = options?.hash?.format;
+      const calendarId = options?.data?.root?._calendarId;
+      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
+
+      // Get daysPerWeek from calendar weekdays array, with fallback to 7
+      let daysPerWeek = 7;
+      if (formatter && formatter.calendar.weekdays) {
+        daysPerWeek = formatter.calendar.weekdays.length;
+      }
+
+      // Allow override via hash options for special cases
+      if (options?.hash?.daysPerWeek) {
+        daysPerWeek = options.hash.daysPerWeek;
+      }
+
+      // Calculate week within month (1-based)
+      const weekValue = Math.ceil(dayValue / daysPerWeek);
+
+      switch (format) {
+        case 'pad':
+          return weekValue.toString().padStart(2, '0');
+        default:
+          return weekValue.toString();
+      }
+    });
+
+    // Day-in-week helper - calculates which day of the week (1-based)
+    Handlebars.registerHelper('ss-day-in-week', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // If day is provided as first argument (and not undefined/null), use it; otherwise use context
+      let dayValue =
+        args.length > 1 && args[0] !== undefined && args[0] !== null
+          ? args[0]
+          : options?.data?.root?.day;
+
+      // Handle undefined/null values gracefully
+      if (dayValue === undefined || dayValue === null) {
+        dayValue = 1;
+      }
+
+      const format = options?.hash?.format;
+      const calendarId = options?.data?.root?._calendarId;
+      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
+
+      // Get daysPerWeek from calendar weekdays array, with fallback to 7
+      let daysPerWeek = 7;
+      if (formatter && formatter.calendar.weekdays) {
+        daysPerWeek = formatter.calendar.weekdays.length;
+      }
+
+      // Allow override via hash options for special cases
+      if (options?.hash?.daysPerWeek) {
+        daysPerWeek = options.hash.daysPerWeek;
+      }
+
+      // Calculate day within week (1-based): ((day - 1) % daysPerWeek) + 1
+      const dayInWeekValue = ((dayValue - 1) % daysPerWeek) + 1;
+
+      switch (format) {
+        case 'pad':
+          return dayInWeekValue.toString().padStart(2, '0');
+        default:
+          return dayInWeekValue.toString();
+      }
+    });
+
     // Stardate calculation helper for sci-fi calendars
     Handlebars.registerHelper('ss-stardate', function (this: any, ...args: any[]) {
       // Handlebars passes options as the last argument
