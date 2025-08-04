@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DateFormatter } from '../src/core/date-formatter';
 import { CalendarDate } from '../src/core/calendar-date';
-import type { SeasonsStarsCalendar, CalendarDateFormats } from '../src/types/calendar';
+import type { SeasonsStarsCalendar } from '../src/types/calendar';
 
 // Use REAL Handlebars for date formatter testing (following star-trek test pattern)
 import Handlebars from 'handlebars';
@@ -138,6 +138,36 @@ describe('DateFormatter', () => {
       const sundayDate = { ...mockDate, weekday: 0 };
       const sundayResult = formatter.format(sundayDate, '{{ss-weekday format="name"}}');
       expect(sundayResult).toBe('Sunday');
+    });
+
+    it('should render week within month for Roshar-style calendars', () => {
+      // Test week calculations with calendar's weekdays (2 weekdays = 2 days per week)
+      formatter = new DateFormatter(mockCalendar);
+
+      // Day 15 with 2-day weeks should be week 8 (days 15-16 are in week 8)
+      const result2Day = formatter.format(mockDate, '{{ss-week}}');
+      expect(result2Day).toBe('8');
+
+      // Test with 5-day week override (Roshar style)
+      const result5Day = formatter.format(mockDate, '{{ss-week daysPerWeek=5}}');
+      expect(result5Day).toBe('3'); // Day 15 with 5-day weeks: days 11-15 are week 3
+
+      // Test padding format
+      const resultPadded = formatter.format(mockDate, '{{ss-week format="pad"}}');
+      expect(resultPadded).toBe('08');
+
+      // Test edge cases with 5-day week override
+      const day1Date = { ...mockDate, day: 1 };
+      const resultDay1 = formatter.format(day1Date, '{{ss-week daysPerWeek=5}}');
+      expect(resultDay1).toBe('1'); // Day 1 is always week 1
+
+      const day5Date = { ...mockDate, day: 5 };
+      const resultDay5 = formatter.format(day5Date, '{{ss-week daysPerWeek=5}}');
+      expect(resultDay5).toBe('1'); // Days 1-5 are week 1
+
+      const day6Date = { ...mockDate, day: 6 };
+      const resultDay6 = formatter.format(day6Date, '{{ss-week daysPerWeek=5}}');
+      expect(resultDay6).toBe('2'); // Day 6 starts week 2
     });
 
     it('should render month with padding formatting', () => {
