@@ -3,9 +3,9 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DateFormatter } from '../../../core/src/core/date-formatter';
-import { CalendarDate } from '../../../core/src/core/calendar-date';
-import type { SeasonsStarsCalendar } from '../../../core/src/types/calendar';
+import { DateFormatter } from '../../core/src/core/date-formatter';
+import { CalendarDate } from '../../core/src/core/calendar-date';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 import rosharCalendarData from '../calendars/roshar.json';
 
 // Use REAL Handlebars for testing
