@@ -435,6 +435,18 @@ function registerSettings(): void {
     },
   });
 
+  game.settings.register('seasons-and-stars', 'alwaysShowQuickTimeButtons', {
+    name: 'Always Display Quick Time Buttons',
+    hint: 'Display quick time buttons in widgets even when SmallTime is available. Useful if you prefer S&S time controls over SmallTime.',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'alwaysShowQuickTimeButtons');
+    },
+  });
+
   // Notes system settings
   game.settings.register('seasons-and-stars', 'allowPlayerNotes', {
     name: 'Allow Player Notes',
