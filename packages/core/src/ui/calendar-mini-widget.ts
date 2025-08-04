@@ -86,11 +86,16 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Check if SmallTime is available and active
     const hasSmallTime = SmallTimeUtils.isSmallTimeAvailable();
 
+    // Check if time should be displayed in mini widget
+    const showTime = game.settings?.get('seasons-and-stars', 'miniWidgetShowTime') || false;
+
     return Object.assign(context, {
       shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
       showTimeControls: !hasSmallTime && (game.user?.isGM || false),
       isGM: game.user?.isGM || false,
+      showTime: showTime,
+      timeString: showTime && currentDate.time ? this.getShortTimeString(currentDate.time) : '',
       calendar: {
         id: activeCalendar.id || 'unknown',
         label: activeCalendar.label || activeCalendar.name || 'Unknown Calendar',
@@ -99,6 +104,16 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       currentDate: currentDate.toObject(),
       formattedDate: currentDate.toLongString(),
     }) as MiniWidgetContext;
+  }
+
+  /**
+   * Format time for compact display in mini widget
+   */
+  private getShortTimeString(time: { hour: number; minute: number; second: number }): string {
+    // Format as HH:MM for compact display
+    const hour = time.hour.toString().padStart(2, '0');
+    const minute = time.minute.toString().padStart(2, '0');
+    return `${hour}:${minute}`;
   }
 
   /**
@@ -313,9 +328,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     });
 
-    // Update widget when settings change (especially quick time buttons)
+    // Update widget when settings change (especially quick time buttons and time display)
     Hooks.on('seasons-stars:settingsChanged', (settingName: string) => {
-      if (settingName === 'quickTimeButtons' && CalendarMiniWidget.activeInstance?.rendered) {
+      if (
+        (settingName === 'quickTimeButtons' || settingName === 'miniWidgetShowTime') &&
+        CalendarMiniWidget.activeInstance?.rendered
+      ) {
         CalendarMiniWidget.activeInstance.render();
       }
     });

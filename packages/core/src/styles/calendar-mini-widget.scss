@@ -88,6 +88,14 @@
         transform: scale(1.02);
         text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
       }
+      
+      .mini-time {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9em;
+        font-weight: 300;
+        margin-left: 0.4em;
+        opacity: 0.9;
+      }
     }
 
     .mini-error {
