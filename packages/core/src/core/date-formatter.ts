@@ -719,6 +719,8 @@ export class DateFormatter {
       switch (format) {
         case 'pad':
           return weekValue.toString().padStart(2, '0');
+        case 'ordinal':
+          return DateFormatter.addOrdinalSuffix(weekValue);
         default:
           return weekValue.toString();
       }
