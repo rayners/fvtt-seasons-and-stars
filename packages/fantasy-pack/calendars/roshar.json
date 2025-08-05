@@ -1,0 +1,157 @@
+{
+  "id": "roshar",
+  "translations": {
+    "en": {
+      "label": "Roshar Calendar (Stormlight Archive)",
+      "description": "The Vorin calendar used on Roshar in Brandon Sanderson's Stormlight Archive series. Features ten months of fifty days each, organized into ten weeks of five days per month, with the unique Year.Month.Week.Day date format used by the Alethi and other Vorin cultures.",
+      "setting": "Brandon Sanderson's Cosmere - Stormlight Archive"
+    }
+  },
+
+  "year": {
+    "epoch": 0,
+    "currentYear": 1173,
+    "prefix": "",
+    "suffix": "",
+    "startDay": 0
+  },
+
+  "leapYear": {
+    "rule": "none"
+  },
+
+  "months": [
+    {
+      "name": "Jesnan",
+      "abbreviation": "Jes",
+      "days": 50,
+      "description": "First month of the Vorin calendar. Named after the number one in the Vorin numerical system."
+    },
+    {
+      "name": "Nanan",
+      "abbreviation": "Nan",
+      "days": 50,
+      "description": "Second month of the Vorin calendar. Named after the number two in the Vorin numerical system."
+    },
+    {
+      "name": "Chach",
+      "abbreviation": "Cha",
+      "days": 50,
+      "description": "Third month of the Vorin calendar. Named after the number three in the Vorin numerical system."
+    },
+    {
+      "name": "Vev",
+      "abbreviation": "Vev",
+      "days": 50,
+      "description": "Fourth month of the Vorin calendar. Named after the number four in the Vorin numerical system."
+    },
+    {
+      "name": "Palah",
+      "abbreviation": "Pal",
+      "days": 50,
+      "description": "Fifth month of the Vorin calendar. Named after the number five in the Vorin numerical system."
+    },
+    {
+      "name": "Shash",
+      "abbreviation": "Sha",
+      "days": 50,
+      "description": "Sixth month of the Vorin calendar. Named after the number six in the Vorin numerical system."
+    },
+    {
+      "name": "Betab",
+      "abbreviation": "Bet",
+      "days": 50,
+      "description": "Seventh month of the Vorin calendar. Named after the number seven in the Vorin numerical system."
+    },
+    {
+      "name": "Kak",
+      "abbreviation": "Kak",
+      "days": 50,
+      "description": "Eighth month of the Vorin calendar. Named after the number eight in the Vorin numerical system."
+    },
+    {
+      "name": "Tanat",
+      "abbreviation": "Tan",
+      "days": 50,
+      "description": "Ninth month of the Vorin calendar. Named after the number nine in the Vorin numerical system."
+    },
+    {
+      "name": "Ishev",
+      "abbreviation": "Ish",
+      "days": 50,
+      "description": "Tenth month of the Vorin calendar. Named after the number ten in the Vorin numerical system."
+    }
+  ],
+
+  "weekdays": [
+    {
+      "name": "Jesdes",
+      "abbreviation": "Je",
+      "description": "First day of the five-day Vorin week"
+    },
+    {
+      "name": "Nandes",
+      "abbreviation": "Na",
+      "description": "Second day of the five-day Vorin week"
+    },
+    {
+      "name": "Chachel",
+      "abbreviation": "Ch",
+      "description": "Third day of the five-day Vorin week"
+    },
+    {
+      "name": "Vevod",
+      "abbreviation": "Ve",
+      "description": "Fourth day of the five-day Vorin week"
+    },
+    {
+      "name": "Palah",
+      "abbreviation": "Pa",
+      "description": "Fifth day of the five-day Vorin week"
+    }
+  ],
+
+  "intercalary": [
+    {
+      "name": "The Weeping",
+      "days": 28,
+      "after": "Ishev",
+      "description": "A four-week period of constant rain marking the end of the year. No highstorms occur during this time, and gemstones cannot be infused with Stormlight. Contains Lightday, a single clear day in the middle of the period."
+    }
+  ],
+
+  "time": {
+    "hoursInDay": 20,
+    "minutesInHour": 100,
+    "secondsInMinute": 100
+  },
+
+  "dateFormats": {
+    "roshar": "{{year}}.{{month}}.{{ss-week}}.{{ss-day-in-week}}",
+    "roshar-simple": "{{year}}.{{month}}.{{ss-week}}.{{ss-day-in-week}}",
+    "vorin": "{{ss-day format=\"ordinal\"}} day of {{ss-week format=\"ordinal\"}} week, {{ss-month format=\"name\"}}, {{year}}",
+    "short": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}}",
+    "date": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}}",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}}",
+    "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, in the year {{year}}",
+    "highstorm": "{{year}}.{{month}}.{{ss-week}}.{{ss-day-in-week}} - Week {{ss-week}} of {{ss-month format=\"name\"}}",
+    "variants": {
+      "alethi": {
+        "short": "{{ss-dateFmt \"roshar-simple\"}}",
+        "long": "{{ss-dateFmt \"vorin\"}}"
+      },
+      "thaylen": {
+        "short": "{{ss-month format=\"name\"}} {{ss-day}}, {{year}}",
+        "long": "{{ss-dateFmt \"formal\"}}"
+      }
+    },
+    "widgets": {
+      "mini": "{{year}}.{{month}}.{{ss-week}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day}} {{ss-month format=\"abbr\"}}",
+      "grid": "{{ss-day}}"
+    }
+  }
+}

@@ -447,6 +447,30 @@ function registerSettings(): void {
     },
   });
 
+  game.settings.register('seasons-and-stars', 'alwaysShowQuickTimeButtons', {
+    name: 'Always Display Quick Time Buttons',
+    hint: 'Display quick time buttons in widgets even when SmallTime is available. Useful if you prefer S&S time controls over SmallTime.',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'alwaysShowQuickTimeButtons');
+    },
+  });
+
+  game.settings.register('seasons-and-stars', 'miniWidgetShowTime', {
+    name: 'Display Time in Mini Widget',
+    hint: 'Show the current time alongside date in the mini calendar widget',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowTime');
+    },
+  });
+
   // Notes system settings
   game.settings.register('seasons-and-stars', 'allowPlayerNotes', {
     name: 'Allow Player Notes',
