@@ -380,6 +380,18 @@ function registerSettings(): void {
     default: true,
   });
 
+  game.settings.register('seasons-and-stars', 'miniWidgetShowTime', {
+    name: 'Display Time in Mini Widget',
+    hint: 'Show the current time alongside date in the mini calendar widget',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowTime');
+    },
+  });
+
   game.settings.register('seasons-and-stars', 'defaultWidget', {
     name: 'SEASONS_STARS.settings.default_widget',
     hint: 'SEASONS_STARS.settings.default_widget_hint',
@@ -444,6 +456,18 @@ function registerSettings(): void {
     default: false,
     onChange: () => {
       Hooks.callAll('seasons-stars:settingsChanged', 'alwaysShowQuickTimeButtons');
+    },
+  });
+
+  game.settings.register('seasons-and-stars', 'miniWidgetShowTime', {
+    name: 'Display Time in Mini Widget',
+    hint: 'Show the current time alongside date in the mini calendar widget',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowTime');
     },
   });
 

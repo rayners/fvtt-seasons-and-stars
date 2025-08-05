@@ -3,7 +3,9 @@
   {{#if error}}
     <div class="mini-error">{{error}}</div>
   {{else}}
-    <div class="mini-date" data-action="openCalendarSelection" title="{{shortDate}} (Click to change calendar, Double-click for larger view)">{{shortDate}}</div>
+    <div class="mini-date" data-action="openCalendarSelection" title="{{shortDate}} (Click to change calendar, Double-click for larger view)">
+      {{shortDate}}{{#if showTime}}<span class="mini-time"> {{timeString}}</span>{{/if}}
+    </div>
     {{#if showTimeControls}}
       <div class="mini-time-controls">
         {{#each (getQuickTimeButtons true)}}
