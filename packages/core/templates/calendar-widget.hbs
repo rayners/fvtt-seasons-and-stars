@@ -47,21 +47,10 @@
             <div class="advancement-controls">
               <button data-action="toggleTimeAdvancement" 
                       class="play-pause-btn {{#if timeAdvancementActive}}active{{/if}}"
-                      title="{{#if timeAdvancementActive}}Pause{{else}}Play{{/if}} automatic time advancement">
+                      title="{{#if timeAdvancementActive}}Pause automatic time advancement ({{advancementRatioDisplay}}){{else}}Play automatic time advancement ({{advancementRatioDisplay}}){{/if}}">
                 <i class="fas fa-{{#if timeAdvancementActive}}pause{{else}}play{{/if}}"></i>
-                {{#if timeAdvancementActive}}Pause{{else}}Play{{/if}}
+                {{#if timeAdvancementActive}}Pause ({{advancementRatioDisplay}}){{else}}Play ({{advancementRatioDisplay}}){{/if}}
               </button>
-              <button data-action="openAdvancementSettings" 
-                      class="settings-btn"
-                      title="Configure time advancement settings">
-                <i class="fas fa-cog"></i>
-              </button>
-              {{#if timeAdvancementActive}}
-                <span class="advancement-indicator">
-                  <i class="fas fa-clock spinning"></i>
-                  {{advancementRatioDisplay}}
-                </span>
-              {{/if}}
             </div>
           </div>
         </div>

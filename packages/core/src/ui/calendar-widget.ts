@@ -46,7 +46,6 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       switchToMini: CalendarWidget.prototype._onSwitchToMini,
       switchToGrid: CalendarWidget.prototype._onSwitchToGrid,
       toggleTimeAdvancement: CalendarWidget.prototype._onToggleTimeAdvancement,
-      openAdvancementSettings: CalendarWidget.prototype._onOpenAdvancementSettings,
     },
   };
 
@@ -105,8 +104,6 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     let playPauseButtonClass = '';
     let playPauseButtonIcon = 'fa-play';
     let playPauseButtonText = 'Play';
-    let playPauseButtonTooltip = 'Play automatic time advancement';
-    let advancementIndicatorClass = '';
 
     if (game.user?.isGM) {
       try {
@@ -126,15 +123,11 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
           playPauseButtonClass = 'active';
           playPauseButtonIcon = 'fa-pause';
           playPauseButtonText = 'Pause';
-          playPauseButtonTooltip = `Pause automatic time advancement (${ratio.toFixed(1)}x speed)`;
-          advancementIndicatorClass = 'spinning';
         } else {
           timeAdvancementStatus = 'Paused';
           playPauseButtonClass = '';
           playPauseButtonIcon = 'fa-play';
           playPauseButtonText = 'Play';
-          playPauseButtonTooltip = `Play automatic time advancement (${ratio.toFixed(1)}x speed)`;
-          advancementIndicatorClass = '';
         }
       } catch (error) {
         Logger.warn('Failed to get time advancement state', error);
@@ -163,8 +156,6 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       playPauseButtonClass: playPauseButtonClass,
       playPauseButtonIcon: playPauseButtonIcon,
       playPauseButtonText: playPauseButtonText,
-      playPauseButtonTooltip: playPauseButtonTooltip,
-      advancementIndicatorClass: advancementIndicatorClass,
       sidebarButtons: this.sidebarButtons, // Include sidebar buttons for template
     });
   }
@@ -335,30 +326,6 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       }
     } catch (error) {
       Logger.error('Failed to update time advancement ratio', error as Error);
-    }
-  }
-
-  /**
-   * Handle opening time advancement settings dialog
-   */
-  async _onOpenAdvancementSettings(event: Event, _target?: HTMLElement): Promise<void> {
-    event.preventDefault();
-
-    try {
-      // TODO: Implement proper settings dialog
-      // For now, show a simple notification
-      const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
-      const pauseOnCombat = game.settings?.get('seasons-and-stars', 'pauseOnCombat') || true;
-      const resumeAfterCombat =
-        game.settings?.get('seasons-and-stars', 'resumeAfterCombat') || false;
-
-      const message = `Current Settings:\nRatio: ${ratio}x speed\nPause on Combat: ${pauseOnCombat ? 'Yes' : 'No'}\nResume after Combat: ${resumeAfterCombat ? 'Yes' : 'No'}\n\nUse module configuration to change settings.`;
-      ui.notifications?.info(message);
-
-      Logger.info('Main widget: Opened time advancement settings');
-    } catch (error) {
-      ui.notifications?.error('Failed to open settings');
-      Logger.error('Main widget settings dialog failed', error as Error);
     }
   }
 

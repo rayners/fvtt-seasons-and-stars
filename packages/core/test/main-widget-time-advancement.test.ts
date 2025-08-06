@@ -267,61 +267,6 @@ describe('Main Widget Time Advancement Integration', () => {
     });
   });
 
-  describe('Open Advancement Settings Action', () => {
-    beforeEach(() => {
-      // Add the action handler to the widget
-      if ((widget.constructor as any).DEFAULT_OPTIONS?.actions) {
-        (widget.constructor as any).DEFAULT_OPTIONS.actions.openAdvancementSettings =
-          CalendarWidget.prototype._onOpenAdvancementSettings;
-      }
-    });
-
-    it('should open time advancement settings dialog', async () => {
-      const mockEvent = {
-        preventDefault: vi.fn(),
-        stopPropagation: vi.fn(),
-      } as any;
-
-      await widget._onOpenAdvancementSettings(mockEvent);
-
-      // Should attempt to open a settings dialog
-      // The exact implementation will depend on the dialog system used
-      expect(mockEvent.preventDefault).toHaveBeenCalled();
-    });
-
-    it('should prevent default event behavior', async () => {
-      const mockEvent = {
-        preventDefault: vi.fn(),
-        stopPropagation: vi.fn(),
-      } as any;
-
-      await widget._onOpenAdvancementSettings(mockEvent);
-
-      expect(mockEvent.preventDefault).toHaveBeenCalled();
-    });
-
-    it('should handle settings dialog errors gracefully', async () => {
-      // Mock ui.notifications to throw error
-      const originalInfo = mockUI.notifications.info;
-      mockUI.notifications.info = vi.fn(() => {
-        throw new Error('Notification failed');
-      });
-
-      const mockEvent = {
-        preventDefault: vi.fn(),
-      } as any;
-
-      await widget._onOpenAdvancementSettings(mockEvent);
-
-      expect(mockUI.notifications.error).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to open settings')
-      );
-
-      // Restore original mock
-      mockUI.notifications.info = originalInfo;
-    });
-  });
-
   describe('Time Advancement Section Rendering', () => {
     it('should include time advancement section for GM', async () => {
       const context = await widget._prepareContext();
@@ -391,39 +336,6 @@ describe('Main Widget Time Advancement Integration', () => {
       widget._onRatioSettingChanged?.(newRatio);
 
       expect(mockService.updateRatio).toHaveBeenCalledWith(newRatio);
-    });
-  });
-
-  describe('Animation and Visual Feedback', () => {
-    it('should provide spinning animation class when active', async () => {
-      mockService.isActive = true;
-
-      const context = await widget._prepareContext();
-
-      expect(context.advancementIndicatorClass).toContain('spinning');
-    });
-
-    it('should not show spinning animation when paused', async () => {
-      mockService.isActive = false;
-
-      const context = await widget._prepareContext();
-
-      expect(context.advancementIndicatorClass).not.toContain('spinning');
-    });
-
-    it('should provide tooltip information', async () => {
-      mockService.isActive = false;
-      // Clear and reset the ratio setting
-      mockSettings.delete('seasons-and-stars.timeAdvancementRatio');
-      mockSettings.set('seasons-and-stars.timeAdvancementRatio', 2.0);
-
-      // Debug: check that the mock is working
-      expect(global.game.settings.get('seasons-and-stars', 'timeAdvancementRatio')).toBe(2.0);
-
-      const context = await widget._prepareContext();
-
-      expect(context.playPauseButtonTooltip).toContain('Play automatic time advancement');
-      expect(context.playPauseButtonTooltip).toContain('2.0x speed');
     });
   });
 
