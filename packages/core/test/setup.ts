@@ -49,6 +49,12 @@ import { DateFormatter } from '../src/core/date-formatter';
         },
     },
   },
+  utils: {
+    debounce: vi.fn((callback: Function, _delay: number) => {
+      // Mock debounce that just returns the original function for testing
+      return callback;
+    }),
+  },
 } as any;
 
 // Mock ApplicationV2 directly for imports

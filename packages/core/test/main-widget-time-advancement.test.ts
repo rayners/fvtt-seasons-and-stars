@@ -9,17 +9,19 @@ import { TimeAdvancementService } from '../src/core/time-advancement-service';
 import { CalendarDate } from '../src/core/calendar-date';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
 
-// Mock TimeAdvancementService
+// Mock TimeAdvancementService with a dynamic mock
+let mockServiceInstance: any = {
+  isActive: false,
+  play: vi.fn().mockResolvedValue(undefined),
+  pause: vi.fn(),
+  updateRatio: vi.fn(),
+  initialize: vi.fn(),
+  destroy: vi.fn(),
+};
+
 vi.mock('../src/core/time-advancement-service', () => ({
   TimeAdvancementService: {
-    getInstance: vi.fn(() => ({
-      isActive: false,
-      play: vi.fn().mockResolvedValue(undefined),
-      pause: vi.fn(),
-      updateRatio: vi.fn(),
-      initialize: vi.fn(),
-      destroy: vi.fn(),
-    })),
+    getInstance: vi.fn(() => mockServiceInstance),
   },
 }));
 
@@ -78,9 +80,29 @@ describe('Main Widget Time Advancement Integration', () => {
     vi.clearAllMocks();
     mockSettings.clear();
 
-    // Get mocked service instance
-    mockService = (TimeAdvancementService.getInstance as Mock)();
-    mockService.isActive = false;
+    // Reset user to GM (some tests change this)
+    global.game.user = { isGM: true };
+
+    // Reset the mock instance that the mocked module will return
+    mockServiceInstance = {
+      isActive: false,
+      play: vi.fn().mockResolvedValue(undefined),
+      pause: vi.fn(),
+      updateRatio: vi.fn(),
+      initialize: vi.fn(),
+      destroy: vi.fn(),
+    };
+
+    // Keep reference for tests to modify
+    mockService = mockServiceInstance;
+
+    // Re-establish the mock after clearAllMocks
+    (TimeAdvancementService.getInstance as Mock).mockReturnValue(mockServiceInstance);
+
+    // Re-establish the game.settings.get mock after clearAllMocks
+    (global.game.settings.get as Mock).mockImplementation((module: string, key: string) =>
+      mockSettings.get(`${module}.${key}`)
+    );
 
     // Create mock calendar
     mockCalendar = {
@@ -98,6 +120,13 @@ describe('Main Widget Time Advancement Integration', () => {
       yearLength: 365,
       weekLength: 7,
       epoch: { year: 1, month: 1, day: 1 },
+      translations: {
+        en: {
+          label: 'Gregorian Calendar',
+          description: 'Standard Gregorian calendar system',
+          setting: 'Standard calendar used worldwide',
+        },
+      },
     } as SeasonsStarsCalendar;
 
     // Create mock date
@@ -115,6 +144,15 @@ describe('Main Widget Time Advancement Integration', () => {
       },
       mockCalendar
     );
+
+    // Reset seasonsStars manager (in case a test set it to null)
+    global.game.seasonsStars = {
+      manager: {
+        getActiveCalendar: vi.fn(),
+        getCurrentDate: vi.fn(),
+        advanceSeconds: vi.fn().mockResolvedValue(undefined),
+      },
+    };
 
     // Setup manager mocks
     (global.game.seasonsStars.manager.getActiveCalendar as any).mockReturnValue(mockCalendar);
@@ -239,13 +277,16 @@ describe('Main Widget Time Advancement Integration', () => {
     });
 
     it('should open time advancement settings dialog', async () => {
-      const mockEvent = new Event('click');
+      const mockEvent = {
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      } as any;
 
       await widget._onOpenAdvancementSettings(mockEvent);
 
       // Should attempt to open a settings dialog
       // The exact implementation will depend on the dialog system used
-      expect(mockEvent.preventDefault).not.toThrow();
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
     });
 
     it('should prevent default event behavior', async () => {
@@ -260,15 +301,24 @@ describe('Main Widget Time Advancement Integration', () => {
     });
 
     it('should handle settings dialog errors gracefully', async () => {
-      // Mock dialog to throw error
-      global.Dialog.wait.mockRejectedValue(new Error('Dialog failed'));
-      const mockEvent = new Event('click');
+      // Mock ui.notifications to throw error
+      const originalInfo = mockUI.notifications.info;
+      mockUI.notifications.info = vi.fn(() => {
+        throw new Error('Notification failed');
+      });
+
+      const mockEvent = {
+        preventDefault: vi.fn(),
+      } as any;
 
       await widget._onOpenAdvancementSettings(mockEvent);
 
       expect(mockUI.notifications.error).toHaveBeenCalledWith(
         expect.stringContaining('Failed to open settings')
       );
+
+      // Restore original mock
+      mockUI.notifications.info = originalInfo;
     });
   });
 
@@ -318,7 +368,7 @@ describe('Main Widget Time Advancement Integration', () => {
       for (const ratio of ratios) {
         mockSettings.set('seasons-and-stars.timeAdvancementRatio', ratio);
         const context = await widget._prepareContext();
-        expect(context.advancementRatioDisplay).toBe(`${ratio}x speed`);
+        expect(context.advancementRatioDisplay).toBe(`${ratio.toFixed(1)}x speed`);
       }
     });
 
@@ -363,7 +413,12 @@ describe('Main Widget Time Advancement Integration', () => {
 
     it('should provide tooltip information', async () => {
       mockService.isActive = false;
+      // Clear and reset the ratio setting
+      mockSettings.delete('seasons-and-stars.timeAdvancementRatio');
       mockSettings.set('seasons-and-stars.timeAdvancementRatio', 2.0);
+
+      // Debug: check that the mock is working
+      expect(global.game.settings.get('seasons-and-stars', 'timeAdvancementRatio')).toBe(2.0);
 
       const context = await widget._prepareContext();
 

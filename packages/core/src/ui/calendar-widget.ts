@@ -71,6 +71,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         calendar: null,
         currentDate: null,
         formattedDate: 'Not Available',
+        canAdvanceTime: false,
       });
     }
 
@@ -98,6 +99,14 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Get time advancement state for GM users
     let timeAdvancementActive = false;
     let advancementRatioDisplay = '1.0x speed';
+    let timeAdvancementStatus = 'Paused';
+    let pauseOnCombat = true;
+    let resumeAfterCombat = false;
+    let playPauseButtonClass = '';
+    let playPauseButtonIcon = 'fa-play';
+    let playPauseButtonText = 'Play';
+    let playPauseButtonTooltip = 'Play automatic time advancement';
+    let advancementIndicatorClass = '';
 
     if (game.user?.isGM) {
       try {
@@ -105,7 +114,28 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         timeAdvancementActive = timeService?.isActive || false;
 
         const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
-        advancementRatioDisplay = `${ratio}x speed`;
+        advancementRatioDisplay = `${ratio.toFixed(1)}x speed`;
+
+        // Get settings
+        pauseOnCombat = game.settings?.get('seasons-and-stars', 'pauseOnCombat') || true;
+        resumeAfterCombat = game.settings?.get('seasons-and-stars', 'resumeAfterCombat') || false;
+
+        // Set status and button state based on advancement activity
+        if (timeAdvancementActive) {
+          timeAdvancementStatus = 'Active';
+          playPauseButtonClass = 'active';
+          playPauseButtonIcon = 'fa-pause';
+          playPauseButtonText = 'Pause';
+          playPauseButtonTooltip = `Pause automatic time advancement (${ratio.toFixed(1)}x speed)`;
+          advancementIndicatorClass = 'spinning';
+        } else {
+          timeAdvancementStatus = 'Paused';
+          playPauseButtonClass = '';
+          playPauseButtonIcon = 'fa-play';
+          playPauseButtonText = 'Play';
+          playPauseButtonTooltip = `Play automatic time advancement (${ratio.toFixed(1)}x speed)`;
+          advancementIndicatorClass = '';
+        }
       } catch (error) {
         Logger.warn('Failed to get time advancement state', error);
       }
@@ -121,8 +151,20 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       canAdvanceTime: game.user?.isGM || false,
       hasSmallTime: hasSmallTime,
       showTimeControls: (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false),
+      // Time advancement context
       timeAdvancementActive: timeAdvancementActive,
       advancementRatioDisplay: advancementRatioDisplay,
+      timeAdvancementStatus: timeAdvancementStatus,
+      showTimeAdvancementSection: game.user?.isGM || false,
+      // Time advancement settings
+      pauseOnCombat: pauseOnCombat,
+      resumeAfterCombat: resumeAfterCombat,
+      // Button states and styling
+      playPauseButtonClass: playPauseButtonClass,
+      playPauseButtonIcon: playPauseButtonIcon,
+      playPauseButtonText: playPauseButtonText,
+      playPauseButtonTooltip: playPauseButtonTooltip,
+      advancementIndicatorClass: advancementIndicatorClass,
       sidebarButtons: this.sidebarButtons, // Include sidebar buttons for template
     });
   }
@@ -278,6 +320,21 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     } catch (error) {
       ui.notifications?.error('Failed to toggle time advancement');
       Logger.error('Main widget time advancement toggle failed', error as Error);
+    }
+  }
+
+  /**
+   * Handle ratio setting changes from external sources
+   */
+  _onRatioSettingChanged(newRatio: number): void {
+    try {
+      const service = TimeAdvancementService.getInstance();
+      if (service) {
+        service.updateRatio(newRatio);
+        Logger.info(`Main widget: Updated time advancement ratio to ${newRatio}`);
+      }
+    } catch (error) {
+      Logger.error('Failed to update time advancement ratio', error);
     }
   }
 
