@@ -16,6 +16,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   private static activeInstance: CalendarMiniWidget | null = null;
   private isClosing: boolean = false;
   private sidebarButtons: SidebarButton[] = [];
+  private hasBeenPositioned: boolean = false;
 
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-mini-widget',
@@ -200,6 +201,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       return;
     }
 
+    // Skip repositioning if already positioned (reduces spam during time advancement)
+    if (this.hasBeenPositioned) {
+      return;
+    }
+
     Logger.debug('Mini widget: Positioning widget');
     const smallTimeElement = SmallTimeUtils.getSmallTimeElement();
 
@@ -219,6 +225,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // No SmallTime - dock to player list
       this.dockToPlayerList();
     }
+
+    // Mark as positioned to avoid repeated repositioning during time advancement
+    this.hasBeenPositioned = true;
   }
 
   /**
@@ -331,8 +340,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       delete (this as any)._playerListObserver;
     }
 
-    // Reset closing flag
+    // Reset closing flag and positioning state
     this.isClosing = false;
+    this.hasBeenPositioned = false;
 
     return super.close(options);
   }
@@ -666,6 +676,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   private autoPositionRelativeToSmallTime(): void {
     if (this.isClosing) return;
+
+    // Reset positioning flag to force repositioning when SmallTime moves
+    this.hasBeenPositioned = false;
 
     // Wait for both our element and SmallTime to be ready
     const attemptPositioning = (attempts = 0) => {

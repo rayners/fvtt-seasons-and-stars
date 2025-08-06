@@ -420,7 +420,8 @@ export class TimeAdvancementService {
     }
 
     const secondsToAdvance = this.advancementRatio;
-    Logger.debug(`Advancing ${secondsToAdvance} game seconds`);
+    // Skip debug logging during automatic advancement to reduce console spam
+    // Logger.debug(`Advancing ${secondsToAdvance} game seconds`);
 
     manager.advanceSeconds(secondsToAdvance);
     this.lastAdvancement = Date.now();
