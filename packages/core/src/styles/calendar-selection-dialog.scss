@@ -269,60 +269,54 @@
           }
 
           .module-badge {
-            background: linear-gradient(135deg, var(--color-cool-1), var(--color-cool-2));
-            color: white;
             padding: 0.25rem 0.5rem;
             border-radius: 12px;
             font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--color-cool-1);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            pointer-events: none; // Make it non-interactive
+            
+            // Default (dark theme) styling
+            background: linear-gradient(135deg, var(--color-cool-2), var(--color-cool-1));
+            color: var(--color-text-light-primary);
+            border: 1px solid var(--color-cool-3);
             
             i {
               margin-right: 0.25rem;
               font-size: 0.8rem;
             }
             
-            &:hover {
-              background: linear-gradient(135deg, var(--color-cool-2), var(--color-cool-3));
-              transform: scale(1.05);
-            }
-            
-            // Add "PACK" text after icon
+            // Add "MODULE" text after icon for clarity
             &::after {
-              content: 'PACK';
+              content: 'MODULE';
             }
           }
 
           .external-badge {
-            background: linear-gradient(135deg, var(--color-text-light-5), var(--color-text-light-6));
-            color: white;
             padding: 0.25rem 0.5rem;
             border-radius: 12px;
             font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--color-text-light-4);
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            pointer-events: none; // Make it non-interactive
+            
+            // Default (dark theme) styling
+            background: linear-gradient(135deg, var(--color-border-light-secondary), var(--color-border-light-tertiary));
+            color: var(--color-text-light-primary);
+            border: 1px solid var(--color-border-light-primary);
             
             i {
               margin-right: 0.25rem;
               font-size: 0.8rem;
             }
             
-            &:hover {
-              background: linear-gradient(135deg, var(--color-text-light-4), var(--color-text-light-5));
-              transform: scale(1.05);
-            }
-            
-            // Add "EXT" text after icon
+            // Add "EXTERNAL" text after icon for clarity
             &::after {
-              content: 'EXT';
+              content: 'EXTERNAL';
             }
           }
         }
@@ -681,5 +675,24 @@
   100% {
     filter: drop-shadow(0 0 4px var(--color-warm-1));
     transform: scale(1);
+  }
+}
+
+// Light theme overrides
+body.theme-light {
+  .seasons-stars.calendar-selection-dialog {
+    .calendar-badges {
+      .module-badge {
+        background: linear-gradient(135deg, var(--color-cool-4), var(--color-cool-3));
+        color: var(--color-text-dark-primary);
+        border: 1px solid var(--color-cool-2);
+      }
+      
+      .external-badge {
+        background: linear-gradient(135deg, var(--color-border-light-secondary), var(--color-border-light-tertiary));
+        color: var(--color-text-dark-primary);
+        border: 1px solid var(--color-border-light-primary);
+      }
+    }
   }
 }
