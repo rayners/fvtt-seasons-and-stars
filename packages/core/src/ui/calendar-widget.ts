@@ -334,7 +334,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         Logger.info(`Main widget: Updated time advancement ratio to ${newRatio}`);
       }
     } catch (error) {
-      Logger.error('Failed to update time advancement ratio', error);
+      Logger.error('Failed to update time advancement ratio', error as Error);
     }
   }
 
