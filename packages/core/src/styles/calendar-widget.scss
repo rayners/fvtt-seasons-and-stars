@@ -2,6 +2,11 @@
  * Calendar Widget Styles for Seasons & Stars
  */
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .calendar-widget {
   .window-content {
     padding: 8px;
@@ -322,6 +327,90 @@
               &:active {
                 background: linear-gradient(135deg, #991b1b, #b91c1c);
               }
+            }
+          }
+        }
+      }
+    }
+
+    // Time Advancement Section
+    .time-advancement-section {
+      border-bottom: 1px solid var(--color-border-light-tertiary);
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      
+      .control-group.horizontal {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        
+        label {
+          margin-bottom: 0;
+          flex-shrink: 0;
+        }
+        
+        .advancement-controls {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          
+          .play-pause-btn {
+            background: linear-gradient(135deg, #059669, #0d9488);
+            color: white;
+            border-color: #059669;
+            padding: 6px 12px;
+            font-size: 0.75em;
+            min-width: 60px;
+            
+            &:hover {
+              background: linear-gradient(135deg, #047857, #0f766e);
+              border-color: #047857;
+            }
+            
+            &.active {
+              background: linear-gradient(135deg, #dc2626, #ef4444);
+              border-color: #dc2626;
+              
+              &:hover {
+                background: linear-gradient(135deg, #b91c1c, #dc2626);
+                border-color: #b91c1c;
+              }
+            }
+            
+            i {
+              font-size: 0.8em;
+              margin-right: 4px;
+            }
+          }
+          
+          .settings-btn {
+            background: var(--color-bg);
+            color: var(--color-text-light-primary);
+            border-color: var(--color-border-light-secondary);
+            padding: 6px 8px;
+            font-size: 0.75em;
+            min-width: 32px;
+            
+            &:hover {
+              background: var(--color-text-light-highlight);
+              color: var(--color-text-dark-primary);
+              border-color: var(--color-text-light-highlight);
+            }
+            
+            i {
+              font-size: 0.8em;
+            }
+          }
+          
+          .advancement-indicator {
+            color: var(--color-text-light-primary);
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            
+            .spinning {
+              animation: spin 2s linear infinite;
             }
           }
         }

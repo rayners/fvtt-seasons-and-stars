@@ -40,6 +40,33 @@
     {{!-- Calendar Controls --}}
     {{#if canAdvanceTime}}
       <div class="calendar-controls">
+        {{!-- Time Advancement Controls Section --}}
+        <div class="time-advancement-section">
+          <div class="control-group horizontal">
+            <label>Time Advancement:</label>
+            <div class="advancement-controls">
+              <button data-action="toggleTimeAdvancement" 
+                      class="play-pause-btn {{#if timeAdvancementActive}}active{{/if}}"
+                      title="{{#if timeAdvancementActive}}Pause{{else}}Play{{/if}} automatic time advancement">
+                <i class="fas fa-{{#if timeAdvancementActive}}pause{{else}}play{{/if}}"></i>
+                {{#if timeAdvancementActive}}Pause{{else}}Play{{/if}}
+              </button>
+              <button data-action="openAdvancementSettings" 
+                      class="settings-btn"
+                      title="Configure time advancement settings">
+                <i class="fas fa-cog"></i>
+              </button>
+              {{#if timeAdvancementActive}}
+                <span class="advancement-indicator">
+                  <i class="fas fa-clock spinning"></i>
+                  {{advancementRatioDisplay}}
+                </span>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+        
+        {{!-- Existing time controls continue below --}}
         {{#if showTimeControls}}
           <div class="time-advance-section">
             <div class="control-group horizontal">

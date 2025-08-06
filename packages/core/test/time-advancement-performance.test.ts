@@ -1,0 +1,327 @@
+/**
+ * Performance Tests for Time Advancement System
+ * Tests performance characteristics and edge cases
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { TimeAdvancementService } from '../src/core/time-advancement-service';
+
+// Mock Foundry globals
+const mockGame = {
+  ready: true,
+  settings: {
+    get: vi.fn(),
+  },
+  seasonsStars: {
+    manager: {
+      advanceSeconds: vi.fn().mockResolvedValue(undefined),
+    },
+  },
+};
+
+const mockUI = {
+  notifications: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+  },
+};
+
+const mockHooks = {
+  on: vi.fn().mockReturnValue(1),
+  off: vi.fn(),
+  call: vi.fn(),
+};
+
+// Setup global mocks
+(global as any).game = mockGame;
+(global as any).ui = mockUI;
+(global as any).Hooks = mockHooks;
+
+describe('Time Advancement Performance Tests', () => {
+  let service: TimeAdvancementService;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+    
+    (TimeAdvancementService as any).instance = null;
+    
+    mockGame.settings.get.mockImplementation((module: string, key: string) => {
+      const defaults: Record<string, any> = {
+        timeAdvancementRatio: 1.0,
+        pauseOnCombat: true,
+        resumeAfterCombat: false,
+      };
+      return defaults[key];
+    });
+    
+    service = TimeAdvancementService.getInstance();
+  });
+
+  afterEach(() => {
+    service.destroy();
+    vi.clearAllTimers();
+    vi.useRealTimers();
+  });
+
+  describe('Interval Calculation Performance', () => {
+    it('should calculate intervals efficiently for edge case ratios', () => {
+      const calculateOptimalInterval = (service as any).calculateOptimalInterval.bind(service);
+      
+      // Test extreme values
+      const testCases = [
+        { ratio: 0.001, expectedInterval: 1000000 }, // Very slow
+        { ratio: 0.1, expectedInterval: 10000 },     // Slow
+        { ratio: 1.0, expectedInterval: 1000 },      // Normal
+        { ratio: 10.0, expectedInterval: 1000 },     // Fast (minimum)
+        { ratio: 1000.0, expectedInterval: 1000 },   // Very fast (minimum)
+      ];
+      
+      testCases.forEach(({ ratio, expectedInterval }) => {
+        const start = performance.now();
+        const result = calculateOptimalInterval(ratio);
+        const duration = performance.now() - start;
+        
+        expect(result).toBe(expectedInterval);
+        expect(duration).toBeLessThan(1); // Should be very fast (< 1ms)
+      });
+    });
+
+    it('should handle rapid ratio changes without performance degradation', async () => {
+      const ratios = [1.0, 2.0, 0.5, 10.0, 0.1, 5.0, 1.0];
+      
+      const start = performance.now();
+      
+      for (const ratio of ratios) {
+        service.updateRatio(ratio);
+        // Small delay to allow async operations
+        await new Promise(resolve => setTimeout(resolve, 1));
+      }
+      
+      const duration = performance.now() - start;
+      
+      // Should handle rapid changes efficiently
+      expect(duration).toBeLessThan(50); // Should complete in < 50ms
+    });
+  });
+
+  describe('Memory and Resource Management', () => {
+    it('should not accumulate memory with repeated start/stop cycles', async () => {
+      const cycles = 50;
+      
+      for (let i = 0; i < cycles; i++) {
+        await service.play();
+        expect(service.isActive).toBe(true);
+        
+        service.pause();
+        expect(service.isActive).toBe(false);
+      }
+      
+      // Verify no resource leaks (intervals should be properly cleaned up)
+      expect((service as any).intervalId).toBeNull();
+    });
+
+    it('should handle high-frequency time advancement efficiently', async () => {
+      // Set a very fast ratio that would normally advance every 1000ms
+      service.updateRatio(1.0);
+      await service.play();
+      
+      const advanceCount = 100;
+      const startTime = performance.now();
+      
+      // Simulate many rapid time advances
+      for (let i = 0; i < advanceCount; i++) {
+        vi.advanceTimersByTime(1000);
+      }
+      
+      const duration = performance.now() - startTime;
+      
+      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledTimes(advanceCount);
+      expect(duration).toBeLessThan(100); // Should handle efficiently
+    });
+
+    it('should maintain performance with complex error scenarios', async () => {
+      await service.play();
+      
+      // Simulate intermittent errors
+      let errorCount = 0;
+      mockGame.seasonsStars.manager.advanceSeconds.mockImplementation(() => {
+        errorCount++;
+        if (errorCount % 3 === 0) {
+          throw new Error(`Intermittent error ${errorCount}`);
+        }
+        return Promise.resolve();
+      });
+      
+      const startTime = performance.now();
+      
+      // Run for a while with intermittent errors
+      for (let i = 0; i < 30; i++) {
+        vi.advanceTimersByTime(1000);
+        // Re-start if auto-paused by error
+        if (!service.isActive) {
+          await service.play();
+        }
+      }
+      
+      const duration = performance.now() - startTime;
+      
+      expect(duration).toBeLessThan(200); // Should handle errors efficiently
+      expect(errorCount).toBeGreaterThan(0); // Errors should have occurred
+    });
+  });
+
+  describe('Edge Case Scenarios', () => {
+    it('should handle extreme ratio values correctly', async () => {
+      const extremeRatios = [
+        { ratio: 0.1, expectedAdvancement: 0.1 },   // Minimum allowed
+        { ratio: 100.0, expectedAdvancement: 100.0 }, // Maximum allowed
+        { ratio: 0.05, expectedAdvancement: 0.1 },  // Below minimum (should clamp)
+        { ratio: 150.0, expectedAdvancement: 100.0 }, // Above maximum (should clamp)
+      ];
+      
+      for (const { ratio, expectedAdvancement } of extremeRatios) {
+        service.updateRatio(ratio);
+        await service.play();
+        
+        vi.advanceTimersByTime(1000);
+        
+        // Check that ratio was clamped appropriately
+        expect((service as any).advancementRatio).toBe(expectedAdvancement);
+        
+        service.pause();
+        mockGame.seasonsStars.manager.advanceSeconds.mockClear();
+      }
+    });
+
+    it('should handle system clock changes gracefully', async () => {
+      await service.play();
+      expect(service.isActive).toBe(true);
+      
+      // Record initial state
+      const initialCallCount = mockGame.seasonsStars.manager.advanceSeconds.mock.calls.length;
+      
+      // Simulate large time jump (system clock change)
+      vi.advanceTimersByTime(10000); // 10 seconds at once
+      
+      // Should continue functioning normally
+      expect(service.isActive).toBe(true);
+      expect(mockGame.seasonsStars.manager.advanceSeconds.mock.calls.length).toBeGreaterThan(initialCallCount);
+    });
+
+    it('should maintain accuracy across different interval patterns', async () => {
+      const testPatterns = [
+        { ratio: 0.5, intervals: 10, expectedCalls: 10 },
+        { ratio: 2.0, intervals: 5, expectedCalls: 5 },
+        { ratio: 10.0, intervals: 3, expectedCalls: 3 },
+      ];
+      
+      for (const { ratio, intervals, expectedCalls } of testPatterns) {
+        service.updateRatio(ratio);
+        await service.play();
+        
+        mockGame.seasonsStars.manager.advanceSeconds.mockClear();
+        
+        // Advance time in intervals
+        for (let i = 0; i < intervals; i++) {
+          vi.advanceTimersByTime(1000);
+        }
+        
+        expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledTimes(expectedCalls);
+        
+        service.pause();
+      }
+    });
+  });
+
+  describe('Concurrent Operation Handling', () => {
+    it('should handle multiple rapid play/pause requests safely', async () => {
+      const operations = [];
+      
+      // Queue up multiple async operations
+      for (let i = 0; i < 10; i++) {
+        if (i % 2 === 0) {
+          operations.push(service.play());
+        } else {
+          operations.push(Promise.resolve(service.pause()));
+        }
+      }
+      
+      // Wait for all operations to complete
+      await Promise.allSettled(operations);
+      
+      // Service should be in a consistent state
+      expect(typeof service.isActive).toBe('boolean');
+      expect((service as any).intervalId === null || typeof (service as any).intervalId === 'number').toBe(true);
+    });
+
+    it('should handle settings changes during active advancement', async () => {
+      await service.play();
+      expect(service.isActive).toBe(true);
+      
+      // Rapidly change settings while running
+      const ratioChanges = [1.0, 2.0, 0.5, 3.0, 1.0];
+      
+      for (const ratio of ratioChanges) {
+        service.updateRatio(ratio);
+        // Give a small delay to allow state transitions
+        await new Promise(resolve => setTimeout(resolve, 10));
+        
+        // Should remain active throughout
+        expect(service.isActive).toBe(true);
+      }
+      
+      // Should still be functioning
+      vi.advanceTimersByTime(1000);
+      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalled();
+    });
+  });
+
+  describe('Hook System Performance', () => {
+    it('should handle hook errors without impacting performance', async () => {
+      // Make hooks throw errors
+      mockHooks.call.mockImplementation(() => {
+        throw new Error('Hook error');
+      });
+      
+      await service.play();
+      expect(service.isActive).toBe(true);
+      
+      const startTime = performance.now();
+      
+      service.pause(); // This will trigger hook calls
+      await service.play(); // This will also trigger hook calls
+      
+      const duration = performance.now() - startTime;
+      
+      // Should handle hook errors quickly without blocking
+      expect(duration).toBeLessThan(50);
+      expect(service.isActive).toBe(true);
+    });
+
+    it('should efficiently handle combat hook scenarios', async () => {
+      await service.play();
+      
+      const combatStartHandler = (service as any).handleCombatStart;
+      const combatEndHandler = (service as any).handleCombatEnd;
+      
+      const iterations = 20;
+      const startTime = performance.now();
+      
+      // Simulate rapid combat start/end cycles
+      for (let i = 0; i < iterations; i++) {
+        combatStartHandler({ id: `combat-${i}` }, { round: 1, turn: 0 });
+        
+        // Mock the play method to avoid actual timer setup in this performance test
+        const playMock = vi.spyOn(service, 'play').mockResolvedValue();
+        combatEndHandler({ id: `combat-${i}` }, {}, 'user-id');
+        playMock.mockRestore();
+      }
+      
+      const duration = performance.now() - startTime;
+      
+      expect(duration).toBeLessThan(100); // Should handle efficiently
+    });
+  });
+});

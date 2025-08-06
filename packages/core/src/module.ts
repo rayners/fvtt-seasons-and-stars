@@ -27,6 +27,7 @@ import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
+import { TimeAdvancementService } from './core/time-advancement-service';
 import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
@@ -274,6 +275,11 @@ Hooks.once('ready', async () => {
   // Complete calendar manager initialization (read settings and set active calendar)
   await calendarManager.completeInitialization();
 
+  // Initialize time advancement service and register combat hooks
+  const timeAdvancementService = TimeAdvancementService.getInstance();
+  timeAdvancementService.initialize();
+
+
   // Reset seasons warning flag when calendar changes
   Hooks.on('seasons-stars:calendarChanged', () => {
     resetSeasonsWarningState();
@@ -458,6 +464,48 @@ function registerSettings(): void {
       Hooks.callAll('seasons-stars:settingsChanged', 'alwaysShowQuickTimeButtons');
     },
   });
+
+  // Time advancement settings
+  game.settings.register('seasons-and-stars', 'timeAdvancementRatio', {
+    name: 'Time Advancement Ratio',
+    hint: 'Game time advancement per real-time second. 1.0 = real time, 2.0 = 2x speed, 0.5 = half speed. Range: 0.1 to 100.',
+    scope: 'world',
+    config: true,
+    type: Number,
+    default: 1.0,
+    range: {
+      min: 0.1,
+      max: 100.0,
+      step: 0.1,
+    },
+    onChange: (value: number) => {
+      try {
+        const service = TimeAdvancementService.getInstance();
+        service.updateRatio(value);
+      } catch (error) {
+        Logger.warn('Failed to update time advancement ratio:', error);
+      }
+    },
+  });
+
+  game.settings.register('seasons-and-stars', 'pauseOnCombat', {
+    name: 'Pause Time on Combat',
+    hint: 'Automatically pause time advancement when combat starts',
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: true,
+  });
+
+  game.settings.register('seasons-and-stars', 'resumeAfterCombat', {
+    name: 'Resume Time After Combat',
+    hint: 'Automatically resume time advancement when combat ends (if it was running before)',
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: false,
+  });
+
 
   game.settings.register('seasons-and-stars', 'miniWidgetShowTime', {
     name: 'Display Time in Mini Widget',

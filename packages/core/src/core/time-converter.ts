@@ -231,6 +231,17 @@ export class TimeConverter {
   }
 
   /**
+   * Advance time by a number of seconds
+   */
+  async advanceSeconds(seconds: number): Promise<void> {
+    if (game.user?.isGM) {
+      await game.time?.advance(seconds);
+    } else {
+      ui.notifications?.warn('Only GMs can change the world time.');
+    }
+  }
+
+  /**
    * Advance time by a number of weeks
    */
   async advanceWeeks(weeks: number): Promise<void> {

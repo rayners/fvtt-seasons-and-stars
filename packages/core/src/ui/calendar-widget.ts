@@ -6,6 +6,7 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarSelectionDialog } from './calendar-selection-dialog';
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
+import { TimeAdvancementService } from '../core/time-advancement-service';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -44,6 +45,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       clickSidebarButton: CalendarWidget.prototype._onClickSidebarButton,
       switchToMini: CalendarWidget.prototype._onSwitchToMini,
       switchToGrid: CalendarWidget.prototype._onSwitchToGrid,
+      toggleTimeAdvancement: CalendarWidget.prototype._onToggleTimeAdvancement,
+      openAdvancementSettings: CalendarWidget.prototype._onOpenAdvancementSettings,
     },
   };
 
@@ -92,6 +95,22 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     const alwaysShowQuickTimeButtons =
       game.settings?.get('seasons-and-stars', 'alwaysShowQuickTimeButtons') || false;
 
+    // Get time advancement state for GM users
+    let timeAdvancementActive = false;
+    let advancementRatioDisplay = '1.0x speed';
+    
+    if (game.user?.isGM) {
+      try {
+        const timeService = TimeAdvancementService.getInstance();
+        timeAdvancementActive = timeService?.isActive || false;
+        
+        const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
+        advancementRatioDisplay = `${ratio}x speed`;
+      } catch (error) {
+        Logger.warn('Failed to get time advancement state', error);
+      }
+    }
+
     return Object.assign(context, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
@@ -102,6 +121,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       canAdvanceTime: game.user?.isGM || false,
       hasSmallTime: hasSmallTime,
       showTimeControls: (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false),
+      timeAdvancementActive: timeAdvancementActive,
+      advancementRatioDisplay: advancementRatioDisplay,
       sidebarButtons: this.sidebarButtons, // Include sidebar buttons for template
     });
   }
@@ -228,6 +249,58 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       }
     } else {
       Logger.warn(`Sidebar button "${buttonName}" not found or has invalid callback`);
+    }
+  }
+
+  /**
+   * Handle toggling time advancement on/off
+   */
+  async _onToggleTimeAdvancement(event: Event, _target?: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    try {
+      const service = TimeAdvancementService.getInstance();
+      if (!service) {
+        ui.notifications?.error('Time advancement service not available');
+        return;
+      }
+
+      if (service.isActive) {
+        service.pause();
+        Logger.info('Main widget: Paused time advancement');
+      } else {
+        await service.play();
+        Logger.info('Main widget: Started time advancement');
+      }
+
+      // Re-render to update button state
+      this.render();
+    } catch (error) {
+      ui.notifications?.error('Failed to toggle time advancement');
+      Logger.error('Main widget time advancement toggle failed', error as Error);
+    }
+  }
+
+  /**
+   * Handle opening time advancement settings dialog
+   */
+  async _onOpenAdvancementSettings(event: Event, _target?: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    try {
+      // TODO: Implement proper settings dialog
+      // For now, show a simple notification
+      const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
+      const pauseOnCombat = game.settings?.get('seasons-and-stars', 'pauseOnCombat') || true;
+      const resumeAfterCombat = game.settings?.get('seasons-and-stars', 'resumeAfterCombat') || false;
+      
+      const message = `Current Settings:\nRatio: ${ratio}x speed\nPause on Combat: ${pauseOnCombat ? 'Yes' : 'No'}\nResume after Combat: ${resumeAfterCombat ? 'Yes' : 'No'}\n\nUse module configuration to change settings.`;
+      ui.notifications?.info(message);
+      
+      Logger.info('Main widget: Opened time advancement settings');
+    } catch (error) {
+      ui.notifications?.error('Failed to open settings');
+      Logger.error('Main widget settings dialog failed', error as Error);
     }
   }
 

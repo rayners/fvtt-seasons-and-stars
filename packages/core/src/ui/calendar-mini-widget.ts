@@ -6,6 +6,7 @@ import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
+import { TimeAdvancementService } from '../core/time-advancement-service';
 import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
@@ -36,6 +37,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       advanceTime: CalendarMiniWidget.prototype._onAdvanceTime,
       openCalendarSelection: CalendarMiniWidget.prototype._onOpenCalendarSelection,
       openLargerView: CalendarMiniWidget.prototype._onOpenLargerView,
+      toggleTimeAdvancement: CalendarMiniWidget.prototype._onToggleTimeAdvancement,
     },
   };
 
@@ -93,6 +95,22 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const alwaysShowQuickTimeButtons =
       game.settings?.get('seasons-and-stars', 'alwaysShowQuickTimeButtons') || false;
 
+    // Get time advancement state for GM users
+    let timeAdvancementActive = false;
+    let advancementRatioDisplay = '1.0x speed';
+    
+    if (game.user?.isGM) {
+      try {
+        const timeService = TimeAdvancementService.getInstance();
+        timeAdvancementActive = timeService?.isActive || false;
+        
+        const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
+        advancementRatioDisplay = `${ratio}x speed`;
+      } catch (error) {
+        Logger.warn('Failed to get time advancement state', error);
+      }
+    }
+
     return Object.assign(context, {
       shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
@@ -100,6 +118,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       isGM: game.user?.isGM || false,
       showTime: showTime,
       timeString: showTime && currentDate.time ? this.getShortTimeString(currentDate.time) : '',
+      timeAdvancementActive: timeAdvancementActive,
+      advancementRatioDisplay: advancementRatioDisplay,
       calendar: {
         id: activeCalendar.id || 'unknown',
         label: activeCalendar.label || activeCalendar.name || 'Unknown Calendar',
@@ -238,6 +258,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     switch (action) {
       case 'advanceTime':
         this._onAdvanceTime(event, actionElement);
+        break;
+      case 'toggleTimeAdvancement':
+        this._onToggleTimeAdvancement(event, actionElement);
         break;
       case 'openCalendarSelection':
         this._onOpenCalendarSelection(event, actionElement);
@@ -580,6 +603,35 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     } catch (error) {
       Logger.error('Error advancing time', error as Error);
       ui.notifications?.error('Failed to advance time');
+    }
+  }
+
+  /**
+   * Handle toggling time advancement on/off
+   */
+  async _onToggleTimeAdvancement(event: Event, _target?: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    try {
+      const service = TimeAdvancementService.getInstance();
+      if (!service) {
+        ui.notifications?.error('Time advancement service not available');
+        return;
+      }
+
+      if (service.isActive) {
+        service.pause();
+        Logger.info('Mini widget: Paused time advancement');
+      } else {
+        await service.play();
+        Logger.info('Mini widget: Started time advancement');
+      }
+
+      // Re-render to update button state
+      this.render();
+    } catch (error) {
+      ui.notifications?.error('Failed to toggle time advancement');
+      Logger.error('Mini widget time advancement toggle failed', error as Error);
     }
   }
 
