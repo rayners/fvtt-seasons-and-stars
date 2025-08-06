@@ -279,7 +279,6 @@ Hooks.once('ready', async () => {
   const timeAdvancementService = TimeAdvancementService.getInstance();
   timeAdvancementService.initialize();
 
-
   // Reset seasons warning flag when calendar changes
   Hooks.on('seasons-stars:calendarChanged', () => {
     resetSeasonsWarningState();
@@ -506,7 +505,6 @@ function registerSettings(): void {
     default: false,
   });
 
-
   game.settings.register('seasons-and-stars', 'miniWidgetShowTime', {
     name: 'Display Time in Mini Widget',
     hint: 'Show the current time alongside date in the mini calendar widget',
@@ -631,6 +629,69 @@ function registerCalendarSettings(): void {
  */
 export function setupAPI(): void {
   const api: SeasonsStarsAPI = {
+    /**
+     * Get the current calendar date from the active or specified calendar
+     *
+     * This is the primary method for retrieving the current game date. It converts
+     * the current world time to a structured calendar date object with full date
+     * and time information.
+     *
+     * @param calendarId Optional calendar ID to get date from specific calendar
+     * @returns The current calendar date or null if unavailable
+     * @throws {Error} If calendar validation fails or calendar not found
+     *
+     * @example Basic usage - get current date
+     * ```javascript
+     * // Get current date from active calendar
+     * const currentDate = game.seasonsStars.api.getCurrentDate();
+     *
+     * if (currentDate) {
+     *   console.log(`Current date: ${currentDate.year}-${currentDate.month}-${currentDate.day}`);
+     *   console.log(`Time: ${currentDate.time?.hour}:${currentDate.time?.minute}`);
+     * }
+     * ```
+     *
+     * @example Weather module integration
+     * ```javascript
+     * class WeatherModule {
+     *   updateWeatherDisplay() {
+     *     const date = game.seasonsStars.api.getCurrentDate();
+     *
+     *     if (!date) {
+     *       console.warn('No date available for weather calculation');
+     *       return;
+     *     }
+     *
+     *     const season = this.calculateSeason(date);
+     *     const weather = this.generateWeather(season, date);
+     *     this.displayWeather(weather);
+     *   }
+     * }
+     * ```
+     *
+     * @example Journal entry with current date
+     * ```javascript
+     * async function createTimestampedEntry(title, content) {
+     *   const currentDate = game.seasonsStars.api.getCurrentDate();
+     *
+     *   if (!currentDate) {
+     *     throw new Error('Cannot create timestamped entry: no date available');
+     *   }
+     *
+     *   const formattedDate = game.seasonsStars.api.formatDate(currentDate, {
+     *     includeTime: true,
+     *     format: 'long'
+     *   });
+     *
+     *   const timestampedContent = `**${formattedDate}**\n\n${content}`;
+     *
+     *   return await JournalEntry.create({
+     *     name: `${title} - ${formattedDate}`,
+     *     content: timestampedContent
+     *   });
+     * }
+     * ```
+     */
     getCurrentDate: (calendarId?: string): ICalendarDate | null => {
       try {
         Logger.api('getCurrentDate', { calendarId });
@@ -758,6 +819,70 @@ export function setupAPI(): void {
       }
     },
 
+    /**
+     * Advance world time by specified number of days
+     *
+     * This method advances the game world time by the specified number of days,
+     * taking into account the current calendar's day length and structure.
+     * The advancement triggers the dateChanged hook for other modules.
+     *
+     * @param days Number of days to advance (can be negative to go backward)
+     * @param calendarId Optional calendar ID (reserved for future use)
+     * @throws {Error} If days is not a valid finite number
+     * @throws {Error} If calendar operations fail
+     *
+     * @example Basic time advancement
+     * ```javascript
+     * // Advance one day
+     * await game.seasonsStars.api.advanceDays(1);
+     * console.log('Advanced to next day');
+     *
+     * // Go back three days
+     * await game.seasonsStars.api.advanceDays(-3);
+     * console.log('Went back 3 days');
+     * ```
+     *
+     * @example Long rest implementation
+     * ```javascript
+     * class RestModule {
+     *   async performLongRest(actor) {
+     *     try {
+     *       // Advance 8 hours for long rest
+     *       await game.seasonsStars.api.advanceHours(8);
+     *
+     *       // Heal the actor
+     *       await this.healActor(actor);
+     *
+     *       ui.notifications.info('Long rest completed - 8 hours passed');
+     *     } catch (error) {
+     *       ui.notifications.error('Failed to complete long rest');
+     *       console.error(error);
+     *     }
+     *   }
+     * }
+     * ```
+     *
+     * @example Travel time calculation
+     * ```javascript
+     * async function simulateTravel(distanceMiles, speedMPH = 25) {
+     *   const travelHours = distanceMiles / speedMPH;
+     *   const travelDays = Math.ceil(travelHours / 8); // 8 hours travel per day
+     *
+     *   const startDate = game.seasonsStars.api.getCurrentDate();
+     *
+     *   await game.seasonsStars.api.advanceDays(travelDays);
+     *
+     *   const endDate = game.seasonsStars.api.getCurrentDate();
+     *
+     *   ui.notifications.info(
+     *     `Travel completed! Departed ${startDate?.day}/${startDate?.month}, ` +
+     *     `arrived ${endDate?.day}/${endDate?.month}`
+     *   );
+     * }
+     * ```
+     *
+     * @fires seasons-stars:dateChanged When time advancement completes
+     */
     advanceDays: async (days: number, calendarId?: string): Promise<void> => {
       return APIWrapper.wrapAPIMethod(
         'advanceDays',

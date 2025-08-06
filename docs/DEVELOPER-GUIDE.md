@@ -97,6 +97,75 @@ await game.seasonsStars.api.advanceMonths(months);
 await game.seasonsStars.api.advanceYears(years);
 ```
 
+### Time Advancement Service
+
+The TimeAdvancementService provides automated time progression functionality. Added in v0.2.0.
+
+#### Accessing the Service
+
+```javascript
+// Get the singleton instance
+const timeService = game.seasonsStars?.api?.timeAdvancement || TimeAdvancementService.getInstance();
+
+// Check if service is available (for compatibility)
+if (timeService) {
+  console.log('Time advancement available');
+}
+```
+
+#### `play()`
+
+Start automatic time advancement.
+
+```javascript
+// Basic usage
+const timeService = TimeAdvancementService.getInstance();
+
+try {
+  await timeService.play();
+  console.log('Time advancement started');
+} catch (error) {
+  console.error('Failed to start time advancement:', error);
+}
+```
+
+#### `pause()`
+
+Stop automatic time advancement.
+
+```javascript
+// Pause advancement (safe to call even if not running)
+timeService.pause();
+console.log('Time advancement paused');
+```
+
+#### `updateRatio(ratio: number)`
+
+Change advancement speed.
+
+```javascript
+// Double speed
+timeService.updateRatio(2.0);
+
+// Half speed for detailed events
+timeService.updateRatio(0.5);
+
+// 10x speed for long periods
+timeService.updateRatio(10.0);
+```
+
+#### `isActive`
+
+Check advancement status.
+
+```javascript
+if (timeService.isActive) {
+  console.log('Time is currently advancing');
+} else {
+  console.log('Time advancement is paused');
+}
+```
+
 ### Date Conversion
 
 #### `dateToWorldTime(date: CalendarDate)`
@@ -678,6 +747,49 @@ interface DateChangeData {
 }
 ```
 
+#### `seasons-stars:timeAdvancementStarted`
+
+Fired when automatic time advancement begins. Added in v0.2.0.
+
+```javascript
+Hooks.on('seasons-stars:timeAdvancementStarted', ratio => {
+  console.log(`Time advancement started at ${ratio}x speed`);
+
+  // Pause weather generation during fast advancement
+  if (ratio > 2.0) {
+    weatherModule.enableFastMode();
+  }
+
+  // Update UI to show advancement state
+  updateTimeControlsUI(true, ratio);
+});
+```
+
+**Parameters:**
+
+- `ratio` (number): The advancement ratio (game seconds per real second)
+
+#### `seasons-stars:timeAdvancementPaused`
+
+Fired when automatic time advancement stops. Added in v0.2.0.
+
+```javascript
+Hooks.on('seasons-stars:timeAdvancementPaused', () => {
+  console.log('Time advancement paused');
+
+  // Resume normal weather processing
+  weatherModule.disableFastMode();
+
+  // Update UI to show paused state
+  updateTimeControlsUI(false);
+
+  // Recalculate any accumulated effects
+  processAccumulatedEffects();
+});
+```
+
+**No parameters - this is a simple notification event.**
+
 #### `seasons-stars:calendarChanged`
 
 Fired when the active calendar system changes.
@@ -707,21 +819,98 @@ Hooks.on('seasons-stars:ready', data => {
 });
 ```
 
-#### `seasons-stars:registerExternalCalendars` (Added in v0.8.0)
+**Data Structure:**
 
-Fired during initialization to allow modules to register calendars programmatically. This provides an alternative to calendar packs for dynamic calendar registration.
+```typescript
+interface ReadyData {
+  manager: CalendarManager;
+  api: SeasonsStarsAPI;
+}
+```
+
+#### `seasons-stars:settingsChanged`
+
+Fired when module settings are updated.
+
+```javascript
+Hooks.on('seasons-stars:settingsChanged', settingName => {
+  console.log('Setting changed:', settingName);
+
+  switch (settingName) {
+    case 'miniWidgetShowTime':
+      this.refreshMiniWidget();
+      break;
+    case 'quickTimeButtons':
+      this.updateTimeControls();
+      break;
+    case 'alwaysShowQuickTimeButtons':
+      this.toggleTimeButtonVisibility();
+      break;
+  }
+});
+```
+
+#### `seasons-stars:noteCreated`
+
+Fired when a calendar note is created.
+
+```javascript
+Hooks.on('seasons-stars:noteCreated', journalEntry => {
+  console.log('Calendar note created:', journalEntry.name);
+
+  // Update calendar displays
+  this.refreshCalendarWidgets();
+
+  // Notify other systems
+  this.notifyEventSystems(journalEntry);
+});
+```
+
+#### `seasons-stars:noteUpdated`
+
+Fired when a calendar note is modified.
+
+```javascript
+Hooks.on('seasons-stars:noteUpdated', journalEntry => {
+  console.log('Calendar note updated:', journalEntry.name);
+
+  // Refresh displays showing this note
+  this.updateNoteDisplays(journalEntry.id);
+});
+```
+
+#### `seasons-stars:noteDeleted`
+
+Fired when a calendar note is removed.
+
+```javascript
+Hooks.on('seasons-stars:noteDeleted', noteId => {
+  console.log('Calendar note deleted:', noteId);
+
+  // Clean up references
+  this.removeNoteReferences(noteId);
+
+  // Refresh calendar displays
+  this.refreshCalendarWidgets();
+});
+```
+
+#### `seasons-stars:registerExternalCalendars`
+
+Fired during initialization to allow modules to register calendars programmatically.
 
 ```javascript
 Hooks.on('seasons-stars:registerExternalCalendars', ({ registerCalendar, manager }) => {
-  // Register a custom calendar
+  // Register custom calendars
   const myCalendar = {
     id: 'my-custom-calendar',
     name: 'My Custom Calendar',
     months: [
-      { name: 'First Month', days: 30 },
-      { name: 'Second Month', days: 31 },
+      /* month definitions */
     ],
-    weekdays: ['Day1', 'Day2', 'Day3', 'Day4', 'Day5'],
+    weekdays: [
+      /* weekday definitions */
+    ],
     // ... full calendar definition
   };
 
@@ -733,33 +922,74 @@ Hooks.on('seasons-stars:registerExternalCalendars', ({ registerCalendar, manager
 
   const success = registerCalendar(myCalendar, sourceInfo);
   console.log('Calendar registered:', success);
-
-  // Register multiple calendars
-  calendarsToRegister.forEach(calendar => {
-    registerCalendar(calendar, sourceInfo);
-  });
 });
 ```
 
-**Registration Callback Parameters:**
+### Complete Hook Reference
 
-```typescript
-interface ExternalCalendarRegistration {
-  registerCalendar: (calendar: CalendarDefinition, source: SourceInfo) => boolean;
-  manager: CalendarManager;
-}
+Here's a complete reference table of all Seasons & Stars hooks:
 
-interface SourceInfo {
-  name: string; // Module/source name
-  version: string; // Module version
-  type: 'external'; // Source type identifier
+| Hook Event                                | When Fired               | Data Passed                                | Added  |
+| ----------------------------------------- | ------------------------ | ------------------------------------------ | ------ |
+| `seasons-stars:dateChanged`               | World time changes       | `{newDate, oldTime, newTime, delta}`       | v0.1.0 |
+| `seasons-stars:calendarChanged`           | Active calendar switches | `{newCalendarId, oldCalendarId, calendar}` | v0.1.0 |
+| `seasons-stars:ready`                     | Module fully initialized | `{manager, api}`                           | v0.1.0 |
+| `seasons-stars:timeAdvancementStarted`    | Auto advancement begins  | `ratio (number)`                           | v0.2.0 |
+| `seasons-stars:timeAdvancementPaused`     | Auto advancement stops   | None                                       | v0.2.0 |
+| `seasons-stars:settingsChanged`           | Module setting updated   | `settingName (string)`                     | v0.1.0 |
+| `seasons-stars:noteCreated`               | Calendar note created    | `journalEntry`                             | v0.1.0 |
+| `seasons-stars:noteUpdated`               | Calendar note modified   | `journalEntry`                             | v0.1.0 |
+| `seasons-stars:noteDeleted`               | Calendar note removed    | `noteId (string)`                          | v0.1.0 |
+| `seasons-stars:registerExternalCalendars` | Module initialization    | `{registerCalendar, manager}`              | v0.8.0 |
+
+### Hook Integration Best Practices
+
+```javascript
+class ModuleHookIntegration {
+  constructor() {
+    this.setupHooks();
+  }
+
+  setupHooks() {
+    // Wait for Seasons & Stars to be ready
+    Hooks.on('seasons-stars:ready', this.onSeasonsStarsReady.bind(this));
+
+    // Listen for time changes
+    Hooks.on('seasons-stars:dateChanged', this.onDateChanged.bind(this));
+
+    // Listen for advancement state
+    Hooks.on('seasons-stars:timeAdvancementStarted', this.onAdvancementStarted.bind(this));
+    Hooks.on('seasons-stars:timeAdvancementPaused', this.onAdvancementPaused.bind(this));
+  }
+
+  onSeasonsStarsReady({ manager, api }) {
+    console.log('Seasons & Stars ready - safe to use API');
+    this.seasonsStarsAPI = api;
+    this.calendarManager = manager;
+
+    // Initialize your module's calendar features
+    this.initializeCalendarFeatures();
+  }
+
+  onDateChanged({ newDate, oldTime, newTime, delta }) {
+    // Handle time progression
+    this.updateTimeBasedFeatures(newDate, delta);
+  }
+
+  onAdvancementStarted(ratio) {
+    if (ratio > 2.0) {
+      // Switch to batch processing for fast advancement
+      this.enableBatchMode();
+    }
+  }
+
+  onAdvancementPaused() {
+    // Process any accumulated changes
+    this.processBatchedChanges();
+    this.disableBatchMode();
+  }
 }
 ```
-
-**When to Use:**
-
-- **Calendar Packs**: Best for distributable collections, auto-detection, no JavaScript required
-- **External Registration Hook**: Best for runtime registration, dynamic calendars, programmatic control
 
 ### Simple Calendar Hook Compatibility
 
@@ -953,7 +1183,16 @@ class WeatherManager {
 ```javascript
 class SpellEffectManager {
   constructor() {
+    this.setupTimeIntegration();
+  }
+
+  setupTimeIntegration() {
+    // Listen for time changes
     Hooks.on('seasons-stars:dateChanged', this.checkExpiringEffects.bind(this));
+
+    // Listen for time advancement state changes
+    Hooks.on('seasons-stars:timeAdvancementStarted', this.onAdvancementStarted.bind(this));
+    Hooks.on('seasons-stars:timeAdvancementPaused', this.onAdvancementPaused.bind(this));
   }
 
   async addTimedEffect(actorId, effectData, duration) {
@@ -981,6 +1220,134 @@ class SpellEffectManager {
         this.removeEffect(actorId, effect);
         ui.notifications.info(`${effect.name} effect has expired on ${actorId}`);
       });
+    }
+  }
+
+  onAdvancementStarted(ratio) {
+    // Fast advancement may skip precise expiration times
+    if (ratio > 5.0) {
+      this.enableBatchProcessing = true;
+      console.log('Enabled batch effect processing for fast time advancement');
+    }
+  }
+
+  onAdvancementPaused() {
+    // Resume precise timing after advancement stops
+    this.enableBatchProcessing = false;
+
+    // Process any effects that may have been missed during fast advancement
+    this.processAllPendingEffects();
+    console.log('Resumed precise effect timing');
+  }
+}
+```
+
+### Time Advancement Integration Module
+
+```javascript
+/**
+ * Complete example of a module that integrates with time advancement
+ */
+class WeatherTimeModule {
+  constructor() {
+    this.weatherData = new Map();
+    this.isProcessingBatch = false;
+    this.setupTimeIntegration();
+  }
+
+  setupTimeIntegration() {
+    const timeService = TimeAdvancementService.getInstance();
+
+    // Monitor time advancement state
+    Hooks.on('seasons-stars:timeAdvancementStarted', ratio => {
+      this.onTimeAdvancementStart(ratio);
+    });
+
+    Hooks.on('seasons-stars:timeAdvancementPaused', () => {
+      this.onTimeAdvancementPause();
+    });
+
+    // Monitor time changes
+    Hooks.on('seasons-stars:dateChanged', data => {
+      this.onTimeChange(data);
+    });
+  }
+
+  onTimeAdvancementStart(ratio) {
+    console.log(`Weather module: Time advancement started at ${ratio}x`);
+
+    // Switch to batch processing for fast advancement
+    if (ratio > 2.0) {
+      this.isProcessingBatch = true;
+      this.batchStartTime = game.time.worldTime;
+      ui.notifications.info(`Weather processing switched to batch mode (${ratio}x speed)`);
+    }
+  }
+
+  onTimeAdvancementPause() {
+    console.log('Weather module: Time advancement paused');
+
+    if (this.isProcessingBatch) {
+      // Process accumulated time in batch
+      const totalTime = game.time.worldTime - this.batchStartTime;
+      this.processBatchWeather(totalTime);
+
+      this.isProcessingBatch = false;
+      ui.notifications.info('Weather processing resumed normal mode');
+    }
+  }
+
+  onTimeChange(data) {
+    if (this.isProcessingBatch) {
+      // Don't process individual changes during batch mode
+      return;
+    }
+
+    // Normal weather processing
+    this.processWeatherChange(data);
+  }
+
+  processBatchWeather(totalSeconds) {
+    const days = Math.floor(totalSeconds / 86400);
+    console.log(`Processing ${days} days of weather in batch`);
+
+    // Generate weather for each day efficiently
+    for (let i = 0; i < days; i++) {
+      const dayTime = this.batchStartTime + i * 86400;
+      const dayWeather = this.generateWeatherForTime(dayTime);
+      this.weatherData.set(dayTime, dayWeather);
+    }
+  }
+
+  // Method to control time advancement from weather events
+  async handleWeatherEvent(eventType) {
+    const timeService = TimeAdvancementService.getInstance();
+
+    switch (eventType) {
+      case 'storm':
+        // Pause time during dramatic weather
+        timeService.pause();
+        ui.notifications.warn('Storm approaching - time advancement paused');
+        break;
+
+      case 'clearWeather':
+        // Resume normal advancement
+        if (!timeService.isActive) {
+          await timeService.play();
+          ui.notifications.info('Weather cleared - time advancement resumed');
+        }
+        break;
+
+      case 'rapidWeatherChange':
+        // Temporarily increase speed
+        const originalRatio = timeService.advancementRatio || 1.0;
+        timeService.updateRatio(5.0);
+
+        // Reset after 30 seconds
+        setTimeout(() => {
+          timeService.updateRatio(originalRatio);
+        }, 30000);
+        break;
     }
   }
 }

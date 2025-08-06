@@ -8,9 +8,16 @@ import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 // Module-level state (replaces static class properties)
 let previewContainer: HTMLElement | null = null;
-let debounceTimer: number | null = null;
 let timeAdvancementPreviewContainer: HTMLElement | null = null;
-let timeAdvancementDebounceTimer: number | null = null;
+
+// Debounced functions using Foundry's utility (with type assertion)
+const debouncedPreviewUpdate = (foundry.utils as any).debounce((value: string) => {
+  updatePreview(value);
+}, 300);
+
+const debouncedTimeAdvancementUpdate = (foundry.utils as any).debounce((ratio: number) => {
+  updateTimeAdvancementExplanation(ratio);
+}, 150);
 
 /**
  * Register hooks for settings preview functionality
@@ -46,7 +53,7 @@ function enhanceQuickTimeButtonsSetting(html: HTMLElement): void {
     // Add input event listener for live updates
     quickTimeInput.addEventListener('input', (event: Event) => {
       const target = event.target as HTMLInputElement;
-      debouncePreviewUpdate(target.value);
+      debouncedPreviewUpdate(target.value);
     });
 
     // Initial preview
@@ -83,19 +90,6 @@ function createPreviewContainer(inputElement: HTMLInputElement): void {
     formGroup.insertAdjacentHTML('afterend', previewHtml);
     previewContainer = formGroup.nextElementSibling as HTMLElement;
   }
-}
-
-/**
- * Debounce preview updates to avoid excessive re-rendering
- */
-function debouncePreviewUpdate(value: string): void {
-  if (debounceTimer) {
-    clearTimeout(debounceTimer);
-  }
-
-  debounceTimer = window.setTimeout(() => {
-    updatePreview(value);
-  }, 300);
 }
 
 /**
@@ -213,16 +207,16 @@ function enhanceTimeAdvancementRatioSetting(html: HTMLElement): void {
     const rangePicker = html.querySelector(
       'range-picker[name="seasons-and-stars.timeAdvancementRatio"]'
     ) as HTMLElement;
-    
+
     if (!rangePicker) {
       Logger.debug('Time advancement ratio range-picker not found in settings form');
       return;
     }
-    
+
     // Get the input elements inside the range-picker (we'll listen to both number and range)
     const rangeInput = rangePicker.querySelector('input[type="range"]') as HTMLInputElement;
     const numberInput = rangePicker.querySelector('input[type="number"]') as HTMLInputElement;
-    
+
     if (!rangeInput && !numberInput) {
       Logger.debug('Time advancement ratio inputs not found inside range-picker');
       return;
@@ -234,9 +228,9 @@ function enhanceTimeAdvancementRatioSetting(html: HTMLElement): void {
     // Add input event listeners for live updates to both inputs
     const updateHandler = (event: Event) => {
       const target = event.target as HTMLInputElement;
-      debounceTimeAdvancementUpdate(parseFloat(target.value) || 1.0);
+      debouncedTimeAdvancementUpdate(parseFloat(target.value) || 1.0);
     };
-    
+
     if (rangeInput) {
       rangeInput.addEventListener('input', updateHandler);
     }
@@ -245,7 +239,9 @@ function enhanceTimeAdvancementRatioSetting(html: HTMLElement): void {
     }
 
     // Initial explanation (get current value from range-picker attribute or first available input)
-    const currentValue = parseFloat(rangePicker.getAttribute('value') || rangeInput?.value || numberInput?.value || '1.0');
+    const currentValue = parseFloat(
+      rangePicker.getAttribute('value') || rangeInput?.value || numberInput?.value || '1.0'
+    );
     updateTimeAdvancementExplanation(currentValue);
 
     Logger.debug('Added live explanation to time advancement ratio setting');
@@ -276,19 +272,6 @@ function createTimeAdvancementExplanationContainer(referenceElement: HTMLElement
 }
 
 /**
- * Debounce time advancement explanation updates
- */
-function debounceTimeAdvancementUpdate(ratio: number): void {
-  if (timeAdvancementDebounceTimer) {
-    clearTimeout(timeAdvancementDebounceTimer);
-  }
-
-  timeAdvancementDebounceTimer = window.setTimeout(() => {
-    updateTimeAdvancementExplanation(ratio);
-  }, 150);
-}
-
-/**
  * Update the time advancement explanation based on current ratio
  */
 function updateTimeAdvancementExplanation(ratio: number): void {
@@ -306,7 +289,7 @@ function updateTimeAdvancementExplanation(ratio: number): void {
 
     // Calculate interval using the same formula as TimeAdvancementService
     const interval = Math.max(1000, Math.ceil(1000 / ratio));
-    
+
     // Generate explanations
     const ratioExplanation = generateRatioExplanation(ratio);
     const intervalExplanation = generateIntervalExplanation(ratio, interval);
@@ -360,7 +343,7 @@ function generateRatioExplanation(ratio: number): string {
 function generateIntervalExplanation(ratio: number, interval: number): string {
   const gameSecondsAdvanced = ratio;
   const intervalSeconds = interval / 1000;
-  
+
   return `Technical: Every ${intervalSeconds} seconds, game time advances by ${gameSecondsAdvanced} seconds`;
 }
 
@@ -387,14 +370,7 @@ function showTimeAdvancementError(message: string): void {
  * Clean up preview when settings form is closed
  */
 export function cleanupSettingsPreview(): void {
-  if (debounceTimer) {
-    clearTimeout(debounceTimer);
-    debounceTimer = null;
-  }
-  if (timeAdvancementDebounceTimer) {
-    clearTimeout(timeAdvancementDebounceTimer);
-    timeAdvancementDebounceTimer = null;
-  }
+  // No manual timer cleanup needed with foundry.utils.debounce
   previewContainer = null;
   timeAdvancementPreviewContainer = null;
 }
