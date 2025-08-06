@@ -30,34 +30,44 @@ describe('Time Advancement Ratio Explanations', () => {
   function generateIntervalExplanation(ratio: number, interval: number): string {
     const gameSecondsAdvanced = ratio;
     const intervalSeconds = interval / 1000;
-    
+
     return `Technical: Every ${intervalSeconds} seconds, game time advances by ${gameSecondsAdvanced} seconds`;
   }
 
   describe('Ratio Explanations', () => {
     it('should explain 1:1 ratio correctly', () => {
       const explanation = generateRatioExplanation(1.0);
-      expect(explanation).toBe('<strong>Real Time:</strong> 1 second of real time = 1 second of game time');
+      expect(explanation).toBe(
+        '<strong>Real Time:</strong> 1 second of real time = 1 second of game time'
+      );
     });
 
     it('should explain 2x speed correctly', () => {
       const explanation = generateRatioExplanation(2.0);
-      expect(explanation).toBe('<strong>Accelerated Time:</strong> 1 second of real time = 2 seconds of game time (2x speed)');
+      expect(explanation).toBe(
+        '<strong>Accelerated Time:</strong> 1 second of real time = 2 seconds of game time (2x speed)'
+      );
     });
 
     it('should explain 0.5x speed correctly', () => {
       const explanation = generateRatioExplanation(0.5);
-      expect(explanation).toBe('<strong>Slow Time:</strong> 2 seconds of real time = 1 second of game time');
+      expect(explanation).toBe(
+        '<strong>Slow Time:</strong> 2 seconds of real time = 1 second of game time'
+      );
     });
 
     it('should explain very slow speed correctly', () => {
       const explanation = generateRatioExplanation(0.01);
-      expect(explanation).toBe('<strong>Very Slow Time:</strong> 2 minutes of real time = 1 second of game time');
+      expect(explanation).toBe(
+        '<strong>Very Slow Time:</strong> 2 minutes of real time = 1 second of game time'
+      );
     });
 
     it('should explain fractional speeds correctly', () => {
       const explanation = generateRatioExplanation(1.5);
-      expect(explanation).toBe('<strong>Accelerated Time:</strong> 1 second of real time = 1.5 seconds of game time (1.5x speed)');
+      expect(explanation).toBe(
+        '<strong>Accelerated Time:</strong> 1 second of real time = 1.5 seconds of game time (1.5x speed)'
+      );
     });
   });
 

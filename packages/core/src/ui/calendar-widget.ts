@@ -98,12 +98,12 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Get time advancement state for GM users
     let timeAdvancementActive = false;
     let advancementRatioDisplay = '1.0x speed';
-    
+
     if (game.user?.isGM) {
       try {
         const timeService = TimeAdvancementService.getInstance();
         timeAdvancementActive = timeService?.isActive || false;
-        
+
         const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
         advancementRatioDisplay = `${ratio}x speed`;
       } catch (error) {
@@ -292,11 +292,12 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       // For now, show a simple notification
       const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
       const pauseOnCombat = game.settings?.get('seasons-and-stars', 'pauseOnCombat') || true;
-      const resumeAfterCombat = game.settings?.get('seasons-and-stars', 'resumeAfterCombat') || false;
-      
+      const resumeAfterCombat =
+        game.settings?.get('seasons-and-stars', 'resumeAfterCombat') || false;
+
       const message = `Current Settings:\nRatio: ${ratio}x speed\nPause on Combat: ${pauseOnCombat ? 'Yes' : 'No'}\nResume after Combat: ${resumeAfterCombat ? 'Yes' : 'No'}\n\nUse module configuration to change settings.`;
       ui.notifications?.info(message);
-      
+
       Logger.info('Main widget: Opened time advancement settings');
     } catch (error) {
       ui.notifications?.error('Failed to open settings');

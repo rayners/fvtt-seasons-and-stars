@@ -3,7 +3,7 @@
  * Following TDD approach for time advancement section and settings button
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { CalendarWidget } from '../src/ui/calendar-widget';
 import { TimeAdvancementService } from '../src/core/time-advancement-service';
 import { CalendarDate } from '../src/core/calendar-date';
@@ -182,7 +182,7 @@ describe('Main Widget Time Advancement Integration', () => {
     beforeEach(() => {
       // Add the action handler to the widget
       if ((widget.constructor as any).DEFAULT_OPTIONS?.actions) {
-        (widget.constructor as any).DEFAULT_OPTIONS.actions.toggleTimeAdvancement = 
+        (widget.constructor as any).DEFAULT_OPTIONS.actions.toggleTimeAdvancement =
           CalendarWidget.prototype._onToggleTimeAdvancement;
       }
     });
@@ -220,7 +220,7 @@ describe('Main Widget Time Advancement Integration', () => {
     });
 
     it('should update widget display after successful toggle', async () => {
-      const renderspy = vi.spyOn(widget, 'render');
+      const renderSpy = vi.spyOn(widget, 'render');
       const mockEvent = new Event('click');
 
       await widget._onToggleTimeAdvancement(mockEvent);
@@ -232,8 +232,8 @@ describe('Main Widget Time Advancement Integration', () => {
   describe('Open Advancement Settings Action', () => {
     beforeEach(() => {
       // Add the action handler to the widget
-      if (widget.constructor as any).DEFAULT_OPTIONS?.actions) {
-        (widget.constructor as any).DEFAULT_OPTIONS.actions.openAdvancementSettings = 
+      if ((widget.constructor as any).DEFAULT_OPTIONS?.actions) {
+        (widget.constructor as any).DEFAULT_OPTIONS.actions.openAdvancementSettings =
           CalendarWidget.prototype._onOpenAdvancementSettings;
       }
     });
@@ -314,7 +314,7 @@ describe('Main Widget Time Advancement Integration', () => {
     it('should react to ratio changes', async () => {
       // Test multiple ratio values
       const ratios = [0.1, 0.5, 1.0, 2.0, 10.0, 100.0];
-      
+
       for (const ratio of ratios) {
         mockSettings.set('seasons-and-stars.timeAdvancementRatio', ratio);
         const context = await widget._prepareContext();
@@ -336,7 +336,7 @@ describe('Main Widget Time Advancement Integration', () => {
 
     it('should update service when ratio changes through widget', () => {
       const newRatio = 3.0;
-      
+
       // Simulate ratio update from settings dialog
       widget._onRatioSettingChanged?.(newRatio);
 

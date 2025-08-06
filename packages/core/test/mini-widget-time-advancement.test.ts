@@ -3,7 +3,7 @@
  * Following TDD approach for play/pause button functionality
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
 import { TimeAdvancementService } from '../src/core/time-advancement-service';
 import { CalendarDate } from '../src/core/calendar-date';
@@ -172,7 +172,7 @@ describe('Mini Widget Time Advancement Integration', () => {
     beforeEach(() => {
       // Add the action handler to the widget
       if ((widget.constructor as any).DEFAULT_OPTIONS?.actions) {
-        (widget.constructor as any).DEFAULT_OPTIONS.actions.toggleTimeAdvancement = 
+        (widget.constructor as any).DEFAULT_OPTIONS.actions.toggleTimeAdvancement =
           CalendarMiniWidget.prototype._onToggleTimeAdvancement;
       }
     });
@@ -311,14 +311,16 @@ describe('Mini Widget Time Advancement Integration', () => {
   describe('Widget Lifecycle', () => {
     it('should properly initialize time advancement integration', () => {
       const widget = new CalendarMiniWidget();
-      
+
       // Should have the toggle action registered
-      expect((widget.constructor as any).DEFAULT_OPTIONS?.actions?.toggleTimeAdvancement).toBeDefined();
+      expect(
+        (widget.constructor as any).DEFAULT_OPTIONS?.actions?.toggleTimeAdvancement
+      ).toBeDefined();
     });
 
     it('should clean up properly when widget is destroyed', () => {
       const widget = new CalendarMiniWidget();
-      
+
       // Widget should not interfere with service lifecycle
       // Service cleanup is handled by the service itself
       expect(() => widget.close()).not.toThrow();

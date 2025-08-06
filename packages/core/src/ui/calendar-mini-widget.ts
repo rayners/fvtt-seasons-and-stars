@@ -98,12 +98,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Get time advancement state for GM users
     let timeAdvancementActive = false;
     let advancementRatioDisplay = '1.0x speed';
-    
+
     if (game.user?.isGM) {
       try {
         const timeService = TimeAdvancementService.getInstance();
         timeAdvancementActive = timeService?.isActive || false;
-        
+
         const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
         advancementRatioDisplay = `${ratio}x speed`;
       } catch (error) {
