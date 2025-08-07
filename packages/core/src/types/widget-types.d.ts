@@ -21,6 +21,8 @@ export interface MiniWidgetContext extends BaseWidgetContext {
   showTimeControls: boolean;
   showTime: boolean;
   timeString: string;
+  timeAdvancementActive?: boolean;
+  advancementRatioDisplay?: string;
 }
 
 // Main widget specific context
@@ -30,6 +32,9 @@ export interface MainWidgetContext extends BaseWidgetContext {
   canAdvanceTime: boolean;
   hasSmallTime: boolean;
   sidebarButtons: SidebarButton[];
+  timeAdvancementActive?: boolean;
+  advancementRatioDisplay?: string;
+  showTimeControls?: boolean;
 }
 
 // Grid widget specific context

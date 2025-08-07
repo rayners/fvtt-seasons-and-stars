@@ -16,6 +16,7 @@ declare global {
   }
 
   interface Game {
+    ready: boolean;
     seasonsStars?: {
       api?: SeasonsStarsAPI;
       manager?: unknown; // CalendarManager interface
@@ -42,6 +43,11 @@ declare global {
       CalendarSelectionDialog?: unknown;
       NoteEditingDialog?: unknown;
     };
+  }
+
+  interface Combat {
+    id: string;
+    [key: string]: any;
   }
 }
 
@@ -106,6 +112,7 @@ export interface CalendarManagerInterface {
   getCalendar(calendarId: string): SeasonsStarsCalendar | null;
   getAvailableCalendars(): string[];
   setActiveCalendar(calendarId: string): Promise<boolean>;
+  advanceSeconds(seconds: number): Promise<void>;
   advanceMinutes(minutes: number): Promise<void>;
   advanceHours(hours: number): Promise<void>;
   advanceDays(days: number): Promise<void>;

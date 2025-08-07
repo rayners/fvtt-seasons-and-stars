@@ -3,8 +3,19 @@
   {{#if error}}
     <div class="mini-error">{{error}}</div>
   {{else}}
-    <div class="mini-date" data-action="openCalendarSelection" title="{{shortDate}} (Click to change calendar, Double-click for larger view)">
-      {{shortDate}}{{#if showTime}}<span class="mini-time"> {{timeString}}</span>{{/if}}
+    <div class="mini-header-row">
+      <div class="mini-date" data-action="openCalendarSelection" title="{{shortDate}} (Click to change calendar, Double-click for larger view)">
+        {{shortDate}}{{#if showTime}}<span class="mini-time"> {{timeString}}</span>{{/if}}
+      </div>
+      {{#if isGM}}
+        <div class="mini-play-pause-controls">
+          <button data-action="toggleTimeAdvancement" 
+                  class="play-pause-btn {{#if timeAdvancementActive}}active{{/if}}"
+                  title="{{#if timeAdvancementActive}}Pause{{else}}Play{{/if}} time advancement ({{advancementRatioDisplay}})">
+            <i class="fas fa-{{#if timeAdvancementActive}}pause{{else}}play{{/if}}"></i>
+          </button>
+        </div>
+      {{/if}}
     </div>
     {{#if showTimeControls}}
       <div class="mini-time-controls">

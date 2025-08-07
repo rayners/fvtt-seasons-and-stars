@@ -401,6 +401,17 @@ export class CalendarManager {
   }
 
   /**
+   * Advance time by seconds using active calendar
+   */
+  async advanceSeconds(seconds: number): Promise<void> {
+    if (!this.timeConverter) {
+      throw new Error('No active calendar set');
+    }
+
+    await this.timeConverter.advanceSeconds(seconds);
+  }
+
+  /**
    * Set current date using active calendar
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

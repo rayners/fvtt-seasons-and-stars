@@ -6,6 +6,7 @@ import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
+import { TimeAdvancementService } from '../core/time-advancement-service';
 import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
@@ -15,6 +16,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   private static activeInstance: CalendarMiniWidget | null = null;
   private isClosing: boolean = false;
   private sidebarButtons: SidebarButton[] = [];
+  private hasBeenPositioned: boolean = false;
 
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-mini-widget',
@@ -36,6 +38,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       advanceTime: CalendarMiniWidget.prototype._onAdvanceTime,
       openCalendarSelection: CalendarMiniWidget.prototype._onOpenCalendarSelection,
       openLargerView: CalendarMiniWidget.prototype._onOpenLargerView,
+      toggleTimeAdvancement: CalendarMiniWidget.prototype._onToggleTimeAdvancement,
     },
   };
 
@@ -93,6 +96,22 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const alwaysShowQuickTimeButtons =
       game.settings?.get('seasons-and-stars', 'alwaysShowQuickTimeButtons') || false;
 
+    // Get time advancement state for GM users
+    let timeAdvancementActive = false;
+    let advancementRatioDisplay = '1.0x speed';
+
+    if (game.user?.isGM) {
+      try {
+        const timeService = TimeAdvancementService.getInstance();
+        timeAdvancementActive = timeService?.isActive || false;
+
+        const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
+        advancementRatioDisplay = `${ratio}x speed`;
+      } catch (error) {
+        Logger.warn('Failed to get time advancement state', error);
+      }
+    }
+
     return Object.assign(context, {
       shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
@@ -100,6 +119,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       isGM: game.user?.isGM || false,
       showTime: showTime,
       timeString: showTime && currentDate.time ? this.getShortTimeString(currentDate.time) : '',
+      timeAdvancementActive: timeAdvancementActive,
+      advancementRatioDisplay: advancementRatioDisplay,
       calendar: {
         id: activeCalendar.id || 'unknown',
         label: activeCalendar.label || activeCalendar.name || 'Unknown Calendar',
@@ -180,6 +201,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       return;
     }
 
+    // Skip repositioning if already positioned (reduces spam during time advancement)
+    if (this.hasBeenPositioned) {
+      return;
+    }
+
     Logger.debug('Mini widget: Positioning widget');
     const smallTimeElement = SmallTimeUtils.getSmallTimeElement();
 
@@ -199,6 +225,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // No SmallTime - dock to player list
       this.dockToPlayerList();
     }
+
+    // Mark as positioned to avoid repeated repositioning during time advancement
+    this.hasBeenPositioned = true;
   }
 
   /**
@@ -238,6 +267,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     switch (action) {
       case 'advanceTime':
         this._onAdvanceTime(event, actionElement);
+        break;
+      case 'toggleTimeAdvancement':
+        this._onToggleTimeAdvancement(event, actionElement);
         break;
       case 'openCalendarSelection':
         this._onOpenCalendarSelection(event, actionElement);
@@ -308,8 +340,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       delete (this as any)._playerListObserver;
     }
 
-    // Reset closing flag
+    // Reset closing flag and positioning state
     this.isClosing = false;
+    this.hasBeenPositioned = false;
 
     return super.close(options);
   }
@@ -584,6 +617,35 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Handle toggling time advancement on/off
+   */
+  async _onToggleTimeAdvancement(event: Event, _target?: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    try {
+      const service = TimeAdvancementService.getInstance();
+      if (!service) {
+        ui.notifications?.error('Time advancement service not available');
+        return;
+      }
+
+      if (service.isActive) {
+        service.pause();
+        Logger.info('Mini widget: Paused time advancement');
+      } else {
+        await service.play();
+        Logger.info('Mini widget: Started time advancement');
+      }
+
+      // Re-render to update button state
+      this.render();
+    } catch (error) {
+      ui.notifications?.error('Failed to toggle time advancement');
+      Logger.error('Mini widget time advancement toggle failed', error as Error);
+    }
+  }
+
+  /**
    * Handle opening calendar selection dialog
    */
   async _onOpenCalendarSelection(event: Event, _target: HTMLElement): Promise<void> {
@@ -614,6 +676,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   private autoPositionRelativeToSmallTime(): void {
     if (this.isClosing) return;
+
+    // Reset positioning flag to force repositioning when SmallTime moves
+    this.hasBeenPositioned = false;
 
     // Wait for both our element and SmallTime to be ready
     const attemptPositioning = (attempts = 0) => {
