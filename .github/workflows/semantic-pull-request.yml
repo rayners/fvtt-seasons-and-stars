@@ -56,3 +56,8 @@ jobs:
             ci
             deps
             deps-dev
+            fantasy-pack
+            scifi-pack
+            pf2e-pack
+            golarion
+            monorepo
