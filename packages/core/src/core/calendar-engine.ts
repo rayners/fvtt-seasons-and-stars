@@ -461,6 +461,32 @@ export class CalendarEngine {
     const intercalaryDays = this.getIntercalaryDays(year);
 
     for (month = 1; month <= this.calendar.months.length; month++) {
+      const currentMonthName = this.calendar.months[month - 1]?.name;
+
+      // Check for intercalary days before this month
+      const intercalaryBeforeMonth = currentMonthName
+        ? intercalaryDays.filter(i => i.before === currentMonthName)
+        : [];
+
+      for (const intercalary of intercalaryBeforeMonth) {
+        const intercalaryDayCount = intercalary.days || 1;
+
+        if (remainingDays < intercalaryDayCount) {
+          // We're within this intercalary period - return intercalary date with no weekday calculation
+          const dateData: CalendarDateData = {
+            year,
+            month,
+            day: remainingDays + 1, // Intercalary day index (1-based)
+            weekday: 0, // Placeholder - intercalary days don't have weekdays
+            intercalary: intercalary.name,
+          };
+
+          return new CalendarDate(dateData, this.calendar);
+        }
+
+        remainingDays -= intercalaryDayCount;
+      }
+
       const monthLength = monthLengths[month - 1];
 
       if (remainingDays < monthLength) {
@@ -470,7 +496,6 @@ export class CalendarEngine {
       remainingDays -= monthLength;
 
       // Check for intercalary days after this month
-      const currentMonthName = this.calendar.months[month - 1]?.name;
       const intercalaryAfterMonth = currentMonthName
         ? intercalaryDays.filter(i => i.after === currentMonthName)
         : [];
@@ -531,24 +556,127 @@ export class CalendarEngine {
     const intercalaryDays = this.getIntercalaryDays(date.year);
 
     for (let month = 1; month < date.month; month++) {
+      const currentMonthName = this.calendar.months[month - 1]?.name;
+
+      // Add intercalary days before this month
+      const intercalaryBeforeMonth = currentMonthName
+        ? intercalaryDays.filter(i => i.before === currentMonthName)
+        : [];
+      totalDays += intercalaryBeforeMonth.reduce((sum, intercalary) => {
+        return sum + (intercalary.days || 1);
+      }, 0);
+
       totalDays += monthLengths[month - 1];
 
       // Add intercalary days after this month
-      const currentMonthName = this.calendar.months[month - 1]?.name;
       const intercalaryAfterMonth = currentMonthName
         ? intercalaryDays.filter(i => i.after === currentMonthName)
         : [];
-      // Sum up all days from intercalary periods (using days field, defaulting to 1)
       totalDays += intercalaryAfterMonth.reduce((sum, intercalary) => {
+        return sum + (intercalary.days || 1);
+      }, 0);
+    }
+
+    // Add intercalary days before the current month (only for regular dates)
+    if (!date.intercalary) {
+      const currentMonthName = this.calendar.months[date.month - 1]?.name;
+      const intercalaryBeforeCurrentMonth = currentMonthName
+        ? intercalaryDays.filter(i => i.before === currentMonthName)
+        : [];
+      totalDays += intercalaryBeforeCurrentMonth.reduce((sum, intercalary) => {
         return sum + (intercalary.days || 1);
       }, 0);
     }
 
     // Handle intercalary vs regular days
     if (date.intercalary) {
-      // For intercalary dates, add all days of the target month, then the intercalary day position
-      totalDays += monthLengths[date.month - 1]; // All days of the month
-      totalDays += date.day - 1; // Position within the intercalary period (0-based)
+      // For intercalary dates, we need to handle year-boundary cases specially
+
+      // Find the intercalary day definition to understand its placement
+      const intercalaryDef = this.calendar.intercalary.find(i => i.name === date.intercalary);
+
+      if (intercalaryDef) {
+        if (intercalaryDef.after) {
+          // Handle "after" intercalary days (existing logic)
+          const afterMonthIndex = this.calendar.months.findIndex(
+            m => m.name === intercalaryDef.after
+          );
+
+          if (afterMonthIndex >= 0) {
+            const afterMonth = afterMonthIndex + 1; // Convert to 1-based
+
+            // Check if this is a year-boundary intercalary day
+            // (comes after last month of previous year)
+            const isYearBoundary =
+              afterMonth === this.calendar.months.length && date.month === afterMonth;
+
+            if (isYearBoundary) {
+              // Year-boundary intercalary: should come immediately after the last month
+              // of the PREVIOUS year, not after a full additional year
+
+              // Subtract the full year we added above (since it belongs to previous year's end)
+              totalDays -= this.getYearLength(date.year);
+
+              // Add all days of the month it comes after (from previous year)
+              const previousYearMonthLengths = this.getMonthLengths(date.year - 1);
+              totalDays += previousYearMonthLengths[afterMonth - 1]; // Month from previous year
+
+              // Add the intercalary day position
+              totalDays += date.day - 1; // Position within the intercalary period (0-based)
+            } else {
+              // Regular intercalary day after a month within a year
+              // First, add any intercalary days that come before the month it comes after
+              const currentMonthName = this.calendar.months[date.month - 1]?.name;
+              const intercalaryBeforeCurrentMonth = currentMonthName
+                ? intercalaryDays.filter(i => i.before === currentMonthName)
+                : [];
+              totalDays += intercalaryBeforeCurrentMonth.reduce((sum, intercalary) => {
+                return sum + (intercalary.days || 1);
+              }, 0);
+
+              totalDays += monthLengths[date.month - 1]; // All days of the month it comes after
+              totalDays += date.day - 1; // Position within the intercalary period (0-based)
+            }
+          } else {
+            // Fallback: intercalary day with invalid "after" month
+            totalDays += date.day - 1; // Position within the intercalary period (0-based)
+          }
+        } else if (intercalaryDef.before) {
+          // Handle "before" intercalary days (new logic)
+          const beforeMonthIndex = this.calendar.months.findIndex(
+            m => m.name === intercalaryDef.before
+          );
+
+          if (beforeMonthIndex >= 0) {
+            const beforeMonth = beforeMonthIndex + 1; // Convert to 1-based
+
+            // Check if this is a year-boundary intercalary day
+            // (comes before first month but is associated with current year)
+            const isYearBoundary =
+              beforeMonth === 1 &&
+              date.month === beforeMonth &&
+              date.year > this.calendar.year.epoch;
+
+            if (isYearBoundary) {
+              // Year-boundary intercalary: should come immediately before the first month
+              // We don't need to add the full year since we're at the start
+
+              // Add the intercalary day position (no month days to add)
+              totalDays += date.day - 1; // Position within the intercalary period (0-based)
+            } else {
+              // Regular intercalary day before a month within a year
+              // For "before" intercalary, we don't add the month's days since we come before it
+              totalDays += date.day - 1; // Position within the intercalary period (0-based)
+            }
+          } else {
+            // Fallback: intercalary day with invalid "before" month
+            totalDays += date.day - 1; // Position within the intercalary period (0-based)
+          }
+        }
+      } else {
+        // Fallback: intercalary day not found in calendar definition
+        totalDays += date.day - 1; // Position within the intercalary period (0-based)
+      }
     } else {
       // For regular dates, add days within the target month
       totalDays += date.day - 1;
@@ -604,10 +732,23 @@ export class CalendarEngine {
     const intercalaryDays = this.getIntercalaryDays(date.year);
 
     for (let month = 1; month < date.month; month++) {
+      const currentMonthName = this.calendar.months[month - 1]?.name;
+
+      // Add only weekday-contributing intercalary days before this month
+      const intercalaryBeforeMonth = currentMonthName
+        ? intercalaryDays.filter(i => i.before === currentMonthName)
+        : [];
+
+      intercalaryBeforeMonth.forEach(intercalary => {
+        const countsForWeekdays = intercalary.countsForWeekdays ?? true;
+        if (countsForWeekdays) {
+          totalDays += intercalary.days || 1;
+        }
+      });
+
       totalDays += monthLengths[month - 1];
 
       // Add only weekday-contributing intercalary days after this month
-      const currentMonthName = this.calendar.months[month - 1]?.name;
       const intercalaryAfterMonth = currentMonthName
         ? intercalaryDays.filter(i => i.after === currentMonthName)
         : [];
@@ -705,6 +846,18 @@ export class CalendarEngine {
     if (!monthName) return [];
 
     return intercalaryDays.filter(intercalary => intercalary.after === monthName);
+  }
+
+  /**
+   * Get intercalary days that come before a specific month
+   */
+  getIntercalaryDaysBeforeMonth(year: number, month: number): CalendarIntercalary[] {
+    const intercalaryDays = this.getIntercalaryDays(year);
+    const monthName = this.calendar.months[month - 1]?.name;
+
+    if (!monthName) return [];
+
+    return intercalaryDays.filter(intercalary => intercalary.before === monthName);
   }
 
   /**

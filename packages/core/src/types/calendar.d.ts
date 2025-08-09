@@ -104,10 +104,9 @@ export interface CalendarWeekday {
   };
 }
 
-export interface CalendarIntercalary {
+export type CalendarIntercalary = {
   name: string;
   days?: number;
-  after: string;
   leapYearOnly: boolean;
   countsForWeekdays: boolean;
   description?: string;
@@ -116,7 +115,7 @@ export interface CalendarIntercalary {
       description?: string;
     };
   };
-}
+} & ({ after: string; before?: never } | { before: string; after?: never });
 
 export interface CalendarSeason {
   name: string;
