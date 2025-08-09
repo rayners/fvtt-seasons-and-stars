@@ -92,6 +92,24 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Check if time should be displayed in mini widget
     const showTime = game.settings?.get('seasons-and-stars', 'miniWidgetShowTime') || false;
 
+    // Check if day of week should be displayed in mini widget
+    const showDayOfWeek =
+      game.settings?.get('seasons-and-stars', 'miniWidgetShowDayOfWeek') || false;
+
+    // Get weekday name/abbreviation with enhanced null safety
+    let weekdayDisplay = '';
+    if (
+      showDayOfWeek &&
+      activeCalendar?.weekdays?.length > 0 &&
+      currentDate.weekday !== undefined
+    ) {
+      const weekdayIndex = currentDate.weekday;
+      if (weekdayIndex >= 0 && weekdayIndex < activeCalendar.weekdays.length) {
+        const weekday = activeCalendar.weekdays[weekdayIndex];
+        weekdayDisplay = weekday?.abbreviation || weekday?.name?.substring(0, 3) || '';
+      }
+    }
+
     // Check the always show quick time buttons setting
     const alwaysShowQuickTimeButtons =
       game.settings?.get('seasons-and-stars', 'alwaysShowQuickTimeButtons') || false;
@@ -119,6 +137,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       isGM: game.user?.isGM || false,
       showTime: showTime,
       timeString: showTime && currentDate.time ? this.getShortTimeString(currentDate.time) : '',
+      showDayOfWeek: showDayOfWeek,
+      weekdayDisplay: weekdayDisplay,
       timeAdvancementActive: timeAdvancementActive,
       advancementRatioDisplay: advancementRatioDisplay,
       calendar: {
@@ -149,6 +169,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Register this as the active instance
     CalendarMiniWidget.activeInstance = this;
+
+    // Apply compact mode if multiple features are active
+    this.applyCompactModeIfNeeded(context);
 
     // Add click handlers for mini-date element
     const miniDateElement = this.element?.querySelector('.mini-date');
@@ -188,6 +211,24 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Position widget after render (SmallTime approach)
     this.positionWidget();
+  }
+
+  /**
+   * Apply compact mode CSS class if multiple features are active to optimize layout
+   */
+  private applyCompactModeIfNeeded(context: MiniWidgetContext): void {
+    if (!this.element) return;
+
+    // Check if we should apply compact mode
+    // Apply when both weekday display and time controls are active
+    const needsCompactMode = context.showDayOfWeek && context.showTimeControls;
+
+    if (needsCompactMode) {
+      this.element.classList.add('compact-mode');
+      Logger.debug('Applied compact mode for tighter layout');
+    } else {
+      this.element.classList.remove('compact-mode');
+    }
   }
 
   /**
@@ -370,6 +411,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       if (
         (settingName === 'quickTimeButtons' ||
           settingName === 'miniWidgetShowTime' ||
+          settingName === 'miniWidgetShowDayOfWeek' ||
           settingName === 'alwaysShowQuickTimeButtons') &&
         CalendarMiniWidget.activeInstance?.rendered
       ) {

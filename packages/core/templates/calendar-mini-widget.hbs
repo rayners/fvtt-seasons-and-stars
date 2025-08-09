@@ -4,6 +4,9 @@
     <div class="mini-error">{{error}}</div>
   {{else}}
     <div class="mini-header-row">
+      {{#if showDayOfWeek}}
+        <div class="mini-weekday">{{weekdayDisplay}}</div>
+      {{/if}}
       <div class="mini-date" data-action="openCalendarSelection" title="{{shortDate}} (Click to change calendar, Double-click for larger view)">
         {{shortDate}}{{#if showTime}}<span class="mini-time"> {{timeString}}</span>{{/if}}
       </div>

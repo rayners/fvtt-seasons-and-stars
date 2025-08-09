@@ -377,12 +377,37 @@ function registerSettings(): void {
   });
 
   game.settings.register('seasons-and-stars', 'showTimeWidget', {
-    name: 'Show Time Widget',
-    hint: 'Display a small time widget on the UI',
+    name: 'Auto-Show Default Widget',
+    hint: 'Automatically show the default calendar widget when the world loads. You can still manually open/close widgets using scene controls or keyboard shortcuts.',
     scope: 'client',
     config: true,
     type: Boolean,
     default: true,
+    onChange: (enabled: boolean) => {
+      if (enabled) {
+        // Show the default widget
+        const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+        switch (defaultWidget) {
+          case 'mini':
+            CalendarMiniWidget.show();
+            break;
+          case 'grid':
+            CalendarGridWidget.show();
+            break;
+          case 'main':
+          default:
+            CalendarWidget.show();
+            break;
+        }
+        Logger.info(`Showing default widget: ${defaultWidget}`);
+      } else {
+        // Hide all widgets
+        CalendarWidget.hide();
+        CalendarMiniWidget.hide();
+        CalendarGridWidget.hide();
+        Logger.info('Hiding all calendar widgets');
+      }
+    },
   });
 
   game.settings.register('seasons-and-stars', 'miniWidgetShowTime', {
@@ -394,6 +419,18 @@ function registerSettings(): void {
     default: false,
     onChange: () => {
       Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowTime');
+    },
+  });
+
+  game.settings.register('seasons-and-stars', 'miniWidgetShowDayOfWeek', {
+    name: 'Display Day of Week in Mini Widget',
+    hint: 'Show abbreviated day name on the left side of the mini calendar widget',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowDayOfWeek');
     },
   });
 

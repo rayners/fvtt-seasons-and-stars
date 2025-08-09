@@ -40,7 +40,7 @@
     background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
-    padding: 4px 8px;
+    padding: 3px 6px; // Reduced padding for more internal space
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(4px);
     
@@ -71,10 +71,25 @@
       justify-content: space-between;
       align-items: center;
       width: 100%;
+      gap: 0.15rem; // Reduced from 0.25rem for tighter layout
+      
+      .mini-weekday {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.75em; // Reduced from 0.85em for more compact display
+        font-weight: 500;
+        margin-right: 0.3em; // Reduced from 0.5em
+        white-space: nowrap;
+        min-width: fit-content;
+        text-transform: uppercase;
+        letter-spacing: 0.3px; // Reduced letter spacing
+        opacity: 0.8; // Slightly subdued to not compete with main date
+        flex-shrink: 0; // Prevent shrinking
+      }
       
       .mini-date {
+        flex: 1;
+        text-align: left; // Keep left-aligned for consistent layout
         color: #ffffff;
-        text-align: left;
         white-space: nowrap;
         letter-spacing: 0.025em;
         margin: 0;
@@ -84,7 +99,6 @@
         transition: all 0.2s;
         pointer-events: all !important;
         user-select: none;
-        flex: 1;
         
         // Ensure it's visible and has content
         min-width: 100px;
@@ -109,14 +123,14 @@
         .play-pause-btn {
           background: var(--color-bg-btn, rgba(255, 255, 255, 0.1));
           border: 1px solid var(--color-border-dark, rgba(255, 255, 255, 0.2));
-          border-radius: 3px;
-          padding: 2px 4px;
+          border-radius: 2px; // Smaller radius for compactness
+          padding: 1px 3px; // Reduced padding
           cursor: pointer;
-          font-size: 10px;
+          font-size: 9px; // Smaller font
           color: rgba(255, 255, 255, 0.8);
           transition: all 0.2s ease;
-          min-width: 20px;
-          height: 16px;
+          min-width: 18px; // Reduced from 20px
+          height: 14px; // Reduced from 16px
           display: flex;
           align-items: center;
           justify-content: center;
@@ -187,19 +201,21 @@
 
     .mini-time-controls {
       display: flex;
-      gap: 0.25rem;
-      margin-top: 0.25rem;
+      gap: 0.15rem; // Reduced from 0.25rem for tighter button spacing
+      margin-top: 0.2rem; // Reduced from 0.25rem
       justify-content: center;
+      flex-wrap: wrap; // Allow buttons to wrap if needed
 
       button {
         background: linear-gradient(135deg, #10b981, #14b8a6);
         border: 1px solid #10b981;
-        border-radius: 3px;
-        padding: 0.2rem 0.4rem;
+        border-radius: 2px; // Slightly smaller radius
+        padding: 0.15rem 0.3rem; // Reduced padding for more compact buttons
         color: white;
-        font-size: 0.7rem;
+        font-size: 0.65rem; // Slightly smaller text
         cursor: pointer;
         transition: all 0.2s ease;
+        white-space: nowrap; // Prevent text wrapping within buttons
 
         &:hover {
           background: linear-gradient(135deg, #059669, #0d9488);
@@ -247,6 +263,55 @@
       
       // Smooth transitions for all changes
       transition: z-index 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+    }
+  }
+  
+  // Compact mode when both weekday and time controls are visible
+  &.compact-mode {
+    .calendar-mini-content {
+      padding: 2px 4px; // Even more compact padding
+      
+      .mini-header-row {
+        gap: 0.1rem; // Minimal gap between elements
+        
+        .mini-weekday {
+          font-size: 0.7em; // Even smaller weekday text
+          margin-right: 0.2em; // Minimal margin
+          letter-spacing: 0.2px;
+        }
+        
+        .mini-date {
+          font-size: 0.95em; // Slightly smaller date text
+          padding: 1px 2px; // Reduced padding
+        }
+        
+        .mini-play-pause-controls .play-pause-btn {
+          min-width: 16px; // Even smaller button
+          height: 12px;
+          font-size: 8px;
+          padding: 1px 2px;
+          
+          i {
+            font-size: 7px;
+          }
+        }
+      }
+      
+      .mini-time-controls {
+        margin-top: 0.15rem; // Reduced top margin
+        gap: 0.1rem; // Minimal button spacing
+        
+        button {
+          padding: 0.1rem 0.25rem; // More compact buttons
+          font-size: 0.6rem;
+          border-radius: 2px;
+          
+          i {
+            font-size: 0.55rem; // Smaller icons
+            margin-right: 0.1rem; // Reduced icon margin
+          }
+        }
+      }
     }
   }
 }
