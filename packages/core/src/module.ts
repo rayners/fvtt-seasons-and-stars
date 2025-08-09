@@ -501,6 +501,24 @@ function registerSettings(): void {
     },
   });
 
+  game.settings.register('seasons-and-stars', 'miniWidgetQuickTimeButtons', {
+    name: 'Mini Widget Quick Time Buttons',
+    hint: 'Specific buttons for mini widget (uses same syntax as main buttons). Leave empty to auto-select from main buttons. Example: "15,60" to show only 15 minutes and 1 hour buttons.',
+    scope: 'world',
+    config: true,
+    type: String,
+    default: '',
+    onChange: () => {
+      try {
+        if (game.seasonsStars?.manager) {
+          Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetQuickTimeButtons');
+        }
+      } catch (error) {
+        Logger.warn('Failed to trigger mini widget buttons settings refresh:', error);
+      }
+    },
+  });
+
   // Time advancement settings
   game.settings.register('seasons-and-stars', 'timeAdvancementRatio', {
     name: 'Time Advancement Ratio',
@@ -1707,3 +1725,6 @@ function registerNotesCleanupHooks(): void {
 
   Logger.debug('Notes cleanup hooks registered');
 }
+
+// Export functions for testing
+export { registerSettings };
