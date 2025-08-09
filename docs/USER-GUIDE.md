@@ -75,6 +75,8 @@ A compact calendar companion that works alongside SmallTime.
 **Features:**
 
 - Displays current date in compact format
+- Optional time display (hidden by default when SmallTime is present)
+- Optional quick time controls (hidden by default when SmallTime is present)
 - Click to open full calendar widget
 - Automatically positions relative to SmallTime
 - Minimal screen space usage
@@ -224,17 +226,41 @@ _(Coming in Phase 2)_
 
 Access via **Game Settings → Module Settings → Seasons & Stars**:
 
-#### Client Settings
+#### Client Settings (Per User)
 
-- **Show Time Widget**: Toggle mini widget visibility
-- **Widget Position**: Control automatic positioning behavior
+**Widget Display:**
+
+- **Auto-Show Default Widget**: Automatically show calendar widget when world loads
+- **Default Widget**: Choose which widget appears by default (Main/Mini/Grid)
+- **Display Time in Mini Widget**: Show time alongside date in mini widget
+- **Display Day of Week in Mini Widget**: Show abbreviated day name in mini widget
+- **Always Display Quick Time Buttons**: Show S&S time controls even when SmallTime is present
+
+**Interface Options:**
+
+- **Calendar Click Behavior**: Choose between "Set Current Date" or "View Date Details" when clicking dates
+- **Show Notifications**: Display warning and error notifications in the UI
+- **Debug Mode**: Enable debug logging for troubleshooting (developers only)
 
 #### World Settings (GM Only)
 
-- **Active Calendar**: Choose which calendar system to use
-- **Default View**: Set preferred calendar view
-- **Time Format**: Configure date/time display options
-- **Quick Time Buttons**: Configure time advancement buttons (see [Quick Time Button Configuration](#quick-time-button-configuration))
+**Calendar System:**
+
+- **Active Calendar**: Choose which calendar system to use for the world
+
+**Time Advancement:**
+
+- **Quick Time Buttons**: Configure main widget time advancement buttons (see [Quick Time Button Configuration](#quick-time-button-configuration))
+- **Mini Widget Quick Time Buttons**: Specific buttons for mini widget (leave empty for auto-selection)
+- **Time Advancement Ratio**: Speed of automatic time progression (0.1 to 100.0x)
+- **Pause Time on Combat**: Automatically pause time advancement during combat
+- **Resume Time After Combat**: Automatically resume time advancement when combat ends
+
+**Notes System:**
+
+- **Allow Player Notes**: Allow players to create calendar notes
+- **Default Player Visibility**: Make new notes visible to players by default
+- **Default Player Editable**: Make new notes editable by players by default
 
 ### Calendar Configuration
 
@@ -300,7 +326,19 @@ Seasons & Stars works seamlessly with the SmallTime module:
 - **Smart Positioning**: Mini widget appears above SmallTime
 - **Visual Consistency**: Matches SmallTime's styling
 - **Responsive Layout**: Adapts to SmallTime movement
-- **No Conflicts**: Both modules work together perfectly
+- **Smart Time Display**: Time controls are hidden by default when SmallTime is present to avoid redundancy
+
+### Time Display Behavior
+
+When SmallTime is enabled:
+
+- **Time Display**: Hidden in mini widget by default (SmallTime handles time display)
+- **Time Controls**: Hidden by default (SmallTime provides time controls)
+
+**Override Settings** (Module Settings → Seasons & Stars):
+
+- **"Display Time in Mini Widget"**: Show time in mini widget even with SmallTime present
+- **"Always Display Quick Time Buttons"**: Show S&S time controls even with SmallTime present
 
 ### Manual Configuration
 

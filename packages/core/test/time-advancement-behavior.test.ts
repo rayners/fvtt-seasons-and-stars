@@ -31,6 +31,7 @@ const mockHooks = {
   on: vi.fn().mockReturnValue(1),
   off: vi.fn(),
   call: vi.fn(),
+  callAll: vi.fn(),
 };
 
 // Setup global mocks
@@ -257,7 +258,7 @@ describe('Time Advancement Behavioral Tests', () => {
   describe('Hook System Behavior', () => {
     it('should handle hook errors without breaking functionality', async () => {
       // Make hooks throw errors
-      mockHooks.call.mockImplementation(() => {
+      mockHooks.callAll.mockImplementation(() => {
         throw new Error('Hook error');
       });
 
@@ -290,7 +291,7 @@ describe('Time Advancement Behavioral Tests', () => {
       }
 
       // Should complete all combat cycles without errors
-      expect(mockHooks.call).toHaveBeenCalled();
+      expect(mockHooks.callAll).toHaveBeenCalled();
     });
   });
 });
