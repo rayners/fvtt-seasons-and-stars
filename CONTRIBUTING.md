@@ -119,7 +119,7 @@ chore(monorepo): update workspace configuration
 ```
 
 **Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-**Scopes**: `core`, `fantasy-pack`, `scifi-pack`, `pf2e-pack`, `monorepo`, `docs`
+**Scopes**: `core`, `fantasy-pack`, `scifi-pack`, `pf2e-pack`, `golarion`, `ui`, `api`, `tests`, `ci`, `deps`, `deps-dev`, `monorepo`, `docs`
 
 ## Submitting Changes
 

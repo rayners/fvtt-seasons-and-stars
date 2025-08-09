@@ -70,25 +70,25 @@
       "name": "Sarenith",
       "abbreviation": "Sar",
       "days": 30,
-      "description": "The third month of spring, named after Sarenrae. The sun's warmth grows stronger as summer approaches."
+      "description": "The first month of summer, named after Sarenrae. The sun's warmth grows stronger as the warm season begins."
     },
     {
       "name": "Erastus",
       "abbreviation": "Era",
       "days": 31,
-      "description": "The first month of summer, named after Erastil. A time of hunting, farming, and community gathering."
+      "description": "The second month of summer, named after Erastil. A time of hunting, farming, and community gathering."
     },
     {
       "name": "Arodus",
       "abbreviation": "Aro",
       "days": 31,
-      "description": "The second month of summer, named after Aroden. The peak of summer's heat and the height of human achievement."
+      "description": "The third month of summer, named after Aroden. The peak of summer's heat and the height of human achievement."
     },
     {
       "name": "Rova",
       "abbreviation": "Rov",
       "days": 30,
-      "description": "The third month of summer, named after Rovagug. A time when the Rough Beast's influence is said to be strongest."
+      "description": "The final month of summer, named after Rovagug. A time when the Rough Beast's influence is said to be strongest."
     },
     {
       "name": "Lamashan",
