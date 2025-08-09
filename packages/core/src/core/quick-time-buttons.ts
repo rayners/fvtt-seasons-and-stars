@@ -199,7 +199,7 @@ function convertButtonsToTemplateFormat(
  * Get fallback buttons when no valid configuration is found
  */
 function getFallbackButtons(): Array<{ amount: number; unit: string; label: string }> {
-  return convertButtonsToTemplateFormat(UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS, null);
+  return convertButtonsToTemplateFormat([...UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS], null);
 }
 
 /**
