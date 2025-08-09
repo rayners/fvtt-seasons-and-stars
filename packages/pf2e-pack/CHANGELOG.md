@@ -5,6 +5,13 @@ All notable changes to the Seasons & Stars Pathfinder 2e Pack will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-pf2e-v0.2.4...seasons-and-stars-pf2e-v0.2.5) (2025-08-09)
+
+
+### Bug Fixes
+
+* Updated download link for pf2e-pack ([265bfe5](https://github.com/rayners/fvtt-seasons-and-stars/commit/265bfe570ddb8408115d95a9b90879a49e4ac82c))
+
 ## [0.2.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-pf2e-v0.1.0...seasons-and-stars-pf2e-v0.2.4) (2025-08-09)
 
 
