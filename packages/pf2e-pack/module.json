@@ -2,7 +2,7 @@
   "id": "seasons-and-stars-pf2e",
   "title": "Seasons & Stars - Pathfinder 2e Pack",
   "description": "Pathfinder 2e integration pack for Seasons & Stars - includes Golarion calendar and time synchronization with the Pathfinder 2e system",
-  "version": "0.1.0",
+  "version": "0.2.4",
   "compatibility": {
     "minimum": "13",
     "verified": "13"

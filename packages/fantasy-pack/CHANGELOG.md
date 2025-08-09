@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.2.2...seasons-and-stars-fantasy-v0.3.0) (2025-08-09)
+
+
+### Features
+
+* add Roshar calendar support for Stormlight Archive campaigns ([#170](https://github.com/rayners/fvtt-seasons-and-stars/issues/170)) ([c195051](https://github.com/rayners/fvtt-seasons-and-stars/commit/c195051c0bf070c69fde12d01b9ab5fddc0d77d3))
+
 ## [0.2.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.2.1...seasons-and-stars-fantasy-v0.2.2) (2025-07-21)
 
 
