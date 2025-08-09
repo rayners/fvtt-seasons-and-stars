@@ -37,7 +37,7 @@
     ]
   },
   "url": "https://github.com/rayners/fvtt-seasons-and-stars",
-  "manifest": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/pf2e-pack-module.json",
-  "download": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/pf2e-pack-module.zip",
+  "manifest": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.json",
+  "download": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.zip",
   "bugs": "https://github.com/rayners/fvtt-seasons-and-stars/issues"
 }
