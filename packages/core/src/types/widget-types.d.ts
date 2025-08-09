@@ -21,6 +21,8 @@ export interface MiniWidgetContext extends BaseWidgetContext {
   showTimeControls: boolean;
   showTime: boolean;
   timeString: string;
+  showDayOfWeek: boolean;
+  weekdayDisplay: string;
   timeAdvancementActive?: boolean;
   advancementRatioDisplay?: string;
 }
