@@ -30,7 +30,7 @@ export function parseQuickTimeButtons(
         const trimmed = val.trim();
         if (!trimmed) return NaN;
 
-        const match = trimmed.match(/^(-?\d+)([mhdw]?)$/);
+        const match = trimmed.match(/^([+-]?\d+)([mhdw]?)$/);
 
         if (!match) {
           Logger.debug(`Invalid quick time button value: "${trimmed}"`);
@@ -119,50 +119,123 @@ export function getQuickTimeButtons(allButtons: number[], isMiniWidget: boolean 
 }
 
 /**
+ * Get main quick time buttons and calendar context for fallback logic
+ */
+function getMainButtonsAndCalendar(): {
+  mainButtons: number[];
+  calendar: SeasonsStarsCalendar | null;
+} {
+  const mainSetting =
+    (game.settings?.get('seasons-and-stars', 'quickTimeButtons') as string) ||
+    UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS.join(',');
+
+  const manager = game.seasonsStars?.manager;
+  const calendar = (manager as CalendarManagerInterface)?.getActiveCalendar() || null;
+  const mainButtons = parseQuickTimeButtons(mainSetting, calendar);
+
+  return { mainButtons, calendar };
+}
+
+/**
+ * Get mini widget specific buttons from settings, returns null if should use fallback
+ */
+export function getMiniWidgetButtonsFromSettings(): Array<{
+  amount: number;
+  unit: string;
+  label: string;
+}> | null {
+  try {
+    // Get mini widget specific setting
+    const miniSetting = game.settings?.get(
+      'seasons-and-stars',
+      'miniWidgetQuickTimeButtons'
+    ) as string;
+
+    // If empty or not set, return null to trigger fallback
+    if (!miniSetting || miniSetting.trim() === '') {
+      return null;
+    }
+
+    // Get calendar for parsing (we no longer need main buttons for validation)
+    const manager = game.seasonsStars?.manager;
+    const calendar = (manager as CalendarManagerInterface)?.getActiveCalendar() || null;
+
+    // Parse mini buttons independently - no validation against main buttons required
+    const parsedMiniButtons = parseQuickTimeButtons(miniSetting, calendar);
+
+    // If no valid buttons could be parsed from the setting, return null for fallback
+    if (parsedMiniButtons.length === 0) {
+      Logger.warn('No valid mini widget buttons found in setting, using fallback');
+      return null;
+    }
+
+    // Convert to template format
+    return parsedMiniButtons.map(minutes => ({
+      amount: minutes,
+      unit: 'minutes',
+      label: formatTimeButton(minutes, calendar),
+    }));
+  } catch (error) {
+    Logger.error('Error getting mini widget buttons from settings', error as Error);
+    return null; // Fallback
+  }
+}
+
+/**
+ * Convert minute values to template format
+ */
+function convertButtonsToTemplateFormat(
+  buttons: number[],
+  calendar: SeasonsStarsCalendar | null
+): Array<{ amount: number; unit: string; label: string }> {
+  return buttons.map(minutes => ({
+    amount: minutes,
+    unit: 'minutes',
+    label: formatTimeButton(minutes, calendar),
+  }));
+}
+
+/**
+ * Get fallback buttons when no valid configuration is found
+ */
+function getFallbackButtons(): Array<{ amount: number; unit: string; label: string }> {
+  return convertButtonsToTemplateFormat([...UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS], null);
+}
+
+/**
  * Get quick time buttons from settings for specific widget type
  */
 export function getQuickTimeButtonsFromSettings(
   isMiniWidget: boolean = false
 ): Array<{ amount: number; unit: string; label: string }> {
   try {
-    // Get setting value
-    const settingValue =
-      (game.settings?.get('seasons-and-stars', 'quickTimeButtons') as string) ||
-      UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS.join(',');
+    // For mini widget, first try to get specific mini widget buttons
+    if (isMiniWidget) {
+      const miniButtons = getMiniWidgetButtonsFromSettings();
+      if (miniButtons !== null) {
+        return miniButtons;
+      }
+      // Fall through to auto-selection logic below
+    }
 
-    // Get current calendar for parsing
-    const manager = game.seasonsStars?.manager;
-    const calendar = (manager as CalendarManagerInterface)?.getActiveCalendar();
-
-    // Parse minute values
-    const allButtons = parseQuickTimeButtons(settingValue, calendar);
+    // Get main buttons and calendar for auto-selection
+    const { mainButtons, calendar } = getMainButtonsAndCalendar();
 
     // Get appropriate subset for widget type
-    const buttons = getQuickTimeButtons(allButtons, isMiniWidget);
+    const buttons = getQuickTimeButtons(mainButtons, isMiniWidget);
 
     // If no valid buttons, fall back to defaults
     if (buttons.length === 0) {
-      return UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS.map(minutes => ({
-        amount: minutes,
-        unit: 'minutes',
-        label: formatTimeButton(minutes, null),
-      }));
+      Logger.warn('No valid buttons found in main setting, using fallback defaults');
+      return getFallbackButtons();
     }
 
     // Convert to template format
-    return buttons.map(minutes => ({
-      amount: minutes,
-      unit: 'minutes',
-      label: formatTimeButton(minutes, calendar),
-    }));
+    return convertButtonsToTemplateFormat(buttons, calendar);
   } catch (error) {
     Logger.error('Error getting quick time buttons from settings', error as Error);
     // Fallback to default
-    return UI_CONSTANTS.DEFAULT_QUICK_TIME_BUTTONS.map(minutes => ({
-      amount: minutes,
-      unit: 'minutes',
-      label: formatTimeButton(minutes, null),
-    }));
+    return getFallbackButtons();
   }
 }
 

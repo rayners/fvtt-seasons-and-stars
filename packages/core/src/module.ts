@@ -359,7 +359,8 @@ Hooks.once('ready', async () => {
 function registerSettings(): void {
   if (!game.settings) return;
 
-  // Core user settings (most important first)
+  // === CORE CALENDAR SETTINGS ===
+
   // Calendar setting registered early with basic choices, updated later when calendars load
   game.settings.register('seasons-and-stars', 'activeCalendar', {
     name: 'SEASONS_STARS.settings.active_calendar',
@@ -375,6 +376,8 @@ function registerSettings(): void {
       }
     },
   });
+
+  // === WIDGET DISPLAY SETTINGS ===
 
   game.settings.register('seasons-and-stars', 'showTimeWidget', {
     name: 'Auto-Show Default Widget',
@@ -448,15 +451,6 @@ function registerSettings(): void {
     },
   });
 
-  game.settings.register('seasons-and-stars', 'showNotifications', {
-    name: 'Show Notifications',
-    hint: 'Display warning and error notifications in the UI',
-    scope: 'client',
-    config: true,
-    type: Boolean,
-    default: true,
-  });
-
   game.settings.register('seasons-and-stars', 'calendarClickBehavior', {
     name: 'Calendar Click Behavior',
     hint: 'Choose what happens when you click on a date in the calendar grid. "Set Current Date" immediately changes the world time (current behavior). "View Date Details" shows date information and flavor text without changing the date.',
@@ -469,6 +463,8 @@ function registerSettings(): void {
       viewDetails: 'View Date Details',
     },
   });
+
+  // === QUICK TIME BUTTONS SETTINGS ===
 
   game.settings.register('seasons-and-stars', 'quickTimeButtons', {
     name: 'Quick Time Buttons',
@@ -489,6 +485,24 @@ function registerSettings(): void {
     },
   });
 
+  game.settings.register('seasons-and-stars', 'miniWidgetQuickTimeButtons', {
+    name: 'Mini Widget Quick Time Buttons',
+    hint: 'Specific buttons for mini widget (uses same syntax as main buttons). Leave empty to auto-select from main buttons. Example: "15,60" to show only 15 minutes and 1 hour buttons.',
+    scope: 'world',
+    config: true,
+    type: String,
+    default: '',
+    onChange: () => {
+      try {
+        if (game.seasonsStars?.manager) {
+          Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetQuickTimeButtons');
+        }
+      } catch (error) {
+        Logger.warn('Failed to trigger mini widget buttons settings refresh:', error);
+      }
+    },
+  });
+
   game.settings.register('seasons-and-stars', 'alwaysShowQuickTimeButtons', {
     name: 'Always Display Quick Time Buttons',
     hint: 'Display quick time buttons in widgets even when SmallTime is available. Useful if you prefer S&S time controls over SmallTime.',
@@ -501,7 +515,8 @@ function registerSettings(): void {
     },
   });
 
-  // Time advancement settings
+  // === TIME ADVANCEMENT SETTINGS ===
+
   game.settings.register('seasons-and-stars', 'timeAdvancementRatio', {
     name: 'Time Advancement Ratio',
     hint: 'Game time advancement per real-time second. 1.0 = real time, 2.0 = 2x speed, 0.5 = half speed. Range: 0.1 to 100.',
@@ -542,19 +557,8 @@ function registerSettings(): void {
     default: false,
   });
 
-  game.settings.register('seasons-and-stars', 'miniWidgetShowTime', {
-    name: 'Display Time in Mini Widget',
-    hint: 'Show the current time alongside date in the mini calendar widget',
-    scope: 'client',
-    config: true,
-    type: Boolean,
-    default: false,
-    onChange: () => {
-      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowTime');
-    },
-  });
+  // === NOTES SYSTEM SETTINGS ===
 
-  // Notes system settings
   game.settings.register('seasons-and-stars', 'allowPlayerNotes', {
     name: 'Allow Player Notes',
     hint: 'Allow players to create calendar notes',
@@ -581,6 +585,19 @@ function registerSettings(): void {
     type: Boolean,
     default: false,
   });
+
+  // === GENERAL UI SETTINGS ===
+
+  game.settings.register('seasons-and-stars', 'showNotifications', {
+    name: 'Show Notifications',
+    hint: 'Display warning and error notifications in the UI',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: true,
+  });
+
+  // === INTERNAL SETTINGS (Hidden from UI) ===
 
   // Note categories configuration - stored as Object for complex data
   game.settings.register('seasons-and-stars', 'noteCategories', {
@@ -621,7 +638,8 @@ function registerSettings(): void {
     default: false,
   });
 
-  // Development and debugging settings (last for developers)
+  // === DEVELOPMENT SETTINGS ===
+
   game.settings.register('seasons-and-stars', 'debugMode', {
     name: 'Debug Mode',
     hint: 'Enable debug logging for troubleshooting (developers only)',
@@ -1707,3 +1725,6 @@ function registerNotesCleanupHooks(): void {
 
   Logger.debug('Notes cleanup hooks registered');
 }
+
+// Export functions for testing
+export { registerSettings };

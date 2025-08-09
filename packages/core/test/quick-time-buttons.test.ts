@@ -2,11 +2,13 @@
  * Tests for Configurable Quick Time Buttons functionality
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   parseQuickTimeButtons,
   formatTimeButton,
   getQuickTimeButtons,
+  getMiniWidgetButtonsFromSettings,
+  getQuickTimeButtonsFromSettings,
 } from '../src/core/quick-time-buttons';
 import { mockStandardCalendar, mockCustomCalendar } from './mocks/calendar-mocks';
 
@@ -441,5 +443,298 @@ describe('integration scenarios', () => {
       expect(miniWidget[0]).toBe(-15); // Largest negative
       expect(miniWidget.slice(1)).toEqual([15, 30]); // 2 smallest positives
     });
+  });
+});
+
+describe('getMiniWidgetButtonsFromSettings (Independent Configuration)', () => {
+  // Mock the manager for these tests
+  const mockManager = {
+    getActiveCalendar: vi.fn().mockReturnValue(mockStandardCalendar),
+  };
+
+  beforeEach(() => {
+    // Reset game mock to clean state
+    globalThis.game = {
+      user: { isGM: true },
+      settings: {
+        get: vi.fn(),
+        set: vi.fn(),
+      },
+      seasonsStars: {
+        manager: mockManager,
+      },
+    } as any;
+  });
+
+  describe('empty or missing mini widget setting', () => {
+    it('should return null when mini widget setting is empty', () => {
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return '';
+        if (key === 'quickTimeButtons') return '-15,15,30,60,240';
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toBeNull();
+    });
+
+    it('should return null when mini widget setting is not set', () => {
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return undefined;
+        if (key === 'quickTimeButtons') return '-15,15,30,60,240';
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toBeNull();
+    });
+
+    it('should return null when mini widget setting is whitespace only', () => {
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return '   ';
+        if (key === 'quickTimeButtons') return '-15,15,30,60,240';
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('valid mini widget specific configuration', () => {
+    it('should accept buttons not in main setting', () => {
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return '-6h,+1d'; // Not in main setting
+        if (key === 'quickTimeButtons') return '15,30,60'; // Different buttons
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toEqual([
+        { amount: -360, unit: 'minutes', label: '-6h' },
+        { amount: 1440, unit: 'minutes', label: '1d' },
+      ]);
+    });
+
+    it('should parse any valid time format independently', () => {
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return '10m,-2h,3d,-1w';
+        if (key === 'quickTimeButtons') return '5,15'; // Completely different
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toEqual([
+        { amount: -10080, unit: 'minutes', label: '-1w' },
+        { amount: -120, unit: 'minutes', label: '-2h' },
+        { amount: 10, unit: 'minutes', label: '10m' },
+        { amount: 4320, unit: 'minutes', label: '3d' },
+      ]);
+    });
+
+    it('should work with numbers only (no units)', () => {
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return '-100,50,200';
+        if (key === 'quickTimeButtons') return '15,30,60';
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toEqual([
+        { amount: -100, unit: 'minutes', label: '-100m' },
+        { amount: 50, unit: 'minutes', label: '50m' },
+        { amount: 200, unit: 'minutes', label: '200m' },
+      ]);
+    });
+
+    it('should work with mixed units and numbers', () => {
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return '-30,1h,90,2d';
+        if (key === 'quickTimeButtons') return '15,30,60';
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toEqual([
+        { amount: -30, unit: 'minutes', label: '-30m' },
+        { amount: 60, unit: 'minutes', label: '1h' },
+        { amount: 90, unit: 'minutes', label: '90m' },
+        { amount: 2880, unit: 'minutes', label: '2d' },
+      ]);
+    });
+  });
+
+  describe('invalid mini widget setting handling', () => {
+    it('should return null when no valid buttons can be parsed', () => {
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return 'invalid,abc,xyz';
+        if (key === 'quickTimeButtons') return '15,30,60';
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toBeNull();
+    });
+
+    it('should return valid buttons and ignore invalid ones', () => {
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return '15,invalid,30,abc,1h';
+        if (key === 'quickTimeButtons') return '5,10';
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toEqual([
+        { amount: 15, unit: 'minutes', label: '15m' },
+        { amount: 30, unit: 'minutes', label: '30m' },
+        { amount: 60, unit: 'minutes', label: '1h' },
+      ]);
+    });
+
+    it('should return null when only invalid entries exist', () => {
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return 'invalid,,,abc,xyz,';
+        if (key === 'quickTimeButtons') return '15,30,60';
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('calendar integration', () => {
+    it('should use custom calendar for parsing units', () => {
+      mockManager.getActiveCalendar.mockReturnValue(mockCustomCalendar);
+
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return '1h,1d';
+        if (key === 'quickTimeButtons') return '15,30,60';
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toEqual([
+        { amount: 50, unit: 'minutes', label: '1h' }, // Custom: 50 min/hour
+        { amount: 1000, unit: 'minutes', label: '1d' }, // Custom: 20 hours * 50 min = 1000
+      ]);
+    });
+
+    it('should handle null calendar gracefully', () => {
+      mockManager.getActiveCalendar.mockReturnValue(null);
+
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return '1h,1d';
+        if (key === 'quickTimeButtons') return '15,30,60';
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toEqual([
+        { amount: 60, unit: 'minutes', label: '1h' }, // Default: 60 min/hour
+        { amount: 1440, unit: 'minutes', label: '1d' }, // Default: 24 * 60 = 1440
+      ]);
+    });
+  });
+
+  describe('error handling', () => {
+    it('should handle game.settings being undefined', () => {
+      globalThis.game.settings = undefined as any;
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toBeNull();
+    });
+
+    it('should handle manager being undefined', () => {
+      globalThis.game.seasonsStars = undefined as any;
+
+      globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+        if (key === 'miniWidgetQuickTimeButtons') return '15,30,60';
+        return '';
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toEqual([
+        { amount: 15, unit: 'minutes', label: '15m' },
+        { amount: 30, unit: 'minutes', label: '30m' },
+        { amount: 60, unit: 'minutes', label: '1h' },
+      ]);
+    });
+
+    it('should handle exceptions gracefully and return null', () => {
+      globalThis.game.settings.get.mockImplementation(() => {
+        throw new Error('Settings error');
+      });
+
+      const result = getMiniWidgetButtonsFromSettings();
+      expect(result).toBeNull();
+    });
+  });
+});
+
+describe('Backward Compatibility', () => {
+  const mockManager = {
+    getActiveCalendar: vi.fn().mockReturnValue(mockStandardCalendar),
+  };
+
+  beforeEach(() => {
+    globalThis.game = {
+      settings: {
+        get: vi.fn(),
+        set: vi.fn(),
+      },
+      seasonsStars: {
+        manager: mockManager,
+      },
+    } as any;
+  });
+
+  it('should maintain existing behavior when mini widget setting is not configured', () => {
+    // This tests that the change doesn't break existing users
+    globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+      if (key === 'miniWidgetQuickTimeButtons') return ''; // Not configured
+      if (key === 'quickTimeButtons') return '-60,15,30,60,240'; // Existing config
+      return '';
+    });
+
+    // Main widget should get all buttons
+    const mainResult = getQuickTimeButtonsFromSettings(false);
+    expect(mainResult).toEqual([
+      { amount: -60, unit: 'minutes', label: '-1h' },
+      { amount: 15, unit: 'minutes', label: '15m' },
+      { amount: 30, unit: 'minutes', label: '30m' },
+      { amount: 60, unit: 'minutes', label: '1h' },
+      { amount: 240, unit: 'minutes', label: '4h' },
+    ]);
+
+    // Mini widget should get auto-selected subset (existing behavior)
+    const miniResult = getQuickTimeButtonsFromSettings(true);
+    expect(miniResult).toEqual([
+      { amount: -60, unit: 'minutes', label: '-1h' },
+      { amount: 15, unit: 'minutes', label: '15m' },
+      { amount: 30, unit: 'minutes', label: '30m' },
+    ]);
+  });
+
+  it('should not produce any validation warnings with valid configurations', () => {
+    // This ensures no warnings are generated with the new permissive logic
+    const warnSpy = vi.spyOn(globalThis.console, 'warn').mockImplementation(() => {});
+
+    globalThis.game.settings.get.mockImplementation((namespace: string, key: string) => {
+      if (key === 'miniWidgetQuickTimeButtons') return '-7d,+30d'; // Not in main setting
+      if (key === 'quickTimeButtons') return '15,30,60'; // Different buttons
+      return '';
+    });
+
+    const result = getMiniWidgetButtonsFromSettings();
+    expect(result).toEqual([
+      { amount: -10080, unit: 'minutes', label: '-1w' },
+      { amount: 43200, unit: 'minutes', label: '30d' },
+    ]);
+
+    // Verify no warnings were generated
+    expect(warnSpy).not.toHaveBeenCalled();
+
+    warnSpy.mockRestore();
   });
 });

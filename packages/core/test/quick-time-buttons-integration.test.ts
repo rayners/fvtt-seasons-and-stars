@@ -14,7 +14,11 @@ globalThis.game = {
   user: { isGM: true },
   settings: {
     get: vi.fn((module: string, key: string) => {
-      return mockSettings.get(`${module}.${key}`) || '-15,15,30,60,240';
+      const value = mockSettings.get(`${module}.${key}`);
+      if (value !== undefined) return value;
+      // Only provide default for main quickTimeButtons setting
+      if (key === 'quickTimeButtons') return '-15,15,30,60,240';
+      return undefined;
     }),
     set: vi.fn((module: string, key: string, value: any) => {
       mockSettings.set(`${module}.${key}`, value);
@@ -94,6 +98,8 @@ describe('Quick Time Buttons Integration Tests', () => {
 
     it('should apply mini widget selection for mini widget', () => {
       mockSettings.set('seasons-and-stars.quickTimeButtons', '5,10,15,30,60,120,240');
+      // Ensure no mini widget specific setting is set (should use auto-selection)
+      mockSettings.delete('seasons-and-stars.miniWidgetQuickTimeButtons');
 
       const result = getQuickTimeButtonsFromSettings(true);
 

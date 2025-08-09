@@ -394,6 +394,18 @@ describe('Widget Hook Integration', () => {
       callback('quickTimeButtons');
       expect(calendarWidget.render).toHaveBeenCalledTimes(1);
 
+      // Test with miniWidgetQuickTimeButtons setting (should also trigger main widget)
+      callback('miniWidgetQuickTimeButtons');
+      expect(calendarWidget.render).toHaveBeenCalledTimes(2);
+
+      // Test with alwaysShowQuickTimeButtons setting
+      callback('alwaysShowQuickTimeButtons');
+      expect(calendarWidget.render).toHaveBeenCalledTimes(3);
+
+      // Test with irrelevant setting (should not trigger render)
+      callback('irrelevantSetting');
+      expect(calendarWidget.render).toHaveBeenCalledTimes(3);
+
       // Reset mock
       vi.clearAllMocks();
 
@@ -478,6 +490,22 @@ describe('Widget Hook Integration', () => {
       // Test with quickTimeButtons setting
       callback('quickTimeButtons');
       expect(miniWidget.render).toHaveBeenCalledTimes(1);
+
+      // Test with miniWidgetQuickTimeButtons setting
+      callback('miniWidgetQuickTimeButtons');
+      expect(miniWidget.render).toHaveBeenCalledTimes(2);
+
+      // Test with miniWidgetShowTime setting
+      callback('miniWidgetShowTime');
+      expect(miniWidget.render).toHaveBeenCalledTimes(3);
+
+      // Test with alwaysShowQuickTimeButtons setting
+      callback('alwaysShowQuickTimeButtons');
+      expect(miniWidget.render).toHaveBeenCalledTimes(4);
+
+      // Test with irrelevant setting (should not trigger render)
+      callback('irrelevantSetting');
+      expect(miniWidget.render).toHaveBeenCalledTimes(4);
     });
 
     it('should handle missing active instance gracefully', () => {
