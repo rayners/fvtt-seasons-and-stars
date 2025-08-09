@@ -410,6 +410,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     Hooks.on('seasons-stars:settingsChanged', (settingName: string) => {
       if (
         (settingName === 'quickTimeButtons' ||
+          settingName === 'miniWidgetQuickTimeButtons' ||
           settingName === 'miniWidgetShowTime' ||
           settingName === 'miniWidgetShowDayOfWeek' ||
           settingName === 'alwaysShowQuickTimeButtons') &&

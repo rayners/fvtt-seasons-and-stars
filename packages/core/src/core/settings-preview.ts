@@ -11,9 +11,6 @@ let previewContainer: HTMLElement | null = null;
 let timeAdvancementPreviewContainer: HTMLElement | null = null;
 
 // Debounced functions using Foundry's utility (with type assertion)
-const debouncedPreviewUpdate = (foundry.utils as any).debounce((value: string) => {
-  updatePreview(value);
-}, 300);
 
 const debouncedTimeAdvancementUpdate = (foundry.utils as any).debounce((ratio: number) => {
   updateTimeAdvancementExplanation(ratio);
@@ -26,7 +23,7 @@ export function registerSettingsPreviewHooks(): void {
   // Hook into settings config rendering
   Hooks.on('renderSettingsConfig', (app: any, html: HTMLElement) => {
     Logger.debug('Settings config rendered, attempting to enhance settings');
-    enhanceQuickTimeButtonsSetting(html);
+    enhanceButtonSettingsWithUnifiedPreview(html);
     enhanceTimeAdvancementRatioSetting(html);
   });
 
@@ -34,34 +31,46 @@ export function registerSettingsPreviewHooks(): void {
 }
 
 /**
- * Enhance the quick time buttons setting with live preview
+ * Enhance both button settings with a unified preview system
  */
-function enhanceQuickTimeButtonsSetting(html: HTMLElement): void {
+function enhanceButtonSettingsWithUnifiedPreview(html: HTMLElement): void {
   try {
-    // Find the quick time buttons input
+    // Find both button inputs
     const quickTimeInput = html.querySelector(
       'input[name="seasons-and-stars.quickTimeButtons"]'
     ) as HTMLInputElement;
-    if (!quickTimeInput) {
-      Logger.debug('Quick time buttons setting not found in settings form');
+    const miniWidgetInput = html.querySelector(
+      'input[name="seasons-and-stars.miniWidgetQuickTimeButtons"]'
+    ) as HTMLInputElement;
+
+    if (!quickTimeInput && !miniWidgetInput) {
+      Logger.debug('No button settings found in settings form');
       return;
     }
 
-    // Create preview container
-    createPreviewContainer(quickTimeInput);
+    // Create single preview container (attach to the first available input)
+    const referenceInput = quickTimeInput || miniWidgetInput;
+    createPreviewContainer(referenceInput);
 
-    // Add input event listener for live updates
-    quickTimeInput.addEventListener('input', (event: Event) => {
-      const target = event.target as HTMLInputElement;
-      debouncedPreviewUpdate(target.value);
-    });
+    // Debounced update function that handles both inputs
+    const debouncedUnifiedUpdate = (foundry.utils as any).debounce(() => {
+      updateUnifiedPreview(quickTimeInput?.value || '', miniWidgetInput?.value || '');
+    }, 300);
 
-    // Initial preview
-    updatePreview(quickTimeInput.value);
+    // Add listeners to both inputs if they exist
+    if (quickTimeInput) {
+      quickTimeInput.addEventListener('input', () => debouncedUnifiedUpdate());
+    }
+    if (miniWidgetInput) {
+      miniWidgetInput.addEventListener('input', () => debouncedUnifiedUpdate());
+    }
 
-    Logger.debug('Added live preview to quick time buttons setting');
+    // Initial preview update
+    updateUnifiedPreview(quickTimeInput?.value || '', miniWidgetInput?.value || '');
+
+    Logger.debug('Added unified preview to button settings');
   } catch (error) {
-    Logger.error('Failed to enhance quick time buttons setting', error as Error);
+    Logger.error('Failed to enhance button settings with unified preview', error as Error);
   }
 }
 
@@ -70,15 +79,28 @@ function enhanceQuickTimeButtonsSetting(html: HTMLElement): void {
  */
 function createPreviewContainer(inputElement: HTMLInputElement): void {
   const previewHtml = `
-    <div class="quick-time-preview" style="margin-top: 0.5rem; padding: 0.5rem; background: var(--color-bg-option); border-radius: 3px;">
+    <div class="quick-time-preview" style="margin-top: 0.75rem; padding: 0.75rem; background: var(--color-bg-option); border: 1px solid var(--color-border-light-primary); border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
       <div class="preview-content">
-        <div class="preview-section">
-          <label style="font-weight: bold; margin-bottom: 0.25rem; display: block;">Main Widget Preview:</label>
-          <div class="preview-buttons main-widget" style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 0.5rem;"></div>
+        <div class="preview-header" style="margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border-light-tertiary);">
+          <h4 style="margin: 0; font-size: 0.9rem; color: var(--color-text-dark-primary);">Button Preview</h4>
+          <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: var(--color-text-dark-secondary); font-style: italic;">Live preview of how your buttons will appear in each widget</p>
         </div>
+        
+        <div class="preview-section" style="margin-bottom: 0.75rem;">
+          <div class="section-header" style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+            <label style="font-weight: bold; font-size: 0.85rem; color: var(--color-text-dark-primary); margin: 0;">Main Calendar Widget:</label>
+            <span style="margin-left: 0.5rem; font-size: 0.75rem; color: var(--color-text-dark-secondary);">(Shows all configured buttons)</span>
+          </div>
+          <div class="preview-buttons main-widget" style="display: flex; gap: 6px; flex-wrap: wrap; min-height: 28px; padding: 0.25rem; background: var(--color-bg); border-radius: 3px; border: 1px solid var(--color-border-light-tertiary);"></div>
+        </div>
+        
         <div class="preview-section">
-          <label style="font-weight: bold; margin-bottom: 0.25rem; display: block;">Mini Widget Preview:</label>
-          <div class="preview-buttons mini-widget" style="display: flex; gap: 4px; flex-wrap: wrap;"></div>
+          <div class="section-header" style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+            <label style="font-weight: bold; font-size: 0.85rem; color: var(--color-text-dark-primary); margin: 0;">Mini Calendar Widget:</label>
+            <span style="margin-left: 0.5rem; font-size: 0.75rem; color: var(--color-text-dark-secondary);">(Auto-selects up to 3 buttons)</span>
+          </div>
+          <div class="preview-buttons mini-widget" style="display: flex; gap: 6px; flex-wrap: wrap; min-height: 28px; padding: 0.25rem; background: var(--color-bg); border-radius: 3px; border: 1px solid var(--color-border-light-tertiary);"></div>
+          <div class="mini-widget-note" style="margin-top: 0.25rem;"></div>
         </div>
       </div>
     </div>
@@ -93,11 +115,11 @@ function createPreviewContainer(inputElement: HTMLInputElement): void {
 }
 
 /**
- * Update the preview display based on current input value
+ * Update the unified preview display based on both input values
  */
-function updatePreview(value: string): void {
+function updateUnifiedPreview(mainValue: string, miniValue: string): void {
   if (!previewContainer) {
-    Logger.warn('Preview container not available for update');
+    Logger.warn('Preview container not available for unified update');
     return;
   }
 
@@ -106,77 +128,186 @@ function updatePreview(value: string): void {
     const manager = game.seasonsStars?.manager;
     const calendar = (manager as CalendarManagerInterface)?.getActiveCalendar();
 
-    if (!value || typeof value !== 'string') {
-      showErrorPreview('Invalid input');
+    if (!mainValue || typeof mainValue !== 'string') {
+      showErrorPreview('Invalid main buttons input');
       return;
     }
 
-    // Parse the input value
-    const allButtons = parseQuickTimeButtons(value, calendar);
+    // Parse the main buttons input value to validate it
+    const parsedMainButtons = parseQuickTimeButtons(mainValue, calendar);
 
-    if (allButtons.length === 0) {
-      showErrorPreview('No valid time values found');
+    if (parsedMainButtons.length === 0) {
+      showErrorPreview('No valid time values found in main buttons');
       return;
     }
 
-    // Get buttons for each widget type
-    const mainWidgetButtons = getQuickTimeButtons(allButtons, false);
-    const miniWidgetButtons = getQuickTimeButtons(allButtons, true);
+    // Show preview with both settings
+    showButtonPreview(parsedMainButtons, calendar, mainValue, miniValue);
+  } catch (error) {
+    Logger.error('Error updating unified preview', error as Error);
+    showErrorPreview('Error parsing input');
+  }
+}
+
+/**
+ * Show button preview using simple logic (no settings manipulation)
+ */
+function showButtonPreview(
+  inputButtons: number[],
+  calendar: any,
+  mainSetting: string,
+  miniSetting: string | null
+): void {
+  if (!previewContainer) return;
+
+  try {
+    // Parse main setting if we have input buttons, otherwise parse main setting
+    const mainButtons =
+      inputButtons.length > 0 ? inputButtons : parseQuickTimeButtons(mainSetting, calendar);
+
+    // Determine mini widget buttons using the updated permissive logic
+    let miniButtons: number[];
+    let parseError = false;
+
+    if (miniSetting && miniSetting.trim() !== '') {
+      // Parse mini buttons independently - no validation against main buttons needed
+      const parsedMiniButtons = parseQuickTimeButtons(miniSetting, calendar);
+
+      if (parsedMiniButtons.length > 0) {
+        // Use all parsed buttons - no filtering required
+        miniButtons = parsedMiniButtons;
+      } else {
+        // No valid buttons could be parsed, fall back to auto-selection
+        miniButtons = getQuickTimeButtons(mainButtons, true);
+        parseError = true;
+      }
+    } else {
+      // Auto-select from main buttons
+      miniButtons = getQuickTimeButtons(mainButtons, true);
+    }
 
     // Update main widget preview
     const mainContainer = previewContainer.querySelector(
       '.preview-buttons.main-widget'
     ) as HTMLElement;
     if (mainContainer) {
-      mainContainer.innerHTML = renderButtonPreview(mainWidgetButtons, calendar);
+      mainContainer.innerHTML = renderButtonPreview(mainButtons, calendar);
     }
 
     // Update mini widget preview
     const miniContainer = previewContainer.querySelector(
       '.preview-buttons.mini-widget'
     ) as HTMLElement;
-    if (miniContainer) {
-      miniContainer.innerHTML = renderButtonPreview(miniWidgetButtons, calendar);
+    const miniNoteContainer = previewContainer.querySelector('.mini-widget-note') as HTMLElement;
 
-      // Add note if auto-selection occurred
-      if (allButtons.length > 3 && miniWidgetButtons.length === 3) {
-        const note = document.createElement('div');
-        note.style.fontSize = '0.8em';
-        note.style.color = 'var(--color-text-dark-secondary)';
-        note.style.marginTop = '0.25rem';
-        note.textContent = `Auto-selected ${miniWidgetButtons.length} of ${allButtons.length} buttons for mini widget`;
-        miniContainer.appendChild(note);
-      }
+    if (miniContainer) {
+      miniContainer.innerHTML = renderButtonPreview(miniButtons, calendar);
+    }
+
+    // Update mini widget note with updated logic
+    if (miniNoteContainer) {
+      updateMiniWidgetNoteWithUpdatedLogic(
+        miniNoteContainer,
+        mainButtons,
+        miniButtons,
+        miniSetting,
+        parseError
+      );
     }
   } catch (error) {
-    Logger.error('Error updating preview', error as Error);
-    showErrorPreview('Error parsing input');
+    Logger.error('Error showing button preview', error as Error);
+    showErrorPreview('Error showing preview');
   }
 }
 
 /**
- * Render button preview HTML for a set of buttons
+ * Update mini widget note with updated permissive logic
+ */
+function updateMiniWidgetNoteWithUpdatedLogic(
+  noteContainer: HTMLElement,
+  mainButtons: number[],
+  miniButtons: number[],
+  miniSetting: string | null,
+  parseError: boolean
+): void {
+  if (miniSetting && miniSetting.trim() !== '') {
+    // User has configured specific mini widget buttons
+    if (parseError) {
+      // Could not parse any valid buttons from the setting
+      noteContainer.innerHTML = `
+        <div style="font-size: 0.75rem; color: var(--color-text-light-warning); padding: 0.25rem; background: #fef2f2; border-radius: 3px; border-left: 3px solid #fecaca;">
+          <i class="fas fa-exclamation-triangle" style="margin-right: 0.25rem;"></i>
+          <strong>Parse Error:</strong> No valid time values found in mini widget setting. Using auto-selection fallback.
+        </div>
+      `;
+    } else {
+      // Successfully parsed custom mini widget buttons
+      noteContainer.innerHTML = `
+        <div style="font-size: 0.75rem; color: var(--color-text-dark-secondary); padding: 0.25rem; background: var(--color-bg-option); border-radius: 3px; border-left: 3px solid var(--color-border-light-highlight);">
+          <i class="fas fa-cog" style="margin-right: 0.25rem;"></i>
+          Custom mini widget configuration: ${miniButtons.length} button${miniButtons.length !== 1 ? 's' : ''}
+        </div>
+      `;
+    }
+  } else {
+    // Auto-selection is being used
+    if (mainButtons.length > 3 && miniButtons.length <= 3) {
+      noteContainer.innerHTML = `
+        <div style="font-size: 0.75rem; color: var(--color-text-dark-secondary); padding: 0.25rem; background: var(--color-bg-option); border-radius: 3px; border-left: 3px solid var(--color-border-light-highlight);">
+          <i class="fas fa-info-circle" style="margin-right: 0.25rem;"></i>
+          Auto-selected ${miniButtons.length} of ${mainButtons.length} buttons for mini widget
+        </div>
+      `;
+    } else if (mainButtons.length <= 3) {
+      noteContainer.innerHTML = `
+        <div style="font-size: 0.75rem; color: var(--color-text-dark-secondary); padding: 0.25rem; background: var(--color-bg-option); border-radius: 3px; border-left: 3px solid var(--color-border-light-highlight);">
+          <i class="fas fa-check-circle" style="margin-right: 0.25rem;"></i>
+          All ${mainButtons.length} buttons will fit in mini widget
+        </div>
+      `;
+    } else {
+      noteContainer.innerHTML = '';
+    }
+  }
+}
+
+/**
+ * Render button preview HTML for a set of buttons (legacy function for backwards compatibility)
  */
 function renderButtonPreview(buttons: number[], calendar: any): string {
+  if (buttons.length === 0) {
+    return '<span style="font-style: italic; color: var(--color-text-dark-secondary); font-size: 0.8rem;">No buttons to display</span>';
+  }
+
   return buttons
     .map(minutes => {
       const label = formatTimeButton(minutes, calendar);
       const cssClass = minutes < 0 ? 'rewind' : 'forward';
+      const icon = minutes < 0 ? 'fa-backward' : 'fa-forward';
 
-      const icon = minutes < 0 ? 'fa-backward' : 'fa-clock';
-
-      return `<span class="preview-button ${cssClass}" style="
-      display: inline-block;
-      padding: 2px 6px;
-      margin: 2px;
-      background: ${minutes < 0 ? 'linear-gradient(135deg, #dc2626, #ef4444)' : 'linear-gradient(135deg, #10b981, #14b8a6)'};
-      border: 1px solid ${minutes < 0 ? '#dc2626' : '#10b981'};
-      border-radius: 3px;
-      font-size: 0.8em;
-      color: white;
-    "><i class="fas ${icon}" style="margin-right: 3px; font-size: 0.7em;"></i>${label}</span>`;
+      // Enhanced styling to match actual widget buttons more closely
+      return `<button type="button" class="preview-button ${cssClass}" style="
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.5rem;
+        margin: 0;
+        background: ${
+          minutes < 0
+            ? 'linear-gradient(135deg, #dc2626, #ef4444)'
+            : 'linear-gradient(135deg, #10b981, #14b8a6)'
+        };
+        border: 1px solid ${minutes < 0 ? '#b91c1c' : '#059669'};
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        cursor: default;
+        transition: none;
+      "><i class="fas ${icon}" style="margin-right: 0.25rem; font-size: 0.7rem;"></i>${label}</button>`;
     })
-    .join('');
+    .join(' ');
 }
 
 /**
@@ -191,11 +322,18 @@ function showErrorPreview(message: string): void {
   const miniContainer = previewContainer.querySelector(
     '.preview-buttons.mini-widget'
   ) as HTMLElement;
+  const miniNoteContainer = previewContainer.querySelector('.mini-widget-note') as HTMLElement;
 
-  const errorHtml = `<span style="color: var(--color-text-light-warning); font-style: italic;">${message}</span>`;
+  const errorHtml = `
+    <div style="display: flex; align-items: center; padding: 0.5rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 3px; color: #dc2626; font-size: 0.8rem;">
+      <i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem;"></i>
+      ${message}
+    </div>
+  `;
 
   if (mainContainer) mainContainer.innerHTML = errorHtml;
   if (miniContainer) miniContainer.innerHTML = errorHtml;
+  if (miniNoteContainer) miniNoteContainer.innerHTML = '';
 }
 
 /**
@@ -255,10 +393,14 @@ function enhanceTimeAdvancementRatioSetting(html: HTMLElement): void {
  */
 function createTimeAdvancementExplanationContainer(referenceElement: HTMLElement): void {
   const explanationHtml = `
-    <div class="time-advancement-explanation" style="margin-top: 0.5rem; padding: 0.5rem; background: var(--color-bg-option); border-radius: 3px;">
+    <div class="time-advancement-explanation" style="margin-top: 0.75rem; padding: 0.75rem; background: var(--color-bg-option); border: 1px solid var(--color-border-light-primary); border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
       <div class="explanation-content">
-        <div class="ratio-explanation" style="margin-bottom: 0.5rem;"></div>
-        <div class="interval-explanation" style="font-size: 0.9em; color: var(--color-text-dark-secondary);"></div>
+        <div class="explanation-header" style="margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border-light-tertiary);">
+          <h4 style="margin: 0; font-size: 0.9rem; color: var(--color-text-dark-primary);">Time Advancement Preview</h4>
+          <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: var(--color-text-dark-secondary); font-style: italic;">Live explanation of how this ratio affects game time flow</p>
+        </div>
+        <div class="ratio-explanation" style="margin-bottom: 0.75rem; padding: 0.5rem; background: var(--color-bg); border-radius: 3px; border-left: 3px solid var(--color-border-light-highlight);"></div>
+        <div class="interval-explanation" style="font-size: 0.8rem; color: var(--color-text-dark-secondary); padding: 0.25rem; background: var(--color-bg); border-radius: 3px;"></div>
       </div>
     </div>
   `;
@@ -360,7 +502,12 @@ function showTimeAdvancementError(message: string): void {
     '.interval-explanation'
   ) as HTMLElement;
 
-  const errorHtml = `<span style="color: var(--color-text-light-warning); font-style: italic;">${message}</span>`;
+  const errorHtml = `
+    <div style="display: flex; align-items: center; color: #dc2626;">
+      <i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem;"></i>
+      ${message}
+    </div>
+  `;
 
   if (ratioContainer) ratioContainer.innerHTML = errorHtml;
   if (intervalContainer) intervalContainer.innerHTML = '';

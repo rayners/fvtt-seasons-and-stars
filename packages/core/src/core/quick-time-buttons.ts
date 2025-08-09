@@ -30,7 +30,7 @@ export function parseQuickTimeButtons(
         const trimmed = val.trim();
         if (!trimmed) return NaN;
 
-        const match = trimmed.match(/^(-?\d+)([mhdw]?)$/);
+        const match = trimmed.match(/^([+-]?\d+)([mhdw]?)$/);
 
         if (!match) {
           Logger.debug(`Invalid quick time button value: "${trimmed}"`);
@@ -119,42 +119,7 @@ export function getQuickTimeButtons(allButtons: number[], isMiniWidget: boolean 
 }
 
 /**
- * Result of parsing and validating mini widget buttons
- */
-interface MiniWidgetButtonValidation {
-  valid: number[];
-  invalid: number[];
-}
-
-/**
- * Parse and validate mini widget buttons against main button set
- */
-export function parseMiniWidgetButtons(
-  miniSetting: string,
-  mainButtons: number[],
-  calendar?: SeasonsStarsCalendar | null
-): MiniWidgetButtonValidation {
-  if (!miniSetting || typeof miniSetting !== 'string') {
-    return { valid: [], invalid: [] };
-  }
-
-  const parsedMiniButtons = parseQuickTimeButtons(miniSetting, calendar);
-  const valid: number[] = [];
-  const invalid: number[] = [];
-
-  for (const button of parsedMiniButtons) {
-    if (mainButtons.includes(button)) {
-      valid.push(button);
-    } else {
-      invalid.push(button);
-    }
-  }
-
-  return { valid, invalid };
-}
-
-/**
- * Get main quick time buttons and calendar context for validation
+ * Get main quick time buttons and calendar context for fallback logic
  */
 function getMainButtonsAndCalendar(): {
   mainButtons: number[];
@@ -169,21 +134,6 @@ function getMainButtonsAndCalendar(): {
   const mainButtons = parseQuickTimeButtons(mainSetting, calendar);
 
   return { mainButtons, calendar };
-}
-
-/**
- * Handle validation warnings for invalid mini widget buttons
- */
-function warnAboutInvalidButtons(invalid: number[]): void {
-  if (invalid.length > 0) {
-    const invalidLabels = invalid.map(minutes => formatTimeButton(minutes, null));
-    Logger.warn(
-      `Mini widget buttons contain values not found in main setting: ${invalid.join(', ')}`
-    );
-    ui.notifications?.warn(
-      `Mini widget buttons contain values not found in main setting: ${invalidLabels.join(', ')}`
-    );
-  }
 }
 
 /**
@@ -206,23 +156,21 @@ export function getMiniWidgetButtonsFromSettings(): Array<{
       return null;
     }
 
-    // Get main buttons and calendar for validation
-    const { mainButtons, calendar } = getMainButtonsAndCalendar();
+    // Get calendar for parsing (we no longer need main buttons for validation)
+    const manager = game.seasonsStars?.manager;
+    const calendar = (manager as CalendarManagerInterface)?.getActiveCalendar() || null;
 
-    // Parse and validate mini buttons
-    const { valid, invalid } = parseMiniWidgetButtons(miniSetting, mainButtons, calendar);
+    // Parse mini buttons independently - no validation against main buttons required
+    const parsedMiniButtons = parseQuickTimeButtons(miniSetting, calendar);
 
-    // Warn about invalid buttons
-    warnAboutInvalidButtons(invalid);
-
-    // If no valid buttons after validation, return null for fallback
-    if (valid.length === 0) {
-      Logger.warn('No valid mini widget buttons found after validation, using fallback');
+    // If no valid buttons could be parsed from the setting, return null for fallback
+    if (parsedMiniButtons.length === 0) {
+      Logger.warn('No valid mini widget buttons found in setting, using fallback');
       return null;
     }
 
     // Convert to template format
-    return valid.map(minutes => ({
+    return parsedMiniButtons.map(minutes => ({
       amount: minutes,
       unit: 'minutes',
       label: formatTimeButton(minutes, calendar),

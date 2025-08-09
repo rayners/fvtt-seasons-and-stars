@@ -464,7 +464,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Update widget when settings change (especially quick time buttons)
     Hooks.on('seasons-stars:settingsChanged', (settingName: string) => {
       if (
-        (settingName === 'quickTimeButtons' || settingName === 'alwaysShowQuickTimeButtons') &&
+        (settingName === 'quickTimeButtons' ||
+          settingName === 'miniWidgetQuickTimeButtons' ||
+          settingName === 'alwaysShowQuickTimeButtons') &&
         CalendarWidget.activeInstance?.rendered
       ) {
         CalendarWidget.activeInstance.render();
