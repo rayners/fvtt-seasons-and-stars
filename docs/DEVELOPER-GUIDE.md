@@ -46,7 +46,7 @@ const version = game.seasonsStars?.VERSION;
 
 ### Date Retrieval
 
-#### `getCurrentDate(calendarId?: string)`
+#### `getCurrentDate()`
 
 Get the current date from the active calendar.
 
@@ -54,10 +54,9 @@ Get the current date from the active calendar.
 // Get current date from active calendar
 const currentDate = game.seasonsStars.api.getCurrentDate();
 // Returns: { year: 2024, month: 12, day: 25, weekday: 3, time: { hour: 14, minute: 30, second: 0 } }
-
-// Get date from specific calendar
-const gregorianDate = game.seasonsStars.api.getCurrentDate('gregorian');
 ```
+
+**Note**: Calendar-specific operations (passing a calendarId parameter) are not yet implemented.
 
 **Returns:** `CalendarDate | null`
 
@@ -97,73 +96,27 @@ await game.seasonsStars.api.advanceMonths(months);
 await game.seasonsStars.api.advanceYears(years);
 ```
 
-### Time Advancement Service
+### Time Advancement
 
-The TimeAdvancementService provides automated time progression functionality. Added in v0.2.0.
+Time advancement in Seasons & Stars is handled internally by the module. External modules should use the calendar advancement API methods and listen to time advancement hooks for integration.
 
-#### Accessing the Service
-
-```javascript
-// Get the singleton instance
-const timeService = game.seasonsStars?.api?.timeAdvancement || TimeAdvancementService.getInstance();
-
-// Check if service is available (for compatibility)
-if (timeService) {
-  console.log('Time advancement available');
-}
-```
-
-#### `play()`
-
-Start automatic time advancement.
+#### Listening to Time Advancement Events
 
 ```javascript
-// Basic usage
-const timeService = TimeAdvancementService.getInstance();
+// Listen for when time advancement starts
+Hooks.on('seasons-stars:timeAdvancementStarted', ratio => {
+  console.log(`Time advancement started at ${ratio}x speed`);
+});
 
-try {
-  await timeService.play();
-  console.log('Time advancement started');
-} catch (error) {
-  console.error('Failed to start time advancement:', error);
-}
-```
+// Listen for when time advancement is paused
+Hooks.on('seasons-stars:timeAdvancementPaused', () => {
+  console.log('Time advancement paused');
+});
 
-#### `pause()`
-
-Stop automatic time advancement.
-
-```javascript
-// Pause advancement (safe to call even if not running)
-timeService.pause();
-console.log('Time advancement paused');
-```
-
-#### `updateRatio(ratio: number)`
-
-Change advancement speed.
-
-```javascript
-// Double speed
-timeService.updateRatio(2.0);
-
-// Half speed for detailed events
-timeService.updateRatio(0.5);
-
-// 10x speed for long periods
-timeService.updateRatio(10.0);
-```
-
-#### `isActive`
-
-Check advancement status.
-
-```javascript
-if (timeService.isActive) {
-  console.log('Time is currently advancing');
-} else {
-  console.log('Time advancement is paused');
-}
+// Listen for date changes during advancement
+Hooks.on('seasons-stars:dateChanged', data => {
+  console.log('Date changed:', data);
+});
 ```
 
 ### Date Conversion

@@ -449,7 +449,7 @@ export class TimeAdvancementService {
    */
   private callHookSafely(hookName: string, ...args: any[]): void {
     try {
-      Hooks.call(hookName, ...args);
+      Hooks.callAll(hookName, ...args);
     } catch (error) {
       Logger.error(`Failed to call hook ${hookName}`, error as Error);
       // Don't re-throw - hook failures shouldn't break the service
