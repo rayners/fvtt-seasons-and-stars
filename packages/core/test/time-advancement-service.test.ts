@@ -31,6 +31,7 @@ const mockHooks = {
   on: vi.fn(),
   off: vi.fn(),
   call: vi.fn(),
+  callAll: vi.fn(),
 };
 
 // Setup global mocks
@@ -158,13 +159,13 @@ describe('TimeAdvancementService', () => {
       vi.useFakeTimers();
 
       await service.play();
-      const initialCallCount = mockHooks.call.mock.calls.length;
+      const initialCallCount = mockHooks.callAll.mock.calls.length;
 
       // Try to start again
       await service.play();
 
       // Should not fire additional hooks
-      expect(mockHooks.call).toHaveBeenCalledTimes(initialCallCount);
+      expect(mockHooks.callAll).toHaveBeenCalledTimes(initialCallCount);
 
       vi.useRealTimers();
     });
@@ -172,11 +173,11 @@ describe('TimeAdvancementService', () => {
     it('should not pause if already inactive', () => {
       expect(service.isActive).toBe(false);
 
-      const initialCallCount = mockHooks.call.mock.calls.length;
+      const initialCallCount = mockHooks.callAll.mock.calls.length;
       service.pause();
 
       // Should not fire hooks when already paused
-      expect(mockHooks.call).toHaveBeenCalledTimes(initialCallCount);
+      expect(mockHooks.callAll).toHaveBeenCalledTimes(initialCallCount);
     });
   });
 
@@ -186,7 +187,7 @@ describe('TimeAdvancementService', () => {
 
       await service.play();
 
-      expect(mockHooks.call).toHaveBeenCalledWith(
+      expect(mockHooks.callAll).toHaveBeenCalledWith(
         'seasons-stars:timeAdvancementStarted',
         1.0 // default ratio
       );
@@ -200,7 +201,7 @@ describe('TimeAdvancementService', () => {
       await service.play();
       service.pause();
 
-      expect(mockHooks.call).toHaveBeenCalledWith('seasons-stars:timeAdvancementPaused');
+      expect(mockHooks.callAll).toHaveBeenCalledWith('seasons-stars:timeAdvancementPaused');
 
       vi.useRealTimers();
     });
@@ -208,7 +209,7 @@ describe('TimeAdvancementService', () => {
     it('should handle hook firing errors gracefully', async () => {
       vi.useFakeTimers();
 
-      mockHooks.call.mockImplementation(() => {
+      mockHooks.callAll.mockImplementation(() => {
         throw new Error('Hook error');
       });
 

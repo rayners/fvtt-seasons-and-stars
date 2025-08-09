@@ -31,6 +31,7 @@ const mockHooks = {
   on: vi.fn().mockReturnValue(1),
   off: vi.fn(),
   call: vi.fn(),
+  callAll: vi.fn(),
 };
 
 // Setup global mocks
@@ -285,7 +286,7 @@ describe('Time Advancement Performance Tests', () => {
   describe('Hook System Performance', () => {
     it('should handle hook errors without impacting performance', async () => {
       // Make hooks throw errors
-      mockHooks.call.mockImplementation(() => {
+      mockHooks.callAll.mockImplementation(() => {
         throw new Error('Hook error');
       });
 
