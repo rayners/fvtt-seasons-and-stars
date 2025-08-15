@@ -162,10 +162,13 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 | ------------------- | ------- | ------- | ----------------------------------------- |
 | `name`              | string  | ✅      | Name of the intercalary day/festival      |
 | `days`              | number  | 1       | Number of days in this intercalary period |
-| `after`             | string  | ✅      | Month name this day comes after           |
+| `after`             | string  | ✅\*    | Month name this day comes after           |
+| `before`            | string  | ✅\*    | Month name this day comes before          |
 | `leapYearOnly`      | boolean | false   | Only exists in leap years                 |
 | `countsForWeekdays` | boolean | true    | Whether this day advances the weekday     |
 | `description`       | string  | ❌      | Cultural significance and traditions      |
+
+**Note**: Each intercalary day must have either `after` OR `before`, but not both.
 
 ### Time Configuration
 
@@ -372,6 +375,40 @@ For intercalary periods longer than one day, use the `days` field:
 - **Multi-day intercalary**: Include explicit `days` field (2-365)
 - **Festival weeks**: Common values are 5-7 days for festival periods
 - **Seasonal breaks**: Longer periods like 10-15 days for major seasonal transitions
+
+### Intercalary Days Before Months
+
+Intercalary days can be placed before months using the `before` field. This is useful for New Year celebrations or other events that occur at the start of a period:
+
+```json
+{
+  "intercalary": [
+    {
+      "name": "New Year Day",
+      "before": "Firstmoon",
+      "countsForWeekdays": false,
+      "description": "The first day of the new year, before the calendar begins"
+    },
+    {
+      "name": "Spring Herald",
+      "before": "Springtide",
+      "description": "A day announcing the arrival of spring"
+    },
+    {
+      "name": "Winter's End",
+      "after": "Lastmoon",
+      "description": "Traditional placement after the final month"
+    }
+  ]
+}
+```
+
+**Placement Rules:**
+
+- **`before: "MonthName"`**: Places intercalary day before the specified month
+- **`after: "MonthName"`**: Places intercalary day after the specified month
+- **Required**: Each intercalary day must have either `before` OR `after`, but not both
+- **New Year**: Use `before` with the first month name for start-of-year celebrations
 
 ### Moon Phase Tracking
 
