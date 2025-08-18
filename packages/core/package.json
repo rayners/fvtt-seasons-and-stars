@@ -46,7 +46,7 @@
     "rollup-plugin-serve": "^2.0.2",
     "sass": "^1.89.2",
     "tslib": "^2.5.0",
-    "tsx": "^4.20.3",
+    "tsx": "^4.20.4",
     "typescript": "^5.0.4",
     "vitest": "^3.2.2"
   },
