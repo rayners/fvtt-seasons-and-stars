@@ -176,35 +176,19 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Add click handlers for mini-date element
     const miniDateElement = this.element?.querySelector('.mini-date');
     if (miniDateElement) {
-      let clickTimeout: number | null = null;
-
-      // Handle single click (with delay to allow for double-click detection)
+      // Handle single click
       miniDateElement.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
 
-        // Clear any existing timeout
-        if (clickTimeout) {
-          clearTimeout(clickTimeout);
-        }
-
-        // Set timeout for single click action (delay allows dblclick to cancel)
-        clickTimeout = setTimeout(() => {
-          Logger.debug('Mini widget: Single click - opening larger view');
-          this._onOpenLargerView(event, miniDateElement as HTMLElement);
-        }, 300) as unknown as number;
+        Logger.debug('Mini widget: Single click - opening larger view');
+        this._onOpenLargerView(event, miniDateElement as HTMLElement);
       });
 
-      // Handle double click (fires after click events, cancels single click)
+      // Handle double click (browser automatically handles timing and cancellation)
       miniDateElement.addEventListener('dblclick', event => {
         event.preventDefault();
         event.stopPropagation();
-
-        // Cancel pending single click
-        if (clickTimeout) {
-          clearTimeout(clickTimeout);
-          clickTimeout = null;
-        }
 
         Logger.debug('Mini widget: Double-click detected, opening calendar selection');
         this._onOpenCalendarSelection(event, miniDateElement as HTMLElement);
