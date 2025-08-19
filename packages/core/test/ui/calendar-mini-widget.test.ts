@@ -131,119 +131,84 @@ describe('CalendarMiniWidget', () => {
   });
 
   describe('Click Behavior', () => {
-    let mockDateElement: HTMLElement;
+    let renderedWidget: CalendarMiniWidget;
 
-    beforeEach(() => {
-      // Create mock DOM elements
-      mockDateElement = document.createElement('div');
-      mockDateElement.classList.add('mini-date');
+    beforeEach(async () => {
+      // Create a widget and actually render it so the click handlers are set up
+      renderedWidget = new CalendarMiniWidget();
 
-      // Mock the widget element and querySelector
-      const mockWidgetElement = document.createElement('div');
-      mockWidgetElement.appendChild(mockDateElement);
-      (widget as any).element = mockWidgetElement;
+      // Mock the render process to set up the DOM properly
+      const mockElement = document.createElement('div');
+      mockElement.innerHTML = `
+        <div class="calendar-mini-content">
+          <div class="mini-header-row">
+            <div class="mini-date" data-action="openCalendarSelection" title="Test Date (Click for larger view, Double-click to change calendar)">
+              Test Date
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Set up the widget's element
+      (renderedWidget as any).element = mockElement;
+
+      // Trigger the actual _onRender method to set up click handlers
+      await renderedWidget._onRender({}, {});
     });
 
     it('should open larger view on single click', done => {
       // Test for the NEW behavior (single click → larger view)
+      const miniDateElement = renderedWidget.element?.querySelector('.mini-date') as HTMLElement;
+      expect(miniDateElement).toBeTruthy();
 
-      // Add event listener that should be in the implementation
-      let clickCount = 0;
+      // Spy on the actual method that should be called
+      const openLargerViewSpy = vi
+        .spyOn(renderedWidget, '_onOpenLargerView')
+        .mockImplementation(async () => {
+          // Verify the method was called
+          expect(openLargerViewSpy).toHaveBeenCalled();
+          done();
+        });
 
-      mockDateElement.addEventListener('click', event => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        clickCount++;
-
-        if (clickCount === 1) {
-          // Single click - should open larger view after timeout
-          setTimeout(() => {
-            // This should call _onOpenLargerView
-            widget._onOpenLargerView(event, mockDateElement);
-            clickCount = 0;
-
-            // Verify CalendarWidgetManager.showWidget was called with 'main'
-            expect(CalendarWidgetManager.showWidget).toHaveBeenCalledWith('main');
-            done();
-          }, 300);
-        }
-      });
-
-      // Simulate single click
-      mockDateElement.click();
+      // Click the actual element with the real event handlers
+      miniDateElement.click();
     });
 
-    it('should open calendar selection on double click', async () => {
+    it('should open calendar selection on double click', done => {
       // Test for the NEW behavior (double-click → calendar selection)
+      const miniDateElement = renderedWidget.element?.querySelector('.mini-date') as HTMLElement;
+      expect(miniDateElement).toBeTruthy();
 
-      const { CalendarSelectionDialog } = await import('../../src/ui/calendar-selection-dialog');
-
-      // Add event listener that should be in the implementation
-      let clickCount = 0;
-      let _clickTimeout: number | null = null;
-
-      mockDateElement.addEventListener('click', event => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        clickCount++;
-
-        if (clickCount === 1) {
-          // Single click timeout
-          _clickTimeout = setTimeout(() => {
-            widget._onOpenLargerView(event, mockDateElement);
-            clickCount = 0;
-          }, 300) as unknown as number;
-        } else if (clickCount === 2) {
-          // Double click - should cancel single click and open calendar selection
-          if (_clickTimeout) {
-            clearTimeout(_clickTimeout);
-            _clickTimeout = null;
-          }
-          clickCount = 0;
-
-          // This should call _onOpenCalendarSelection
-          widget._onOpenCalendarSelection(event, mockDateElement);
-        }
-      });
+      // Spy on the actual method that should be called
+      const openCalendarSelectionSpy = vi
+        .spyOn(renderedWidget, '_onOpenCalendarSelection')
+        .mockImplementation(async () => {
+          // Verify the method was called
+          expect(openCalendarSelectionSpy).toHaveBeenCalled();
+          done();
+        });
 
       // Simulate double click (two rapid clicks)
-      mockDateElement.click();
-      mockDateElement.click();
-
-      // Wait a bit to ensure double click is processed
-      await new Promise(resolve => setTimeout(resolve, 50));
-
-      // Verify CalendarSelectionDialog was created
-      expect(CalendarSelectionDialog).toHaveBeenCalledWith([mockCalendar], mockCalendar.id);
+      miniDateElement.click();
+      setTimeout(() => miniDateElement.click(), 10); // Small delay between clicks
     });
 
     it('should handle single click timeout correctly', done => {
       // Verify that single click waits for the timeout period before executing
       const startTime = Date.now();
+      const miniDateElement = renderedWidget.element?.querySelector('.mini-date') as HTMLElement;
+      expect(miniDateElement).toBeTruthy();
 
-      let clickCount = 0;
+      const openLargerViewSpy = vi
+        .spyOn(renderedWidget, '_onOpenLargerView')
+        .mockImplementation(async () => {
+          const elapsed = Date.now() - startTime;
+          expect(elapsed).toBeGreaterThanOrEqual(290); // Allow small timing variance
+          expect(openLargerViewSpy).toHaveBeenCalled();
+          done();
+        });
 
-      mockDateElement.addEventListener('click', event => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        clickCount++;
-
-        if (clickCount === 1) {
-          setTimeout(() => {
-            const elapsed = Date.now() - startTime;
-            expect(elapsed).toBeGreaterThanOrEqual(290); // Allow small timing variance
-
-            widget._onOpenLargerView(event, mockDateElement);
-            clickCount = 0;
-            done();
-          }, 300);
-        }
-      });
-
-      mockDateElement.click();
+      miniDateElement.click();
     });
 
     it('should prevent single click action when double click occurs', done => {
@@ -251,43 +216,33 @@ describe('CalendarMiniWidget', () => {
       let singleClickExecuted = false;
       let doubleClickExecuted = false;
 
-      let clickCount = 0;
-      let _clickTimeout: number | null = null;
+      const miniDateElement = renderedWidget.element?.querySelector('.mini-date') as HTMLElement;
+      expect(miniDateElement).toBeTruthy();
 
-      mockDateElement.addEventListener('click', event => {
-        event.preventDefault();
-        event.stopPropagation();
+      const openLargerViewSpy = vi
+        .spyOn(renderedWidget, '_onOpenLargerView')
+        .mockImplementation(async () => {
+          singleClickExecuted = true;
+        });
 
-        clickCount++;
-
-        if (clickCount === 1) {
-          _clickTimeout = setTimeout(() => {
-            singleClickExecuted = true;
-            widget._onOpenLargerView(event, mockDateElement);
-            clickCount = 0;
-          }, 300) as unknown as number;
-        } else if (clickCount === 2) {
-          if (_clickTimeout) {
-            clearTimeout(_clickTimeout);
-            _clickTimeout = null;
-          }
-          clickCount = 0;
+      const openCalendarSelectionSpy = vi
+        .spyOn(renderedWidget, '_onOpenCalendarSelection')
+        .mockImplementation(async () => {
           doubleClickExecuted = true;
-
-          widget._onOpenCalendarSelection(event, mockDateElement);
 
           // Check that double click prevented single click
           setTimeout(() => {
             expect(singleClickExecuted).toBe(false);
             expect(doubleClickExecuted).toBe(true);
+            expect(openCalendarSelectionSpy).toHaveBeenCalled();
+            expect(openLargerViewSpy).not.toHaveBeenCalled();
             done();
           }, 350); // Wait longer than single click timeout
-        }
-      });
+        });
 
       // Simulate double click
-      mockDateElement.click();
-      setTimeout(() => mockDateElement.click(), 50); // Small delay between clicks
+      miniDateElement.click();
+      setTimeout(() => miniDateElement.click(), 50); // Small delay between clicks
     });
   });
 
