@@ -188,8 +188,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         if (clickCount === 1) {
           // Single click - wait to see if there's a double click
           clickTimeout = setTimeout(() => {
-            Logger.debug('Mini widget: Single click - opening calendar selection');
-            this._onOpenCalendarSelection(event, miniDateElement as HTMLElement);
+            Logger.debug('Mini widget: Single click - opening larger view');
+            this._onOpenLargerView(event, miniDateElement as HTMLElement);
             clickCount = 0;
           }, 300) as unknown as number;
         } else if (clickCount === 2) {
@@ -200,8 +200,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           }
           clickCount = 0;
 
-          Logger.debug('Mini widget: Double-click detected, opening larger view');
-          this._onOpenLargerView(event, miniDateElement as HTMLElement);
+          Logger.debug('Mini widget: Double-click detected, opening calendar selection');
+          this._onOpenCalendarSelection(event, miniDateElement as HTMLElement);
         }
       });
     }
