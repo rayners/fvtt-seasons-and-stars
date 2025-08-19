@@ -9,6 +9,9 @@ import { TimeAdvancementService } from '../src/core/time-advancement-service';
 // Mock Foundry globals
 const mockGame = {
   ready: true,
+  user: {
+    isGM: true, // Default to GM, tests can override
+  },
   settings: {
     get: vi.fn(),
   },
@@ -298,6 +301,80 @@ describe('TimeAdvancementService', () => {
       combatEndHandler(mockCombat, {}, 'user-id');
 
       expect(playMock).toHaveBeenCalled();
+    });
+
+    it('should only resume for GMs when combat ends', async () => {
+      mockGame.settings.get.mockImplementation((module: string, key: string) => {
+        if (key === 'resumeAfterCombat') return true;
+        return key === 'timeAdvancementRatio' ? 1.0 : false;
+      });
+
+      expect(service.isActive).toBe(false);
+
+      // Test GM user can resume
+      mockGame.user.isGM = true;
+      const combatEndHandler = (service as any).handleCombatEnd;
+      const mockCombat = { id: 'test-combat' };
+      const playMock = vi.spyOn(service, 'play').mockResolvedValue();
+
+      combatEndHandler(mockCombat, {}, 'user-id');
+      expect(playMock).toHaveBeenCalled();
+
+      // Reset for next test
+      playMock.mockClear();
+
+      // Test non-GM user cannot resume
+      mockGame.user.isGM = false;
+      combatEndHandler(mockCombat, {}, 'user-id');
+      expect(playMock).not.toHaveBeenCalled();
+    });
+
+    it('should not attempt resume for non-GMs even with setting enabled', async () => {
+      mockGame.settings.get.mockImplementation((module: string, key: string) => {
+        if (key === 'resumeAfterCombat') return true;
+        return key === 'timeAdvancementRatio' ? 1.0 : false;
+      });
+
+      // Set user as non-GM
+      mockGame.user.isGM = false;
+      expect(service.isActive).toBe(false);
+
+      const combatEndHandler = (service as any).handleCombatEnd;
+      const mockCombat = { id: 'test-combat' };
+      const playMock = vi.spyOn(service, 'play').mockResolvedValue();
+
+      combatEndHandler(mockCombat, {}, 'user-id');
+
+      // Should not call play() for non-GM users
+      expect(playMock).not.toHaveBeenCalled();
+    });
+
+    it('should allow pause for all users during combat start', async () => {
+      mockGame.settings.get.mockImplementation((module: string, key: string) => {
+        if (key === 'pauseOnCombat') return true;
+        return key === 'timeAdvancementRatio' ? 1.0 : false;
+      });
+
+      // Start time advancement first
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      const combatStartHandler = (service as any).handleCombatStart;
+      const mockCombat = { id: 'test-combat' };
+
+      // Test GM user can pause
+      mockGame.user.isGM = true;
+      combatStartHandler(mockCombat, {});
+      expect(service.isActive).toBe(false);
+
+      // Reset for next test
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      // Test non-GM user can also pause (existing behavior)
+      mockGame.user.isGM = false;
+      combatStartHandler(mockCombat, {});
+      expect(service.isActive).toBe(false);
     });
   });
 
