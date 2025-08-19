@@ -161,14 +161,13 @@ describe('CalendarMiniWidget', () => {
       const miniDateElement = renderedWidget.element?.querySelector('.mini-date') as HTMLElement;
       expect(miniDateElement).toBeTruthy();
 
-      // Spy on the actual method that should be called
-      const openLargerViewSpy = vi
-        .spyOn(renderedWidget, '_onOpenLargerView')
-        .mockImplementation(async () => {
-          // Verify the method was called
-          expect(openLargerViewSpy).toHaveBeenCalled();
-          done();
-        });
+      // Replace method with test version that calls done
+      const originalMethod = renderedWidget._onOpenLargerView;
+      renderedWidget._onOpenLargerView = async (event, target) => {
+        // Call original method to maintain behavior and hit coverage
+        await originalMethod.call(renderedWidget, event, target);
+        done();
+      };
 
       // Click the actual element with the real event handlers
       miniDateElement.click();
@@ -179,18 +178,46 @@ describe('CalendarMiniWidget', () => {
       const miniDateElement = renderedWidget.element?.querySelector('.mini-date') as HTMLElement;
       expect(miniDateElement).toBeTruthy();
 
-      // Spy on the actual method that should be called
-      const openCalendarSelectionSpy = vi
-        .spyOn(renderedWidget, '_onOpenCalendarSelection')
-        .mockImplementation(async () => {
-          // Verify the method was called
-          expect(openCalendarSelectionSpy).toHaveBeenCalled();
-          done();
-        });
+      // Replace method with test version that calls done
+      const originalMethod = renderedWidget._onOpenCalendarSelection;
+      renderedWidget._onOpenCalendarSelection = async (event, target) => {
+        // Call original method to maintain behavior and hit coverage
+        await originalMethod.call(renderedWidget, event, target);
+        done();
+      };
 
-      // Simulate double click (two rapid clicks)
-      miniDateElement.click();
-      setTimeout(() => miniDateElement.click(), 10); // Small delay between clicks
+      // Trigger double click event directly
+      const dblclickEvent = new MouseEvent('dblclick', {
+        bubbles: true,
+        cancelable: true,
+      });
+      miniDateElement.dispatchEvent(dblclickEvent);
+    });
+
+    it('should execute double-click with proper logging and method call', async () => {
+      // This test specifically ensures line 211 is covered
+      const miniDateElement = renderedWidget.element?.querySelector('.mini-date') as HTMLElement;
+      expect(miniDateElement).toBeTruthy();
+
+      let methodCalled = false;
+      const originalMethod = renderedWidget._onOpenCalendarSelection;
+      renderedWidget._onOpenCalendarSelection = async (event, target) => {
+        methodCalled = true;
+        // Call original method
+        await originalMethod.call(renderedWidget, event, target);
+      };
+
+      // Trigger double click event directly
+      const dblclickEvent = new MouseEvent('dblclick', {
+        bubbles: true,
+        cancelable: true,
+      });
+      miniDateElement.dispatchEvent(dblclickEvent);
+
+      // Wait a bit for the handler to execute
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      expect(methodCalled).toBe(true);
     });
 
     it('should handle single click timeout correctly', done => {
@@ -199,19 +226,55 @@ describe('CalendarMiniWidget', () => {
       const miniDateElement = renderedWidget.element?.querySelector('.mini-date') as HTMLElement;
       expect(miniDateElement).toBeTruthy();
 
-      const openLargerViewSpy = vi
-        .spyOn(renderedWidget, '_onOpenLargerView')
-        .mockImplementation(async () => {
-          const elapsed = Date.now() - startTime;
-          expect(elapsed).toBeGreaterThanOrEqual(290); // Allow small timing variance
-          expect(openLargerViewSpy).toHaveBeenCalled();
-          done();
-        });
+      // Don't mock the method - let it execute the real code path
+      const originalMethod = renderedWidget._onOpenLargerView;
+      renderedWidget._onOpenLargerView = async (event, target) => {
+        const elapsed = Date.now() - startTime;
+        expect(elapsed).toBeGreaterThanOrEqual(290); // Allow small timing variance
+
+        // Call original method to maintain behavior
+        await originalMethod.call(renderedWidget, event, target);
+        done();
+      };
 
       miniDateElement.click();
     });
 
-    it('should prevent single click action when double click occurs', done => {
+    it('should execute timeout callback with proper logging and method call', async () => {
+      // This test specifically ensures lines 194-196 are covered
+      const miniDateElement = renderedWidget.element?.querySelector('.mini-date') as HTMLElement;
+      expect(miniDateElement).toBeTruthy();
+
+      // Don't mock _onOpenLargerView until after the timeout executes
+      let timeoutExecuted = false;
+      const originalMethod = renderedWidget._onOpenLargerView;
+
+      // Replace the method temporarily to track when it's called
+      renderedWidget._onOpenLargerView = async (event, target) => {
+        timeoutExecuted = true;
+
+        // Call original method
+        await originalMethod.call(renderedWidget, event, target);
+      };
+
+      // Single click to trigger the timeout
+      miniDateElement.click();
+
+      // Verify after a short delay that the timeout is set up but hasn't executed yet
+      await new Promise(resolve =>
+        setTimeout(() => {
+          expect(timeoutExecuted).toBe(false); // Should not have executed yet
+          resolve(undefined);
+        }, 100)
+      );
+
+      // Wait for the timeout to execute (300ms)
+      await new Promise(resolve => setTimeout(resolve, 250));
+
+      expect(timeoutExecuted).toBe(true);
+    });
+
+    it('should prevent single click action when double click occurs', async () => {
       // Verify that double click cancels the single click timeout
       let singleClickExecuted = false;
       let doubleClickExecuted = false;
@@ -219,30 +282,40 @@ describe('CalendarMiniWidget', () => {
       const miniDateElement = renderedWidget.element?.querySelector('.mini-date') as HTMLElement;
       expect(miniDateElement).toBeTruthy();
 
-      const openLargerViewSpy = vi
-        .spyOn(renderedWidget, '_onOpenLargerView')
-        .mockImplementation(async () => {
-          singleClickExecuted = true;
-        });
+      // Replace methods to track execution but still call originals
+      const originalLargerView = renderedWidget._onOpenLargerView;
+      const originalCalendarSelection = renderedWidget._onOpenCalendarSelection;
 
-      const openCalendarSelectionSpy = vi
-        .spyOn(renderedWidget, '_onOpenCalendarSelection')
-        .mockImplementation(async () => {
-          doubleClickExecuted = true;
+      renderedWidget._onOpenLargerView = async (event, target) => {
+        singleClickExecuted = true;
+        await originalLargerView.call(renderedWidget, event, target);
+      };
 
-          // Check that double click prevented single click
-          setTimeout(() => {
-            expect(singleClickExecuted).toBe(false);
-            expect(doubleClickExecuted).toBe(true);
-            expect(openCalendarSelectionSpy).toHaveBeenCalled();
-            expect(openLargerViewSpy).not.toHaveBeenCalled();
-            done();
-          }, 350); // Wait longer than single click timeout
-        });
+      renderedWidget._onOpenCalendarSelection = async (event, target) => {
+        doubleClickExecuted = true;
+        await originalCalendarSelection.call(renderedWidget, event, target);
+      };
 
-      // Simulate double click
+      // First click to start the single-click timeout
       miniDateElement.click();
-      setTimeout(() => miniDateElement.click(), 50); // Small delay between clicks
+
+      // Wait a bit, then trigger double-click before single-click timeout expires
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      const dblclickEvent = new MouseEvent('dblclick', {
+        bubbles: true,
+        cancelable: true,
+      });
+      miniDateElement.dispatchEvent(dblclickEvent);
+
+      // Wait for double-click to execute
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // Wait longer than single click timeout to ensure it was cancelled
+      await new Promise(resolve => setTimeout(resolve, 250));
+
+      expect(singleClickExecuted).toBe(false);
+      expect(doubleClickExecuted).toBe(true);
     });
   });
 
