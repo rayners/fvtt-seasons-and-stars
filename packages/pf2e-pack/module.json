@@ -27,13 +27,6 @@
           "minimum": "0.8.0"
         }
       }
-    ],
-    "systems": [
-      {
-        "id": "pf2e",
-        "type": "system",
-        "compatibility": {}
-      }
     ]
   },
   "url": "https://github.com/rayners/fvtt-seasons-and-stars",
