@@ -87,10 +87,12 @@ describe('External Calendar Variants System', () => {
     it('should load base calendar and external variants successfully', async () => {
       await calendarManager.loadBuiltInCalendars();
 
-      // Should have core calendar only (gregorian = 1 total)
-      // Note: All pack calendars moved to separate packages during extraction
-      expect(calendarManager.calendars.size).toBe(1);
+      // Should have core calendars: gregorian + 2 canonical hours variants = 3 total
+      // Note: External variant calendars create one calendar per variant using parentheses notation
+      expect(calendarManager.calendars.size).toBe(3);
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
+      expect(calendarManager.calendars.has('gregorian(medieval-monastery)')).toBe(true);
+      expect(calendarManager.calendars.has('gregorian(custom-hours)')).toBe(true);
 
       // Manually load the external variant file to test the functionality
       const variantFileData = {
@@ -151,8 +153,8 @@ describe('External Calendar Variants System', () => {
       // Apply external variants manually
       calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
 
-      // Should now have core calendar + 4 Star Trek variants (1 + 4 = 5 total)
-      expect(calendarManager.calendars.size).toBe(5);
+      // Should now have core calendars + 4 Star Trek variants (3 + 4 = 7 total)
+      expect(calendarManager.calendars.size).toBe(7);
 
       // Check Star Trek variants
       expect(calendarManager.calendars.has('gregorian(earth-stardate)')).toBe(true);
@@ -289,10 +291,12 @@ describe('External Calendar Variants System', () => {
       // Use the shared mock (no need to override for this test)
       await calendarManager.loadBuiltInCalendars();
 
-      // Should have core calendar only (gregorian = 1 total)
-      // Note: All pack calendars moved to separate packages during extraction
-      expect(calendarManager.calendars.size).toBe(1);
+      // Should have core calendars: gregorian + 2 canonical hours variants = 3 total
+      // Note: External variant calendars create one calendar per variant using parentheses notation
+      expect(calendarManager.calendars.size).toBe(3);
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
+      expect(calendarManager.calendars.has('gregorian(medieval-monastery)')).toBe(true);
+      expect(calendarManager.calendars.has('gregorian(custom-hours)')).toBe(true);
 
       // Test the invalid variant file handling by calling the method directly
       const invalidVariantFileData = {
