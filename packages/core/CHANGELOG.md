@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.11.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.10.0...seasons-and-stars-v0.11.0) (2025-08-19)
+
+
+### Features
+
+* switch mini widget click behaviors for improved UX ([#201](https://github.com/rayners/fvtt-seasons-and-stars/issues/201)) ([5c7392d](https://github.com/rayners/fvtt-seasons-and-stars/commit/5c7392d496599a571ca2112caa827d4723eebd65))
+
+
+### Bug Fixes
+
+* restrict combat time advancement resume to GMs only ([#200](https://github.com/rayners/fvtt-seasons-and-stars/issues/200)) ([8e46a59](https://github.com/rayners/fvtt-seasons-and-stars/commit/8e46a59f52047bb39d22fee92062a71d96b899ec))
+
 ## [0.10.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.9.1...seasons-and-stars-v0.10.0) (2025-08-09)
 
 

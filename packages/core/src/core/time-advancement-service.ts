@@ -497,6 +497,11 @@ export class TimeAdvancementService {
    * @private
    */
   private handleCombatEnd = (_combat: Combat, _options?: any, _userId?: string): void => {
+    // Only GMs should attempt to resume time advancement
+    if (!game.user?.isGM) {
+      return;
+    }
+
     if (!this.shouldResumeAfterCombat()) {
       return;
     }
