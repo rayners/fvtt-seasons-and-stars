@@ -404,6 +404,54 @@
                 "dateFormats": {
                   "type": "object",
                   "additionalProperties": true
+                },
+                "canonicalHours": {
+                  "type": "array",
+                  "description": "Override canonical hour definitions for the variant",
+                  "items": {
+                    "type": "object",
+                    "required": ["name", "startHour", "endHour"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 50,
+                        "description": "Name of the canonical hour period"
+                      },
+                      "startHour": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 23,
+                        "description": "Starting hour of the canonical period (0-23)"
+                      },
+                      "endHour": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 23,
+                        "description": "Ending hour of the canonical period (0-23)"
+                      },
+                      "startMinute": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 59,
+                        "default": 0,
+                        "description": "Starting minute of the canonical period (0-59)"
+                      },
+                      "endMinute": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 59,
+                        "default": 0,
+                        "description": "Ending minute of the canonical period (0-59)"
+                      },
+                      "description": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "description": "Optional description of the canonical hour"
+                      }
+                    }
+                  }
                 }
               },
               "description": "Property overrides for the variant"
@@ -592,6 +640,54 @@
         }
       },
       "additionalProperties": false
+    },
+    "canonicalHours": {
+      "type": "array",
+      "description": "Optional canonical hour definitions for time period naming",
+      "items": {
+        "type": "object",
+        "required": ["name", "startHour", "endHour"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Name of the canonical hour period"
+          },
+          "startHour": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 23,
+            "description": "Starting hour of the canonical period (0-23)"
+          },
+          "endHour": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 23,
+            "description": "Ending hour of the canonical period (0-23)"
+          },
+          "startMinute": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 59,
+            "default": 0,
+            "description": "Starting minute of the canonical period (0-59)"
+          },
+          "endMinute": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 59,
+            "default": 0,
+            "description": "Ending minute of the canonical period (0-59)"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Optional description of the canonical hour"
+          }
+        }
+      }
     },
     "extensions": {
       "type": "object",

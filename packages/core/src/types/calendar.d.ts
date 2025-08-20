@@ -42,6 +42,7 @@ export interface SeasonsStarsCalendar {
   intercalary: CalendarIntercalary[];
   seasons?: CalendarSeason[];
   moons?: CalendarMoon[];
+  canonicalHours?: CalendarCanonicalHour[];
 
   time: {
     hoursInDay: number;
@@ -171,6 +172,15 @@ export interface MoonPhaseInfo {
   daysUntilNext: number;
 }
 
+export interface CalendarCanonicalHour {
+  name: string;
+  startHour: number;
+  endHour: number;
+  startMinute?: number;
+  endMinute?: number;
+  description?: string;
+}
+
 // Data structure for calendar dates (plain objects)
 export interface CalendarDateData {
   year: number;
@@ -229,6 +239,7 @@ export interface CalendarVariant {
       [weekdayName: string]: Partial<CalendarWeekday>;
     };
     moons?: CalendarMoon[];
+    canonicalHours?: CalendarCanonicalHour[];
     dateFormats?: CalendarDateFormats;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;

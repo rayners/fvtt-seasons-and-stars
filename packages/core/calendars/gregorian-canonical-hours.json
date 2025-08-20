@@ -1,0 +1,137 @@
+{
+  "id": "gregorian-canonical-hours",
+  "baseCalendar": "gregorian",
+  "name": "Gregorian Calendar with Canonical Hours",
+  "description": "Standard Gregorian calendar with traditional medieval canonical hours for immersive time display",
+  "author": "Seasons & Stars",
+  "version": "1.0.0",
+  "translations": {
+    "en": {
+      "label": "Gregorian Calendar with Canonical Hours",
+      "description": "Gregorian calendar featuring traditional canonical hours and custom time periods"
+    }
+  },
+  "variants": {
+    "medieval-monastery": {
+      "name": "Medieval Monastery Schedule",
+      "description": "Traditional monastic canonical hours with gaps for regular timekeeping",
+      "default": true,
+      "overrides": {
+        "canonicalHours": [
+          {
+            "name": "Matins",
+            "startHour": 2,
+            "endHour": 3,
+            "startMinute": 0,
+            "endMinute": 0,
+            "description": "Early morning prayer, around 2-3 AM"
+          },
+          {
+            "name": "Prime",
+            "startHour": 6,
+            "endHour": 7,
+            "startMinute": 0,
+            "endMinute": 0,
+            "description": "First hour of the day, sunrise prayers"
+          },
+          {
+            "name": "Terce",
+            "startHour": 9,
+            "endHour": 10,
+            "startMinute": 0,
+            "endMinute": 0,
+            "description": "Third hour, mid-morning prayers"
+          },
+          {
+            "name": "Sext",
+            "startHour": 12,
+            "endHour": 13,
+            "startMinute": 0,
+            "endMinute": 0,
+            "description": "Sixth hour, midday prayers"
+          },
+          {
+            "name": "None",
+            "startHour": 15,
+            "endHour": 16,
+            "startMinute": 0,
+            "endMinute": 0,
+            "description": "Ninth hour, afternoon prayers"
+          },
+          {
+            "name": "Vespers",
+            "startHour": 18,
+            "endHour": 19,
+            "startMinute": 0,
+            "endMinute": 0,
+            "description": "Evening prayers at sunset"
+          },
+          {
+            "name": "Compline",
+            "startHour": 21,
+            "endHour": 22,
+            "startMinute": 0,
+            "endMinute": 0,
+            "description": "Final prayers before sleep"
+          }
+        ],
+        "dateFormats": {
+          "canonical": "{{ss-time-display mode=\"canonical-or-exact\"}}",
+          "mixed": "{{ss-weekday format=\"name\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}} - {{ss-time-display mode=\"canonical-or-exact\"}}",
+          "widgets": {
+            "mini": "{{ss-time-display mode=\"canonical-or-exact\"}}",
+            "main": "{{ss-weekday format=\"abbr\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}} - {{ss-time-display mode=\"canonical-or-exact\"}}"
+          }
+        }
+      }
+    },
+    "custom-hours": {
+      "name": "Custom Canonical Hours",
+      "description": "Example showing custom time periods like Strange's Bells with mixed time display",
+      "overrides": {
+        "canonicalHours": [
+          {
+            "name": "Strange's Bells",
+            "startHour": 3,
+            "endHour": 6,
+            "startMinute": 0,
+            "endMinute": 0,
+            "description": "Mysterious bells ring from 3-6 AM"
+          },
+          {
+            "name": "Dawn's Call",
+            "startHour": 9,
+            "endHour": 11,
+            "startMinute": 0,
+            "endMinute": 0,
+            "description": "Morning activities from 9-11 AM"
+          },
+          {
+            "name": "High Sun",
+            "startHour": 12,
+            "endHour": 13,
+            "startMinute": 0,
+            "endMinute": 30,
+            "description": "Peak sun period from noon to 1:30 PM"
+          },
+          {
+            "name": "Night Watch",
+            "startHour": 23,
+            "endHour": 2,
+            "startMinute": 0,
+            "endMinute": 0,
+            "description": "Guard duty spanning midnight (11 PM - 2 AM)"
+          }
+        ],
+        "dateFormats": {
+          "canonical": "{{ss-time-display mode=\"canonical-or-exact\"}}",
+          "mixed": "{{ss-weekday format=\"name\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}} - {{ss-time-display mode=\"canonical-or-exact\"}}",
+          "widgets": {
+            "mini": "{{ss-time-display mode=\"canonical-or-exact\"}}",
+            "main": "{{ss-weekday format=\"abbr\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}} - {{ss-time-display mode=\"canonical-or-exact\"}}"
+          }
+        }
+      }
+    }
+  }
+}
