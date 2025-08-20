@@ -235,7 +235,6 @@ Use tags to help users find relevant calendars:
    ```
 
 2. **Test auto-detection:**
-
    - Enable module in Foundry
    - Check console for: `[S&S] Found X calendar pack modules`
    - Look for: `[S&S] Successfully loaded X calendars from module`
@@ -279,6 +278,89 @@ await game.seasonsStars.api.loadModuleCalendars('seasons-and-stars-mypack');
 - `Calendar entry missing URL or file` - Add `file` property to collection entry
 - `Invalid URL format` - Check JSON syntax and file paths
 - `Schema validation failed` - Validate JSON against schema
+
+### 🕐 Canonical Hours Support
+
+_Added in v0.8.0_
+
+Calendar packs can include canonical hours for named time periods that replace exact time display.
+
+**Basic Example:**
+
+```json
+{
+  "id": "fantasy-calendar",
+  "canonicalHours": [
+    {
+      "name": "Strange's Bells",
+      "startHour": 3,
+      "endHour": 6,
+      "description": "The mysterious bells that ring in the early morning"
+    },
+    {
+      "name": "Dawn's Call",
+      "startHour": 9,
+      "endHour": 11
+    }
+  ]
+}
+```
+
+**Advanced Example with Minute Precision:**
+
+```json
+{
+  "canonicalHours": [
+    {
+      "name": "High Sun",
+      "startHour": 12,
+      "endHour": 12,
+      "startMinute": 30,
+      "endMinute": 45,
+      "description": "Brief period when the sun reaches its peak"
+    },
+    {
+      "name": "Night Watch",
+      "startHour": 23,
+      "endHour": 2,
+      "description": "Spans midnight for night guards"
+    }
+  ]
+}
+```
+
+**Template Integration:**
+
+Use the `ss-time-display` helper in your calendar templates:
+
+```json
+{
+  "formats": {
+    "widgets": {
+      "mini": "{{ss-time-display mode=\"canonical-or-exact\"}}",
+      "main": "{{ss-weekday}}, {{ss-month}} {{ss-day}} - {{ss-time-display}}"
+    }
+  }
+}
+```
+
+**Canonical Hour Properties:**
+
+| Property      | Required | Description                            |
+| ------------- | -------- | -------------------------------------- |
+| `name`        | ✅       | Display name (e.g., "Strange's Bells") |
+| `startHour`   | ✅       | Start hour (0-23)                      |
+| `endHour`     | ✅       | End hour (0-23)                        |
+| `startMinute` | ❌       | Start minute (0-59, default: 0)        |
+| `endMinute`   | ❌       | End minute (0-59, default: 0)          |
+| `description` | ❌       | Optional tooltip text                  |
+
+**Time Range Notes:**
+
+- End time is exclusive (endHour: 6 means "up to but not including 6:00")
+- Supports midnight wraparound (startHour: 23, endHour: 2)
+- Works with calendars having different `minutesInHour` values
+- Users can control display via **Canonical Hours Display Mode** setting
 
 ## 📦 Distribution
 

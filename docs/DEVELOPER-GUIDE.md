@@ -1037,6 +1037,28 @@ interface CalendarDate {
 }
 ```
 
+### CalendarCanonicalHour Interface
+
+Added in v0.8.0 for time period naming (e.g., "Strange's Bells" for 3-6 AM).
+
+```typescript
+interface CalendarCanonicalHour {
+  name: string; // Display name (e.g., "Strange's Bells", "Matins")
+  startHour: number; // Start hour (0-23)
+  endHour: number; // End hour (0-23)
+  startMinute?: number; // Start minute (0-59, default: 0)
+  endMinute?: number; // End minute (0-59, default: 0)
+  description?: string; // Optional description
+}
+```
+
+**Time Range Logic:**
+
+- Start and end times can span midnight (e.g., startHour: 23, endHour: 2)
+- End time is exclusive (endHour: 6 means "up to but not including 6:00")
+- Supports minute precision for precise time periods
+- Works with calendars having different `minutesInHour` values
+
 ### Calendar Structure
 
 ```typescript
@@ -1074,6 +1096,9 @@ interface SeasonsStarsCalendar {
     minutesInHour: number; // Usually 60
     secondsInMinute: number; // Usually 60
   };
+
+  // Optional canonical hours for time period naming (added in v0.8.0)
+  canonicalHours?: CalendarCanonicalHour[];
 }
 ```
 
@@ -1524,6 +1549,68 @@ class UniversalCalendarAdapter {
 
   onDateChange(callback) {
     this.adapter.onDateChange(callback);
+  }
+}
+```
+
+## 🎨 Handlebars Template Helpers
+
+Seasons & Stars provides custom Handlebars helpers for advanced date formatting in calendar templates.
+
+### `ss-time-display` Helper
+
+Added in v0.8.0 for canonical hours and smart time display.
+
+```handlebars
+{{! Basic usage: shows canonical hour or exact time }}
+{{ss-time-display}}
+
+{{! Force exact time only }}
+{{ss-time-display mode='exact'}}
+
+{{! Force canonical hours only (hides time if no match) }}
+{{ss-time-display mode='canonical'}}
+
+{{! Smart mode (default): canonical hours when available, exact time otherwise }}
+{{ss-time-display mode='canonical-or-exact'}}
+```
+
+**Display Modes:**
+
+- `canonical-or-exact` (default): Shows canonical hour name when current time falls within a defined period, otherwise shows exact time (e.g., "Strange's Bells" or "07:30")
+- `exact`: Always shows exact time in HH:MM format
+- `canonical`: Only shows canonical hour name, hides time completely when no canonical hour matches
+
+**Example Output:**
+
+```handlebars
+{{! With canonical hours defined for 3-6 AM as "Strange's Bells" }}
+{{! At 4:30 AM: }}
+{{ss-time-display}}
+→ "Strange's Bells"
+
+{{! At 7:30 AM (no canonical hour): }}
+{{ss-time-display}}
+→ "07:30"
+
+{{! Force exact time: }}
+{{ss-time-display mode='exact'}}
+→ "04:30"
+
+{{! Canonical only mode at 7:30 AM: }}
+{{ss-time-display mode='canonical'}}
+→ "" (empty)
+```
+
+**Calendar Template Integration:**
+
+```json
+{
+  "formats": {
+    "widgets": {
+      "mini": "{{ss-time-display mode=\"canonical-or-exact\"}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}} - {{ss-time-display}}"
+    }
   }
 }
 ```
