@@ -457,7 +457,7 @@ _(Note: Additional keyboard shortcuts for time advancement planned for future up
 
 ## 🕐 Canonical Hours
 
-_Added in v0.8.0_
+_Added in v0.12.0_
 
 Canonical hours allow calendars to display named time periods instead of exact times, perfect for fantasy settings where characters refer to time periods like "Strange's Bells" or medieval monastery hours.
 

@@ -281,7 +281,7 @@ await game.seasonsStars.api.loadModuleCalendars('seasons-and-stars-mypack');
 
 ### 🕐 Canonical Hours Support
 
-_Added in v0.8.0_
+_Added in v0.12.0_
 
 Calendar packs can include canonical hours for named time periods that replace exact time display.
 
