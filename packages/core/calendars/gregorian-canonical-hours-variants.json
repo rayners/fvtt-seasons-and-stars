@@ -79,7 +79,7 @@
           "canonical": "{{ss-time-display mode=\"canonical-or-exact\"}}",
           "mixed": "{{ss-weekday format=\"name\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}} - {{ss-time-display mode=\"canonical-or-exact\"}}",
           "widgets": {
-            "mini": "{{ss-time-display mode=\"canonical-or-exact\"}}",
+            "mini": "{{ss-month format=\"abbr\"}} {{ss-day}}",
             "main": "{{ss-weekday format=\"abbr\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}} - {{ss-time-display mode=\"canonical-or-exact\"}}"
           }
         }
@@ -127,7 +127,7 @@
           "canonical": "{{ss-time-display mode=\"canonical-or-exact\"}}",
           "mixed": "{{ss-weekday format=\"name\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}} - {{ss-time-display mode=\"canonical-or-exact\"}}",
           "widgets": {
-            "mini": "{{ss-time-display mode=\"canonical-or-exact\"}}",
+            "mini": "{{ss-month format=\"abbr\"}} {{ss-day}}",
             "main": "{{ss-weekday format=\"abbr\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}} - {{ss-time-display mode=\"canonical-or-exact\"}}"
           }
         }

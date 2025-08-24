@@ -275,6 +275,84 @@ describe('External Calendar Variants System', () => {
       expect(vulcanCalendar?.weekdays.length).toBe(7); // Same as base
     });
 
+    it('should apply canonical hours overrides in external variants', async () => {
+      await calendarManager.loadBuiltInCalendars();
+
+      // Test data with canonical hours overrides
+      const variantFileData = {
+        id: 'gregorian-canonical-test-variants',
+        baseCalendar: 'gregorian',
+        variants: {
+          'test-canonical-hours': {
+            name: 'Test Canonical Hours',
+            overrides: {
+              canonicalHours: [
+                {
+                  name: 'Dawn Watch',
+                  startHour: 5,
+                  endHour: 7,
+                  startMinute: 0,
+                  endMinute: 0,
+                  description: 'Early morning watch',
+                },
+                {
+                  name: 'High Noon',
+                  startHour: 11,
+                  endHour: 13,
+                  startMinute: 30,
+                  endMinute: 30,
+                  description: 'Midday period',
+                },
+              ],
+              dateFormats: {
+                canonical: '{{ss-time-display mode="canonical-or-exact"}}',
+              },
+            },
+          },
+        },
+      };
+
+      const baseCalendar = calendarManager.calendars.get('gregorian');
+      expect(baseCalendar).toBeDefined();
+
+      // Base calendar should not have canonical hours
+      expect(baseCalendar?.canonicalHours).toBeUndefined();
+
+      // Apply external variants manually
+      calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
+
+      const testCalendar = calendarManager.calendars.get('gregorian(test-canonical-hours)');
+      expect(testCalendar).toBeDefined();
+
+      // Verify canonical hours were applied
+      expect(testCalendar?.canonicalHours).toBeDefined();
+      expect(testCalendar?.canonicalHours).toHaveLength(2);
+
+      const dawnWatch = testCalendar?.canonicalHours?.[0];
+      expect(dawnWatch?.name).toBe('Dawn Watch');
+      expect(dawnWatch?.startHour).toBe(5);
+      expect(dawnWatch?.endHour).toBe(7);
+      expect(dawnWatch?.description).toBe('Early morning watch');
+
+      const highNoon = testCalendar?.canonicalHours?.[1];
+      expect(highNoon?.name).toBe('High Noon');
+      expect(highNoon?.startHour).toBe(11);
+      expect(highNoon?.endHour).toBe(13);
+      expect(highNoon?.startMinute).toBe(30);
+      expect(highNoon?.endMinute).toBe(30);
+      expect(highNoon?.description).toBe('Midday period');
+
+      // Verify date formats were also applied
+      expect(testCalendar?.dateFormats?.canonical).toBe(
+        '{{ss-time-display mode="canonical-or-exact"}}'
+      );
+
+      // Verify other calendar properties remain unchanged
+      expect(testCalendar?.months.length).toBe(12);
+      expect(testCalendar?.weekdays.length).toBe(7);
+      expect(testCalendar?.year.currentYear).toBe(baseCalendar?.year.currentYear);
+    });
+
     it('should handle missing base calendar gracefully', async () => {
       // Mock fetch to return 404 for gregorian calendar
       vi.mocked(fetch).mockImplementation(() => {
