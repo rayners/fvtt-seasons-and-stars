@@ -1,5 +1,5 @@
 {
-  "id": "gregorian-canonical-hours",
+  "id": "gregorian-canonical-hours-variants",
   "baseCalendar": "gregorian",
   "name": "Gregorian Calendar with Canonical Hours",
   "description": "Standard Gregorian calendar with traditional medieval canonical hours for immersive time display",
