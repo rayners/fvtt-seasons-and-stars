@@ -7,6 +7,7 @@ import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
 import { TimeAdvancementService } from '../core/time-advancement-service';
+import { DateFormatter } from '../core/date-formatter';
 import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
@@ -136,7 +137,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       showTimeControls: (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false),
       isGM: game.user?.isGM || false,
       showTime: showTime,
-      timeString: showTime && currentDate.time ? this.getShortTimeString(currentDate.time) : '',
+      timeString:
+        showTime && currentDate.time
+          ? this.getTimeDisplayString(currentDate.time, activeCalendar)
+          : '',
       showDayOfWeek: showDayOfWeek,
       weekdayDisplay: weekdayDisplay,
       timeAdvancementActive: timeAdvancementActive,
@@ -152,13 +156,76 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
-   * Format time for compact display in mini widget
+   * Format time for compact display in mini widget - supports canonical hours
    */
-  private getShortTimeString(time: { hour: number; minute: number; second: number }): string {
-    // Format as HH:MM for compact display
+  private getTimeDisplayString(
+    time: { hour: number; minute: number; second: number },
+    calendar?: import('../types/calendar').SeasonsStarsCalendar
+  ): string {
+    // Get canonical mode setting
+    const canonicalMode =
+      game.settings?.get('seasons-and-stars', 'miniWidgetCanonicalMode') || 'auto';
+
+    // If exact mode or no calendar, always show exact time
+    if (canonicalMode === 'exact' || !calendar) {
+      return this.formatExactTime(time);
+    }
+
+    // Check for canonical hours
+    const canonicalHours = calendar.canonicalHours;
+    if (!canonicalHours || canonicalHours.length === 0) {
+      return this.formatExactTime(time);
+    }
+
+    // Look for matching canonical hour
+    const canonicalHour = this.findCanonicalHour(canonicalHours, time.hour, time.minute, calendar);
+
+    if (canonicalHour) {
+      // Truncate long names for mini widget space constraints
+      return this.truncateCanonicalName(canonicalHour.name);
+    }
+
+    // No canonical hour found
+    if (canonicalMode === 'canonical') {
+      // Hide time when canonical mode is forced but no canonical hour available
+      return '';
+    }
+
+    // Fallback to exact time for auto mode
+    return this.formatExactTime(time);
+  }
+
+  /**
+   * Format exact time as HH:MM
+   */
+  private formatExactTime(time: { hour: number; minute: number; second: number }): string {
     const hour = time.hour.toString().padStart(2, '0');
     const minute = time.minute.toString().padStart(2, '0');
     return `${hour}:${minute}`;
+  }
+
+  /**
+   * Find canonical hour that matches the given time
+   */
+  private findCanonicalHour(
+    canonicalHours: import('../types/calendar').CalendarCanonicalHour[],
+    hour: number,
+    minute: number,
+    calendar: import('../types/calendar').SeasonsStarsCalendar
+  ): import('../types/calendar').CalendarCanonicalHour | null {
+    // Use DateFormatter's static method for consistency
+    return (DateFormatter as any).findCanonicalHour(canonicalHours, hour, minute, calendar);
+  }
+
+  /**
+   * Truncate canonical hour names for mini widget display
+   */
+  private truncateCanonicalName(name: string): string {
+    // Allow longer names (18 chars) since canonical hours are more meaningful than exact time
+    if (name.length <= 18) {
+      return name;
+    }
+    return name.substring(0, 15) + '...';
   }
 
   /**
@@ -402,6 +469,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           settingName === 'miniWidgetQuickTimeButtons' ||
           settingName === 'miniWidgetShowTime' ||
           settingName === 'miniWidgetShowDayOfWeek' ||
+          settingName === 'miniWidgetCanonicalMode' ||
           settingName === 'alwaysShowQuickTimeButtons') &&
         CalendarMiniWidget.activeInstance?.rendered
       ) {

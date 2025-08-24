@@ -233,6 +233,7 @@ Access via **Game Settings → Module Settings → Seasons & Stars**:
 - **Auto-Show Default Widget**: Automatically show calendar widget when world loads
 - **Default Widget**: Choose which widget appears by default (Main/Mini/Grid)
 - **Display Time in Mini Widget**: Show time alongside date in mini widget
+- **Canonical Hours Display Mode**: How to display time when canonical hours are available (Auto/Canonical Only/Exact Time)
 - **Display Day of Week in Mini Widget**: Show abbreviated day name in mini widget
 - **Always Display Quick Time Buttons**: Show S&S time controls even when SmallTime is present
 
@@ -453,6 +454,77 @@ If you're using compatibility bridges (e.g., Simple Weather with Simple Calendar
 - **Escape**: Close open calendar dialogs
 
 _(Note: Additional keyboard shortcuts for time advancement planned for future updates)_
+
+## 🕐 Canonical Hours
+
+_Added in v0.12.0_
+
+Canonical hours allow calendars to display named time periods instead of exact times, perfect for fantasy settings where characters refer to time periods like "Strange's Bells" or medieval monastery hours.
+
+### What are Canonical Hours?
+
+Canonical hours are named time periods that replace exact time display when the current time falls within those periods. For example:
+
+- **"Strange's Bells"** might represent 3:00 AM - 6:00 AM
+- **"Dawn's Call"** might represent 9:00 AM - 11:00 AM
+- **"Matins"** (monastery hour) might represent 2:00 AM - 3:00 AM
+
+### How They Work
+
+When time display is enabled, Seasons & Stars will:
+
+1. **Check for canonical hours**: If the current time falls within a defined canonical hour period, display the canonical hour name
+2. **Fall back to exact time**: If no canonical hour matches, display the exact time (e.g., "07:30")
+3. **Respect display modes**: Honor the **Canonical Hours Display Mode** setting
+
+### Display Modes
+
+**Auto (Default)**: Shows canonical hour names when available, exact time otherwise
+
+- 4:30 AM → "Strange's Bells" (if 3-6 AM is defined)
+- 7:30 AM → "07:30" (if no canonical hour defined)
+
+**Canonical Only**: Shows only canonical hour names, hides time when no match
+
+- 4:30 AM → "Strange's Bells"
+- 7:30 AM → (time hidden completely)
+
+**Exact Time**: Always shows exact time, ignoring canonical hours
+
+- 4:30 AM → "04:30"
+- 7:30 AM → "07:30"
+
+### Midnight Wraparound
+
+Canonical hours can span midnight for periods like night watches:
+
+- **"Night Watch"**: 23:00 (11 PM) - 02:00 (2 AM)
+
+### Calendar Examples
+
+See the **Gregorian Canonical Hours** calendar variant for examples including:
+
+- Medieval monastery hours (Matins, Prime, Terce, Sext, None, Vespers, Compline)
+- Custom fantasy hours (Strange's Bells, Dawn's Call, etc.)
+
+### Creating Custom Canonical Hours
+
+Calendar creators can add canonical hours to any calendar by including them in the calendar JSON:
+
+```json
+{
+  "canonicalHours": [
+    {
+      "name": "Strange's Bells",
+      "startHour": 3,
+      "endHour": 6,
+      "description": "The mysterious bells that ring in the early morning"
+    }
+  ]
+}
+```
+
+See the [Developer Guide](./DEVELOPER-GUIDE.md) for complete technical details.
 
 ## 🎯 Best Practices
 

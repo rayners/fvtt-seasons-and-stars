@@ -582,6 +582,11 @@ export class CalendarManager {
       if (variant.overrides.moons !== undefined) {
         variantCalendar.moons = variant.overrides.moons;
       }
+
+      // Apply canonical hours overrides
+      if (variant.overrides.canonicalHours !== undefined) {
+        variantCalendar.canonicalHours = variant.overrides.canonicalHours;
+      }
     }
 
     return variantCalendar;

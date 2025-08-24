@@ -437,6 +437,23 @@ function registerSettings(): void {
     },
   });
 
+  game.settings.register('seasons-and-stars', 'miniWidgetCanonicalMode', {
+    name: 'Canonical Hours Display Mode',
+    hint: 'How to display time when canonical hours are available: Auto (canonical hours when available, exact time otherwise), Canonical Only (hide time when no canonical hour), or Exact Time (always show exact time)',
+    scope: 'client',
+    config: true,
+    type: String,
+    choices: {
+      auto: 'Auto (canonical or exact)',
+      canonical: 'Canonical hours only',
+      exact: 'Exact time only',
+    },
+    default: 'auto',
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetCanonicalMode');
+    },
+  });
+
   game.settings.register('seasons-and-stars', 'defaultWidget', {
     name: 'SEASONS_STARS.settings.default_widget',
     hint: 'SEASONS_STARS.settings.default_widget_hint',

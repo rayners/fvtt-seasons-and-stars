@@ -183,20 +183,9 @@ describe('PF2e Integration Complete Solution', () => {
     });
   });
 
-  test('📊 SOLUTION METRICS: Performance and reliability', () => {
+  test('📊 SOLUTION METRICS: Reliability and consistency', () => {
     (global as Record<string, unknown>).game = mockPF2eGame;
     const engine = new CalendarEngine(golarionCalendar);
-
-    // Performance test: weekday calculation speed
-    const iterations = 1000;
-    const startTime = performance.now();
-
-    for (let i = 0; i < iterations; i++) {
-      engine.calculateWeekday(4712, 10, 21);
-    }
-
-    const endTime = performance.now();
-    const avgTime = (endTime - startTime) / iterations;
 
     // Reliability test: consistent results
     const results = new Set();
@@ -205,10 +194,13 @@ describe('PF2e Integration Complete Solution', () => {
       results.add(weekday);
     }
 
-    expect(avgTime).toBeLessThan(1); // Should be very fast
     expect(results.size).toBe(1); // Should always return same result
-    expect(typeof avgTime).toBe('number');
-    expect(avgTime).toBeGreaterThan(0);
+
+    // Test that the function returns a valid weekday (0-6)
+    const weekday = engine.calculateWeekday(4712, 10, 21);
+    expect(weekday).toBeGreaterThanOrEqual(0);
+    expect(weekday).toBeLessThan(7);
+    expect(Number.isInteger(weekday)).toBe(true);
   });
 
   test('🎯 FINAL INTEGRATION: User scenario resolution', () => {

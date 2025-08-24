@@ -800,6 +800,62 @@ export class DateFormatter {
         '.0'
       );
     });
+
+    // Time display helper - supports canonical hours with exact time fallback
+    Handlebars.registerHelper('ss-time-display', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // Get the calendar ID and formatter from context
+      const calendarId = options?.data?.root?._calendarId;
+      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
+
+      if (!formatter) {
+        return '[ss-time-display: No formatter available]';
+      }
+
+      // Get current time context
+      const context = options?.data?.root;
+      const hour = context?.hour ?? 0;
+      const minute = context?.minute ?? 0;
+
+      // Get display mode from options or default to auto
+      const mode = options?.hash?.mode || 'canonical-or-exact';
+
+      // Check for canonical hours
+      const canonicalHours = formatter.calendar.canonicalHours;
+
+      if (mode === 'exact' || !canonicalHours || canonicalHours.length === 0) {
+        // Force exact time or no canonical hours available
+        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      }
+
+      if (mode === 'canonical-or-exact' || mode === 'canonical') {
+        // Look for matching canonical hour
+        const canonicalHour = DateFormatter.findCanonicalHour(
+          canonicalHours,
+          hour,
+          minute,
+          formatter.calendar
+        );
+
+        if (canonicalHour) {
+          return canonicalHour.name;
+        }
+
+        // No canonical hour found
+        if (mode === 'canonical') {
+          // Hide time when canonical mode is forced but no canonical hour available
+          return '';
+        }
+
+        // Fallback to exact time for canonical-or-exact mode
+        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      }
+
+      // Default fallback
+      return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    });
   }
 
   /**
@@ -828,6 +884,107 @@ export class DateFormatter {
       default:
         return `${day}th`;
     }
+  }
+
+  /**
+   * Find canonical hour that matches the given time
+   */
+  static findCanonicalHour(
+    canonicalHours: import('../types/calendar').CalendarCanonicalHour[],
+    hour: number,
+    minute: number,
+    calendar: import('../types/calendar').SeasonsStarsCalendar
+  ): import('../types/calendar').CalendarCanonicalHour | null {
+    if (!canonicalHours || canonicalHours.length === 0) {
+      return null;
+    }
+
+    const minutesInHour = calendar.time?.minutesInHour ?? 60;
+
+    for (const canonicalHour of canonicalHours) {
+      const startHour = canonicalHour.startHour;
+      const endHour = canonicalHour.endHour;
+      const startMinute = canonicalHour.startMinute ?? 0;
+      const endMinute = canonicalHour.endMinute ?? 0;
+
+      // Handle same-day time ranges (start < end)
+      if (startHour < endHour || (startHour === endHour && startMinute < endMinute)) {
+        if (
+          DateFormatter.isTimeInRange(
+            hour,
+            minute,
+            startHour,
+            startMinute,
+            endHour,
+            endMinute,
+            minutesInHour
+          )
+        ) {
+          return canonicalHour;
+        }
+      }
+      // Handle midnight wraparound (start > end, e.g., 23:00 to 02:00)
+      else if (startHour > endHour || (startHour === endHour && startMinute > endMinute)) {
+        // Time is after start time OR before end time
+        if (
+          DateFormatter.isTimeAfterOrEqual(hour, minute, startHour, startMinute, minutesInHour) ||
+          DateFormatter.isTimeBeforeOrEqual(hour, minute, endHour, endMinute, minutesInHour)
+        ) {
+          return canonicalHour;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Check if time is within a range (inclusive start, exclusive end)
+   */
+  private static isTimeInRange(
+    hour: number,
+    minute: number,
+    startHour: number,
+    startMinute: number,
+    endHour: number,
+    endMinute: number,
+    minutesInHour: number
+  ): boolean {
+    const timeInMinutes = hour * minutesInHour + minute;
+    const startInMinutes = startHour * minutesInHour + startMinute;
+    const endInMinutes = endHour * minutesInHour + endMinute;
+
+    return timeInMinutes >= startInMinutes && timeInMinutes < endInMinutes;
+  }
+
+  /**
+   * Check if time is after or equal to reference time
+   */
+  private static isTimeAfterOrEqual(
+    hour: number,
+    minute: number,
+    refHour: number,
+    refMinute: number,
+    minutesInHour: number
+  ): boolean {
+    const timeInMinutes = hour * minutesInHour + minute;
+    const refInMinutes = refHour * minutesInHour + refMinute;
+    return timeInMinutes >= refInMinutes;
+  }
+
+  /**
+   * Check if time is before or equal to reference time
+   */
+  private static isTimeBeforeOrEqual(
+    hour: number,
+    minute: number,
+    refHour: number,
+    refMinute: number,
+    minutesInHour: number
+  ): boolean {
+    const timeInMinutes = hour * minutesInHour + minute;
+    const refInMinutes = refHour * minutesInHour + refMinute;
+    return timeInMinutes <= refInMinutes;
   }
 
   /**

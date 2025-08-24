@@ -17,6 +17,7 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Calendar Pack Auto-Detection**: Automatically discovers and loads calendar modules following the `seasons-and-stars-*` naming convention - no JavaScript required, just JSON data files
 - **External Calendar Registration**: New hook system (v0.8.0+) allows modules to register calendars programmatically for dynamic calendar loading
 - **Advanced Date Formatting**: Handlebars-based templates with mathematical operations, format embedding, and era-specific calculations (like Star Trek stardates)
+- **Canonical Hours**: Time period naming system for fantasy settings (e.g., "Strange's Bells" for 3-6 AM, medieval monastery hours)
 - **Calendar Variants System**: Cultural and regional calendar variations (e.g., Golarion has Absalom Reckoning, Imperial, Varisian, and Earth Historical variants)
 
 ### ✅ **Notes System (Basic Creation)**
