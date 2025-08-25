@@ -244,6 +244,67 @@ The pause system coordinates with other pause sources for predictable behavior:
 - Pause game during breaks → time advancement stops automatically
 - Resume after break → time advancement continues from where it left off
 
+### Time Advancement Button Behavior
+
+_Improved in v0.12.0_
+
+The time advancement play/pause button now provides clearer, more intuitive behavior regardless of game state:
+
+#### Intelligent Button States
+
+**Visual State Logic:**
+
+- **Pause Button (⏸️)**: Shows when time advancement is active OR when it was active before being auto-paused
+- **Play Button (▶️)**: Shows when time advancement is fully stopped by user action
+
+**Why This Matters:**
+
+- Button state now reflects user intent, not just internal technical state
+- No more confusion about whether time advancement is "really" running
+- Clear visual feedback about what will happen when you click
+
+#### One-Click Control
+
+**Consistent Single-Click Behavior:**
+
+- **When game is running**: Click works immediately (play/pause as expected)
+- **When game is paused**: Click works immediately (no double-clicking required)
+- **After auto-pause**: Single click to manually pause prevents auto-resume
+
+**Previous Issue (Fixed):**
+In earlier versions, clicking the pause button while the game was paused required two clicks to properly stop time advancement. This has been resolved.
+
+#### Manual Override of Auto-Pause
+
+**User Control Priority:**
+
+- **Auto-pause active**: Button shows pause state, allowing you to "lock in" the pause
+- **Manual pause after auto-pause**: Time advancement stays paused even when auto-pause conditions clear
+- **Clear user intent**: Your manual pause action overrides automatic resume behavior
+
+**Example Workflow:**
+
+1. Time advancement is running → Game pauses → Auto-pause activates
+2. Button shows pause state (⏸️) → Click once → Manual pause locked in
+3. Game unpauses → Time advancement stays paused (respects your manual choice)
+
+#### Multi-Source Pause Coordination
+
+**Smart State Management:**
+
+- System tracks difference between automatic pause (game/combat) and manual pause (user action)
+- UI button state reflects the effective state (what you'll get when you click)
+- Manual pause always takes priority over automatic resume
+
+**Visual Indicators:**
+
+- **Active**: Green/active button styling when time is actively advancing
+- **Auto-paused**: Pause button available to manually stop (prevents auto-resume)
+- **Manually paused**: Play button available to restart time advancement
+- **Blocked**: Clear feedback when advancement is blocked by external conditions
+
+This improved system ensures the time advancement controls work predictably and intuitively, regardless of game pause state, combat status, or other external factors.
+
 ## 🗓️ Calendar Selection
 
 ### Available Calendar Systems (16 Total)
