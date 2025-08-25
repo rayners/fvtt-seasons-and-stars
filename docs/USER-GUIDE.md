@@ -170,6 +170,80 @@ For new worlds using the Gregorian calendar:
 - Only applies to worlds with worldTime = 0 (new worlds)
 - Only affects Gregorian calendar (not fantasy calendars)
 
+### Game Pause Integration
+
+_Added in v0.12.1_
+
+Seasons & Stars can automatically sync with Foundry's game pause state to provide seamless time management during gameplay.
+
+#### How It Works
+
+When **"Sync with Game Pause"** is enabled in world settings:
+
+- **Game Paused**: Time advancement automatically pauses
+- **Game Unpaused**: Time advancement resumes (if it was active before the pause)
+- **Smart Resume**: Only resumes if time advancement was running before the game was paused
+- **GM Control**: Only GMs can trigger resume actions for security
+
+#### Multi-Source Pause Behavior
+
+The pause system coordinates with other pause sources for predictable behavior:
+
+**Pause Sources:**
+
+- **Game Pause**: Foundry's built-in pause button (spacebar)
+- **Combat Pause**: Automatic pause when combat starts (if enabled)
+
+**Pause Combinations:**
+
+| Game Status | Combat Status | Time Advancement             |
+| ----------- | ------------- | ---------------------------- |
+| Running     | No Combat     | ✅ **Active** (if enabled)   |
+| Running     | In Combat     | ⏸️ **Paused** (combat pause) |
+| Paused      | No Combat     | ⏸️ **Paused** (game pause)   |
+| Paused      | In Combat     | ⏸️ **Paused** (both sources) |
+
+**Resume Logic:**
+
+- Time advancement only resumes when **ALL** blocking conditions are cleared
+- If game is unpaused but combat is still active, time remains paused
+- If combat ends but game is still paused, time remains paused
+- Time only resumes when both game is running AND no combat is active
+
+#### Configuration
+
+**To Enable Game Pause Sync:**
+
+1. Go to **Game Settings → Module Settings → Seasons & Stars**
+2. Find **"Sync with Game Pause"** in the **Time Advancement** section
+3. Enable the setting (enabled by default)
+4. Setting change takes effect immediately
+
+**User Feedback:**
+
+- Notification messages inform when time advancement is paused/resumed due to game pause
+- Messages clearly indicate the reason for pause/resume actions
+- Messages only appear for GMs to avoid player notification spam
+
+#### Use Cases
+
+**During Roleplay:**
+
+- Pause the game for discussion → time advancement automatically stops
+- Resume the game → time advancement continues seamlessly
+
+**Combat Management:**
+
+- Combat starts → time paused (combat pause)
+- GM pauses game mid-combat for rules discussion → time stays paused
+- GM unpauses game, combat continues → time stays paused (combat still active)
+- Combat ends, game still running → time resumes automatically
+
+**Session Planning:**
+
+- Pause game during breaks → time advancement stops automatically
+- Resume after break → time advancement continues from where it left off
+
 ## 🗓️ Calendar Selection
 
 ### Available Calendar Systems (16 Total)
@@ -256,6 +330,7 @@ Access via **Game Settings → Module Settings → Seasons & Stars**:
 - **Time Advancement Ratio**: Speed of automatic time progression (0.1 to 100.0x)
 - **Pause Time on Combat**: Automatically pause time advancement during combat
 - **Resume Time After Combat**: Automatically resume time advancement when combat ends
+- **Sync with Game Pause**: Automatically pause time advancement when Foundry's game is paused (see [Game Pause Integration](#game-pause-integration))
 
 **Notes System:**
 
