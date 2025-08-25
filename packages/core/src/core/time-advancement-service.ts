@@ -190,7 +190,7 @@ export class TimeAdvancementService {
   getPauseState(): { isPaused: boolean; reason: string | null; canResume: boolean } {
     // Check external blocking conditions first, even if not currently active
     if (this.isBlockedByOtherReasons()) {
-      const reasons = [];
+      const reasons: string[] = [];
 
       if (this.shouldSyncWithGamePause() && game.paused) {
         reasons.push('Game paused');
