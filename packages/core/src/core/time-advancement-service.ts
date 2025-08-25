@@ -50,6 +50,39 @@ import type { CalendarManagerInterface } from '../types/foundry-extensions';
  * The TimeAdvancementService provides automated time progression with intelligent
  * interval calculation, combat awareness, and robust error handling. It follows
  * the singleton pattern to ensure only one instance manages time advancement.
+ *
+ * ## Multi-Source Pause Management
+ *
+ * This service coordinates multiple pause sources to provide comprehensive control:
+ *
+ * ### Pause Sources:
+ * 1. **Game Pause**: Foundry's global pause button (controlled by `syncWithGamePause` setting)
+ * 2. **Combat Pause**: Automatic pause when combat starts (controlled by `pauseOnCombat` setting)
+ *
+ * ### Pause Interaction Matrix:
+ * ```
+ * Game Paused | Combat Active | Time Advancement State
+ * ------------|---------------|---------------------
+ * No          | No            | ✅ Can run normally
+ * No          | Yes           | ❌ Paused (combat)
+ * Yes         | No            | ❌ Paused (game)
+ * Yes         | Yes           | ❌ Paused (both)
+ * ```
+ *
+ * ### Resume Logic:
+ * - **Game Unpause**: Resumes only if no combat active and was previously running
+ * - **Combat End**: Resumes only if game not paused and was previously running
+ * - **Both Clear**: Resumes if was previously running (GM permission required)
+ *
+ * ### Permission Model:
+ * - **Pause**: Any user can pause via combat start or game pause
+ * - **Resume**: Only GMs can trigger automatic resume for security
+ * - **Manual**: GMs can always manually start/stop via UI
+ *
+ * ### Settings Control:
+ * - `syncWithGamePause` (default: true): Enable/disable game pause synchronization
+ * - `pauseOnCombat` (default: true): Enable/disable combat pause
+ * - `resumeAfterCombat` (default: false): Enable/disable combat resume
  */
 export class TimeAdvancementService {
   private static instance: TimeAdvancementService | null = null;
@@ -57,16 +90,18 @@ export class TimeAdvancementService {
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private advancementRatio: number = 1;
   private lastAdvancement: number = 0;
+  private wasActiveBeforePause: boolean = false;
   /**
    * Private constructor to enforce singleton pattern
-   * Registers combat hooks immediately - they'll check settings when called
+   * Registers hooks immediately - they'll check settings when called
    */
   private constructor() {
     Logger.debug('TimeAdvancementService instance created');
 
-    // Register combat hooks once - they'll check settings when triggered
+    // Register hooks once - they'll check settings when triggered
     Hooks.on('combatStart', this.handleCombatStart.bind(this));
     Hooks.on('deleteCombat', this.handleCombatEnd.bind(this));
+    Hooks.on('pauseGame', this.handleGamePause.bind(this));
   }
 
   /**
@@ -357,6 +392,7 @@ export class TimeAdvancementService {
 
     this.stopAdvancement();
     this._isActive = false;
+    this.wasActiveBeforePause = false; // Reset pause state for clean testing
   }
 
   /**
@@ -438,6 +474,12 @@ export class TimeAdvancementService {
       return false;
     }
 
+    // Check if game is paused and we should respect that
+    if (this.shouldSyncWithGamePause() && game.paused) {
+      Logger.debug('Game is paused - preventing time advancement start');
+      return false;
+    }
+
     return true;
   }
 
@@ -475,22 +517,71 @@ export class TimeAdvancementService {
 
   /**
    * Handle combat start - pause if configured to do so
+   *
+   * **Combat Pause Behavior:**
+   * This handler works independently but coordinates with game pause:
+   *
+   * **When Combat Starts:**
+   * - Pauses time advancement if currently active and setting enabled
+   * - Sets wasActiveBeforePause flag for potential later resume
+   * - Available to all users (GM and players can pause)
+   * - Shows notification about combat pause
+   *
+   * **Interaction with Game Pause:**
+   * - If game is already paused: Combat pause adds additional blocking condition
+   * - Both sources maintain separate wasActiveBeforePause tracking
+   * - Time will only resume when ALL blocking conditions are cleared
+   *
+   * **Setting Control:**
+   * - Controlled by 'pauseOnCombat' world setting
+   * - When disabled, combat start/end events are ignored for time advancement
+   * - Game pause continues to work independently
+   *
    * @param combat The combat that started
    * @param updateData Combat update data
    * @private
    */
   private handleCombatStart = (_combat: Combat, _updateData?: any): void => {
-    if (!this.shouldPauseOnCombat()) {
+    if (!this.getSettingValue('pauseOnCombat', true)) {
       return;
     }
 
-    Logger.info('Combat started - pausing time advancement');
-    this.pause();
-    ui.notifications?.info('Time advancement paused for combat');
+    if (this._isActive) {
+      this.wasActiveBeforePause = true;
+      this.pause();
+      ui.notifications?.info('Time advancement paused for combat');
+      Logger.info('Combat started - pausing time advancement');
+    }
   };
 
   /**
    * Handle combat end - resume if configured to do so
+   *
+   * **Combat Resume Behavior:**
+   * This handler coordinates with game pause to ensure proper resume logic:
+   *
+   * **When Combat Ends:**
+   * - Only GMs can trigger auto-resume (security measure)
+   * - Checks if time advancement was active before combat started
+   * - Only resumes if 'resumeAfterCombat' setting is enabled
+   * - Only resumes if NO other blocking conditions exist (game pause, etc.)
+   * - Clears wasActiveBeforePause flag to prevent duplicate resumes
+   *
+   * **Multi-Source Resume Logic:**
+   * - Combat end + Game paused: Time remains paused (game pause blocks)
+   * - Combat end + Game unpaused + was active before: Time resumes
+   * - Uses isBlockedByOtherReasons() to check all blocking conditions
+   *
+   * **Permission Model:**
+   * - Only GMs can auto-resume time advancement for security
+   * - Players can pause (via combat start) but cannot auto-resume
+   * - Manual resume always available to GMs via UI controls
+   *
+   * **Setting Control:**
+   * - Controlled by 'resumeAfterCombat' world setting
+   * - When disabled, combat end never triggers auto-resume
+   * - Manual resume still available to GMs
+   *
    * @param combat The combat that ended
    * @param options Combat deletion options
    * @param userId The user who ended the combat
@@ -502,32 +593,124 @@ export class TimeAdvancementService {
       return;
     }
 
-    if (!this.shouldResumeAfterCombat()) {
+    if (!this.getSettingValue('resumeAfterCombat', false)) {
       return;
     }
 
-    Logger.info('Combat ended - resuming time advancement');
-    this.play().catch(error => {
-      Logger.error('Failed to resume time advancement after combat', error as Error);
-      ui.notifications?.error('Failed to resume time advancement after combat');
-    });
+    if (this.wasActiveBeforePause && !this._isActive && !this.isBlockedByOtherReasons()) {
+      this.wasActiveBeforePause = false;
+      Logger.info('Combat ended - resuming time advancement');
+      this.play().catch(error => {
+        Logger.error('Failed to resume time advancement after combat', error as Error);
+        ui.notifications?.error('Failed to resume time advancement after combat');
+      });
+    }
   };
 
   /**
-   * Check if time advancement should pause on combat start
-   * @returns true if should pause on combat
+   * Check if time advancement should sync with game pause state
+   * @returns true if should sync with game pause
    * @private
    */
-  private shouldPauseOnCombat(): boolean {
-    return this._isActive && this.getSettingValue('pauseOnCombat', true);
+  private shouldSyncWithGamePause(): boolean {
+    return this.getSettingValue('syncWithGamePause', true);
   }
 
   /**
-   * Check if time advancement should resume after combat
-   * @returns true if should resume after combat
+   * Check if advancement is blocked by other conditions (game pause or combat)
+   *
+   * **Multi-Source Blocking Logic:**
+   * This method ensures that time advancement only resumes when ALL blocking
+   * conditions are cleared, preventing premature resume when multiple pause
+   * sources are active.
+   *
+   * **Checked Blocking Conditions:**
+   * 1. **Game Pause**: Foundry's global pause state (if sync enabled)
+   * 2. **Active Combat**: Any combat encounter in progress
+   *
+   * **Usage Scenarios:**
+   * - Called before auto-resume in game pause handler
+   * - Called before auto-resume in combat end handler
+   * - Prevents resume when one condition clears but others remain
+   *
+   * **Examples:**
+   * - Game unpauses but combat is active: Returns true (blocked by combat)
+   * - Combat ends but game is paused: Returns true (blocked by game pause)
+   * - Both game unpaused and no combat: Returns false (not blocked)
+   *
+   * @returns true if blocked by any condition, false if safe to resume
    * @private
    */
-  private shouldResumeAfterCombat(): boolean {
-    return !this._isActive && this.getSettingValue('resumeAfterCombat', false);
+  private isBlockedByOtherReasons(): boolean {
+    const gamePauseBlocking = this.shouldSyncWithGamePause() && game.paused;
+    const combatBlocking = this.getSettingValue('pauseOnCombat', true) && game.combat?.started;
+
+    return gamePauseBlocking || combatBlocking;
   }
+
+  /**
+   * Handle game pause/unpause events
+   *
+   * **Multi-Source Pause Behavior:**
+   * This handler works alongside combat pause to provide comprehensive pause management:
+   *
+   * **When Game is Paused:**
+   * - Pauses time advancement if currently active
+   * - Sets wasActiveBeforePause flag for later resume
+   * - Shows notification to all users
+   *
+   * **When Game is Unpaused:**
+   * - Only GMs can trigger auto-resume (security measure)
+   * - Checks if time advancement was active before the pause
+   * - Only resumes if NO other blocking conditions exist (combat, etc.)
+   * - Clears wasActiveBeforePause flag to prevent duplicate resumes
+   *
+   * **Interaction with Combat Pause:**
+   * - Game pause + Combat active: Time stays paused until BOTH are cleared
+   * - Game unpause while combat active: Time remains paused
+   * - Combat end while game paused: Time remains paused
+   * - Both conditions cleared: Time resumes automatically (GM only)
+   *
+   * **Setting Control:**
+   * - Controlled by 'syncWithGamePause' world setting
+   * - When disabled, game pause/unpause events are ignored
+   * - Combat pause continues to work independently
+   *
+   * @param paused Current pause state (true = game paused, false = game unpaused)
+   * @param options Hook options with broadcast and userId info
+   * @private
+   */
+  private handleGamePause = (paused: boolean, options?: any): void => {
+    if (!this.shouldSyncWithGamePause()) {
+      return;
+    }
+
+    Logger.debug(`Game pause state changed: ${paused ? 'paused' : 'unpaused'}`, options);
+
+    if (paused) {
+      // Game was paused - pause time advancement if it's running
+      if (this._isActive) {
+        this.wasActiveBeforePause = true;
+        this.pause();
+        ui.notifications?.info('Time advancement paused (game paused)');
+        Logger.info('Time advancement paused due to game pause');
+      }
+    } else {
+      // Game was unpaused - resume if was active before and no other blocks
+      if (!game.user?.isGM) {
+        Logger.debug('Non-GM user cannot auto-resume time advancement');
+        return;
+      }
+
+      if (this.wasActiveBeforePause && !this._isActive && !this.isBlockedByOtherReasons()) {
+        this.wasActiveBeforePause = false;
+        this.play().catch(error => {
+          Logger.error('Failed to resume time advancement after game unpause', error as Error);
+          ui.notifications?.error('Failed to resume time advancement after game unpause');
+        });
+        ui.notifications?.info('Time advancement resumed (game unpaused)');
+        Logger.info('Time advancement resumed after game unpause');
+      }
+    }
+  };
 }

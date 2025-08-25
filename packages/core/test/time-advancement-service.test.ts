@@ -65,6 +65,7 @@ describe('TimeAdvancementService', () => {
         timeAdvancementRatio: 1.0,
         pauseOnCombat: true,
         resumeAfterCombat: false,
+        syncWithGamePause: true,
       };
       return defaults[key];
     });
@@ -283,20 +284,34 @@ describe('TimeAdvancementService', () => {
       vi.useRealTimers();
     });
 
-    it('should resume when combat ends if inactive and setting enabled', async () => {
+    it('should resume when combat ends if was active before and setting enabled', async () => {
       mockGame.settings.get.mockImplementation((module: string, key: string) => {
-        if (key === 'resumeAfterCombat') return true;
-        return key === 'timeAdvancementRatio' ? 1.0 : false;
+        const defaults: Record<string, any> = {
+          timeAdvancementRatio: 1.0,
+          pauseOnCombat: true,
+          resumeAfterCombat: true,
+          syncWithGamePause: true,
+        };
+        return defaults[key] ?? false;
       });
 
+      // Start with advancement active, then pause due to combat
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      // Trigger combat start to pause
+      const combatStartHandler = (service as any).handleCombatStart;
+      combatStartHandler({ id: 'test-combat' });
       expect(service.isActive).toBe(false);
 
       // Simulate combat end
       const combatEndHandler = (service as any).handleCombatEnd;
       const mockCombat = { id: 'test-combat' };
 
-      // Mock the play method to avoid actual timer setup
-      const playMock = vi.spyOn(service, 'play').mockResolvedValue();
+      // Mock the play method to avoid actual timer setup but simulate state change
+      const playMock = vi.spyOn(service, 'play').mockImplementation(async () => {
+        (service as any)._isActive = true; // Simulate the state change
+      });
 
       combatEndHandler(mockCombat, {}, 'user-id');
 
@@ -305,23 +320,38 @@ describe('TimeAdvancementService', () => {
 
     it('should only resume for GMs when combat ends', async () => {
       mockGame.settings.get.mockImplementation((module: string, key: string) => {
-        if (key === 'resumeAfterCombat') return true;
-        return key === 'timeAdvancementRatio' ? 1.0 : false;
+        const defaults: Record<string, any> = {
+          timeAdvancementRatio: 1.0,
+          pauseOnCombat: true,
+          resumeAfterCombat: true,
+          syncWithGamePause: true,
+        };
+        return defaults[key] ?? false;
       });
 
+      // Start with advancement active for both tests
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      // Pause via combat
+      const combatStartHandler = (service as any).handleCombatStart;
+      combatStartHandler({ id: 'test-combat' });
       expect(service.isActive).toBe(false);
 
       // Test GM user can resume
       mockGame.user.isGM = true;
       const combatEndHandler = (service as any).handleCombatEnd;
       const mockCombat = { id: 'test-combat' };
-      const playMock = vi.spyOn(service, 'play').mockResolvedValue();
+      const playMock = vi.spyOn(service, 'play').mockImplementation(async () => {
+        (service as any)._isActive = true; // Simulate the state change
+      });
 
       combatEndHandler(mockCombat, {}, 'user-id');
       expect(playMock).toHaveBeenCalled();
 
-      // Reset for next test
+      // Reset for next test - need to set wasActiveBeforePause again
       playMock.mockClear();
+      (service as any).wasActiveBeforePause = true; // Reset state for non-GM test
 
       // Test non-GM user cannot resume
       mockGame.user.isGM = false;
@@ -526,6 +556,181 @@ describe('TimeAdvancementService', () => {
       expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 1000);
 
       vi.useRealTimers();
+    });
+  });
+
+  describe('Game Pause Sync', () => {
+    beforeEach(() => {
+      // Mock game.paused property
+      (mockGame as any).paused = false;
+
+      // Setup syncWithGamePause setting to return true by default
+      mockGame.settings.get.mockImplementation((module: string, key: string) => {
+        const defaults: Record<string, any> = {
+          timeAdvancementRatio: 1.0,
+          pauseOnCombat: true,
+          resumeAfterCombat: false,
+          syncWithGamePause: true,
+        };
+        return defaults[key];
+      });
+    });
+
+    it('should register pauseGame hook listener on construction', () => {
+      expect(mockHooks.on).toHaveBeenCalledWith('pauseGame', expect.any(Function));
+    });
+
+    it('should pause time advancement when game is paused', async () => {
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      // Simulate game pause event
+      const pauseHandler = mockHooks.on.mock.calls.find(call => call[0] === 'pauseGame')[1];
+      pauseHandler(true);
+
+      expect(service.isActive).toBe(false);
+    });
+
+    it('should resume time advancement when game is unpaused', async () => {
+      // Start with advancement active, then pause via game
+      await service.play();
+      const pauseHandler = mockHooks.on.mock.calls.find(call => call[0] === 'pauseGame')[1];
+
+      // Simulate game pause
+      (mockGame as any).paused = true;
+      pauseHandler(true);
+      expect(service.isActive).toBe(false);
+
+      // Now unpause the game
+      (mockGame as any).paused = false;
+      pauseHandler(false);
+
+      expect(service.isActive).toBe(true);
+    });
+
+    it('should not pause if syncWithGamePause setting is disabled', async () => {
+      // Disable the setting
+      mockGame.settings.get.mockImplementation((module: string, key: string) => {
+        const defaults: Record<string, any> = {
+          timeAdvancementRatio: 1.0,
+          pauseOnCombat: true,
+          resumeAfterCombat: false,
+          syncWithGamePause: false,
+        };
+        return defaults[key];
+      });
+
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      // Simulate game pause event
+      const pauseHandler = mockHooks.on.mock.calls.find(call => call[0] === 'pauseGame')[1];
+      pauseHandler(true);
+
+      // Should still be active since sync is disabled
+      expect(service.isActive).toBe(true);
+    });
+
+    it('should prevent starting advancement if game is paused and sync enabled', async () => {
+      (mockGame as any).paused = true;
+
+      await service.play();
+
+      expect(service.isActive).toBe(false);
+    });
+
+    it('should handle multiple pause sources - game pause then combat start', async () => {
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      // First game pause
+      const pauseHandler = mockHooks.on.mock.calls.find(call => call[0] === 'pauseGame')[1];
+      pauseHandler(true);
+      expect(service.isActive).toBe(false);
+
+      // Then combat starts (should still be paused)
+      const combatStartHandler = mockHooks.on.mock.calls.find(call => call[0] === 'combatStart')[1];
+      combatStartHandler({});
+      expect(service.isActive).toBe(false);
+
+      // Game unpause should not resume (combat still active)
+      const mockCombat = { started: true };
+      (mockGame as any).combat = mockCombat;
+      pauseHandler(false);
+      expect(service.isActive).toBe(false);
+    });
+
+    it('should handle multiple pause sources - combat start then game pause', async () => {
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      // First combat starts
+      const combatStartHandler = mockHooks.on.mock.calls.find(call => call[0] === 'combatStart')[1];
+      combatStartHandler({});
+      expect(service.isActive).toBe(false);
+
+      // Then game pause
+      const pauseHandler = mockHooks.on.mock.calls.find(call => call[0] === 'pauseGame')[1];
+      pauseHandler(true);
+      expect(service.isActive).toBe(false);
+
+      // Combat end should not resume (game still paused)
+      (mockGame as any).paused = true;
+      const combatEndHandler = mockHooks.on.mock.calls.find(call => call[0] === 'deleteCombat')[1];
+      combatEndHandler({});
+      expect(service.isActive).toBe(false);
+    });
+
+    it('should resume when all blocking conditions are cleared', async () => {
+      // Enable resume after combat for this test
+      mockGame.settings.get.mockImplementation((module: string, key: string) => {
+        const defaults: Record<string, any> = {
+          timeAdvancementRatio: 1.0,
+          pauseOnCombat: true,
+          resumeAfterCombat: true,
+          syncWithGamePause: true,
+        };
+        return defaults[key];
+      });
+
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      // Set up handlers
+      const pauseHandler = mockHooks.on.mock.calls.find(call => call[0] === 'pauseGame')[1];
+      const combatStartHandler = mockHooks.on.mock.calls.find(call => call[0] === 'combatStart')[1];
+      const combatEndHandler = mockHooks.on.mock.calls.find(call => call[0] === 'deleteCombat')[1];
+
+      // Pause due to game and combat
+      (mockGame as any).paused = true;
+      pauseHandler(true);
+      combatStartHandler({});
+      expect(service.isActive).toBe(false);
+
+      // Clear game pause first (should still be paused due to combat)
+      (mockGame as any).paused = false;
+      (mockGame as any).combat = { started: true };
+      pauseHandler(false);
+      expect(service.isActive).toBe(false);
+
+      // Now clear combat (should resume)
+      (mockGame as any).combat = null;
+      combatEndHandler({});
+      expect(service.isActive).toBe(true);
+    });
+
+    it('should not resume for non-GM users when game is unpaused', async () => {
+      // Set user to non-GM
+      mockGame.user.isGM = false;
+
+      await service.play();
+      const pauseHandler = mockHooks.on.mock.calls.find(call => call[0] === 'pauseGame')[1];
+      pauseHandler(true);
+      expect(service.isActive).toBe(false);
+
+      // Non-GM unpause should not resume
+      pauseHandler(false);
+      expect(service.isActive).toBe(false);
     });
   });
 });
