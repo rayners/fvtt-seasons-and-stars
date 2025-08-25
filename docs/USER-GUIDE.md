@@ -172,7 +172,7 @@ For new worlds using the Gregorian calendar:
 
 ### Game Pause Integration
 
-_Added in v0.12.1_
+_Added in v0.12.0_
 
 Seasons & Stars can automatically sync with Foundry's game pause state to provide seamless time management during gameplay.
 
