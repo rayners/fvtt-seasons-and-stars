@@ -563,6 +563,10 @@ describe('TimeAdvancementService', () => {
     beforeEach(() => {
       // Mock game.paused property
       (mockGame as any).paused = false;
+      (mockGame as any).combat = null;
+
+      // Ensure user is GM by default for these tests
+      mockGame.user.isGM = true;
 
       // Setup syncWithGamePause setting to return true by default
       mockGame.settings.get.mockImplementation((module: string, key: string) => {

@@ -643,7 +643,8 @@ export class TimeAdvancementService {
    */
   private isBlockedByOtherReasons(): boolean {
     const gamePauseBlocking = this.shouldSyncWithGamePause() && game.paused;
-    const combatBlocking = this.getSettingValue('pauseOnCombat', true) && game.combat?.started;
+    const combatBlocking =
+      this.getSettingValue('pauseOnCombat', true) && (game.combat?.started ?? false);
 
     return gamePauseBlocking || combatBlocking;
   }
