@@ -161,6 +161,46 @@ export class TimeAdvancementService {
   }
 
   /**
+   * Get the current pause state and reason for UI display
+   *
+   * @returns Object with pause state and human-readable reason
+   */
+  getPauseState(): { isPaused: boolean; reason: string | null; canResume: boolean } {
+    // Check external blocking conditions first, even if not currently active
+    if (this.isBlockedByOtherReasons()) {
+      const reasons = [];
+
+      if (this.shouldSyncWithGamePause() && game.paused) {
+        reasons.push('Game paused');
+      }
+
+      if (this.getSettingValue('pauseOnCombat', true) && (game.combat?.started ?? false)) {
+        reasons.push('Combat active');
+      }
+
+      return {
+        isPaused: true,
+        reason: reasons.length > 1 ? reasons.join(' & ') : reasons[0] || 'Blocked',
+        canResume: false, // Can't manually resume while blocked by external factors
+      };
+    }
+
+    if (!this._isActive) {
+      return {
+        isPaused: true,
+        reason: 'Time advancement stopped',
+        canResume: game.user?.isGM || false,
+      };
+    }
+
+    return {
+      isPaused: false,
+      reason: null,
+      canResume: true,
+    };
+  }
+
+  /**
    * Initialize the service (hooks are already registered in constructor)
    */
   initialize(): void {
@@ -234,6 +274,7 @@ export class TimeAdvancementService {
       this._isActive = true;
       await this.startAdvancement();
       this.callHookSafely('seasons-stars:timeAdvancementStarted', this.advancementRatio);
+      this.callHookSafely('seasons-stars:pauseStateChanged', this.getPauseState());
     } catch (error) {
       this._isActive = false;
       ui.notifications?.error('Failed to start time advancement');
@@ -298,6 +339,7 @@ export class TimeAdvancementService {
     this._isActive = false;
     this.stopAdvancement();
     this.callHookSafely('seasons-stars:timeAdvancementPaused');
+    this.callHookSafely('seasons-stars:pauseStateChanged', this.getPauseState());
   }
 
   /**
@@ -425,6 +467,12 @@ export class TimeAdvancementService {
 
     this.intervalId = setInterval(() => {
       try {
+        // Check if advancement should be blocked before advancing
+        if (this.isAdvancementBlocked()) {
+          // Logger.debug('Time advancement temporarily blocked, skipping interval');
+          return;
+        }
+
         this.advanceTime();
       } catch (error) {
         Logger.error('Time advancement error, auto-pausing', error as Error);
@@ -552,6 +600,8 @@ export class TimeAdvancementService {
       ui.notifications?.info('Time advancement paused for combat');
       Logger.info('Combat started - pausing time advancement');
     }
+    // Notify UI about pause state change when combat starts
+    this.callHookSafely('seasons-stars:pauseStateChanged', this.getPauseState());
   };
 
   /**
@@ -605,6 +655,8 @@ export class TimeAdvancementService {
         ui.notifications?.error('Failed to resume time advancement after combat');
       });
     }
+    // Notify UI about pause state change after combat ends
+    this.callHookSafely('seasons-stars:pauseStateChanged', this.getPauseState());
   };
 
   /**
@@ -647,6 +699,20 @@ export class TimeAdvancementService {
       this.getSettingValue('pauseOnCombat', true) && (game.combat?.started ?? false);
 
     return gamePauseBlocking || combatBlocking;
+  }
+
+  /**
+   * Check if time advancement should be blocked on current interval tick
+   *
+   * This method checks real-time blocking conditions that might change between
+   * interval ticks, allowing the interval to continue running but skip actual
+   * time advancement when temporarily blocked.
+   *
+   * @returns true if advancement should be skipped this tick, false to proceed
+   * @private
+   */
+  private isAdvancementBlocked(): boolean {
+    return this.isBlockedByOtherReasons();
   }
 
   /**
@@ -696,6 +762,8 @@ export class TimeAdvancementService {
         ui.notifications?.info('Time advancement paused (game paused)');
         Logger.info('Time advancement paused due to game pause');
       }
+      // Notify UI about pause state change even if time advancement wasn't active
+      this.callHookSafely('seasons-stars:pauseStateChanged', this.getPauseState());
     } else {
       // Game was unpaused - resume if was active before and no other blocks
       if (!game.user?.isGM) {
@@ -712,6 +780,8 @@ export class TimeAdvancementService {
         ui.notifications?.info('Time advancement resumed (game unpaused)');
         Logger.info('Time advancement resumed after game unpause');
       }
+      // Notify UI about pause state change
+      this.callHookSafely('seasons-stars:pauseStateChanged', this.getPauseState());
     }
   };
 }
