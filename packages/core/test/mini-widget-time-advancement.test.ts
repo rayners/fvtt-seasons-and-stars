@@ -12,6 +12,7 @@ import type { SeasonsStarsCalendar } from '../src/types/calendar';
 // Mock TimeAdvancementService with a dynamic mock
 let mockServiceInstance: any = {
   isActive: false,
+  shouldShowPauseButton: false,
   play: vi.fn().mockResolvedValue(undefined),
   pause: vi.fn(),
   updateRatio: vi.fn(),
@@ -75,6 +76,7 @@ describe('Mini Widget Time Advancement Integration', () => {
     // Reset the mock instance that the mocked module will return
     mockServiceInstance = {
       isActive: false,
+      shouldShowPauseButton: false,
       play: vi.fn().mockResolvedValue(undefined),
       pause: vi.fn(),
       updateRatio: vi.fn(),
@@ -166,6 +168,7 @@ describe('Mini Widget Time Advancement Integration', () => {
     it('should show active state when service is active', async () => {
       // Update the service mock to show active state
       mockServiceInstance.isActive = true;
+      mockServiceInstance.shouldShowPauseButton = true;
 
       // Update settings to return 2 (not 2.0) for clean display
       global.game.settings.get = vi.fn().mockImplementation((module: string, key: string) => {
@@ -227,6 +230,7 @@ describe('Mini Widget Time Advancement Integration', () => {
 
     it('should pause time advancement when currently active', async () => {
       mockService.isActive = true;
+      mockService.shouldShowPauseButton = true;
       const mockEvent = new Event('click');
 
       await widget._onToggleTimeAdvancement(mockEvent);
@@ -299,12 +303,14 @@ describe('Mini Widget Time Advancement Integration', () => {
 
       // Test active state
       mockServiceInstance.isActive = true;
+      mockServiceInstance.shouldShowPauseButton = true;
 
       let context = await widget._prepareContext();
       expect(context.timeAdvancementActive).toBe(true);
 
       // Test inactive state
       mockServiceInstance.isActive = false;
+      mockServiceInstance.shouldShowPauseButton = false;
 
       context = await widget._prepareContext();
       expect(context.timeAdvancementActive).toBe(false);

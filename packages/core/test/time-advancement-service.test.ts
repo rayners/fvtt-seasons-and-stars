@@ -174,14 +174,19 @@ describe('TimeAdvancementService', () => {
       vi.useRealTimers();
     });
 
-    it('should not pause if already inactive', () => {
+    it('should still clear auto-resume flag when pausing already inactive service', () => {
       expect(service.isActive).toBe(false);
 
       const initialCallCount = mockHooks.callAll.mock.calls.length;
       service.pause();
 
-      // Should not fire hooks when already paused
-      expect(mockHooks.callAll).toHaveBeenCalledTimes(initialCallCount);
+      // Should fire pauseStateChanged hook to notify UI even when already paused
+      // because the auto-resume flag is being cleared
+      expect(mockHooks.callAll).toHaveBeenCalledTimes(initialCallCount + 1);
+
+      // Verify the pauseStateChanged hook was called
+      const lastCall = mockHooks.callAll.mock.calls[mockHooks.callAll.mock.calls.length - 1];
+      expect(lastCall[0]).toBe('seasons-stars:pauseStateChanged');
     });
   });
 
@@ -635,12 +640,13 @@ describe('TimeAdvancementService', () => {
       expect(service.isActive).toBe(true);
     });
 
-    it('should prevent starting advancement if game is paused and sync enabled', async () => {
+    it('should allow starting advancement even when game is paused', async () => {
       (mockGame as any).paused = true;
 
       await service.play();
 
-      expect(service.isActive).toBe(false);
+      // User should be able to start advancement even when game is paused
+      expect(service.isActive).toBe(true);
     });
 
     it('should handle multiple pause sources - game pause then combat start', async () => {
@@ -735,6 +741,78 @@ describe('TimeAdvancementService', () => {
       // Non-GM unpause should not resume
       pauseHandler(false);
       expect(service.isActive).toBe(false);
+    });
+
+    it('should not resume when manually paused after being auto-paused by game pause', async () => {
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      // Game pause auto-pauses time advancement
+      const pauseHandler = mockHooks.on.mock.calls.find(call => call[0] === 'pauseGame')[1];
+      (mockGame as any).paused = true;
+      pauseHandler(true);
+      expect(service.isActive).toBe(false);
+
+      // Game unpauses temporarily - auto-resume happens
+      (mockGame as any).paused = false;
+      pauseHandler(false);
+      expect(service.isActive).toBe(true); // Should auto-resume
+
+      // Now user manually pauses (while game is unpaused)
+      service.pause();
+      expect(service.isActive).toBe(false);
+
+      // Game pauses again, then unpauses - should NOT resume because user manually paused
+      (mockGame as any).paused = true;
+      pauseHandler(true);
+      expect(service.isActive).toBe(false);
+
+      (mockGame as any).paused = false;
+      pauseHandler(false);
+      expect(service.isActive).toBe(false); // Should NOT resume due to manual pause
+    });
+
+    it('should not resume when manually paused after auto-pause by game pause (direct scenario)', async () => {
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      // Game pause auto-pauses time advancement
+      const pauseHandler = mockHooks.on.mock.calls.find(call => call[0] === 'pauseGame')[1];
+      (mockGame as any).paused = true;
+      pauseHandler(true);
+      expect(service.isActive).toBe(false);
+
+      // User manually turns off advancement (while game is still paused)
+      // This should clear the auto-resume flag even though already paused
+      service.pause();
+      expect(service.isActive).toBe(false);
+
+      // Game unpause should NOT resume because user manually stopped it
+      (mockGame as any).paused = false;
+      pauseHandler(false);
+      expect(service.isActive).toBe(false); // Should stay off due to manual pause
+    });
+
+    it('should require only one click to pause when game is paused', async () => {
+      await service.play();
+      expect(service.isActive).toBe(true);
+
+      // Game pauses, auto-pausing time advancement
+      const pauseHandler = mockHooks.on.mock.calls.find(call => call[0] === 'pauseGame')[1];
+      (mockGame as any).paused = true;
+      pauseHandler(true);
+
+      // Time advancement should now appear as inactive
+      expect(service.isActive).toBe(false);
+
+      // User clicks pause once - this should work and not require a second click
+      service.pause();
+      expect(service.isActive).toBe(false);
+
+      // When game unpauses, time advancement should stay paused
+      (mockGame as any).paused = false;
+      pauseHandler(false);
+      expect(service.isActive).toBe(false); // Should NOT auto-resume
     });
   });
 

@@ -161,6 +161,28 @@ export class TimeAdvancementService {
   }
 
   /**
+   * Get the effective UI state - what the user interface should show
+   * This differs from isActive when time advancement was running but got auto-paused
+   *
+   * @returns true if UI should show pause button, false if UI should show play button
+   */
+  get shouldShowPauseButton(): boolean {
+    // If time advancement is active, always show pause button
+    if (this._isActive) {
+      return true;
+    }
+
+    // If time advancement is inactive but was active before being auto-paused,
+    // show pause button so user can "lock in" the paused state
+    if (this.wasActiveBeforePause) {
+      return true;
+    }
+
+    // Otherwise show play button
+    return false;
+  }
+
+  /**
    * Get the current pause state and reason for UI display
    *
    * @returns Object with pause state and human-readable reason
@@ -331,13 +353,47 @@ export class TimeAdvancementService {
    * @fires seasons-stars:timeAdvancementPaused When advancement is successfully paused
    */
   pause(): void {
+    // Always clear wasActiveBeforePause when user manually pauses
+    // This prevents auto-resume even if advancement was already paused by external factors
+    this.wasActiveBeforePause = false;
+
+    Logger.debug(
+      `Manual pause called: _isActive=${this._isActive}, blocked=${this.isAdvancementBlocked()}`
+    );
+
+    if (!this._isActive) {
+      // Already paused, but we still cleared the auto-resume flag above
+      Logger.info('Time advancement already paused, cleared auto-resume flag');
+      this.callHookSafely('seasons-stars:pauseStateChanged', this.getPauseState());
+      return;
+    }
+
+    // If advancement is active but blocked by external factors (game pause, combat),
+    // user clicking pause should fully stop it, not just clear the auto-resume flag
+    Logger.info('Pausing time advancement (manual)');
+    this._isActive = false;
+    this.stopAdvancement();
+
+    this.callHookSafely('seasons-stars:timeAdvancementPaused');
+    this.callHookSafely('seasons-stars:pauseStateChanged', this.getPauseState());
+  }
+
+  /**
+   * Pause time advancement due to automatic/external condition (game pause, combat, etc.)
+   * Does NOT clear wasActiveBeforePause flag so auto-resume can work
+   * @private
+   */
+  private pauseAutomatic(): void {
     if (!this._isActive) {
       return;
     }
 
-    Logger.info('Pausing time advancement');
+    Logger.info('Pausing time advancement (automatic)');
     this._isActive = false;
     this.stopAdvancement();
+
+    // DO NOT clear wasActiveBeforePause - needed for auto-resume
+
     this.callHookSafely('seasons-stars:timeAdvancementPaused');
     this.callHookSafely('seasons-stars:pauseStateChanged', this.getPauseState());
   }
@@ -522,12 +578,8 @@ export class TimeAdvancementService {
       return false;
     }
 
-    // Check if game is paused and we should respect that
-    if (this.shouldSyncWithGamePause() && game.paused) {
-      Logger.debug('Game is paused - preventing time advancement start');
-      return false;
-    }
-
+    // Allow manual start even when game is paused - user should have control
+    // Blocking will happen during interval advancement via isAdvancementBlocked()
     return true;
   }
 
@@ -596,7 +648,7 @@ export class TimeAdvancementService {
 
     if (this._isActive) {
       this.wasActiveBeforePause = true;
-      this.pause();
+      this.pauseAutomatic();
       ui.notifications?.info('Time advancement paused for combat');
       Logger.info('Combat started - pausing time advancement');
     }
@@ -748,17 +800,21 @@ export class TimeAdvancementService {
    * @private
    */
   private handleGamePause = (paused: boolean, options?: any): void => {
+    Logger.debug(
+      `Game pause hook fired: ${paused ? 'paused' : 'unpaused'}, syncEnabled=${this.shouldSyncWithGamePause()}`,
+      options
+    );
+
     if (!this.shouldSyncWithGamePause()) {
+      Logger.debug('Ignoring game pause because syncWithGamePause setting is disabled');
       return;
     }
-
-    Logger.debug(`Game pause state changed: ${paused ? 'paused' : 'unpaused'}`, options);
 
     if (paused) {
       // Game was paused - pause time advancement if it's running
       if (this._isActive) {
         this.wasActiveBeforePause = true;
-        this.pause();
+        this.pauseAutomatic();
         ui.notifications?.info('Time advancement paused (game paused)');
         Logger.info('Time advancement paused due to game pause');
       }
