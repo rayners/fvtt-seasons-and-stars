@@ -122,7 +122,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (game.user?.isGM) {
       try {
         const timeService = TimeAdvancementService.getInstance();
-        timeAdvancementActive = timeService?.isActive || false;
+        timeAdvancementActive = timeService?.shouldShowPauseButton || false;
 
         const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
         advancementRatioDisplay = `${ratio}x speed`;
@@ -729,7 +729,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         return;
       }
 
-      if (service.isActive) {
+      if (service.shouldShowPauseButton) {
         service.pause();
         Logger.info('Mini widget: Paused time advancement');
       } else {

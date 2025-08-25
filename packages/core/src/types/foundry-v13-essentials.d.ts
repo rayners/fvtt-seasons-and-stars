@@ -133,6 +133,8 @@ interface Game {
   journal: FoundryCollection<FoundryJournalEntry>;
   folders?: FoundryCollection<FoundryFolder>;
   keybindings?: FoundryKeybindings;
+  paused: boolean; // Game pause state
+  combat?: Combat | null; // Active combat encounter
 
   // Additional Foundry properties
   scenes?: FoundryCollection<FoundryScene> & {
@@ -166,6 +168,12 @@ interface Game {
 interface GameTime {
   worldTime: number;
   advance(seconds: number): Promise<void>;
+}
+
+interface Combat {
+  id: string;
+  started: boolean;
+  [key: string]: any;
 }
 
 interface Localization {

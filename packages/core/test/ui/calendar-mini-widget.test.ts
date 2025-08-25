@@ -14,6 +14,7 @@ import type { SeasonsStarsCalendar } from '../../src/types/calendar';
 // Mock TimeAdvancementService
 let mockServiceInstance: any = {
   isActive: false,
+  shouldShowPauseButton: false,
   play: vi.fn().mockResolvedValue(undefined),
   pause: vi.fn(),
   updateRatio: vi.fn(),
@@ -63,6 +64,7 @@ describe('CalendarMiniWidget', () => {
     // Reset mock instances
     mockServiceInstance = {
       isActive: false,
+      shouldShowPauseButton: false,
       play: vi.fn().mockResolvedValue(undefined),
       pause: vi.fn(),
       updateRatio: vi.fn(),
@@ -306,12 +308,14 @@ describe('CalendarMiniWidget', () => {
 
       // Test starting time advancement
       mockServiceInstance.isActive = false;
+      mockServiceInstance.shouldShowPauseButton = false;
       await widget._onToggleTimeAdvancement(mockEvent);
 
       expect(mockServiceInstance.play).toHaveBeenCalled();
 
       // Test pausing time advancement
       mockServiceInstance.isActive = true;
+      mockServiceInstance.shouldShowPauseButton = true;
       await widget._onToggleTimeAdvancement(mockEvent);
 
       expect(mockServiceInstance.pause).toHaveBeenCalled();

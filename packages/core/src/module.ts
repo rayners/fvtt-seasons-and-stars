@@ -574,6 +574,15 @@ function registerSettings(): void {
     default: false,
   });
 
+  game.settings.register('seasons-and-stars', 'syncWithGamePause', {
+    name: 'Sync with Game Pause',
+    hint: "Automatically pause time advancement when Foundry's game is paused. Works alongside combat pause setting. Time will resume when ALL blocking conditions are cleared.",
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: true,
+  });
+
   // === NOTES SYSTEM SETTINGS ===
 
   game.settings.register('seasons-and-stars', 'allowPlayerNotes', {

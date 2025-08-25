@@ -12,6 +12,7 @@ import type { SeasonsStarsCalendar } from '../src/types/calendar';
 // Mock TimeAdvancementService with a dynamic mock
 let mockServiceInstance: any = {
   isActive: false,
+  shouldShowPauseButton: false,
   play: vi.fn().mockResolvedValue(undefined),
   pause: vi.fn(),
   updateRatio: vi.fn(),
@@ -86,6 +87,7 @@ describe('Main Widget Time Advancement Integration', () => {
     // Reset the mock instance that the mocked module will return
     mockServiceInstance = {
       isActive: false,
+      shouldShowPauseButton: false,
       play: vi.fn().mockResolvedValue(undefined),
       pause: vi.fn(),
       updateRatio: vi.fn(),
@@ -185,6 +187,7 @@ describe('Main Widget Time Advancement Integration', () => {
 
     it('should show detailed advancement information when active', async () => {
       mockService.isActive = true;
+      mockService.shouldShowPauseButton = true;
       mockSettings.set('seasons-and-stars.timeAdvancementRatio', 2.5);
 
       const context = await widget._prepareContext();
@@ -237,6 +240,7 @@ describe('Main Widget Time Advancement Integration', () => {
 
     it('should pause time advancement when currently active', async () => {
       mockService.isActive = true;
+      mockService.shouldShowPauseButton = true;
       const mockEvent = new Event('click');
 
       await widget._onToggleTimeAdvancement(mockEvent);
@@ -286,6 +290,7 @@ describe('Main Widget Time Advancement Integration', () => {
 
     it('should provide button state classes', async () => {
       mockService.isActive = true;
+      mockService.shouldShowPauseButton = true;
 
       const context = await widget._prepareContext();
 
