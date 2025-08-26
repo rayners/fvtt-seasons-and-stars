@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.11.0...seasons-and-stars-v0.12.0) (2025-08-26)
+
+
+### Features
+
+* add game pause/unpause sync for time advancement (fixes [#207](https://github.com/rayners/fvtt-seasons-and-stars/issues/207)) ([#209](https://github.com/rayners/fvtt-seasons-and-stars/issues/209)) ([287862c](https://github.com/rayners/fvtt-seasons-and-stars/commit/287862ca9bc8819b7840a314300d1f6d69d9d074))
+* implement canonical hours functionality (fixes [#187](https://github.com/rayners/fvtt-seasons-and-stars/issues/187)) ([#205](https://github.com/rayners/fvtt-seasons-and-stars/issues/205)) ([7f8599b](https://github.com/rayners/fvtt-seasons-and-stars/commit/7f8599ba70ff41078fbb8b7529ecf85805c2ba55))
+
 ## [0.11.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.10.0...seasons-and-stars-v0.11.0) (2025-08-19)
 
 
