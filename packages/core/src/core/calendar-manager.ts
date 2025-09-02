@@ -46,7 +46,16 @@ export class CalendarManager {
       'seasons-and-stars',
       'activeCalendarFile'
     ) as string;
+    const activeCalendar = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
+    Logger.debug('Settings check:', { activeCalendarFile, activeCalendar });
+
+    // Prioritize file-based calendars - if there's a file path, use it regardless of activeCalendar setting
     if (activeCalendarFile && activeCalendarFile.trim() !== '') {
+      // Ensure activeCalendar is cleared if it's set (defensive cleanup)
+      if (activeCalendar && activeCalendar.trim() !== '') {
+        Logger.debug('Clearing conflicting activeCalendar setting');
+        await game.settings?.set('seasons-and-stars', 'activeCalendar', '');
+      }
       Logger.debug('Loading calendar from file:', activeCalendarFile);
 
       // Convert Foundry server path to proper URL for fetching
@@ -70,8 +79,8 @@ export class CalendarManager {
         const loadSuccess = this.loadCalendar(result.calendar, fileSourceInfo);
 
         if (loadSuccess) {
-          // Set it as active using the proper method
-          await this.setActiveCalendar(result.calendar.id);
+          // Set it as active using the proper method, but don't save to activeCalendar setting
+          await this.setActiveCalendar(result.calendar.id, false);
           Logger.info('Successfully loaded and activated calendar from file:', activeCalendarFile);
           return;
         } else {
@@ -223,8 +232,10 @@ export class CalendarManager {
 
   /**
    * Set the active calendar
+   * @param calendarId The calendar ID to set as active
+   * @param saveToSettings Whether to save the calendar ID to settings (default: true)
    */
-  async setActiveCalendar(calendarId: string): Promise<boolean> {
+  async setActiveCalendar(calendarId: string, saveToSettings: boolean = true): Promise<boolean> {
     // Resolve default variant if setting base calendar with variants
     const resolvedCalendarId = this.resolveDefaultVariant(calendarId);
 
@@ -248,8 +259,8 @@ export class CalendarManager {
       this.timeConverter = new TimeConverter(engine);
     }
 
-    // Save to settings
-    if (game.settings) {
+    // Save to settings only if requested (skip for file-based calendars to avoid mutual exclusion)
+    if (saveToSettings && game.settings) {
       await game.settings.set('seasons-and-stars', 'activeCalendar', resolvedCalendarId);
     }
 

@@ -196,5 +196,23 @@ describe('CalendarSelectionDialog FilePicker Integration', () => {
       expect(context.selectedFilePath).toBe('');
       expect(context.filePickerActive).toBe(false);
     });
+
+    it('should not show file picker as selected when no file is chosen', async () => {
+      // Clear both settings so no calendar is active
+      vi.mocked(game.settings.get).mockImplementation((module, key) => {
+        if (key === 'activeCalendarFile') return '';
+        if (key === 'activeCalendar') return '';
+        return '';
+      });
+
+      const calendars = new Map();
+      const dialog = new CalendarSelectionDialog(calendars, '');
+      const context = await dialog._prepareContext();
+
+      // File picker should not show as selected when no file is chosen
+      expect(context.filePickerSelected).toBe(false);
+      expect(context.selectedFilePath).toBe('');
+      expect(context.filePickerActive).toBe(false);
+    });
   });
 });

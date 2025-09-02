@@ -7,7 +7,7 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { Logger } from '../core/logger';
 import { CalendarTimeUtils } from '../core/calendar-time-utils';
 import { CalendarDate } from '../core/calendar-date';
-import type { SeasonsStarsCalendar } from '../types/calendar';
+import type { SeasonsStarsCalendar, CalendarSourceInfo } from '../types/calendar';
 import type { CalendarCollectionEntry, ExternalCalendarSource } from '../core/calendar-loader';
 
 export class CalendarSelectionDialog extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -59,15 +59,28 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     // Check if a file picker calendar is currently active
     const selectedFilePath =
       (game.settings?.get('seasons-and-stars', 'activeCalendarFile') as string) || '';
-    const filePickerActive = selectedFilePath !== '';
+    const activeCalendarSetting =
+      (game.settings?.get('seasons-and-stars', 'activeCalendar') as string) || '';
 
-    if (filePickerActive && !currentCalendarId) {
-      // File picker is active and no regular calendar is set
+    // File picker is active if there's a file path AND no regular calendar setting
+    const filePickerActive = selectedFilePath !== '' && activeCalendarSetting === '';
+
+    if (filePickerActive) {
+      // File picker is currently the active mode
       this.currentCalendarId = '__FILE_PICKER__';
       this.selectedCalendarId = '__FILE_PICKER__';
+      Logger.debug('Dialog initialized with file picker active:', {
+        selectedFilePath,
+        activeCalendarSetting,
+      });
     } else {
       this.currentCalendarId = currentCalendarId;
       this.selectedCalendarId = currentCalendarId;
+      Logger.debug('Dialog initialized with regular calendar:', {
+        currentCalendarId,
+        selectedFilePath,
+        activeCalendarSetting,
+      });
     }
   }
 
@@ -113,7 +126,18 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     // Get file picker state
     const selectedFilePath =
       (game.settings?.get('seasons-and-stars', 'activeCalendarFile') as string) || '';
-    const filePickerActive = selectedFilePath !== '';
+    const activeCalendarSetting =
+      (game.settings?.get('seasons-and-stars', 'activeCalendar') as string) || '';
+
+    // File picker is active if there's a file path AND no regular calendar setting
+    const filePickerActive = selectedFilePath !== '' && activeCalendarSetting === '';
+
+    // Update current calendar ID based on actual settings (dynamic detection)
+    if (filePickerActive) {
+      this.currentCalendarId = '__FILE_PICKER__';
+    } else if (activeCalendarSetting) {
+      this.currentCalendarId = activeCalendarSetting;
+    }
     const showFilePicker = true;
 
     const calendarsData = Array.from(this.calendars.entries()).map(([id, calendar]) => {
@@ -220,9 +244,10 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     }
 
     // Determine if file picker should be considered "selected"
+    // Only show as selected if there's actually a file selected AND it's either the selected ID or is currently active
     const filePickerSelected =
-      this.selectedCalendarId === '__FILE_PICKER__' ||
-      (filePickerActive && !this.selectedCalendarId);
+      selectedFilePath !== '' &&
+      (this.selectedCalendarId === '__FILE_PICKER__' || filePickerActive);
 
     return Object.assign(context, {
       calendars: sortedCalendars,
@@ -283,6 +308,18 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
    * Select a calendar card
    */
   private selectCalendarCard(calendarId: string): void {
+    // Special handling for file picker selection
+    if (calendarId === '__FILE_PICKER__') {
+      const selectedFilePath =
+        (game.settings?.get('seasons-and-stars', 'activeCalendarFile') as string) || '';
+      if (!selectedFilePath) {
+        Logger.warn('Cannot select file picker card - no file selected');
+        // Open file picker instead
+        this._onOpenFilePicker(new Event('click'), document.createElement('button'));
+        return;
+      }
+    }
+
     this.selectedCalendarId = calendarId;
 
     // Re-render to update UI state
@@ -525,9 +562,46 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   }
 
   /**
+   * Update current calendar state based on actual settings
+   */
+  private async _updateCurrentCalendarState(): Promise<void> {
+    const selectedFilePath =
+      (game.settings?.get('seasons-and-stars', 'activeCalendarFile') as string) || '';
+    const activeCalendarSetting =
+      (game.settings?.get('seasons-and-stars', 'activeCalendar') as string) || '';
+
+    Logger.debug('_updateCurrentCalendarState settings:', {
+      selectedFilePath,
+      activeCalendarSetting,
+    });
+
+    // File picker is active if there's a file path AND no regular calendar setting
+    const filePickerActive = selectedFilePath !== '' && activeCalendarSetting === '';
+
+    Logger.debug('File picker detection:', { filePickerActive });
+
+    // When file picker is active, we should treat it as the "current" calendar for dialog purposes
+    if (filePickerActive) {
+      this.currentCalendarId = '__FILE_PICKER__';
+    } else if (activeCalendarSetting) {
+      this.currentCalendarId = activeCalendarSetting;
+    }
+
+    Logger.debug('Updated currentCalendarId to:', this.currentCalendarId);
+  }
+
+  /**
    * Handle calendar selection
    */
   private async selectCalendar(): Promise<void> {
+    // Ensure dialog state is up-to-date before processing selection
+    await this._updateCurrentCalendarState();
+
+    Logger.debug('selectCalendar called:', {
+      selectedCalendarId: this.selectedCalendarId,
+      currentCalendarId: this.currentCalendarId,
+      condition: this.selectedCalendarId && this.selectedCalendarId !== this.currentCalendarId,
+    });
     if (this.selectedCalendarId && this.selectedCalendarId !== this.currentCalendarId) {
       if (this.selectedCalendarId === '__FILE_PICKER__') {
         // Handle file picker selection
@@ -541,19 +615,73 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
           return;
         }
 
-        // Only clear regular calendar setting if it's currently set
-        const currentActiveCalendar =
-          (game.settings?.get('seasons-and-stars', 'activeCalendar') as string) || '';
-        if (currentActiveCalendar) {
-          await game.settings?.set('seasons-and-stars', 'activeCalendar', '');
+        // Load calendar from file path
+        Logger.debug('Loading calendar from file via selectCalendar:', selectedFilePath);
+        const calendarManager = game.seasonsStars?.manager as any;
+        if (!calendarManager) {
+          Logger.error('Calendar manager not available for file loading');
+          return;
         }
+        const fileUrl = calendarManager.convertFoundryPathToUrl(selectedFilePath);
+        const result = await calendarManager.loadCalendarFromUrl(fileUrl, { validate: true });
 
-        // Notify user
-        ui.notifications?.info(
-          game.i18n.format('SEASONS_STARS.notifications.calendar_changed', {
-            calendar: `Custom File: ${selectedFilePath.split('/').pop()}`,
-          })
-        );
+        if (result.success && result.calendar) {
+          // Create source info for the file-based calendar
+          const fileSourceInfo: CalendarSourceInfo = {
+            type: 'external',
+            sourceName: 'Custom File',
+            description: `Calendar loaded from ${selectedFilePath}`,
+            icon: 'fa-solid fa-file',
+            url: fileUrl,
+          };
+
+          // Add the calendar to the manager's calendar map
+          const loadSuccess = calendarManager.loadCalendar(result.calendar, fileSourceInfo);
+
+          if (loadSuccess) {
+            // Clear regular calendar setting if it's currently set
+            const currentActiveCalendar =
+              (game.settings?.get('seasons-and-stars', 'activeCalendar') as string) || '';
+            if (currentActiveCalendar) {
+              await game.settings?.set('seasons-and-stars', 'activeCalendar', '');
+            }
+
+            // Set the calendar as active, but don't save to activeCalendar setting
+            await calendarManager.setActiveCalendar(result.calendar.id, false);
+            Logger.info('Successfully loaded and activated calendar from file:', selectedFilePath);
+
+            // Notify user
+            ui.notifications?.info(
+              game.i18n.format('SEASONS_STARS.notifications.calendar_changed', {
+                calendar: `Custom File: ${selectedFilePath.split('/').pop()}`,
+              })
+            );
+          } else {
+            Logger.error(
+              'Failed to load calendar into manager:',
+              new Error(`Validation failed for ${selectedFilePath}`)
+            );
+            ui.notifications?.error(
+              game.i18n.format('SEASONS_STARS.errors.calendar_file_load_failed', {
+                path: selectedFilePath,
+                error: 'Calendar validation failed',
+              })
+            );
+            return;
+          }
+        } else {
+          Logger.error(
+            'Failed to load calendar from file:',
+            new Error(result.error || 'Unknown error')
+          );
+          ui.notifications?.error(
+            game.i18n.format('SEASONS_STARS.errors.calendar_file_load_failed', {
+              path: selectedFilePath,
+              error: result.error || 'Unknown error',
+            })
+          );
+          return;
+        }
       } else {
         // Switch to a regular calendar
         await game.settings?.set('seasons-and-stars', 'activeCalendar', this.selectedCalendarId);
@@ -661,10 +789,10 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         callback: async (path: string): Promise<void> => {
           Logger.debug('File selected', { path });
 
-          // Store the selected file path in settings
+          // Store the selected file path in settings - this triggers onChange handler
           await game.settings.set('seasons-and-stars', 'activeCalendarFile', path);
 
-          // Select this file picker as the chosen calendar
+          // Update dialog state immediately - file picker is now selected
           this.selectedCalendarId = '__FILE_PICKER__';
 
           // Re-render dialog to show updated state

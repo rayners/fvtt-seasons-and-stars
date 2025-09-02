@@ -13,7 +13,6 @@ import { NotesManager } from './core/notes-manager';
 import { compatibilityManager } from './core/compatibility-manager';
 import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
-import type { CalendarSourceInfo } from './types/calendar';
 import { CalendarLocalization } from './core/calendar-localization';
 import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
@@ -389,57 +388,8 @@ function registerSettings(): void {
     type: String,
     default: '',
     onChange: async (value: string) => {
-      if (value && value.trim() !== '' && calendarManager) {
-        // Clear regular calendar when file picker calendar is selected
-        await game.settings.set('seasons-and-stars', 'activeCalendar', '');
-
-        // Load calendar from file path
-        Logger.debug('Loading calendar from file via onChange:', value);
-        const fileUrl = calendarManager.convertFoundryPathToUrl(value);
-        const result = await calendarManager.loadCalendarFromUrl(fileUrl, { validate: true });
-
-        if (result.success && result.calendar) {
-          // Create source info for the file-based calendar
-          const fileSourceInfo: CalendarSourceInfo = {
-            type: 'external',
-            sourceName: 'Custom File',
-            description: `Calendar loaded from ${value}`,
-            icon: 'fa-solid fa-file',
-            url: fileUrl,
-          };
-
-          // Add the calendar to the manager's calendar map
-          const loadSuccess = calendarManager.loadCalendar(result.calendar, fileSourceInfo);
-
-          if (loadSuccess) {
-            // Set it as active using the proper method
-            await calendarManager.setActiveCalendar(result.calendar.id);
-            Logger.info('Successfully loaded and activated calendar from file:', value);
-          } else {
-            Logger.error(
-              'Failed to load calendar into manager:',
-              new Error(`Validation failed for ${value}`)
-            );
-            ui.notifications?.error(
-              game.i18n.format('SEASONS_STARS.errors.calendar_file_load_failed', {
-                path: value,
-                error: 'Calendar validation failed',
-              })
-            );
-          }
-        } else {
-          Logger.error(
-            'Failed to load calendar from file:',
-            new Error(result.error || 'Unknown error')
-          );
-          ui.notifications?.error(
-            game.i18n.format('SEASONS_STARS.errors.calendar_file_load_failed', {
-              path: value,
-              error: result.error || 'Unknown error',
-            })
-          );
-        }
-      }
+      // File picker setting only stores the path - actual loading happens when user clicks select
+      Logger.debug('File picker path updated:', value);
     },
   });
 

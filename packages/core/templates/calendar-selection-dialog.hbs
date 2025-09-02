@@ -83,7 +83,7 @@
           
           <!-- File Picker Card -->
           <div class="calendar-card ui-control file-picker-card {{#if filePickerActive}}active{{/if}} {{#if filePickerSelected}}picked{{/if}}" 
-               data-action="openFilePicker"
+               {{#if selectedFilePath}}data-action="selectCalendar" data-calendar-id="__FILE_PICKER__"{{else}}data-action="openFilePicker"{{/if}}
                title="{{localize 'SEASONS_STARS.dialog.calendar_selection.custom_file_hint'}}">
             
             <div class="card-header flexcol">
