@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.12.0...seasons-and-stars-v0.13.0) (2025-09-02)
+
+
+### Features
+
+* add FilePicker support for custom calendar files ([#218](https://github.com/rayners/fvtt-seasons-and-stars/issues/218)) ([a4c0493](https://github.com/rayners/fvtt-seasons-and-stars/commit/a4c0493d820e07a49a99761066b6dc84f85c0b9a))
+
 ## [0.12.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.11.0...seasons-and-stars-v0.12.0) (2025-08-26)
 
 
