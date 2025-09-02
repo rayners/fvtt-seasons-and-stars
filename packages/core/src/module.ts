@@ -371,9 +371,25 @@ function registerSettings(): void {
     default: 'gregorian',
     choices: { gregorian: 'Gregorian Calendar' }, // Basic default, updated later
     onChange: async (value: string) => {
-      if (calendarManager) {
+      if (value && value.trim() !== '' && calendarManager) {
+        // Clear file picker calendar when regular calendar is selected
+        await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
         await calendarManager.setActiveCalendar(value);
       }
+    },
+  });
+
+  // File picker calendar setting - allows users to load custom calendar files
+  game.settings.register('seasons-and-stars', 'activeCalendarFile', {
+    name: 'SEASONS_STARS.settings.active_calendar_file',
+    hint: 'SEASONS_STARS.settings.active_calendar_file_hint',
+    scope: 'world',
+    config: false, // Hidden from settings UI - managed through dialog
+    type: String,
+    default: '',
+    onChange: async (value: string) => {
+      // File picker setting only stores the path - actual loading happens when user clicks select
+      Logger.debug('File picker path updated:', value);
     },
   });
 
@@ -696,7 +712,9 @@ function registerCalendarSettings(): void {
     default: 'gregorian',
     choices: choices,
     onChange: async (value: string) => {
-      if (calendarManager) {
+      if (value && value.trim() !== '' && calendarManager) {
+        // Clear file picker calendar when regular calendar is selected
+        await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
         await calendarManager.setActiveCalendar(value);
       }
     },

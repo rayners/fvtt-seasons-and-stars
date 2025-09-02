@@ -41,6 +41,67 @@ export class CalendarManager {
   async completeInitialization(): Promise<void> {
     Logger.debug('Completing Calendar Manager initialization');
 
+    // Check for file-based calendar first
+    const activeCalendarFile = game.settings?.get(
+      'seasons-and-stars',
+      'activeCalendarFile'
+    ) as string;
+    const activeCalendar = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
+    Logger.debug('Settings check:', { activeCalendarFile, activeCalendar });
+
+    // Prioritize file-based calendars - if there's a file path, use it regardless of activeCalendar setting
+    if (activeCalendarFile && activeCalendarFile.trim() !== '') {
+      // Ensure activeCalendar is cleared if it's set (defensive cleanup)
+      if (activeCalendar && activeCalendar.trim() !== '') {
+        Logger.debug('Clearing conflicting activeCalendar setting');
+        await game.settings?.set('seasons-and-stars', 'activeCalendar', '');
+      }
+      Logger.debug('Loading calendar from file:', activeCalendarFile);
+
+      // Convert Foundry server path to proper URL for fetching
+      const fileUrl = this.convertFoundryPathToUrl(activeCalendarFile);
+      Logger.debug('Converted path to URL:', fileUrl);
+
+      // Use existing loadCalendarFromUrl method to load from URL
+      const result = await this.loadCalendarFromUrl(fileUrl, { validate: true });
+
+      if (result.success && result.calendar) {
+        // Create source info for the file-based calendar
+        const fileSourceInfo: CalendarSourceInfo = {
+          type: 'external',
+          sourceName: 'Custom File',
+          description: `Calendar loaded from ${activeCalendarFile}`,
+          icon: 'fa-solid fa-file',
+          url: fileUrl,
+        };
+
+        // Add the calendar to the manager's calendar map
+        const loadSuccess = this.loadCalendar(result.calendar, fileSourceInfo);
+
+        if (loadSuccess) {
+          // Set it as active using the proper method, but don't save to activeCalendar setting
+          await this.setActiveCalendar(result.calendar.id, false);
+          Logger.info('Successfully loaded and activated calendar from file:', activeCalendarFile);
+          return;
+        } else {
+          Logger.error(
+            'Failed to load calendar into manager during initialization:',
+            new Error(`Validation failed for ${activeCalendarFile}`)
+          );
+          // Continue with regular calendar loading as fallback
+        }
+      } else {
+        Logger.warn('Failed to load calendar from file:', result.error);
+        ui.notifications?.warn(
+          game.i18n.format('SEASONS_STARS.warnings.calendar_file_failed', {
+            path: activeCalendarFile,
+            error: result.error || 'Unknown error',
+          })
+        );
+        // Continue with regular calendar loading as fallback
+      }
+    }
+
     // Load active calendar from settings
     const savedCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
 
@@ -66,7 +127,7 @@ export class CalendarManager {
         validate: false,
       });
       const successfulResults = results.filter(r => r.success);
-      return successfulResults.map(r => r.calendar!.id);
+      return successfulResults.map(r => r.calendar?.id).filter(Boolean) as string[];
     } catch (error) {
       Logger.error(
         'Failed to load built-in calendar list:',
@@ -171,8 +232,10 @@ export class CalendarManager {
 
   /**
    * Set the active calendar
+   * @param calendarId The calendar ID to set as active
+   * @param saveToSettings Whether to save the calendar ID to settings (default: true)
    */
-  async setActiveCalendar(calendarId: string): Promise<boolean> {
+  async setActiveCalendar(calendarId: string, saveToSettings: boolean = true): Promise<boolean> {
     // Resolve default variant if setting base calendar with variants
     const resolvedCalendarId = this.resolveDefaultVariant(calendarId);
 
@@ -196,8 +259,8 @@ export class CalendarManager {
       this.timeConverter = new TimeConverter(engine);
     }
 
-    // Save to settings
-    if (game.settings) {
+    // Save to settings only if requested (skip for file-based calendars to avoid mutual exclusion)
+    if (saveToSettings && game.settings) {
       await game.settings.set('seasons-and-stars', 'activeCalendar', resolvedCalendarId);
     }
 
@@ -1086,7 +1149,7 @@ export class CalendarManager {
     const registerCalendar = (
       calendarData: SeasonsStarsCalendar,
       sourceInfo?: CalendarSourceInfo
-    ) => {
+    ): boolean => {
       // Validate that we have valid calendar data
       if (!calendarData || !calendarData.id) {
         Logger.error('Invalid calendar data provided to registration hook');
@@ -1110,5 +1173,31 @@ export class CalendarManager {
       registerCalendar,
       manager: this,
     });
+  }
+
+  /**
+   * Convert a Foundry server path to a proper URL for fetching
+   */
+  public convertFoundryPathToUrl(foundryPath: string): string {
+    // If it's already a proper URL, return as-is
+    if (
+      foundryPath.startsWith('http://') ||
+      foundryPath.startsWith('https://') ||
+      foundryPath.startsWith('module:')
+    ) {
+      return foundryPath;
+    }
+
+    // Remove file:// protocol if present
+    if (foundryPath.startsWith('file://')) {
+      foundryPath = foundryPath.substring(7);
+    }
+
+    // For Foundry server paths, we need to construct a proper URL
+    // The path should be relative to the Foundry installation
+    const baseUrl = window.location.origin;
+    const cleanPath = foundryPath.startsWith('/') ? foundryPath : `/${foundryPath}`;
+
+    return `${baseUrl}${cleanPath}`;
   }
 }

@@ -20,7 +20,7 @@
       "calendar_selection": {
         "title": "📅 Change Calendar System",
         "choose_calendar": "Choose Your Calendar System",
-        "choose_hint": "Select which calendar system to use for date display and time tracking in your world. This affects how dates are displayed and calculated throughout the game.",
+        "choose_hint": "Select which calendar system to use for date display and time tracking in your world. This affects how dates are displayed and calculated throughout the game. You can choose from the built-in calendars below or load a custom calendar file.",
         "select": "Use This Calendar",
         "cancel": "Keep Current",
         "switch_to": "Switch to {calendar}",
@@ -31,7 +31,19 @@
         "sample_dates": "Sample Dates",
         "structure": "Calendar Structure",
         "no_calendars": "No Calendars Available",
-        "no_calendars_hint": "No calendar files were found. Please ensure calendar data is properly installed."
+        "no_calendars_hint": "No calendar files were found. Please ensure calendar data is properly installed.",
+        "custom_file": "Custom Calendar File",
+        "custom_file_hint": "Select a custom calendar JSON file from your Foundry server. This allows you to use calendars that aren't included in the built-in collection.",
+        "browse": "Browse",
+        "browse_tooltip": "Select a custom calendar file from your Foundry server",
+        "no_file_selected": "No custom file selected",
+        "clear_file": "Clear file selection",
+        "clear": "Clear",
+        "file_active": "Custom calendar file is currently active",
+        "file_loaded": "Custom calendar file is loaded and ready to use",
+        "file_path": "File Path",
+        "status": "Status",
+        "click_to_select": "Click to select a calendar file"
       },
       "calendar_preview": {
         "title": "Calendar Preview: {calendar}"
@@ -41,6 +53,8 @@
     "settings": {
       "active_calendar": "📅 Active Calendar System",
       "active_calendar_hint": "Choose which calendar system to use for date display and time tracking. This is the primary setting for configuring your world's calendar.",
+      "active_calendar_file": "📄 Custom Calendar File Path",
+      "active_calendar_file_hint": "Path to a custom calendar JSON file on the Foundry server. This setting is managed through the calendar selection dialog.",
       "current_date": "Current Date",
       "current_date_hint": "The current in-game date (managed automatically)",
       "default_widget": "🔧 Default Calendar Widget",
@@ -53,7 +67,8 @@
       "calendar_changed": "Calendar changed to {calendar}"
     },
     "warnings": {
-      "no_calendars_available": "No calendars are available for selection"
+      "no_calendars_available": "No calendars are available for selection",
+      "calendar_file_failed": "Failed to load calendar file '{path}': {error}"
     },
     "keybindings": {
       "toggle_default_widget": "Toggle Default Calendar Widget",
@@ -69,7 +84,10 @@
       "invalid_calendar": "Invalid calendar format",
       "failed_load": "Failed to load calendar: {error}",
       "conversion_failed": "Calendar conversion failed: {error}",
-      "manager_not_ready": "Calendar manager is not ready yet"
+      "manager_not_ready": "Calendar manager is not ready yet",
+      "file_picker_failed": "Failed to open file picker dialog",
+      "calendar_file_load_failed": "Failed to load calendar from file {path}: {error}",
+      "clear_file_failed": "Failed to clear custom calendar file selection"
     }
   }
 }
