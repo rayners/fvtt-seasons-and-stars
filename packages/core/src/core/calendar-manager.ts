@@ -41,6 +41,58 @@ export class CalendarManager {
   async completeInitialization(): Promise<void> {
     Logger.debug('Completing Calendar Manager initialization');
 
+    // Check for file-based calendar first
+    const activeCalendarFile = game.settings?.get(
+      'seasons-and-stars',
+      'activeCalendarFile'
+    ) as string;
+    if (activeCalendarFile && activeCalendarFile.trim() !== '') {
+      Logger.debug('Loading calendar from file:', activeCalendarFile);
+
+      // Convert Foundry server path to proper URL for fetching
+      const fileUrl = this.convertFoundryPathToUrl(activeCalendarFile);
+      Logger.debug('Converted path to URL:', fileUrl);
+
+      // Use existing loadCalendarFromUrl method to load from URL
+      const result = await this.loadCalendarFromUrl(fileUrl, { validate: true });
+
+      if (result.success && result.calendar) {
+        // Create source info for the file-based calendar
+        const fileSourceInfo: CalendarSourceInfo = {
+          type: 'external',
+          sourceName: 'Custom File',
+          description: `Calendar loaded from ${activeCalendarFile}`,
+          icon: 'fa-solid fa-file',
+          url: fileUrl,
+        };
+
+        // Add the calendar to the manager's calendar map
+        const loadSuccess = this.loadCalendar(result.calendar, fileSourceInfo);
+
+        if (loadSuccess) {
+          // Set it as active using the proper method
+          await this.setActiveCalendar(result.calendar.id);
+          Logger.info('Successfully loaded and activated calendar from file:', activeCalendarFile);
+          return;
+        } else {
+          Logger.error(
+            'Failed to load calendar into manager during initialization:',
+            new Error(`Validation failed for ${activeCalendarFile}`)
+          );
+          // Continue with regular calendar loading as fallback
+        }
+      } else {
+        Logger.warn('Failed to load calendar from file:', result.error);
+        ui.notifications?.warn(
+          game.i18n.format('SEASONS_STARS.warnings.calendar_file_failed', {
+            path: activeCalendarFile,
+            error: result.error || 'Unknown error',
+          })
+        );
+        // Continue with regular calendar loading as fallback
+      }
+    }
+
     // Load active calendar from settings
     const savedCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
 
@@ -66,7 +118,7 @@ export class CalendarManager {
         validate: false,
       });
       const successfulResults = results.filter(r => r.success);
-      return successfulResults.map(r => r.calendar!.id);
+      return successfulResults.map(r => r.calendar?.id).filter(Boolean) as string[];
     } catch (error) {
       Logger.error(
         'Failed to load built-in calendar list:',
@@ -1086,7 +1138,7 @@ export class CalendarManager {
     const registerCalendar = (
       calendarData: SeasonsStarsCalendar,
       sourceInfo?: CalendarSourceInfo
-    ) => {
+    ): boolean => {
       // Validate that we have valid calendar data
       if (!calendarData || !calendarData.id) {
         Logger.error('Invalid calendar data provided to registration hook');
@@ -1110,5 +1162,31 @@ export class CalendarManager {
       registerCalendar,
       manager: this,
     });
+  }
+
+  /**
+   * Convert a Foundry server path to a proper URL for fetching
+   */
+  public convertFoundryPathToUrl(foundryPath: string): string {
+    // If it's already a proper URL, return as-is
+    if (
+      foundryPath.startsWith('http://') ||
+      foundryPath.startsWith('https://') ||
+      foundryPath.startsWith('module:')
+    ) {
+      return foundryPath;
+    }
+
+    // Remove file:// protocol if present
+    if (foundryPath.startsWith('file://')) {
+      foundryPath = foundryPath.substring(7);
+    }
+
+    // For Foundry server paths, we need to construct a proper URL
+    // The path should be relative to the Foundry installation
+    const baseUrl = window.location.origin;
+    const cleanPath = foundryPath.startsWith('/') ? foundryPath : `/${foundryPath}`;
+
+    return `${baseUrl}${cleanPath}`;
   }
 }
