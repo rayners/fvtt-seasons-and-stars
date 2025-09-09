@@ -1,0 +1,1 @@
+../local-docs/seasons-and-stars/development/CLAUDE.md
