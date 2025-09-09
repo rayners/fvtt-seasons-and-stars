@@ -12,10 +12,6 @@ faster updates!
 
 ## [Unreleased]
 
-### Changed
-
-* Increase real time clock minimum interval to 10 seconds while preserving real-time to game-time ratio
-
 ## [0.7.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/v0.6.0...v0.7.0) (2025-07-08)
 
 
