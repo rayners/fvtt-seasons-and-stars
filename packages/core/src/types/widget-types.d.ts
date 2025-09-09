@@ -81,7 +81,7 @@ export interface WeekData {
 
 // Day data structure
 export interface DayData {
-  day: number;
+  day: number | string;
   isToday: boolean;
   isSelected: boolean;
   isOtherMonth: boolean;

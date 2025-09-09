@@ -347,7 +347,7 @@ class IntegrationAPI {
   }
 
   getAvailableCalendars(): string[] {
-    return this.manager.getAvailableCalendars();
+    return this.manager.getAvailableCalendars().map(calendar => calendar.id);
   }
 
   async advanceDays(days: number, _calendarId?: string): Promise<void> {

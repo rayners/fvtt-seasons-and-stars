@@ -68,7 +68,12 @@ export class WidgetInstanceManager {
   /**
    * Toggle the widget visibility
    */
-  static toggle(this: { new (): RenderableWidget; activeInstance: RenderableWidget | null }): void {
+  static toggle(this: {
+    new (): RenderableWidget;
+    activeInstance: RenderableWidget | null;
+    hide(): void;
+    show(): void;
+  }): void {
     if (this.activeInstance?.rendered) {
       this.hide();
     } else {

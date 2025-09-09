@@ -4,7 +4,7 @@
 
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
-import { isCalendarManager } from '../types/foundry-extensions';
+import { isCalendarManager } from '../types/type-guards';
 import type { SceneControl } from '../types/widget-types';
 
 export class SeasonsStarsSceneControls {
@@ -175,9 +175,7 @@ export class SeasonsStarsSceneControls {
    */
   static registerMacros(): void {
     // Extend the existing SeasonsStars object with macro functions
-    if (!window.SeasonsStars) {
-      window.SeasonsStars = {};
-    }
+    window.SeasonsStars ??= {};
 
     // Helper interface for legacy mini widget positioning
     interface MiniWidgetPositions {
@@ -187,22 +185,40 @@ export class SeasonsStarsSceneControls {
     }
 
     // Add macro functions to the existing object
-    Object.assign(window.SeasonsStars, {
+    Object.assign(window.SeasonsStars!, {
       // Widget controls - respect default widget setting
       showWidget: (): void => SeasonsStarsSceneControls.showDefaultWidget(),
       hideWidget: (): void => SeasonsStarsSceneControls.hideDefaultWidget(),
       toggleWidget: (): void => SeasonsStarsSceneControls.toggleDefaultWidget(),
 
       // Specific widget controls (for advanced users who want to override default)
-      showMainWidget: (): void => CalendarWidgetManager.showWidget('main'),
-      hideMainWidget: (): void => CalendarWidgetManager.hideWidget('main'),
-      toggleMainWidget: (): void => CalendarWidgetManager.toggleWidget('main'),
-      showMiniWidget: (): void => CalendarWidgetManager.showWidget('mini'),
-      hideMiniWidget: (): void => CalendarWidgetManager.hideWidget('mini'),
-      toggleMiniWidget: (): void => CalendarWidgetManager.toggleWidget('mini'),
-      showGridWidget: (): void => CalendarWidgetManager.showWidget('grid'),
-      hideGridWidget: (): void => CalendarWidgetManager.hideWidget('grid'),
-      toggleGridWidget: (): void => CalendarWidgetManager.toggleWidget('grid'),
+      showMainWidget: (): void => {
+        void CalendarWidgetManager.showWidget('main');
+      },
+      hideMainWidget: (): void => {
+        void CalendarWidgetManager.hideWidget('main');
+      },
+      toggleMainWidget: (): void => {
+        void CalendarWidgetManager.toggleWidget('main');
+      },
+      showMiniWidget: (): void => {
+        void CalendarWidgetManager.showWidget('mini');
+      },
+      hideMiniWidget: (): void => {
+        void CalendarWidgetManager.hideWidget('mini');
+      },
+      toggleMiniWidget: (): void => {
+        void CalendarWidgetManager.toggleWidget('mini');
+      },
+      showGridWidget: (): void => {
+        void CalendarWidgetManager.showWidget('grid');
+      },
+      hideGridWidget: (): void => {
+        void CalendarWidgetManager.hideWidget('grid');
+      },
+      toggleGridWidget: (): void => {
+        void CalendarWidgetManager.toggleWidget('grid');
+      },
 
       // Mini widget positioning (legacy support)
       positionMiniAboveSmallTime: (): void => {

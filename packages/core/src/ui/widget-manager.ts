@@ -189,7 +189,7 @@ export class CalendarWidgetManager {
 /**
  * Widget wrapper class to make any widget compatible with the manager
  */
-export class WidgetWrapper<T extends Record<string, unknown>> implements WidgetInstance<T> {
+export class WidgetWrapper<T extends object> implements WidgetInstance<T> {
   constructor(
     private widget: T,
     private showMethod: string = 'render',

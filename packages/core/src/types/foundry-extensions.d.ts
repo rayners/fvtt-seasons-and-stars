@@ -5,7 +5,12 @@
  * Core Foundry types are provided by foundry-v13-essentials.d.ts
  */
 
-import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
+import type {
+  SeasonsStarsCalendar,
+  CalendarDate,
+  DateFormatOptions,
+  CalendarIntercalary,
+} from './calendar';
 import type { SeasonsStarsIntegration } from './bridge-interfaces';
 import type { LoadResult, ExternalCalendarSource } from '../core/calendar-loader';
 
@@ -33,10 +38,10 @@ declare global {
 
   interface Window {
     SeasonsStars?: {
-      api: SeasonsStarsAPI;
-      manager: CalendarManagerInterface;
-      notes: NotesManagerInterface;
-      integration: SeasonsStarsIntegration | null;
+      api?: SeasonsStarsAPI;
+      manager?: CalendarManagerInterface;
+      notes?: NotesManagerInterface;
+      integration?: SeasonsStarsIntegration | null;
       CalendarWidget?: unknown;
       CalendarMiniWidget?: unknown;
       CalendarGridWidget?: unknown;
@@ -106,12 +111,12 @@ export declare function isNotesManager(obj: unknown): obj is NotesManagerInterfa
 // Calendar Manager interface for type safety
 export interface CalendarManagerInterface {
   getCurrentDate(): CalendarDate | null;
-  setCurrentDate(date: CalendarDate): Promise<boolean>;
+  setCurrentDate(date: CalendarDate): Promise<void>;
   getActiveCalendar(): SeasonsStarsCalendar | null;
   getActiveEngine(): CalendarEngineInterface | null;
   getAllCalendars(): SeasonsStarsCalendar[];
   getCalendar(calendarId: string): SeasonsStarsCalendar | null;
-  getAvailableCalendars(): string[];
+  getAvailableCalendars(): SeasonsStarsCalendar[];
   setActiveCalendar(calendarId: string): Promise<boolean>;
   advanceSeconds(seconds: number): Promise<void>;
   advanceMinutes(minutes: number): Promise<void>;
@@ -129,7 +134,7 @@ export interface CalendarEngineInterface {
   getMonthLength(month: number, year: number): number;
   dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number;
   worldTimeToDate(timestamp: number, worldCreationTimestamp?: number): CalendarDate;
-  getIntercalaryDaysAfterMonth(month: number, year: number): unknown[];
+  getIntercalaryDaysAfterMonth(month: number, year: number): CalendarIntercalary[];
   addMonths(date: CalendarDate, months: number): CalendarDate;
   addYears(date: CalendarDate, years: number): CalendarDate;
 }
@@ -145,16 +150,9 @@ export interface NotesManagerInterface {
   setNoteModuleData(noteId: string, moduleId: string, data: unknown): Promise<void>;
   getNoteModuleData(noteId: string, moduleId: string): unknown;
   canCreateNote(): boolean;
-  getCategories(): unknown;
-  getPredefinedTags(): string[];
-  parseTagString(tags: string): string[];
-  validateTags(tags: string[]): boolean;
-  getDefaultCategory(): unknown;
-  getCategory(categoryId: string): unknown;
-  getAllNotes(): JournalEntry[];
   storage: {
     findNotesByDateSync(date: CalendarDate): JournalEntry[];
     removeNote(noteId: string): Promise<void>;
-    getAllNotes(): JournalEntry[];
+    getAllNotes?(): JournalEntry[];
   };
 }
