@@ -111,32 +111,32 @@ describe('TimeAdvancementService', () => {
   describe('Smart Interval Calculation', () => {
     it('should calculate correct interval for 1:1 ratio', () => {
       const interval = (service as any).calculateOptimalInterval(1.0);
-      expect(interval).toBe(1000); // Math.max(1000, 1000/1.0) = 1000
+      expect(interval).toBe(10000); // Math.max(10000, 1000/1.0) = 10000
     });
 
     it('should calculate correct interval for 0.5 ratio (slow)', () => {
       const interval = (service as any).calculateOptimalInterval(0.5);
-      expect(interval).toBe(2000); // Math.max(1000, 1000/0.5) = 2000
+      expect(interval).toBe(10000); // Math.max(10000, 1000/0.5) = 10000
     });
 
     it('should calculate correct interval for 2.0 ratio (fast)', () => {
       const interval = (service as any).calculateOptimalInterval(2.0);
-      expect(interval).toBe(1000); // Math.max(1000, 1000/2.0) = 1000 (minimum)
+      expect(interval).toBe(10000); // Math.max(10000, 1000/2.0) = 10000 (minimum)
     });
 
     it('should calculate correct interval for 10.0 ratio (very fast)', () => {
       const interval = (service as any).calculateOptimalInterval(10.0);
-      expect(interval).toBe(1000); // Math.max(1000, 1000/10.0) = 1000 (minimum)
+      expect(interval).toBe(10000); // Math.max(10000, 1000/10.0) = 10000 (minimum)
     });
 
     it('should calculate correct interval for 0.1 ratio (very slow)', () => {
       const interval = (service as any).calculateOptimalInterval(0.1);
-      expect(interval).toBe(10000); // Math.max(1000, 1000/0.1) = 10000
+      expect(interval).toBe(10000); // Math.max(10000, 1000/0.1) = 10000
     });
 
-    it('should enforce minimum interval of 1000ms', () => {
+    it('should enforce minimum interval of 10000ms', () => {
       const interval = (service as any).calculateOptimalInterval(100.0);
-      expect(interval).toBe(1000); // Never less than 1000ms
+      expect(interval).toBe(10000); // Never less than 10000ms
     });
   });
 
@@ -464,7 +464,7 @@ describe('TimeAdvancementService', () => {
       expect(service.isActive).toBe(true);
 
       // Fast-forward to trigger timer
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(10000);
 
       // Should auto-pause on error
       expect(service.isActive).toBe(false);
@@ -533,10 +533,10 @@ describe('TimeAdvancementService', () => {
       await service.play();
 
       // Fast-forward timer - should trigger the interval
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(10000);
 
-      // Should advance 2 seconds of game time for 1 second real time
-      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(2);
+      // Should advance 20 seconds of game time for 10 seconds real time
+      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(20);
 
       vi.useRealTimers();
     });
@@ -545,20 +545,20 @@ describe('TimeAdvancementService', () => {
       vi.useFakeTimers();
       const setIntervalSpy = vi.spyOn(global, 'setInterval');
 
-      // Test 0.5 ratio (should use 2000ms interval)
+      // Test 0.5 ratio (should use 10000ms interval)
       service.updateRatio(0.5);
       await service.play();
 
-      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 2000);
+      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 10000);
 
       service.pause();
       setIntervalSpy.mockClear();
 
-      // Test 10.0 ratio (should use 1000ms interval - minimum)
+      // Test 10.0 ratio (should use 10000ms interval - minimum)
       service.updateRatio(10.0);
       await service.play();
 
-      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 1000);
+      expect(setIntervalSpy).toHaveBeenCalledWith(expect.any(Function), 10000);
 
       vi.useRealTimers();
     });

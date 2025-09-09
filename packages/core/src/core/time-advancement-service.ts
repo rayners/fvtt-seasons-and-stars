@@ -495,17 +495,17 @@ export class TimeAdvancementService {
 
   /**
    * Calculate optimal interval based on advancement ratio
-   * Ensures minimum 1000ms real time and at least 1 second game time advancement
+   * Ensures minimum 10000ms real time and dynamic scaling for slow ratios
    * @param ratio The advancement ratio (game seconds per real second)
    * @returns Interval in milliseconds
    * @private
    */
   private calculateOptimalInterval(ratio: number): number {
-    // Formula: Math.max(1000, Math.ceil(1000 / ratio))
+    // Formula: Math.max(10000, Math.ceil(1000 / ratio))
     // This ensures:
-    // - Never advance more frequently than every 1000ms real time
-    // - Always advance at least 1 second of game time per interval
-    return Math.max(1000, Math.ceil(1000 / ratio));
+    // - Never advance more frequently than every 10000ms real time
+    // - Always scales appropriately for very slow ratios
+    return Math.max(10000, Math.ceil(1000 / ratio));
   }
 
   /**
@@ -520,6 +520,9 @@ export class TimeAdvancementService {
     Logger.debug(
       `Starting advancement with ${interval}ms interval (ratio: ${this.advancementRatio})`
     );
+    // Track when the last advancement tick occurred so we can maintain the
+    // correct real-time to game-time ratio regardless of interval frequency
+    this.lastAdvancement = Date.now();
 
     this.intervalId = setInterval(() => {
       try {
@@ -559,12 +562,14 @@ export class TimeAdvancementService {
       throw new Error('Calendar manager not available');
     }
 
-    const secondsToAdvance = this.advancementRatio;
+    const now = Date.now();
+    const elapsedSeconds = (now - this.lastAdvancement) / 1000;
+    const secondsToAdvance = this.advancementRatio * elapsedSeconds;
     // Skip debug logging during automatic advancement to reduce console spam
-    // Logger.debug(`Advancing ${secondsToAdvance} game seconds`);
+    // Logger.debug(`Advancing ${secondsToAdvance} game seconds over ${elapsedSeconds}s real time`);
 
     manager.advanceSeconds(secondsToAdvance);
-    this.lastAdvancement = Date.now();
+    this.lastAdvancement = now;
   }
 
   /**
