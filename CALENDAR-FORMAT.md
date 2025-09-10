@@ -12,6 +12,13 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 - **Flexibility**: Extensible format for future features
 - **Compatibility**: Migration path from Simple Calendar format
 
+## Defaults and Missing Sections
+
+Seasons & Stars can operate with minimal calendar data. If core sections like
+`year`, `leapYear`, `months`, `weekdays`, `intercalary`, or `time` are omitted,
+the engine fills them with Gregorian defaults and logs a console warning. To
+disable leap years entirely, include `"leapYear": { "rule": "none" }`.
+
 ## Complete Format Specification
 
 ```json
@@ -116,6 +123,8 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 
 ### Year Configuration
 
+> Optional – defaults to Gregorian year settings when omitted.
+
 | Field         | Type   | Default | Description                                   |
 | ------------- | ------ | ------- | --------------------------------------------- |
 | `epoch`       | number | 0       | What year is considered "year zero"           |
@@ -125,6 +134,9 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 | `startDay`    | number | 0       | Which weekday the year starts on (0-based)    |
 
 ### Leap Year Rules
+
+> Optional – omitting this block applies Gregorian leap-year rules. Use
+> `{ "rule": "none" }` to disable leap years entirely.
 
 | Field       | Type   | Default | Description                                          |
 | ----------- | ------ | ------- | ---------------------------------------------------- |
@@ -141,6 +153,8 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 
 ### Month Definitions
 
+> Optional – missing months fall back to the 12 Gregorian months.
+
 | Field          | Type   | Required | Description                      |
 | -------------- | ------ | -------- | -------------------------------- |
 | `name`         | string | ✅       | Full month name                  |
@@ -150,6 +164,8 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 
 ### Weekday Definitions
 
+> Optional – missing weekdays fall back to the 7-day Gregorian week.
+
 | Field          | Type   | Required | Description                      |
 | -------------- | ------ | -------- | -------------------------------- |
 | `name`         | string | ✅       | Full weekday name                |
@@ -157,6 +173,8 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 | `description`  | string | ❌       | Cultural significance or meaning |
 
 ### Intercalary Days
+
+> Optional – absence means no intercalary days.
 
 | Field               | Type    | Default | Description                               |
 | ------------------- | ------- | ------- | ----------------------------------------- |
@@ -171,6 +189,8 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 **Note**: Each intercalary day must have either `after` OR `before`, but not both.
 
 ### Time Configuration
+
+> Optional – defaults to 24‑hour days with 60‑minute hours.
 
 | Field             | Type   | Default | Description                   |
 | ----------------- | ------ | ------- | ----------------------------- |
@@ -465,7 +485,7 @@ For calendars with lunar cycles, add moon definitions with phase tracking:
 
 ### Required Fields
 
-- Root: `id`, `label`, `months`, `weekdays`
+- Root: `id`, `label`
 - Months: `name`, `days`
 - Weekdays: `name`
 - Intercalary: `name`, `after`
@@ -489,6 +509,12 @@ For calendars with lunar cycles, add moon definitions with phase tracking:
 - `leapYear.month`: Must match a month name
 - `intercalary[].after`: Must match a month name
 - All month and weekday names must be unique within their arrays
+
+### Default Handling
+
+When any core section (`year`, `leapYear`, `months`, `weekdays`, `intercalary`, or
+`time`) is omitted, Seasons & Stars substitutes Gregorian defaults and emits a
+console warning.
 
 ## Migration from Simple Calendar
 
