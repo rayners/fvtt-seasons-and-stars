@@ -4,16 +4,18 @@ This repository provides calendar tools for games in Foundry Virtual Tabletop (V
 
 ## Development Guidelines
 
-- Follow the existing coding standards enforced by ESLint and Prettier.
+- Source code is written in TypeScript and bundled with Rollup; do not commit generated `dist` output.
 - Before committing, run:
   - `npm run lint` to check for linting issues
-  - `npm test` to execute the unit tests
+  - `npm run typecheck` to validate TypeScript types
+  - `npm run test:run` to execute the Vitest unit tests once
+  - `npm run build` to ensure packages compile
 - Use `npm run format` or `npm run lint:fix` to automatically fix formatting problems.
 - Prefer descriptive commit messages and keep pull requests focused.
 
 ## GitHub Workflows & Tooling
 
-- Continuous integration and security checks run via GitHub Actions.
+- Continuous integration runs on Node 18 and 20 via GitHub Actions (`rayners/foundry-module-actions/ci`), performing lint, typecheck, build, tests with coverage, and calendar validation.
 - PR titles should follow the Conventional Commits style to satisfy the Semantic Pull Request workflow.
 - Releases are automated with [release-please](https://github.com/googleapis/release-please); do not manually edit version numbers or `CHANGELOG.md`.
 
