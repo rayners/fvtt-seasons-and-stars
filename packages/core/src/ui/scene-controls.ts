@@ -4,7 +4,7 @@
 
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
-import type { CalendarManagerInterface } from '../types/foundry-extensions';
+import { isCalendarManager } from '../types/type-guards';
 import type { SceneControl } from '../types/widget-types';
 
 export class SeasonsStarsSceneControls {
@@ -42,7 +42,7 @@ export class SeasonsStarsSceneControls {
           name: 'seasons-stars-widget',
           title: 'SEASONS_STARS.calendar.toggle_calendar',
           icon: 'fas fa-calendar-alt',
-          onChange: () => SeasonsStarsSceneControls.toggleDefaultWidget(),
+          onChange: (): void => SeasonsStarsSceneControls.toggleDefaultWidget(),
           button: true,
         };
 
@@ -175,72 +175,89 @@ export class SeasonsStarsSceneControls {
    */
   static registerMacros(): void {
     // Extend the existing SeasonsStars object with macro functions
-    if (!(window as any).SeasonsStars) {
-      (window as any).SeasonsStars = {};
+    window.SeasonsStars ??= {};
+
+    // Helper interface for legacy mini widget positioning
+    interface MiniWidgetPositions {
+      positionAboveSmallTime?: () => void;
+      positionBelowSmallTime?: () => void;
+      positionBesideSmallTime?: () => void;
     }
 
     // Add macro functions to the existing object
-    Object.assign((window as any).SeasonsStars, {
+    Object.assign(window.SeasonsStars!, {
       // Widget controls - respect default widget setting
-      showWidget: () => SeasonsStarsSceneControls.showDefaultWidget(),
-      hideWidget: () => SeasonsStarsSceneControls.hideDefaultWidget(),
-      toggleWidget: () => SeasonsStarsSceneControls.toggleDefaultWidget(),
+      showWidget: (): void => SeasonsStarsSceneControls.showDefaultWidget(),
+      hideWidget: (): void => SeasonsStarsSceneControls.hideDefaultWidget(),
+      toggleWidget: (): void => SeasonsStarsSceneControls.toggleDefaultWidget(),
 
       // Specific widget controls (for advanced users who want to override default)
-      showMainWidget: () => CalendarWidgetManager.showWidget('main'),
-      hideMainWidget: () => CalendarWidgetManager.hideWidget('main'),
-      toggleMainWidget: () => CalendarWidgetManager.toggleWidget('main'),
-      showMiniWidget: () => CalendarWidgetManager.showWidget('mini'),
-      hideMiniWidget: () => CalendarWidgetManager.hideWidget('mini'),
-      toggleMiniWidget: () => CalendarWidgetManager.toggleWidget('mini'),
-      showGridWidget: () => CalendarWidgetManager.showWidget('grid'),
-      hideGridWidget: () => CalendarWidgetManager.hideWidget('grid'),
-      toggleGridWidget: () => CalendarWidgetManager.toggleWidget('grid'),
+      showMainWidget: (): void => {
+        void CalendarWidgetManager.showWidget('main');
+      },
+      hideMainWidget: (): void => {
+        void CalendarWidgetManager.hideWidget('main');
+      },
+      toggleMainWidget: (): void => {
+        void CalendarWidgetManager.toggleWidget('main');
+      },
+      showMiniWidget: (): void => {
+        void CalendarWidgetManager.showWidget('mini');
+      },
+      hideMiniWidget: (): void => {
+        void CalendarWidgetManager.hideWidget('mini');
+      },
+      toggleMiniWidget: (): void => {
+        void CalendarWidgetManager.toggleWidget('mini');
+      },
+      showGridWidget: (): void => {
+        void CalendarWidgetManager.showWidget('grid');
+      },
+      hideGridWidget: (): void => {
+        void CalendarWidgetManager.hideWidget('grid');
+      },
+      toggleGridWidget: (): void => {
+        void CalendarWidgetManager.toggleWidget('grid');
+      },
 
       // Mini widget positioning (legacy support)
-      positionMiniAboveSmallTime: () => {
-        const miniWidget = CalendarWidgetManager.getWidgetInstance('mini');
-        if (miniWidget && typeof miniWidget.positionAboveSmallTime === 'function') {
-          miniWidget.positionAboveSmallTime();
-        }
+      positionMiniAboveSmallTime: (): void => {
+        const miniWidget = CalendarWidgetManager.getWidgetInstance<MiniWidgetPositions>('mini');
+        miniWidget?.positionAboveSmallTime?.();
       },
-      positionMiniBelowSmallTime: () => {
-        const miniWidget = CalendarWidgetManager.getWidgetInstance('mini');
-        if (miniWidget && typeof miniWidget.positionBelowSmallTime === 'function') {
-          miniWidget.positionBelowSmallTime();
-        }
+      positionMiniBelowSmallTime: (): void => {
+        const miniWidget = CalendarWidgetManager.getWidgetInstance<MiniWidgetPositions>('mini');
+        miniWidget?.positionBelowSmallTime?.();
       },
-      positionMiniBesideSmallTime: () => {
-        const miniWidget = CalendarWidgetManager.getWidgetInstance('mini');
-        if (miniWidget && typeof miniWidget.positionBesideSmallTime === 'function') {
-          miniWidget.positionBesideSmallTime();
-        }
+      positionMiniBesideSmallTime: (): void => {
+        const miniWidget = CalendarWidgetManager.getWidgetInstance<MiniWidgetPositions>('mini');
+        miniWidget?.positionBesideSmallTime?.();
       },
 
       // Time advancement functions for macros
       advanceMinutes: async (minutes: number) => {
-        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
-        if (manager && manager.advanceMinutes) await manager.advanceMinutes(minutes);
+        const manager = game.seasonsStars?.manager;
+        if (isCalendarManager(manager)) await manager.advanceMinutes(minutes);
       },
       advanceHours: async (hours: number) => {
-        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
-        if (manager && manager.advanceHours) await manager.advanceHours(hours);
+        const manager = game.seasonsStars?.manager;
+        if (isCalendarManager(manager)) await manager.advanceHours(hours);
       },
       advanceDays: async (days: number) => {
-        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
-        if (manager && manager.advanceDays) await manager.advanceDays(days);
+        const manager = game.seasonsStars?.manager;
+        if (isCalendarManager(manager)) await manager.advanceDays(days);
       },
       advanceWeeks: async (weeks: number) => {
-        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
-        if (manager && manager.advanceWeeks) await manager.advanceWeeks(weeks);
+        const manager = game.seasonsStars?.manager;
+        if (isCalendarManager(manager)) await manager.advanceWeeks(weeks);
       },
       advanceMonths: async (months: number) => {
-        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
-        if (manager && manager.advanceMonths) await manager.advanceMonths(months);
+        const manager = game.seasonsStars?.manager;
+        if (isCalendarManager(manager)) await manager.advanceMonths(months);
       },
       advanceYears: async (years: number) => {
-        const manager = game.seasonsStars?.manager as CalendarManagerInterface;
-        if (manager && manager.advanceYears) await manager.advanceYears(years);
+        const manager = game.seasonsStars?.manager;
+        if (isCalendarManager(manager)) await manager.advanceYears(years);
       },
     });
 

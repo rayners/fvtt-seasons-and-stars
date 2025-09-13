@@ -6,49 +6,75 @@
 import { Logger } from '../core/logger';
 import type { SidebarButton } from '../types/widget-types';
 
+interface RenderableWidget {
+  rendered: boolean;
+  render(force?: boolean): void;
+  bringToTop?(): void;
+  close(): void;
+}
+
+function isRenderableWidget(obj: unknown): obj is RenderableWidget {
+  if (!obj || typeof obj !== 'object') return false;
+  const candidate = obj as {
+    rendered?: unknown;
+    render?: unknown;
+    close?: unknown;
+  };
+  return (
+    typeof candidate.rendered === 'boolean' &&
+    typeof candidate.render === 'function' &&
+    typeof candidate.close === 'function'
+  );
+}
+
 /**
  * Base widget instance management (without generics for static compatibility)
  */
 export class WidgetInstanceManager {
-  protected static activeInstance: unknown = null;
+  protected static activeInstance: RenderableWidget | null = null;
 
   /**
    * Get the active instance of this widget
    */
-  static getInstance(): unknown {
+  static getInstance(): RenderableWidget | null {
     return this.activeInstance;
   }
 
   /**
    * Show the widget
    */
-  static show(): void {
+  static show(this: { new (): RenderableWidget; activeInstance: RenderableWidget | null }): void {
     if (this.activeInstance) {
-      if (!(this.activeInstance as any).rendered) {
-        (this.activeInstance as any).render(true);
+      if (!this.activeInstance.rendered) {
+        this.activeInstance.render(true);
       } else {
-        (this.activeInstance as any).bringToTop();
+        this.activeInstance.bringToTop?.();
       }
     } else {
-      this.activeInstance = new (this as any)();
-      (this.activeInstance as any).render(true);
+      this.activeInstance = new this();
+      this.activeInstance.render(true);
     }
   }
 
   /**
    * Hide the widget
    */
-  static hide(): void {
-    if ((this.activeInstance as any)?.rendered) {
-      (this.activeInstance as any).close();
+  static hide(this: { activeInstance: RenderableWidget | null }): void {
+    if (this.activeInstance?.rendered) {
+      this.activeInstance.close();
     }
   }
 
   /**
    * Toggle the widget visibility
    */
-  static toggle(): void {
-    if ((this.activeInstance as any)?.rendered) {
+  static toggle(this: {
+    new (): RenderableWidget;
+    activeInstance: RenderableWidget | null;
+    hide(): void;
+    show(): void;
+  }): void {
+    if (this.activeInstance?.rendered) {
       this.hide();
     } else {
       this.show();
@@ -58,19 +84,17 @@ export class WidgetInstanceManager {
   /**
    * Register hooks for automatic updates
    */
-  static registerHooks(): void {
+  static registerHooks(this: { activeInstance: RenderableWidget | null }): void {
     // Use arrow function to maintain proper 'this' context
     Hooks.on('seasons-stars:dateChanged', () => {
-      const instance = this.activeInstance as unknown;
-      if (instance && (instance as any)?.rendered) {
-        (instance as any).render();
+      if (this.activeInstance?.rendered) {
+        this.activeInstance.render();
       }
     });
 
     Hooks.on('seasons-stars:calendarChanged', () => {
-      const instance = this.activeInstance as unknown;
-      if (instance && (instance as any)?.rendered) {
-        (instance as any).render();
+      if (this.activeInstance?.rendered) {
+        this.activeInstance.render();
       }
     });
   }
@@ -85,7 +109,7 @@ export class SidebarButtonManager {
   /**
    * Add a sidebar button
    */
-  addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
+  addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void {
     // Check if button already exists
     const existingButton = this.sidebarButtons.find(btn => btn.name === name);
     if (existingButton) {
@@ -98,8 +122,8 @@ export class SidebarButtonManager {
     Logger.debug(`Added sidebar button "${name}"`);
 
     // Trigger re-render if widget is already rendered
-    if ((this as unknown as { rendered: boolean }).rendered) {
-      (this as unknown as { render: () => void }).render();
+    if (isRenderableWidget(this) && this.rendered) {
+      this.render();
     }
   }
 
@@ -113,8 +137,8 @@ export class SidebarButtonManager {
       Logger.debug(`Removed sidebar button "${name}"`);
 
       // Trigger re-render if widget is already rendered
-      if ((this as unknown as { rendered: boolean }).rendered) {
-        (this as unknown as { render: () => void }).render();
+      if (isRenderableWidget(this) && this.rendered) {
+        this.render();
       }
     }
   }
@@ -140,8 +164,8 @@ export class SidebarButtonManager {
     this.sidebarButtons = [];
     Logger.debug('Cleared all sidebar buttons');
 
-    if ((this as unknown as { rendered: boolean }).rendered) {
-      (this as unknown as { render: () => void }).render();
+    if (isRenderableWidget(this) && this.rendered) {
+      this.render();
     }
   }
 }
