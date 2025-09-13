@@ -2,7 +2,7 @@
 
 /**
  * Test runner for headless Foundry tests
- * 
+ *
  * This script runs Playwright tests against a real FoundryVTT instance
  * to validate Seasons & Stars functionality across different game systems
  */
@@ -31,9 +31,9 @@ class HeadlessTestRunner {
 
   async checkFoundryAvailability(): Promise<boolean> {
     try {
-      const response = await fetch(this.foundryUrl, { 
+      const response = await fetch(this.foundryUrl, {
         method: 'HEAD',
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(5000),
       });
       return response.ok;
     } catch (error) {
@@ -91,13 +91,13 @@ class HeadlessTestRunner {
       });
     }
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const process = spawn(cmd, args, {
         stdio: 'inherit',
-        cwd: join(__dirname, '..', '..', '..')
+        cwd: join(__dirname, '..', '..', '..'),
       });
 
-      process.on('close', (code) => {
+      process.on('close', code => {
         if (code === 0) {
           console.log(`\n✅ Headless tests completed successfully`);
           resolve(true);
@@ -107,7 +107,7 @@ class HeadlessTestRunner {
         }
       });
 
-      process.on('error', (error) => {
+      process.on('error', error => {
         console.error(`\n💥 Failed to start test process: ${error.message}`);
         resolve(false);
       });
@@ -119,9 +119,9 @@ class HeadlessTestRunner {
 async function main() {
   const args = process.argv.slice(2);
   const runner = new HeadlessTestRunner();
-  
+
   const options: TestRunOptions = {};
-  
+
   // Parse command line arguments
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {

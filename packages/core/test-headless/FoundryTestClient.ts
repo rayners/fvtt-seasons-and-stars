@@ -36,42 +36,48 @@ export const DEFAULT_CONFIG: FoundryTestConfig = {
       name: 'S&S-Testing-GM',
       system: 'pf2e',
       calendar: 'golarion-pf2e',
-      description: 'GM context testing with PF2e system and Golarian calendar'
+      description: 'GM context testing with PF2e system and Golarian calendar',
     },
     {
-      id: 'sands-testing-player', 
+      id: 'sands-testing-player',
       name: 'S&S-Testing-Player',
       system: 'dnd5e',
       calendar: 'gregorian',
-      description: 'Player context testing with D&D5e system and Gregorian calendar'
+      description: 'Player context testing with D&D5e system and Gregorian calendar',
     },
     {
       id: 'sands-integration-test',
       name: 'S&S-Integration-Test',
       system: 'dragonbane',
       calendar: 'vale-reckoning',
-      description: 'Integration testing with Dragonbane system and Vale Reckoning calendar'
-    }
+      description: 'Integration testing with Dragonbane system and Vale Reckoning calendar',
+    },
   ],
   users: [
     {
       id: 'testgm',
       name: 'TestGM',
       role: 'gamemaster',
-      permissions: ['ACTOR_CREATE', 'ITEM_CREATE', 'JOURNAL_CREATE', 'MACRO_SCRIPT', 'SETTINGS_MODIFY']
+      permissions: [
+        'ACTOR_CREATE',
+        'ITEM_CREATE',
+        'JOURNAL_CREATE',
+        'MACRO_SCRIPT',
+        'SETTINGS_MODIFY',
+      ],
     },
     {
       id: 'player1',
-      name: 'Player1', 
+      name: 'Player1',
       role: 'player',
-      permissions: ['ACTOR_CREATE']
-    }
+      permissions: ['ACTOR_CREATE'],
+    },
   ],
   timeouts: {
     pageLoad: 10000,
     moduleLoad: 15000,
-    worldLoad: 20000
-  }
+    worldLoad: 20000,
+  },
 };
 
 export class FoundryTestClient {
@@ -88,9 +94,9 @@ export class FoundryTestClient {
 
   async initialize(): Promise<void> {
     this.page = await this.browser.newPage();
-    
+
     // Enable console logging for debugging
-    this.page.on('console', (msg) => {
+    this.page.on('console', msg => {
       if (msg.type() === 'error') {
         console.error(`Foundry Console Error: ${msg.text()}`);
       } else if (msg.text().includes('Seasons & Stars')) {
@@ -99,22 +105,28 @@ export class FoundryTestClient {
     });
 
     // Navigate to Foundry
-    await this.page.goto(this.config.foundryUrl, { 
+    await this.page.goto(this.config.foundryUrl, {
       waitUntil: 'networkidle',
-      timeout: this.config.timeouts.pageLoad
+      timeout: this.config.timeouts.pageLoad,
     });
   }
 
   async connectToWorld(worldId: string, userId: string): Promise<void> {
     const world = this.config.worlds.find(w => w.id === worldId);
     const user = this.config.users.find(u => u.id === userId);
-    
+
     if (!world) throw new Error(`World not found: ${worldId}`);
     if (!user) throw new Error(`User not found: ${userId}`);
 
     // Check if we need admin authentication first
     const currentUrl = await this.page.url();
-    if (currentUrl.includes('/auth') || await this.page.locator('input[name="adminKey"]').isVisible().catch(() => false)) {
+    if (
+      currentUrl.includes('/auth') ||
+      (await this.page
+        .locator('input[name="adminKey"]')
+        .isVisible()
+        .catch(() => false))
+    ) {
       await this.authenticateAsAdmin();
     }
 
@@ -125,7 +137,7 @@ export class FoundryTestClient {
     // Check if we're on a join page (world is running) and need to return to setup
     if (await this.page.locator('#join-game').isVisible({ timeout: 2000 })) {
       console.log(`🔄 World is running, returning to setup...`);
-      
+
       // Look for the return to setup form with admin password
       const setupForm = this.page.locator('#join-game-setup');
       if (await setupForm.isVisible({ timeout: 2000 })) {
@@ -134,7 +146,7 @@ export class FoundryTestClient {
         if (await adminPasswordField.isVisible({ timeout: 1000 })) {
           await adminPasswordField.fill(this.config.adminPassword || '');
         }
-        
+
         // Click the return to setup button
         const returnButton = setupForm.locator('button[type="submit"]');
         await returnButton.click();
@@ -158,15 +170,14 @@ export class FoundryTestClient {
       // Find the world li element and click its play button
       const worldLi = this.page.locator(`li.package.world:has-text("${world.name}")`);
       await worldLi.waitFor({ timeout: 10000 });
-      
+
       // Hover over the world to make the play button visible
       await worldLi.hover();
-      
+
       // Click the play button to launch the world
       const playButton = worldLi.locator('.control.play[data-action="worldLaunch"]');
       await playButton.waitFor({ timeout: 5000 });
       await playButton.click();
-      
     } catch (error) {
       await this.takeScreenshot(`world-launch-error-${worldId}`);
       throw new Error(`Failed to launch world "${worldId}": ${error.message}`);
@@ -179,25 +190,24 @@ export class FoundryTestClient {
     try {
       // Wait for the join game form to appear
       await this.page.waitForSelector('#join-game-form', { timeout: 10000 });
-      
+
       // Select the user from the dropdown
       const userSelect = this.page.locator('select[name="userid"]');
       await userSelect.waitFor({ timeout: 5000 });
-      
+
       // Select by the option text (user.name)
       await userSelect.selectOption({ label: user.name });
-      
+
       // If there's a password field, leave it empty (most test users don't have passwords)
       const passwordField = this.page.locator('input[name="password"]');
       if (await passwordField.isVisible({ timeout: 1000 })) {
         await passwordField.fill(''); // Clear any existing password
       }
-      
     } catch (error) {
       await this.takeScreenshot(`user-selection-error-${userId}`);
       throw new Error(`Failed to select user "${userId}": ${error.message}`);
     }
-    
+
     // Join the world - use the specific join button from the form
     try {
       const joinButton = this.page.locator('button[name="join"]');
@@ -207,7 +217,7 @@ export class FoundryTestClient {
       await this.takeScreenshot(`join-error-${worldId}`);
       throw new Error(`Failed to join world: ${error.message}`);
     }
-    
+
     // Wait for the world to load completely
     await this.page.waitForLoadState('networkidle');
     await this.waitForFoundryReady();
@@ -226,17 +236,17 @@ export class FoundryTestClient {
     const adminInput = this.page.locator('input[name="adminPassword"]');
     if (await adminInput.isVisible({ timeout: 2000 })) {
       await adminInput.fill(this.config.adminPassword);
-      
+
       const submitButton = this.page.locator('button[type="submit"]');
       await submitButton.click();
-      
+
       // Wait for authentication to complete and redirect to setup page
       await this.page.waitForLoadState('networkidle');
     }
   }
 
   private async dismissModalDialogs(): Promise<void> {
-    // Handle the specific Foundry Backups tour modal 
+    // Handle the specific Foundry Backups tour modal
     try {
       const tourStep = this.page.locator('.tour-center-step.tour');
       if (await tourStep.isVisible({ timeout: 2000 })) {
@@ -255,16 +265,16 @@ export class FoundryTestClient {
 
     // Fallback: Look for other common modal dialog patterns
     const modalSelectors = [
-      '[data-action="exit"]',                    // Specific tour exit button
-      '[data-action="close"]',                   // Data attribute close
-      '.dialog .window-header .close',           // Generic dialog close button
-      '.tour .window-header .close',             // Tour modal close button  
-      '.notification .close',                    // Notification close button
-      '.modal .close',                           // Generic modal close button
-      'button:has-text("Close")',                // Close button text
-      'button:has-text("Dismiss")',              // Dismiss button text
-      'button:has-text("Skip")',                 // Skip button text
-      '.window-app .window-header .close'        // Foundry window app close
+      '[data-action="exit"]', // Specific tour exit button
+      '[data-action="close"]', // Data attribute close
+      '.dialog .window-header .close', // Generic dialog close button
+      '.tour .window-header .close', // Tour modal close button
+      '.notification .close', // Notification close button
+      '.modal .close', // Generic modal close button
+      'button:has-text("Close")', // Close button text
+      'button:has-text("Dismiss")', // Dismiss button text
+      'button:has-text("Skip")', // Skip button text
+      '.window-app .window-header .close', // Foundry window app close
     ];
 
     for (const selector of modalSelectors) {
@@ -284,10 +294,9 @@ export class FoundryTestClient {
 
   async waitForFoundryReady(): Promise<void> {
     // Wait for the main Foundry game object to be available
-    await this.page.waitForFunction(
-      () => typeof window.game !== 'undefined' && window.game.ready,
-      { timeout: this.config.timeouts.worldLoad }
-    );
+    await this.page.waitForFunction(() => typeof window.game !== 'undefined' && window.game.ready, {
+      timeout: this.config.timeouts.worldLoad,
+    });
   }
 
   async waitForSeasonsAndStarsReady(): Promise<void> {
@@ -306,7 +315,12 @@ export class FoundryTestClient {
         () => {
           const api = window.game?.modules?.get('seasons-and-stars')?.api;
           // Check for various signs that the module API is ready
-          return api && (api.calendarEngine !== undefined || api.timeAdvancement !== undefined || api.settingsManager !== undefined);
+          return (
+            api &&
+            (api.calendarEngine !== undefined ||
+              api.timeAdvancement !== undefined ||
+              api.settingsManager !== undefined)
+          );
         },
         { timeout: this.config.timeouts.moduleLoad }
       );
@@ -321,11 +335,11 @@ export class FoundryTestClient {
           apiKeys: api ? Object.keys(api) : [],
           calendarEngine: !!api?.calendarEngine,
           timeAdvancement: !!api?.timeAdvancement,
-          settingsManager: !!api?.settingsManager
+          settingsManager: !!api?.settingsManager,
         };
       });
       console.log(`⚠️ Calendar engine not fully initialized, current status:`, moduleStatus);
-      
+
       // Only throw if the module isn't active at all
       if (!moduleStatus.moduleActive) {
         throw error;
@@ -383,7 +397,7 @@ export class FoundryTestClient {
           if (await adminPasswordField.isVisible({ timeout: 1000 })) {
             await adminPasswordField.fill(this.config.adminPassword || '');
           }
-          
+
           // Click the return to setup button
           const returnButton = setupForm.locator('button[type="submit"]');
           await returnButton.click();
@@ -409,7 +423,7 @@ export class FoundryTestClient {
         return {
           currentDate: api.calendarEngine.getCurrentDate(),
           worldTime: window.game.time.worldTime,
-          calendar: api.calendarEngine.calendar
+          calendar: api.calendarEngine.calendar,
         };
       }
       return null;
@@ -421,7 +435,7 @@ export class FoundryTestClient {
       throw new Error('Only GM can set world time');
     }
 
-    await this.page.evaluate((time) => {
+    await this.page.evaluate(time => {
       if (window.game.time) {
         const currentTime = window.game.time.worldTime;
         const advancement = time - currentTime;
@@ -435,12 +449,12 @@ export class FoundryTestClient {
       throw new Error('Only GM can advance time');
     }
 
-    await this.page.evaluate((advancement) => {
+    await this.page.evaluate(advancement => {
       return window.game.time.advance(advancement);
     }, seconds);
   }
 
-  async getWidgetElements(): Promise<{miniWidget: boolean, fullGrid: boolean}> {
+  async getWidgetElements(): Promise<{ miniWidget: boolean; fullGrid: boolean }> {
     return await this.page.evaluate(() => {
       const miniWidget = document.querySelector('.seasons-stars-mini-widget') !== null;
       const fullGrid = document.querySelector('.seasons-stars-calendar-grid') !== null;
@@ -453,7 +467,7 @@ export class FoundryTestClient {
     const miniWidgetButton = '.seasons-stars-mini-widget .calendar-button';
     await this.page.waitForSelector(miniWidgetButton, { timeout: 5000 });
     await this.page.click(miniWidgetButton);
-    
+
     // Wait for the grid to appear
     await this.page.waitForSelector('.seasons-stars-calendar-grid', { timeout: 5000 });
   }
@@ -463,11 +477,11 @@ export class FoundryTestClient {
     try {
       await this.page.waitForSelector(closeButton, { timeout: 2000 });
       await this.page.click(closeButton);
-      
+
       // Wait for grid to disappear
-      await this.page.waitForSelector('.seasons-stars-calendar-grid', { 
-        state: 'detached', 
-        timeout: 2000 
+      await this.page.waitForSelector('.seasons-stars-calendar-grid', {
+        state: 'detached',
+        timeout: 2000,
       });
     } catch (error) {
       // Grid might not be open, that's okay
@@ -477,7 +491,7 @@ export class FoundryTestClient {
   async takeScreenshot(name: string): Promise<Buffer> {
     return await this.page.screenshot({
       path: `test-results/headless-${name}-${Date.now()}.png`,
-      fullPage: true
+      fullPage: true,
     });
   }
 
