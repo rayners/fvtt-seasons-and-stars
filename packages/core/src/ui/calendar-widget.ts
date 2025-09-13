@@ -178,6 +178,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    */
   async _onOpenCalendarSelection(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
+    if (!game.user?.isGM) {
+      return;
+    }
     CalendarSelectionDialog.show();
   }
 

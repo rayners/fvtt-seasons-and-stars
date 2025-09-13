@@ -16,6 +16,7 @@ test-dialog.html
 
 # Internal documentation (moved to ../local-docs/)
 CLAUDE.md
+!CLAUDE.md
 *-IMPLEMENTATION.md
 PHASE*.md
 BETA-*.md
