@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.13.0...seasons-and-stars-v0.13.1) (2025-09-13)
+
+
+### Bug Fixes
+
+* hide calendar selector for non-GM users ([#228](https://github.com/rayners/fvtt-seasons-and-stars/issues/228)) ([869e87c](https://github.com/rayners/fvtt-seasons-and-stars/commit/869e87c8cfb9e72868a7f9f95f93c41e7c16dbbd))
+
 ## [0.13.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.12.0...seasons-and-stars-v0.13.0) (2025-09-02)
 
 
