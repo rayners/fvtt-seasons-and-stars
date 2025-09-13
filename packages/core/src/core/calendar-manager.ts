@@ -216,9 +216,20 @@ export class CalendarManager {
     // Store the base calendar
     this.calendars.set(calendarData.id, calendarData);
 
-    // Create engine for base calendar
-    const engine = new CalendarEngine(calendarData);
-    this.engines.set(calendarData.id, engine);
+    // Create engine for base calendar with error handling
+    let engine: CalendarEngine;
+    try {
+      engine = new CalendarEngine(calendarData);
+      this.engines.set(calendarData.id, engine);
+    } catch (error) {
+      // Remove calendar entry if engine creation fails
+      this.calendars.delete(calendarData.id);
+      Logger.error(
+        `Failed to create calendar engine for ${calendarData.id}:`,
+        error instanceof Error ? error : new Error(String(error))
+      );
+      return false;
+    }
 
     // Expand variants if they exist
     if (calendarData.variants) {

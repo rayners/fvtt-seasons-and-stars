@@ -122,7 +122,7 @@ export interface CalendarSeason {
   name: string;
   description?: string;
   startMonth: number;
-  startDay: number;
+  startDay?: number;
   endMonth?: number;
   icon?: string;
   color?: string;

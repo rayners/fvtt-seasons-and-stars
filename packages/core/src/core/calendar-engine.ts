@@ -13,14 +13,52 @@ import type {
 import { CalendarDate } from './calendar-date';
 import { CalendarTimeUtils } from './calendar-time-utils';
 import { compatibilityManager } from './compatibility-manager';
+import { Logger } from './logger';
+import gregorianDefaults from '../../calendars/gregorian.json';
 
 export class CalendarEngine {
   private calendar: SeasonsStarsCalendar;
   private calculationCache: Map<string, CalendarCalculation> = new Map();
 
   constructor(calendar: SeasonsStarsCalendar) {
-    this.calendar = calendar;
+    this.calendar = CalendarEngine.applyGregorianDefaults(calendar);
     this.precomputeYearData();
+  }
+
+  private static applyGregorianDefaults(calendar: SeasonsStarsCalendar): SeasonsStarsCalendar {
+    const defaults = gregorianDefaults as SeasonsStarsCalendar;
+
+    const mergedLeapYear =
+      calendar.leapYear === undefined
+        ? defaults.leapYear
+        : calendar.leapYear.rule === 'none'
+          ? { rule: 'none' }
+          : { ...defaults.leapYear, ...calendar.leapYear };
+
+    const merged: SeasonsStarsCalendar = {
+      ...calendar,
+      year: calendar.year === undefined ? defaults.year : { ...defaults.year, ...calendar.year },
+      leapYear: mergedLeapYear,
+      time: calendar.time === undefined ? defaults.time : { ...defaults.time, ...calendar.time },
+      months: calendar.months ?? defaults.months,
+      weekdays: calendar.weekdays ?? defaults.weekdays,
+      intercalary: calendar.intercalary ?? defaults.intercalary,
+    } as SeasonsStarsCalendar;
+
+    if (!calendar.year)
+      Logger.warn(`Calendar ${calendar.id} missing year data; using Gregorian defaults`);
+    if (!calendar.leapYear)
+      Logger.warn(`Calendar ${calendar.id} missing leapYear data; using Gregorian defaults`);
+    if (!calendar.months)
+      Logger.warn(`Calendar ${calendar.id} missing months data; using Gregorian defaults`);
+    if (!calendar.weekdays)
+      Logger.warn(`Calendar ${calendar.id} missing weekdays data; using Gregorian defaults`);
+    if (!calendar.intercalary)
+      Logger.warn(`Calendar ${calendar.id} missing intercalary data; using Gregorian defaults`);
+    if (!calendar.time)
+      Logger.warn(`Calendar ${calendar.id} missing time data; using Gregorian defaults`);
+
+    return merged;
   }
 
   /**
@@ -815,13 +853,13 @@ export class CalendarEngine {
     const monthLengths = this.calendar.months.map(month => month.days);
 
     // Add leap year days if applicable
-    if (this.isLeapYear(year) && this.calendar.leapYear.month) {
+    if (this.isLeapYear(year) && this.calendar.leapYear?.month) {
       const leapMonthIndex = this.calendar.months.findIndex(
-        month => month.name === this.calendar.leapYear.month
+        month => month.name === this.calendar.leapYear!.month
       );
 
       if (leapMonthIndex >= 0) {
-        monthLengths[leapMonthIndex] += this.calendar.leapYear.extraDays || 1;
+        monthLengths[leapMonthIndex] += this.calendar.leapYear!.extraDays || 1;
       }
     }
 
@@ -876,7 +914,10 @@ export class CalendarEngine {
    * Check if a year is a leap year
    */
   private isLeapYear(year: number): boolean {
-    const { rule, interval } = this.calendar.leapYear;
+    const leapYear = this.calendar.leapYear;
+    if (!leapYear) return false;
+
+    const { rule, interval } = leapYear;
 
     switch (rule) {
       case 'none':
