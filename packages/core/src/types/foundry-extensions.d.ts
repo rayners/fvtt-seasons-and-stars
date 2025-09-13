@@ -5,7 +5,12 @@
  * Core Foundry types are provided by foundry-v13-essentials.d.ts
  */
 
-import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
+import type {
+  SeasonsStarsCalendar,
+  CalendarDate,
+  DateFormatOptions,
+  CalendarIntercalary,
+} from './calendar';
 import type { SeasonsStarsIntegration } from './bridge-interfaces';
 import type { LoadResult, ExternalCalendarSource } from '../core/calendar-loader';
 
@@ -19,8 +24,8 @@ declare global {
     ready: boolean;
     seasonsStars?: {
       api?: SeasonsStarsAPI;
-      manager?: unknown; // CalendarManager interface
-      notes?: unknown; // NotesManager interface
+      manager?: CalendarManagerInterface; // CalendarManager interface
+      notes?: NotesManagerInterface; // NotesManager interface
       categories?: unknown; // Note categories management
       integration?: SeasonsStarsIntegration | null;
       compatibilityManager?: unknown; // Expose for debugging and external access
@@ -33,21 +38,22 @@ declare global {
 
   interface Window {
     SeasonsStars?: {
-      api: SeasonsStarsAPI;
-      manager: unknown;
-      notes: unknown;
-      integration: SeasonsStarsIntegration | null;
+      api?: SeasonsStarsAPI;
+      manager?: CalendarManagerInterface;
+      notes?: NotesManagerInterface;
+      integration?: SeasonsStarsIntegration | null;
       CalendarWidget?: unknown;
       CalendarMiniWidget?: unknown;
       CalendarGridWidget?: unknown;
       CalendarSelectionDialog?: unknown;
       NoteEditingDialog?: unknown;
+      [key: string]: unknown;
     };
   }
 
   interface Combat {
     id: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }
 }
 
@@ -105,12 +111,12 @@ export declare function isNotesManager(obj: unknown): obj is NotesManagerInterfa
 // Calendar Manager interface for type safety
 export interface CalendarManagerInterface {
   getCurrentDate(): CalendarDate | null;
-  setCurrentDate(date: CalendarDate): Promise<boolean>;
+  setCurrentDate(date: CalendarDate): Promise<void>;
   getActiveCalendar(): SeasonsStarsCalendar | null;
   getActiveEngine(): CalendarEngineInterface | null;
   getAllCalendars(): SeasonsStarsCalendar[];
   getCalendar(calendarId: string): SeasonsStarsCalendar | null;
-  getAvailableCalendars(): string[];
+  getAvailableCalendars(): SeasonsStarsCalendar[];
   setActiveCalendar(calendarId: string): Promise<boolean>;
   advanceSeconds(seconds: number): Promise<void>;
   advanceMinutes(minutes: number): Promise<void>;
@@ -128,32 +134,25 @@ export interface CalendarEngineInterface {
   getMonthLength(month: number, year: number): number;
   dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number;
   worldTimeToDate(timestamp: number, worldCreationTimestamp?: number): CalendarDate;
-  getIntercalaryDaysAfterMonth(month: number, year: number): any[];
+  getIntercalaryDaysAfterMonth(month: number, year: number): CalendarIntercalary[];
   addMonths(date: CalendarDate, months: number): CalendarDate;
   addYears(date: CalendarDate, years: number): CalendarDate;
 }
 
 // Notes Manager interface for type safety
 export interface NotesManagerInterface {
-  createNote(data: any): Promise<JournalEntry>;
-  updateNote(noteId: string, data: any): Promise<JournalEntry>;
+  createNote(data: unknown): Promise<JournalEntry>;
+  updateNote(noteId: string, data: unknown): Promise<JournalEntry>;
   deleteNote(noteId: string): Promise<void>;
   getNote(noteId: string): Promise<JournalEntry | null>;
   getNotesForDate(date: CalendarDate): Promise<JournalEntry[]>;
   getNotesForDateRange(start: CalendarDate, end: CalendarDate): Promise<JournalEntry[]>;
-  setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void>;
-  getNoteModuleData(noteId: string, moduleId: string): any;
+  setNoteModuleData(noteId: string, moduleId: string, data: unknown): Promise<void>;
+  getNoteModuleData(noteId: string, moduleId: string): unknown;
   canCreateNote(): boolean;
-  getCategories(): any;
-  getPredefinedTags(): string[];
-  parseTagString(tags: string): string[];
-  validateTags(tags: string[]): boolean;
-  getDefaultCategory(): any;
-  getCategory(categoryId: string): any;
-  getAllNotes(): JournalEntry[];
   storage: {
     findNotesByDateSync(date: CalendarDate): JournalEntry[];
     removeNote(noteId: string): Promise<void>;
-    getAllNotes(): JournalEntry[];
+    getAllNotes?(): JournalEntry[];
   };
 }

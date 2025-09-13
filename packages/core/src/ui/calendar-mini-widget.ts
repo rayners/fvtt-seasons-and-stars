@@ -536,7 +536,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Add a sidebar button to the mini widget
    * Provides generic API for integration with other modules via compatibility bridges
    */
-  addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
+  addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void {
     // Check if button already exists
     const existingButton = this.sidebarButtons.find(btn => btn.name === name);
     if (existingButton) {

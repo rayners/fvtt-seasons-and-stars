@@ -47,7 +47,7 @@ export interface GridWidgetContext extends BaseWidgetContext {
   monthDescription?: string;
   yearDisplay: string;
   weekdays: WeekdayInfo[];
-  notesForDays: Record<string, any[]>; // Date string -> notes array
+  notesForDays: Record<string, unknown[]>; // Date string -> notes array
 }
 
 // Widget render options
@@ -81,7 +81,7 @@ export interface WeekData {
 
 // Day data structure
 export interface DayData {
-  day: number;
+  day: number | string;
   isToday: boolean;
   isSelected: boolean;
   isOtherMonth: boolean;
@@ -101,7 +101,7 @@ export interface SidebarButton {
   name: string;
   icon: string;
   tooltip: string;
-  callback: Function;
+  callback: () => void;
 }
 
 // Scene control types
