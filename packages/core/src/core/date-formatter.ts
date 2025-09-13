@@ -5,6 +5,7 @@
 import type { CalendarDate as ICalendarDate } from './calendar-date';
 import { CalendarDate } from './calendar-date';
 import type { SeasonsStarsCalendar } from '../types/calendar';
+import { Logger } from './logger';
 
 export class DateFormatter {
   private calendar: SeasonsStarsCalendar;
@@ -139,12 +140,12 @@ export class DateFormatter {
       if (formatName && this.calendar.id) {
         // Calendar-specific format error
         const calendarName = this.calendar.name || this.calendar.id;
-        console.warn(
-          `[S&S] Calendar "${calendarName}" has syntax errors in "${formatName}" format: ${error.message}`
+        Logger.warn(
+          `Calendar "${calendarName}" has syntax errors in "${formatName}" format: ${error.message}`
         );
       } else {
         // Generic template error
-        console.warn(`[S&S] Date format template has syntax errors: ${error.message}`);
+        Logger.warn(`Date format template has syntax errors: ${error.message}`);
       }
     }
   }
@@ -182,7 +183,7 @@ export class DateFormatter {
   ): string {
     // Type safety check at entry point
     if (typeof template !== 'string') {
-      console.debug('[S&S] Invalid template type passed to format(), falling back to basic format');
+      Logger.debug('Invalid template type passed to format(), falling back to basic format');
       return this.getBasicFormat(date);
     }
 
@@ -198,7 +199,7 @@ export class DateFormatter {
 
       // Validate template output - detect malformed templates that produce empty/invalid output
       if (this.isInvalidTemplateOutput(result, template)) {
-        console.debug('[S&S] Template produced invalid output, falling back to basic format:', {
+        Logger.debug('Template produced invalid output, falling back to basic format:', {
           template,
           result,
         });
@@ -207,7 +208,7 @@ export class DateFormatter {
 
       return result;
     } catch (error) {
-      console.debug('[S&S] Date format template compilation failed:', error);
+      Logger.debug('Date format template compilation failed:', error);
 
       // Notify user about the error
       this.notifyTemplateError(
@@ -237,7 +238,7 @@ export class DateFormatter {
 
     // Prevent circular references - check before adding to visited
     if (visited.has(formatName)) {
-      console.debug(`[S&S] Circular reference detected in format '${formatName}'`);
+      Logger.debug(`Circular reference detected in format '${formatName}'`);
       return this.getBasicFormat(date);
     }
 
@@ -347,8 +348,8 @@ export class DateFormatter {
       (this.calendar.months.length > 0 && date.month > this.calendar.months.length)
     ) {
       // Only log as debug for legitimate edge cases, no user-visible warnings
-      console.debug(
-        `[S&S] Month value ${date.month} outside calendar range (1-${this.calendar.months.length}), using start of year fallback`
+      Logger.debug(
+        `Month value ${date.month} outside calendar range (1-${this.calendar.months.length}), using start of year fallback`
       );
       // Return 1 to indicate start of year, which is more meaningful than raw day value
       // This prevents confusing calculations in stardate helpers and other features
