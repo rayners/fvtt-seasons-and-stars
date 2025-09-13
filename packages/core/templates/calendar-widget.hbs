@@ -8,10 +8,10 @@
   {{else}}
     {{!-- Calendar Header --}}
     <div class="calendar-header">
-      <div class="calendar-title clickable" data-action="openCalendarSelection" title="Click to change calendar system">
+      <div class="calendar-title {{#if isGM}}clickable{{/if}}" {{#if isGM}}data-action="openCalendarSelection" title="Click to change calendar system"{{/if}}>
         <i class="fas fa-calendar-alt"></i>
         <span>{{calendar.label}}</span>
-        <i class="fas fa-chevron-down dropdown-icon"></i>
+        {{#if isGM}}<i class="fas fa-chevron-down dropdown-icon"></i>{{/if}}
       </div>
       <div class="widget-switching-controls">
         <button type="button" class="widget-switch-btn" data-action="switchToMini" title="Switch to Mini Widget">
@@ -21,7 +21,9 @@
           <i class="fas fa-th"></i>
         </button>
       </div>
-      <div class="calendar-hint">Click above to change calendar</div>
+      {{#if isGM}}
+        <div class="calendar-hint">Click above to change calendar</div>
+      {{/if}}
       {{#if calendar.setting}}
         <div class="calendar-setting">{{calendar.setting}}</div>
       {{/if}}

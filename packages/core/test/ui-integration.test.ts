@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SmallTimeUtils, SidebarButtonManager } from '../src/ui/base-widget-manager';
 import { SeasonsStarsSceneControls } from '../src/ui/scene-controls';
+import { CalendarWidgetManager } from '../src/ui/widget-manager';
 
 // Mock Foundry globals
 const mockGame = {
@@ -371,6 +372,57 @@ describe('Scene Controls Integration', () => {
       const seasonsStars = (globalThis as any).SeasonsStars;
       expect(seasonsStars.existingProperty).toBe('test');
       expect(seasonsStars.showWidget).toBeTypeOf('function');
+    });
+  });
+
+  describe('macro functionality', () => {
+    let seasonsStars: any;
+
+    beforeEach(() => {
+      // Ensure fresh object and default setting
+      delete (globalThis as any).SeasonsStars;
+      mockGame.settings.get.mockReturnValue('main');
+      SeasonsStarsSceneControls.registerMacros();
+      seasonsStars = (globalThis as any).SeasonsStars;
+    });
+
+    it('showWidget uses default widget setting', () => {
+      const showSpy = vi.spyOn(CalendarWidgetManager, 'showWidget').mockResolvedValue();
+      mockGame.settings.get.mockReturnValue('mini');
+
+      seasonsStars.showWidget();
+
+      expect(showSpy).toHaveBeenCalledWith('mini');
+    });
+
+    it('toggleWidget uses default widget setting', () => {
+      const toggleSpy = vi.spyOn(CalendarWidgetManager, 'toggleWidget').mockResolvedValue();
+      mockGame.settings.get.mockReturnValue('grid');
+
+      seasonsStars.toggleWidget();
+
+      expect(toggleSpy).toHaveBeenCalledWith('grid');
+    });
+
+    it('showMainWidget delegates to CalendarWidgetManager', () => {
+      const showSpy = vi.spyOn(CalendarWidgetManager, 'showWidget').mockResolvedValue();
+
+      const result = seasonsStars.showMainWidget();
+
+      expect(result).toBeUndefined();
+      expect(showSpy).toHaveBeenCalledWith('main');
+    });
+
+    it('positionMiniAboveSmallTime calls mini widget instance method', () => {
+      const instance = { positionAboveSmallTime: vi.fn() };
+      const getInstanceSpy = vi
+        .spyOn(CalendarWidgetManager, 'getWidgetInstance')
+        .mockReturnValue(instance);
+
+      seasonsStars.positionMiniAboveSmallTime();
+
+      expect(getInstanceSpy).toHaveBeenCalledWith('mini');
+      expect(instance.positionAboveSmallTime).toHaveBeenCalled();
     });
   });
 });
