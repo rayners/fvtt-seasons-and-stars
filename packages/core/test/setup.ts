@@ -6,7 +6,23 @@
 
 /// <reference path="test-types.d.ts" />
 
-import { vi, beforeEach } from 'vitest';
+import { vi, beforeEach, afterEach } from 'vitest';
+// Preserve the original console for restoration between tests
+const originalConsole = globalThis.console;
+let warnSpy: ReturnType<typeof vi.spyOn>;
+let errorSpy: ReturnType<typeof vi.spyOn>;
+
+// Silence console warnings and errors during tests to keep output clean
+beforeEach(() => {
+  globalThis.console = originalConsole;
+  warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+});
+
+afterEach(() => {
+  warnSpy.mockRestore();
+  errorSpy.mockRestore();
+});
 import { DateFormatter } from '../src/core/date-formatter';
 
 // Mock Foundry globals

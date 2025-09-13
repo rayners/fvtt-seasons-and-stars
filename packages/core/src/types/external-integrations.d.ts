@@ -271,7 +271,7 @@ export interface CalendarEngineInterface {
 
 // Calendar grid day object for UI widgets
 export interface CalendarDayData {
-  day: number;
+  day: number | string;
   date: {
     year: number;
     month: number;
