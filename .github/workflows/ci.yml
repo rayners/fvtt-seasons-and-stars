@@ -24,7 +24,7 @@ jobs:
         uses: rayners/foundry-module-actions/ci@v5
         with:
           node-version: ${{ matrix.node-version }}
-          github-packages: true
+          github-packages: false
           codecov: ${{ matrix.node-version == '20' }}
           codecov-slug: rayners/fvtt-seasons-and-stars
           coverage-node-version: '20'
