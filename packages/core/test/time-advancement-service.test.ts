@@ -978,5 +978,24 @@ describe('TimeAdvancementService', () => {
       // The actual interval would skip advancement when blocked
       // We can't easily test setInterval behavior in unit tests
     });
+
+    it('should reset lastAdvancement when interval tick is blocked', async () => {
+      vi.useFakeTimers();
+
+      await service.play();
+      const initial = (service as any).lastAdvancement;
+
+      // Block advancement via game pause
+      (mockGame as any).paused = true;
+
+      // Advance the interval once
+      vi.advanceTimersByTime(10000);
+
+      expect(mockGame.seasonsStars.manager.advanceSeconds).not.toHaveBeenCalled();
+      const after = (service as any).lastAdvancement;
+      expect(after - initial).toBe(10000);
+
+      vi.useRealTimers();
+    });
   });
 });

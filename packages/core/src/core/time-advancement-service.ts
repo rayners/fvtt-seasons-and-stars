@@ -529,6 +529,8 @@ export class TimeAdvancementService {
         // Check if advancement should be blocked before advancing
         if (this.isAdvancementBlocked()) {
           // Logger.debug('Time advancement temporarily blocked, skipping interval');
+          // Update the last advancement timestamp so paused time doesn't accumulate
+          this.lastAdvancement = Date.now();
           return;
         }
 
