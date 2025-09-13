@@ -102,17 +102,17 @@ describe('Time Advancement Integration Tests', () => {
       expect(service.isActive).toBe(true);
 
       // Fast-forward timer to trigger advancement
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(10000);
 
       // Verify calendar manager was called with correct seconds
-      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(2);
+      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(20);
     });
 
     it('should handle settings changes dynamically', async () => {
       // Start with default ratio
       await service.play();
-      vi.advanceTimersByTime(1000);
-      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(1);
+      vi.advanceTimersByTime(10000);
+      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(10);
 
       // Change ratio through settings
       service.updateRatio(5.0);
@@ -121,8 +121,8 @@ describe('Time Advancement Integration Tests', () => {
       expect(service.isActive).toBe(true);
 
       // Advance timer and verify new ratio is used
-      vi.advanceTimersByTime(1000);
-      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(5);
+      vi.advanceTimersByTime(10000);
+      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(50);
     });
 
     it('should integrate with combat system properly', async () => {
@@ -169,7 +169,7 @@ describe('Time Advancement Integration Tests', () => {
       });
 
       // Timer should auto-pause on error
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(10000);
       expect(service.isActive).toBe(false);
 
       // Should be able to recover after fixing the error
@@ -219,7 +219,7 @@ describe('Time Advancement Integration Tests', () => {
 
       // Simulate long runtime with many intervals
       for (let i = 0; i < 100; i++) {
-        vi.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(10000);
       }
 
       // Should still function properly
@@ -262,8 +262,8 @@ describe('Time Advancement Integration Tests', () => {
       expect(service.isActive).toBe(true);
 
       // Should still advance time with default ratio
-      vi.advanceTimersByTime(1000);
-      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(1);
+      vi.advanceTimersByTime(10000);
+      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(10);
     });
 
     it('should work across different advancement ratios efficiently', async () => {
@@ -280,11 +280,12 @@ describe('Time Advancement Integration Tests', () => {
         expect(service.isActive).toBe(true);
 
         // Calculate the expected interval for this ratio
-        const expectedInterval = Math.max(1000, Math.ceil(1000 / ratio));
+        const expectedInterval = Math.max(10000, Math.ceil(1000 / ratio));
 
         // Advance by the calculated interval to ensure timer fires
         vi.advanceTimersByTime(expectedInterval);
-        expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(ratio);
+        const expectedSeconds = ratio * (expectedInterval / 1000);
+        expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(expectedSeconds);
       }
     });
   });
@@ -324,8 +325,8 @@ describe('Time Advancement Integration Tests', () => {
       expect(service.isActive).toBe(true);
 
       // Verify new ratio is active
-      vi.advanceTimersByTime(1000);
-      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(3);
+      vi.advanceTimersByTime(10000);
+      expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(30);
     });
   });
 });

@@ -73,9 +73,9 @@ describe('Time Advancement Behavioral Tests', () => {
       const testCases = [
         { ratio: 0.001, expectedInterval: 1000000 }, // Very slow
         { ratio: 0.1, expectedInterval: 10000 }, // Slow
-        { ratio: 1.0, expectedInterval: 1000 }, // Normal
-        { ratio: 10.0, expectedInterval: 1000 }, // Fast (minimum)
-        { ratio: 1000.0, expectedInterval: 1000 }, // Very fast (minimum)
+        { ratio: 1.0, expectedInterval: 10000 }, // Normal
+        { ratio: 10.0, expectedInterval: 10000 }, // Fast (minimum)
+        { ratio: 1000.0, expectedInterval: 10000 }, // Very fast (minimum)
       ];
 
       testCases.forEach(({ ratio, expectedInterval }) => {
@@ -123,7 +123,7 @@ describe('Time Advancement Behavioral Tests', () => {
 
       // Simulate time advances
       for (let i = 0; i < advanceCount; i++) {
-        vi.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(10000);
       }
 
       expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledTimes(advanceCount);
@@ -148,7 +148,7 @@ describe('Time Advancement Behavioral Tests', () => {
       // Run with intermittent errors
       for (let i = 0; i < 9; i++) {
         // 9 iterations = 3 errors, 6 successes
-        vi.advanceTimersByTime(1000);
+        vi.advanceTimersByTime(10000);
         // Re-start if auto-paused by error
         if (!service.isActive) {
           await service.play();
@@ -183,7 +183,7 @@ describe('Time Advancement Behavioral Tests', () => {
       expect(service.isActive).toBe(true);
 
       // Advance time to trigger the timer
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(10000);
 
       // Should continue functioning normally
       expect(service.isActive).toBe(true);
@@ -199,10 +199,12 @@ describe('Time Advancement Behavioral Tests', () => {
 
         mockGame.seasonsStars.manager.advanceSeconds.mockClear();
 
-        // Advance time and check that the correct ratio is passed
-        vi.advanceTimersByTime(Math.max(1000, Math.ceil(1000 / ratio)));
+        // Advance time and check that the correct amount is passed
+        const interval = Math.max(10000, Math.ceil(1000 / ratio));
+        vi.advanceTimersByTime(interval);
 
-        expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(ratio);
+        const expectedSeconds = ratio * (interval / 1000);
+        expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalledWith(expectedSeconds);
         expect((service as any).advancementRatio).toBe(ratio);
 
         service.pause();
@@ -250,7 +252,7 @@ describe('Time Advancement Behavioral Tests', () => {
       }
 
       // Should still be functioning
-      vi.advanceTimersByTime(1000);
+      vi.advanceTimersByTime(10000);
       expect(mockGame.seasonsStars.manager.advanceSeconds).toHaveBeenCalled();
     });
   });
