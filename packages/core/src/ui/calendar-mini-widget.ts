@@ -131,10 +131,15 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     }
 
+    // Determine if compact mode should be applied based on active features
+    const showTimeControlsValue =
+      (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false);
+    const compactMode = showDayOfWeek && showTimeControlsValue;
+
     return Object.assign(context, {
       shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
-      showTimeControls: (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false),
+      showTimeControls: showTimeControlsValue,
       isGM: game.user?.isGM || false,
       showTime: showTime,
       timeString:
@@ -145,6 +150,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       weekdayDisplay: weekdayDisplay,
       timeAdvancementActive: timeAdvancementActive,
       advancementRatioDisplay: advancementRatioDisplay,
+      compactMode: compactMode,
       calendar: {
         id: activeCalendar.id || 'unknown',
         label: activeCalendar.label || activeCalendar.name || 'Unknown Calendar',
@@ -237,9 +243,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Register this as the active instance
     CalendarMiniWidget.activeInstance = this;
 
-    // Apply compact mode if multiple features are active
-    this.applyCompactModeIfNeeded(context);
-
     // Add click handlers for mini-date element
     const miniDateElement = this.element?.querySelector('.mini-date');
     if (miniDateElement) {
@@ -267,24 +270,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Position widget after render (SmallTime approach)
     this.positionWidget();
-  }
-
-  /**
-   * Apply compact mode CSS class if multiple features are active to optimize layout
-   */
-  private applyCompactModeIfNeeded(context: MiniWidgetContext): void {
-    if (!this.element) return;
-
-    // Check if we should apply compact mode
-    // Apply when both weekday display and time controls are active
-    const needsCompactMode = context.showDayOfWeek && context.showTimeControls;
-
-    if (needsCompactMode) {
-      this.element.classList.add('compact-mode');
-      Logger.debug('Applied compact mode for tighter layout');
-    } else {
-      this.element.classList.remove('compact-mode');
-    }
   }
 
   /**
