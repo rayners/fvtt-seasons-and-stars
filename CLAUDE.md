@@ -1,5 +1,22 @@
 # Seasons & Stars Internal Development Context
 
+> `AGENTS.md` is a symlink to this file for tool compatibility.
+
+## Development Guidelines
+
+- Source code is written in TypeScript and bundled with Rollup; do not commit generated `dist` output.
+- Before committing, run:
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm run test:run`
+  - `npm run build`
+- Use `npm run format` or `npm run lint:fix` to resolve formatting issues.
+- Write descriptive commit messages and keep pull requests focused.
+- Continuous integration runs on Node 18 and 20, executing lint, typecheck, build, tests, and calendar validation.
+- PR titles must follow the Conventional Commits style.
+- Refer to the GitHub Action config in `.github/workflows/semantic-pull-request.yml` for allowed commit message types and scopes.
+- Releases are automated with [release-please](https://github.com/googleapis/release-please); do not manually edit version numbers or `CHANGELOG.md`.
+
 ## Module Architecture Deep Dive
 
 ### Calendar Engine Core (packages/core/src/core/)
