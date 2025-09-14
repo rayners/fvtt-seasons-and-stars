@@ -251,10 +251,6 @@ describe('Comprehensive Regression Tests - Core Calendar Types', () => {
         expect(allEngines[name]).toBeDefined();
         expect(() => allEngines[name].getCalendar()).not.toThrow();
       });
-
-      console.log(
-        `✅ Successfully loaded and tested ${Object.keys(allEngines).length} calendar types`
-      );
     });
   });
 });

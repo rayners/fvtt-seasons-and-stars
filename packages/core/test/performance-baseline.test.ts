@@ -44,10 +44,6 @@ describe('Performance Baseline Tests', () => {
 
         const totalTime = endTime - startTime;
         const avgTime = totalTime / iterations;
-
-        console.log(
-          `${name} dateToDays: ${avgTime.toFixed(3)}ms avg, ${totalTime.toFixed(1)}ms total (${iterations} iterations)`
-        );
         expect(avgTime).toBeLessThan(maxTime);
       });
 
@@ -63,10 +59,6 @@ describe('Performance Baseline Tests', () => {
 
         const totalTime = endTime - startTime;
         const avgTime = totalTime / iterations;
-
-        console.log(
-          `${name} calculateWeekday: ${avgTime.toFixed(3)}ms avg, ${totalTime.toFixed(1)}ms total (${iterations} iterations)`
-        );
         expect(avgTime).toBeLessThan(maxTime);
       });
 
@@ -83,10 +75,6 @@ describe('Performance Baseline Tests', () => {
 
         const totalTime = endTime - startTime;
         const avgTime = totalTime / iterations;
-
-        console.log(
-          `${name} addDays: ${avgTime.toFixed(3)}ms avg, ${totalTime.toFixed(1)}ms total (${iterations} iterations)`
-        );
         expect(avgTime).toBeLessThan(maxTime);
       });
     });
@@ -119,11 +107,6 @@ describe('Performance Baseline Tests', () => {
     const gregorianTime = performance.now() - gregorianStart;
 
     const slowdownFactor = wfrpTime / gregorianTime;
-
-    console.log(
-      `WFRP time: ${wfrpTime.toFixed(1)}ms, Gregorian time: ${gregorianTime.toFixed(1)}ms`
-    );
-    console.log(`WFRP slowdown factor: ${slowdownFactor.toFixed(2)}x`);
 
     // WFRP should not be more than 4x slower than Gregorian due to intercalary day logic
     expect(slowdownFactor).toBeLessThan(4);

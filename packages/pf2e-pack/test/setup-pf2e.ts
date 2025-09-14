@@ -7,7 +7,6 @@
 
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-console */
 /// <reference path="../../core/test/test-types.d.ts" />
 
 interface PF2eEnvironmentConfig {
@@ -129,13 +128,6 @@ export function setupRealPF2eEnvironment(config: PF2eEnvironmentConfig): void {
       }`
     );
   }
-
-  console.log('✅ PF2e environment setup complete:', {
-    worldCreatedOn,
-    currentWorldTime,
-    dateTheme,
-    expectedPF2eYear: actualYear,
-  });
 }
 
 /**
@@ -246,8 +238,7 @@ export function validatePF2eEnvironment(): boolean {
     }
 
     return true;
-  } catch (error: unknown) {
-    console.error('PF2e environment validation failed:', error);
+  } catch {
     return false;
   }
 }

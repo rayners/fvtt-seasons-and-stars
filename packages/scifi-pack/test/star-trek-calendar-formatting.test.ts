@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CalendarEngine } from '../../core/src/core/calendar-engine';
 import { CalendarDate } from '../../core/src/core/calendar-date';
 import { DateFormatter } from '../../core/src/core/date-formatter';
 
 describe('Star Trek Calendar Formatting', () => {
-  let engine: CalendarEngine;
   let starTrekCalendar: any;
 
   beforeEach(async () => {
@@ -29,9 +27,6 @@ describe('Star Trek Calendar Formatting', () => {
       ...baseCalendar,
       dateFormats: dateFormats,
     };
-
-    // Create engine with the merged calendar
-    engine = new CalendarEngine(starTrekCalendar);
   });
 
   describe('Stardate Helper Tests', () => {
@@ -198,7 +193,6 @@ describe('Star Trek Calendar Formatting', () => {
       );
 
       // Debug what's happening
-      console.log('Testing stardate format with date:', date);
 
       // Should not throw and should produce a proper format
       expect(() => {
@@ -206,7 +200,6 @@ describe('Star Trek Calendar Formatting', () => {
       }).not.toThrow();
 
       const result = date.format({ format: 'tng-stardate' });
-      console.log('Stardate result:', result);
 
       // Should be formatted as a stardate number
       expect(result).not.toBe('mock-template-result');

@@ -6,6 +6,8 @@
  * correctly with its unique 8-day week and intercalary day configurations.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars, no-empty */
+
 import { describe, test, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../../core/src/core/calendar-engine';
 import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
@@ -28,20 +30,11 @@ describe('Warhammer Fantasy Roleplay Calendar - Date Alignment Issues', () => {
 
   describe('🛡️ WFRP Intercalary Day Issues', () => {
     test('WFRP intercalary days should not advance weekday when countsForWeekdays: false', () => {
-      console.log('\n=== WFRP INTERCALARY WEEKDAY TEST ===');
-
       const wfrpCalendar = wfrpEngine.getCalendar();
       const year = wfrpCalendar.year.currentYear + 1;
-
-      console.log('WFRP Calendar intercalary days:');
-      wfrpCalendar.intercalary?.forEach((intercalaryDay, index) => {
-        console.log(
-          `  ${index + 1}. ${intercalaryDay.name} (after ${intercalaryDay.after}, countsForWeekdays: ${intercalaryDay.countsForWeekdays})`
-        );
-      });
+      wfrpCalendar.intercalary?.forEach((intercalaryDay, index) => {});
 
       // Test the specific scenario from Issue #21: 33rd Jahrdrung → Mitterfruhl → 1st Pflugzeit
-      console.log('\nTesting Issue #21 scenario:');
 
       const jahrdrung33 = { year, month: 2, day: 33 }; // Last day of Jahrdrung
       const pflugzeit1 = { year, month: 3, day: 1 }; // First day of Pflugzeit
@@ -58,43 +51,25 @@ describe('Warhammer Fantasy Roleplay Calendar - Date Alignment Issues', () => {
         pflugzeit1.day
       );
 
-      console.log(
-        `33rd Jahrdrung (${jahrdrung33.year}/${jahrdrung33.month}/${jahrdrung33.day}): weekday ${weekdayBeforeIntercalary}`
-      );
-      console.log(
-        `1st Pflugzeit (${pflugzeit1.year}/${pflugzeit1.month}/${pflugzeit1.day}): weekday ${weekdayAfterIntercalary}`
-      );
-
       // Since Mitterfruhl has countsForWeekdays: false, the weekday should advance by exactly 1
       const expectedWeekdayAfter = (weekdayBeforeIntercalary + 1) % wfrpCalendar.weekdays.length;
 
-      console.log(`Expected weekday after: ${expectedWeekdayAfter}`);
-      console.log(`Actual weekday after: ${weekdayAfterIntercalary}`);
-
       if (weekdayAfterIntercalary === expectedWeekdayAfter) {
-        console.log('✅ CORRECT: Intercalary day does not advance weekday');
       } else {
         const actualAdvancement =
           (weekdayAfterIntercalary - weekdayBeforeIntercalary + wfrpCalendar.weekdays.length) %
           wfrpCalendar.weekdays.length;
-        console.log(`❌ INCORRECT: Weekday advanced by ${actualAdvancement} instead of 1`);
       }
 
       expect(weekdayAfterIntercalary).toBe(expectedWeekdayAfter);
     });
 
     test('WFRP all intercalary days should respect countsForWeekdays setting', () => {
-      console.log('\n=== WFRP ALL INTERCALARY DAYS TEST ===');
-
       const wfrpCalendar = wfrpEngine.getCalendar();
       const year = wfrpCalendar.year.currentYear + 1;
 
       // Test each intercalary day in the WFRP calendar
       wfrpCalendar.intercalary?.forEach((intercalaryDay, index) => {
-        console.log(
-          `\nTesting ${intercalaryDay.name} (countsForWeekdays: ${intercalaryDay.countsForWeekdays}):`
-        );
-
         // Find the month that this intercalary day comes after
         const afterMonthIndex = wfrpCalendar.months.findIndex(
           month => month.name === intercalaryDay.after
@@ -122,9 +97,6 @@ describe('Warhammer Fantasy Roleplay Calendar - Date Alignment Issues', () => {
             firstDayOfBeforeMonth.day
           );
 
-          console.log(`  Last day of ${afterMonth.name}: weekday ${weekdayBefore}`);
-          console.log(`  First day of ${beforeMonth.name}: weekday ${weekdayAfter}`);
-
           // Calculate expected weekday advancement
           let expectedAdvancement = 1; // Normal day advancement
           if (intercalaryDay.countsForWeekdays !== false) {
@@ -134,26 +106,13 @@ describe('Warhammer Fantasy Roleplay Calendar - Date Alignment Issues', () => {
           const expectedWeekdayAfter =
             (weekdayBefore + expectedAdvancement) % wfrpCalendar.weekdays.length;
 
-          console.log(
-            `  Expected advancement: ${expectedAdvancement} (intercalary ${intercalaryDay.countsForWeekdays !== false ? 'counts' : 'does not count'})`
-          );
-          console.log(`  Expected weekday: ${expectedWeekdayAfter}, Actual: ${weekdayAfter}`);
-
           expect(weekdayAfter).toBe(expectedWeekdayAfter);
-          console.log(`  ✅ ${intercalaryDay.name} weekday handling correct`);
         } else {
-          console.log(`  ⚠️  Cannot test ${intercalaryDay.name} - month mapping issue`);
         }
       });
-
-      console.log(
-        '\n✅ WFRP INTERCALARY DAYS: All intercalary days respect countsForWeekdays setting'
-      );
     });
 
     test('WFRP year length calculation includes all intercalary days', () => {
-      console.log('\n=== WFRP YEAR LENGTH TEST ===');
-
       const wfrpCalendar = wfrpEngine.getCalendar();
       const year = wfrpCalendar.year.currentYear + 1;
 
@@ -163,7 +122,6 @@ describe('Warhammer Fantasy Roleplay Calendar - Date Alignment Issues', () => {
       // Add all month days
       wfrpCalendar.months.forEach(month => {
         expectedLength += month.days;
-        console.log(`${month.name}: ${month.days} days`);
       });
 
       // Add all intercalary days
@@ -171,19 +129,13 @@ describe('Warhammer Fantasy Roleplay Calendar - Date Alignment Issues', () => {
       wfrpCalendar.intercalary?.forEach(intercalaryDay => {
         const days = intercalaryDay.days || 1;
         totalIntercalaryDays += days;
-        console.log(`${intercalaryDay.name}: ${days} intercalary day(s)`);
       });
 
       expectedLength += totalIntercalaryDays;
 
       const actualLength = wfrpEngine.getYearLength(year);
 
-      console.log(`\nExpected year length: ${expectedLength} days`);
-      console.log(`Actual year length: ${actualLength} days`);
-      console.log(`Total intercalary days: ${totalIntercalaryDays}`);
-
       expect(actualLength).toBe(expectedLength);
-      console.log('✅ WFRP YEAR LENGTH: Correctly includes all regular and intercalary days');
     });
   });
 });

@@ -289,8 +289,6 @@ describe('Diagnostic: Engine Internal State Analysis', () => {
     it('should correctly identify all intercalary days in the calendar', () => {
       const calendar = engine.getCalendar();
 
-      console.log('Calendar intercalary days:', calendar.intercalary);
-
       // Should have 2 intercalary periods
       expect(calendar.intercalary).toHaveLength(2);
 
@@ -312,23 +310,6 @@ describe('Diagnostic: Engine Internal State Analysis', () => {
       const afterSummer = engine.getIntercalaryDaysAfterMonth(year, 2); // Summer = month 2
       const afterAutumn = engine.getIntercalaryDaysAfterMonth(year, 3); // Autumn = month 3
       const afterWinter = engine.getIntercalaryDaysAfterMonth(year, 4); // Winter = month 4
-
-      console.log(
-        'After Spring:',
-        afterSpring.map(i => i.name)
-      );
-      console.log(
-        'After Summer:',
-        afterSummer.map(i => i.name)
-      );
-      console.log(
-        'After Autumn:',
-        afterAutumn.map(i => i.name)
-      );
-      console.log(
-        'After Winter:',
-        afterWinter.map(i => i.name)
-      );
 
       expect(afterSpring).toHaveLength(1);
       expect(afterSpring[0].name).toBe('Spring Festival');
