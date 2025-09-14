@@ -247,6 +247,44 @@ export class DateFormatter {
       return this.getBasicFormat(date);
     }
 
+    // Check for intercalary-specific format first if this is an intercalary date
+    // Note: Empty string is still considered intercalary, null/undefined is not
+    if (date.intercalary !== null && date.intercalary !== undefined) {
+      const intercalaryFormatName = `${formatName}-intercalary`;
+      const intercalaryFormat = dateFormats[intercalaryFormatName];
+
+      if (intercalaryFormat) {
+        console.debug(
+          `[S&S] Using intercalary format '${intercalaryFormatName}' for intercalary day '${date.intercalary}'`
+        );
+
+        // Handle intercalary format variants (format as object)
+        if (typeof intercalaryFormat === 'object' && !Array.isArray(intercalaryFormat)) {
+          if (variant && intercalaryFormat[variant]) {
+            const formatString = intercalaryFormat[variant];
+            const formatDisplayName = `${intercalaryFormatName}:${variant}`;
+            const newVisited = new Set(visited);
+            newVisited.add(intercalaryFormatName);
+            return this.formatWithContext(date, formatString, formatDisplayName, newVisited);
+          } else {
+            // Try 'default' or first available for intercalary format
+            const defaultFormat = intercalaryFormat.default || Object.values(intercalaryFormat)[0];
+            if (defaultFormat) {
+              const newVisited = new Set(visited);
+              newVisited.add(intercalaryFormatName);
+              return this.formatWithContext(date, defaultFormat, intercalaryFormatName, newVisited);
+            }
+          }
+        } else if (typeof intercalaryFormat === 'string') {
+          // Simple string intercalary format
+          const newVisited = new Set(visited);
+          newVisited.add(intercalaryFormatName);
+          return this.formatWithContext(date, intercalaryFormat, intercalaryFormatName, newVisited);
+        }
+      }
+    }
+
+    // Fall back to regular format lookup if no intercalary format found
     const format = dateFormats[formatName];
 
     if (!format) {
@@ -297,6 +335,25 @@ export class DateFormatter {
       return this.getBasicFormat(date);
     }
 
+    // Check for intercalary-specific widget format first if this is an intercalary date
+    // Note: Empty string is still considered intercalary, null/undefined is not
+    if (date.intercalary !== null && date.intercalary !== undefined) {
+      const intercalaryWidgetType = `${widgetType}-intercalary` as keyof typeof dateFormats.widgets;
+      const intercalaryWidgetFormat = dateFormats.widgets[intercalaryWidgetType];
+
+      if (intercalaryWidgetFormat) {
+        console.debug(
+          `[S&S] Using intercalary widget format 'widgets.${intercalaryWidgetType}' for intercalary day '${date.intercalary}'`
+        );
+        return this.formatWithContext(
+          date,
+          intercalaryWidgetFormat,
+          `widgets.${intercalaryWidgetType}`
+        );
+      }
+    }
+
+    // Fall back to regular widget format if no intercalary format found
     const widgetFormat = dateFormats.widgets[widgetType];
 
     if (!widgetFormat) {
@@ -386,7 +443,13 @@ export class DateFormatter {
           time?: { hour: number; minute: number; second: number };
         }
   ): string {
-    // For calendars without dateFormats, return a simple format
+    // Handle intercalary days first - they should display the intercalary name, not regular date format
+    // Note: Empty string is still considered intercalary, null/undefined is not
+    if (date.intercalary !== null && date.intercalary !== undefined) {
+      return date.intercalary;
+    }
+
+    // For regular dates, use the standard format
     const monthName = this.getMonthName(date.month);
     const weekdayName = this.getWeekdayName(date.weekday);
     const dayOrdinal = this.addOrdinalSuffix(date.day);

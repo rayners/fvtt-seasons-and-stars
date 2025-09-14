@@ -167,6 +167,10 @@ export class CalendarDate implements ICalendarDate {
 
     // Fallback to basic string formatting for calendars without dateFormats
     if (!dateFormats) {
+      // Handle intercalary days first
+      if (this.intercalary) {
+        return this.intercalary;
+      }
       return `${this.day} ${this.getMonthName('short')} ${this.getYearString()}`;
     }
 
@@ -179,6 +183,10 @@ export class CalendarDate implements ICalendarDate {
       });
     } catch (error) {
       console.debug('[S&S] Error formatting short date string:', error);
+      // Handle intercalary days in error fallback
+      if (this.intercalary) {
+        return this.intercalary;
+      }
       return `${this.day} ${this.getMonthName('short')} ${this.getYearString()}`;
     }
   }
@@ -195,6 +203,11 @@ export class CalendarDate implements ICalendarDate {
 
     // Fallback to basic string formatting for calendars without dateFormats
     if (!dateFormats) {
+      // Handle intercalary days first
+      if (this.intercalary) {
+        const timeString = this.time ? ` ${this.getTimeString()}` : '';
+        return `${this.intercalary}${timeString}`;
+      }
       const weekdayName = this.getWeekdayName('long');
       const monthName = this.getMonthName('long');
       const dayOrdinal = this.getDayString('long');
@@ -213,6 +226,11 @@ export class CalendarDate implements ICalendarDate {
       });
     } catch (error) {
       console.debug('[S&S] Error formatting long date string:', error);
+      // Handle intercalary days in error fallback
+      if (this.intercalary) {
+        const timeString = this.time ? ` ${this.getTimeString()}` : '';
+        return `${this.intercalary}${timeString}`;
+      }
       const weekdayName = this.getWeekdayName('long');
       const monthName = this.getMonthName('long');
       const dayOrdinal = this.getDayString('long');

@@ -41,5 +41,15 @@
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+  "dateFormats": {
+    "short": "{{#if intercalary}}{{intercalary}}{{else}}{{ss-day}} {{ss-month format=\"abbr\"}}{{/if}}",
+    "long": "{{#if intercalary}}{{intercalary}}, {{year}}{{else}}{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}}{{/if}}",
+    "date": "{{#if intercalary}}{{intercalary}}{{else}}{{ss-day}} {{ss-month format=\"abbr\"}} {{year}}{{/if}}",
+    "widgets": {
+      "mini": "{{#if intercalary}}{{intercalary}}{{else}}{{ss-day}} {{ss-month format=\"abbr\"}}{{/if}}",
+      "main": "{{#if intercalary}}{{intercalary}}, {{year}}{{else}}{{ss-weekday format=\"abbr\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}{{/if}}",
+      "grid": "{{#if intercalary}}{{intercalary}}{{else}}{{ss-day}}{{/if}}"
+    }
   }
 }
