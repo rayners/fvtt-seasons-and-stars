@@ -275,7 +275,6 @@
     "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
     "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, in the {{year}} year of the Imperial Calendar",
     "feast": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} - {{ss-season format=\"name\"}} {{year}} IC",
-    "moon": "{{ss-day}} {{ss-month format=\"abbr\"}} {{year}} ({{moon name=\"Mannslieb\" format=\"name\"}})",
 
     "imperial-intercalary": "{{intercalary}}, {{year}} IC",
     "short-intercalary": "{{intercalary}}",
@@ -285,7 +284,6 @@
     "brief-intercalary": "{{intercalary}} {{year}}",
     "formal-intercalary": "{{intercalary}} in the {{year}} year of the Imperial Calendar",
     "feast-intercalary": "{{intercalary}} - {{year}} IC",
-    "moon-intercalary": "{{intercalary}} {{year}} ({{moon name=\"Mannslieb\" format=\"name\"}})",
 
     "variants": {
       "common": {

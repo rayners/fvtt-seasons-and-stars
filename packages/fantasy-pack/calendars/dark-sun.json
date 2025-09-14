@@ -395,5 +395,34 @@
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "athasian": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} of {{ss-year-name}}",
+    "short": "{{ss-day}} {{ss-month format=\"abbr\"}} {{ss-year-name}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} of {{ss-year-name}}",
+    "date": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} of {{ss-year-name}}",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}}",
+    "survival": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} - {{ss-season format=\"name\"}} of {{ss-year-name}}",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}} in the year of {{ss-year-name}}",
+
+    "athasian-intercalary": "{{intercalary}} of {{ss-year-name}}",
+    "short-intercalary": "{{intercalary}} {{ss-year-name}}",
+    "long-intercalary": "{{intercalary}} of {{ss-year-name}}",
+    "date-intercalary": "{{intercalary}} of {{ss-year-name}}",
+    "datetime-intercalary": "{{intercalary}} of {{ss-year-name}} at {{ss-dateFmt \"time\"}}",
+    "survival-intercalary": "{{intercalary}} of {{ss-year-name}}",
+    "formal-intercalary": "{{intercalary}} in the year of {{ss-year-name}}",
+
+    "widgets": {
+      "mini": "{{ss-day}} {{ss-month format=\"abbr\"}}",
+      "main": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}",
+
+      "mini-intercalary": "{{intercalary}}",
+      "main-intercalary": "{{intercalary}} of {{ss-year-name}}",
+      "grid-intercalary": "{{intercalary}}"
+    }
   }
 }

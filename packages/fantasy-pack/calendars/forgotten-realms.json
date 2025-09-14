@@ -265,7 +265,6 @@
     "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
     "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, in the {{year}} year of Dalereckoning",
     "tenday": "{{ss-weekday format=\"ordinal\"}} day, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}",
-    "moon": "{{ss-day}} {{ss-month format=\"abbr\"}} {{year}} ({{moon name=\"Selûne\" format=\"name\"}})",
     "season": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{ss-season format=\"name\"}} {{year}} DR",
 
     "harptos-intercalary": "{{intercalary}}, {{year}} DR",
@@ -276,7 +275,6 @@
     "brief-intercalary": "{{intercalary}} {{year}}",
     "formal-intercalary": "{{intercalary}} in the {{year}} year of Dalereckoning",
     "tenday-intercalary": "{{intercalary}}, {{year}} DR",
-    "moon-intercalary": "{{intercalary}} {{year}} ({{moon name=\"Selûne\" format=\"name\"}})",
     "season-intercalary": "{{intercalary}}, {{year}} DR",
 
     "variants": {

@@ -201,5 +201,32 @@
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "fantasy": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} AE",
+    "short": "{{ss-day}} {{ss-month format=\"abbr\"}} {{year}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} AE",
+    "date": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} AE",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}}",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}} in the {{year}} year of the Age Eternal",
+
+    "fantasy-intercalary": "{{intercalary}}, {{year}} AE",
+    "short-intercalary": "{{intercalary}} {{year}}",
+    "long-intercalary": "{{intercalary}}, {{year}} AE",
+    "date-intercalary": "{{intercalary}}, {{year}} AE",
+    "datetime-intercalary": "{{intercalary}}, {{year}} AE at {{ss-dateFmt \"time\"}}",
+    "formal-intercalary": "{{intercalary}} in the {{year}} year of the Age Eternal",
+
+    "widgets": {
+      "mini": "{{ss-day}} {{ss-month format=\"abbr\"}}",
+      "main": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}",
+
+      "mini-intercalary": "{{intercalary}}",
+      "main-intercalary": "{{intercalary}}, {{year}} AE",
+      "grid-intercalary": "{{intercalary}}"
+    }
   }
 }

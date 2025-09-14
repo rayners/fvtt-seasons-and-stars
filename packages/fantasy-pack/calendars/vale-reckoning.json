@@ -215,5 +215,34 @@
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "vale": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} VR",
+    "short": "{{ss-day}} {{ss-month format=\"abbr\"}} {{year}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} VR",
+    "date": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} VR",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}}",
+    "runic": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} - {{ss-season format=\"name\"}} {{year}} VR",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}} in the {{year}} year of Vale Reckoning",
+
+    "vale-intercalary": "{{intercalary}}, {{year}} VR",
+    "short-intercalary": "{{intercalary}} {{year}}",
+    "long-intercalary": "{{intercalary}}, {{year}} VR",
+    "date-intercalary": "{{intercalary}}, {{year}} VR",
+    "datetime-intercalary": "{{intercalary}}, {{year}} VR at {{ss-dateFmt \"time\"}}",
+    "runic-intercalary": "{{intercalary}} - {{year}} VR",
+    "formal-intercalary": "{{intercalary}} in the {{year}} year of Vale Reckoning",
+
+    "widgets": {
+      "mini": "{{ss-day}} {{ss-month format=\"abbr\"}}",
+      "main": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}",
+
+      "mini-intercalary": "{{intercalary}}",
+      "main-intercalary": "{{intercalary}}, {{year}} VR",
+      "grid-intercalary": "{{intercalary}}"
+    }
   }
 }
