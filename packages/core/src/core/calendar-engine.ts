@@ -14,9 +14,7 @@ import { CalendarDate } from './calendar-date';
 import { CalendarTimeUtils } from './calendar-time-utils';
 import { compatibilityManager } from './compatibility-manager';
 import { Logger } from './logger';
-// Import JSON using require for better Node.js/CI compatibility
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const gregorianDefaults = require('../../calendars/gregorian.json');
+import { GREGORIAN_DEFAULTS } from './gregorian-defaults';
 
 export class CalendarEngine {
   private calendar: SeasonsStarsCalendar;
@@ -28,7 +26,7 @@ export class CalendarEngine {
   }
 
   private static applyGregorianDefaults(calendar: SeasonsStarsCalendar): SeasonsStarsCalendar {
-    const defaults = gregorianDefaults as SeasonsStarsCalendar;
+    const defaults = GREGORIAN_DEFAULTS;
 
     const mergedLeapYear =
       calendar.leapYear === undefined

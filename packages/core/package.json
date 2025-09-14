@@ -13,7 +13,7 @@
   },
   "main": "dist/module.js",
   "scripts": {
-    "prebuild": "node ../../scripts/generate-calendar-list.js core",
+    "prebuild": "node ../../scripts/generate-calendar-list.js core && node ../../scripts/generate-gregorian-defaults.js",
     "build": "rollup -c ../../rollup.config.core.js",
     "watch": "rollup -c ../../rollup.config.core.js -w",
     "typecheck": "tsc --noEmit",
