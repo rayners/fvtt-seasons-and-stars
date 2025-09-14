@@ -14,10 +14,13 @@ const testCalendar: SeasonsStarsCalendar = {
   name: 'Test Calendar',
   label: 'Test Calendar',
   months: [
-    { name: 'Spring', days: 30 },
-    { name: 'Summer', days: 30 },
+    { name: 'Spring', abbreviation: 'Spr', days: 30 },
+    { name: 'Summer', abbreviation: 'Sum', days: 30 },
   ],
-  weekdays: [{ name: 'Monday' }, { name: 'Tuesday' }],
+  weekdays: [
+    { name: 'Monday', abbreviation: 'Mon' },
+    { name: 'Tuesday', abbreviation: 'Tue' },
+  ],
   intercalary: [
     {
       name: 'Festival Day',
@@ -90,7 +93,7 @@ describe('Intercalary Day Fix Verification (Issue #236)', () => {
     const regularDate = new CalendarDate(
       {
         year: 2024,
-        month: 0, // Spring
+        month: 1, // Spring (1-based indexing)
         day: 15,
         weekday: 1, // Tuesday
         time: { hour: 12, minute: 0, second: 0 },
@@ -101,7 +104,7 @@ describe('Intercalary Day Fix Verification (Issue #236)', () => {
     const result = regularDate.toShortString();
     // Should still format regular dates normally (not as intercalary)
     expect(result).toContain('15');
-    expect(result).toContain('Spring');
+    expect(result).toContain('Spr'); // Abbreviated month name in short format
     expect(result).not.toBe('Festival Day');
   });
 });
