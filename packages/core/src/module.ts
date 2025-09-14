@@ -552,7 +552,7 @@ function registerSettings(): void {
 
   game.settings.register('seasons-and-stars', 'timeAdvancementRatio', {
     name: 'Time Advancement Ratio',
-    hint: 'Game time advancement per real-time second. 1.0 = real time, 2.0 = 2x speed, 0.5 = half speed. Range: 0.1 to 100.',
+    hint: 'Game time advancement ratio. 1.0 = real time (10s real = 10s game), 2.0 = 2x speed (10s real = 20s game), 0.5 = half speed (10s real = 5s game). Range: 0.1 to 100.',
     scope: 'world',
     config: true,
     type: Number,

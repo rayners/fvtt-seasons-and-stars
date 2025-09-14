@@ -430,7 +430,7 @@ function updateTimeAdvancementExplanation(ratio: number): void {
     }
 
     // Calculate interval using the same formula as TimeAdvancementService
-    const interval = Math.max(1000, Math.ceil(1000 / ratio));
+    const interval = Math.max(10000, Math.ceil(1000 / ratio));
 
     // Generate explanations
     const ratioExplanation = generateRatioExplanation(ratio);
@@ -483,8 +483,8 @@ function generateRatioExplanation(ratio: number): string {
  * Generate technical interval explanation
  */
 function generateIntervalExplanation(ratio: number, interval: number): string {
-  const gameSecondsAdvanced = ratio;
   const intervalSeconds = interval / 1000;
+  const gameSecondsAdvanced = ratio * intervalSeconds;
 
   return `Technical: Every ${intervalSeconds} seconds, game time advances by ${gameSecondsAdvanced} seconds`;
 }
