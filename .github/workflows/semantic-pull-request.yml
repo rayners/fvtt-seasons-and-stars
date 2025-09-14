@@ -61,3 +61,5 @@ jobs:
             pf2e-pack
             golarion
             monorepo
+            i18n
+
