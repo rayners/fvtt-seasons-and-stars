@@ -614,7 +614,7 @@ interface CalendarSeason {
   name: string;
   description?: string;
   startMonth: number;
-  startDay: number;
+  startDay?: number;
   color?: string;
 }
 

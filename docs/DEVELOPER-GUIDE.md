@@ -1061,6 +1061,9 @@ interface CalendarCanonicalHour {
 
 ### Calendar Structure
 
+> The engine substitutes Gregorian defaults and logs a warning when any
+> section is omitted.
+
 ```typescript
 interface SeasonsStarsCalendar {
   id: string;
@@ -1072,30 +1075,30 @@ interface SeasonsStarsCalendar {
     };
   };
 
-  year: {
+  year?: {
     epoch: number; // Starting year for calculations
     currentYear: number; // Default current year
     prefix: string; // Text before year (e.g., "")
     suffix: string; // Text after year (e.g., " CE")
     startDay: number; // Which weekday the epoch starts on
-  };
+  }; // Defaults to Gregorian year if omitted
 
-  months: CalendarMonth[];
-  weekdays: CalendarWeekday[];
-  intercalary: CalendarIntercalary[]; // Special days
+  months?: CalendarMonth[]; // Defaults to Gregorian months
+  weekdays?: CalendarWeekday[]; // Defaults to 7-day week
+  intercalary?: CalendarIntercalary[]; // Defaults to none
 
-  leapYear: {
+  leapYear?: {
     rule: 'none' | 'gregorian' | 'custom';
     interval?: number; // For custom rules
     month?: string; // Which month gets extra days
     extraDays?: number; // How many extra days
-  };
+  }; // Defaults to Gregorian; use { rule: 'none' } to disable
 
-  time: {
+  time?: {
     hoursInDay: number; // Usually 24
     minutesInHour: number; // Usually 60
     secondsInMinute: number; // Usually 60
-  };
+  }; // Defaults to 24/60/60
 
   // Optional canonical hours for time period naming (added in v0.8.0)
   canonicalHours?: CalendarCanonicalHour[];
