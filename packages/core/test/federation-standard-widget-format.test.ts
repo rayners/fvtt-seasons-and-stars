@@ -137,8 +137,6 @@ describe('Calendar Variant DateFormats Override', () => {
       throw new Error('Federation standard calendar not found');
     }
 
-    console.log('Federation calendar dateFormats:', federationCalendar.dateFormats);
-
     // Check if dateFormats were applied from the variant
     expect(federationCalendar.dateFormats).toBeDefined();
     expect(federationCalendar.dateFormats?.widgets).toBeDefined();
@@ -203,9 +201,6 @@ describe('Calendar Variant DateFormats Override', () => {
 
     // Test the mini widget format
     const result = testDate.toShortString();
-
-    console.log('Mini widget result:', result);
-    console.log('Federation calendar dateFormats:', federationCalendar.dateFormats);
 
     // Should show "SD 47015.0" format instead of "30 Dec 0"
     expect(result).toMatch(/SD \d+\.\d/);

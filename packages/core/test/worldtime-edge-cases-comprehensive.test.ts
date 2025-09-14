@@ -6,6 +6,8 @@
  * potential issues with date calculation logic under unusual conditions.
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars, no-empty, no-useless-catch */
+
 import { describe, test, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { loadTestCalendar } from './utils/calendar-loader';
@@ -23,12 +25,7 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
 
   describe('🔢 Extreme WorldTime Values', () => {
     test('Handle worldTime = 0 for Gregorian calendar', () => {
-      console.log('\n=== GREGORIAN WORLDTIME ZERO TEST ===');
-
       const date = gregorianEngine.worldTimeToDate(0);
-      console.log(
-        `  WorldTime=0 -> ${date.year}/${date.month}/${date.day} ${date.time?.hour || 0}:${date.time?.minute || 0}:${date.time?.second || 0}`
-      );
 
       expect(date.year).toBe(0);
       expect(date.month).toBe(1);
@@ -38,17 +35,10 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
       expect(date.time?.hour || 0).toBe(0);
       expect(date.time?.minute || 0).toBe(0);
       expect(date.time?.second || 0).toBe(0);
-
-      console.log(`  ✅ Valid date produced for worldTime=0`);
     });
 
     test('Handle worldTime = 0 for Golarion calendar', () => {
-      console.log('\n=== GOLARION WORLDTIME ZERO TEST ===');
-
       const date = golarionEngine.worldTimeToDate(0);
-      console.log(
-        `  WorldTime=0 -> ${date.year}/${date.month}/${date.day} ${date.time?.hour || 0}:${date.time?.minute || 0}:${date.time?.second || 0}`
-      );
 
       expect(date.year).toBe(2700);
       expect(date.month).toBe(1);
@@ -58,17 +48,10 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
       expect(date.time?.hour || 0).toBe(0);
       expect(date.time?.minute || 0).toBe(0);
       expect(date.time?.second || 0).toBe(0);
-
-      console.log(`  ✅ Valid date produced for worldTime=0`);
     });
 
     test('Handle worldTime = 0 for Vale Reckoning calendar', () => {
-      console.log('\n=== VALE RECKONING WORLDTIME ZERO TEST ===');
-
       const date = valeReckoningEngine.worldTimeToDate(0);
-      console.log(
-        `  WorldTime=0 -> ${date.year}/${date.month}/${date.day} ${date.time?.hour || 0}:${date.time?.minute || 0}:${date.time?.second || 0}`
-      );
 
       expect(date.year).toBe(0);
       expect(date.month).toBe(1);
@@ -78,43 +61,24 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
       expect(date.time?.hour || 0).toBe(0);
       expect(date.time?.minute || 0).toBe(0);
       expect(date.time?.second || 0).toBe(0);
-
-      console.log(`  ✅ Valid date produced for worldTime=0`);
     });
 
     test('Handle negative worldTime values', () => {
-      console.log('\n=== NEGATIVE WORLDTIME TEST ===');
-
       const negativeValues = [-1, -86400, -31536000]; // -1 sec, -1 day, -1 year
 
       negativeValues.forEach(worldTime => {
-        console.log(`\nTesting worldTime = ${worldTime}:`);
+        [gregorianEngine, golarionEngine, valeReckoningEngine].forEach(engine => {
+          const date = engine.worldTimeToDate(worldTime);
 
-        [gregorianEngine, golarionEngine, valeReckoningEngine].forEach((engine, index) => {
-          const calendarNames = ['Gregorian', 'Golarion', 'Vale Reckoning'];
-
-          try {
-            const date = engine.worldTimeToDate(worldTime);
-            console.log(`  ${calendarNames[index]}: ${date.year}/${date.month}/${date.day}`);
-
-            // Should either produce valid dates or handle gracefully
-            expect(date.year).toBeGreaterThanOrEqual(-10000); // Reasonable lower bound
-            expect(date.month).toBeGreaterThanOrEqual(1);
-            expect(date.day).toBeGreaterThanOrEqual(1);
-          } catch (error) {
-            console.log(`  ${calendarNames[index]}: Error handled - ${error.message}`);
-            // If errors are thrown, they should be meaningful
-            expect(error).toBeDefined();
-          }
+          // Should either produce valid dates or handle gracefully
+          expect(date.year).toBeGreaterThanOrEqual(-10000); // Reasonable lower bound
+          expect(date.month).toBeGreaterThanOrEqual(1);
+          expect(date.day).toBeGreaterThanOrEqual(1);
         });
       });
-
-      console.log('✅ NEGATIVE VALUES: Handled appropriately (valid dates or graceful errors)');
     });
 
     test('Handle very large worldTime values', () => {
-      console.log('\n=== LARGE WORLDTIME TEST ===');
-
       const largeValues = [
         31536000000, // ~1000 years in seconds
         315360000000, // ~10000 years in seconds
@@ -122,38 +86,21 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
       ];
 
       largeValues.forEach(worldTime => {
-        console.log(
-          `\nTesting worldTime = ${worldTime} (~${Math.floor(worldTime / 31536000)} years):`
-        );
+        [gregorianEngine, golarionEngine, valeReckoningEngine].forEach(engine => {
+          const date = engine.worldTimeToDate(worldTime);
 
-        [gregorianEngine, golarionEngine, valeReckoningEngine].forEach((engine, index) => {
-          const calendarNames = ['Gregorian', 'Golarion', 'Vale Reckoning'];
-
-          try {
-            const date = engine.worldTimeToDate(worldTime);
-            console.log(`  ${calendarNames[index]}: ${date.year}/${date.month}/${date.day}`);
-
-            // Should produce reasonable years (not negative or impossible values)
-            expect(date.year).toBeGreaterThan(0);
-            expect(date.year).toBeLessThan(1000000); // Reasonable upper bound
-            expect(date.month).toBeGreaterThanOrEqual(1);
-            expect(date.day).toBeGreaterThanOrEqual(1);
-          } catch (error) {
-            console.log(`  ${calendarNames[index]}: Error handled - ${error.message}`);
-            // Large values might legitimately cause overflow errors
-            expect(error).toBeDefined();
-          }
+          // Should produce reasonable years (not negative or impossible values)
+          expect(date.year).toBeGreaterThan(0);
+          expect(date.year).toBeLessThan(1000000); // Reasonable upper bound
+          expect(date.month).toBeGreaterThanOrEqual(1);
+          expect(date.day).toBeGreaterThanOrEqual(1);
         });
       });
-
-      console.log('✅ LARGE VALUES: Handled appropriately (valid dates or reasonable limits)');
     });
   });
 
   describe('📅 Date Boundary Edge Cases', () => {
     test('Handle end-of-year boundaries with worldTime conversion', () => {
-      console.log('\n=== YEAR BOUNDARY WORLDTIME TEST ===');
-
       // Test dates right at year boundaries
       const testDates = [
         { year: 2023, month: 12, day: 31, time: { hour: 23, minute: 59, second: 59 } },
@@ -163,20 +110,12 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
       ];
 
       testDates.forEach(testDate => {
-        console.log(
-          `\nTesting boundary: ${testDate.year}/${testDate.month}/${testDate.day} ${testDate.time.hour}:${testDate.time.minute}:${testDate.time.second}`
-        );
-
         [gregorianEngine, golarionEngine].forEach((engine, index) => {
           const calendarNames = ['Gregorian', 'Golarion'];
 
           try {
             const worldTime = engine.dateToWorldTime(testDate);
             const roundTrip = engine.worldTimeToDate(worldTime);
-
-            console.log(
-              `  ${calendarNames[index]}: worldTime=${worldTime}, roundTrip=${roundTrip.year}/${roundTrip.month}/${roundTrip.day}`
-            );
 
             // Round trip should preserve the date
             expect(roundTrip.year).toBe(testDate.year);
@@ -186,18 +125,13 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
             expect(roundTrip.time?.minute || 0).toBe(testDate.time.minute);
             expect(roundTrip.time?.second || 0).toBe(testDate.time.second);
           } catch (error) {
-            console.log(`  ${calendarNames[index]}: Error - ${error.message}`);
             throw error; // Boundary cases should not fail
           }
         });
       });
-
-      console.log('✅ YEAR BOUNDARIES: WorldTime conversion preserves exact dates and times');
     });
 
     test('Handle leap year boundaries with worldTime conversion', () => {
-      console.log('\n=== LEAP YEAR BOUNDARY WORLDTIME TEST ===');
-
       // Test leap day and surrounding dates
       const leapYearTests = [
         { year: 2024, month: 2, day: 28, description: 'Day before leap day' },
@@ -209,18 +143,12 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
       ];
 
       leapYearTests.forEach(testDate => {
-        console.log(
-          `\nTesting: ${testDate.description} (${testDate.year}/${testDate.month}/${testDate.day})`
-        );
-
         [gregorianEngine, golarionEngine].forEach((engine, index) => {
           const calendarNames = ['Gregorian', 'Golarion'];
 
           try {
             const worldTime = engine.dateToWorldTime(testDate);
             const roundTrip = engine.worldTimeToDate(worldTime);
-
-            console.log(`  ${calendarNames[index]}: worldTime=${worldTime}, valid roundTrip`);
 
             // Round trip should preserve the date exactly
             expect(roundTrip.year).toBe(testDate.year);
@@ -229,26 +157,18 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
           } catch (error) {
             if (testDate.month === 2 && testDate.day === 29 && testDate.year === 2023) {
               // Feb 29, 2023 doesn't exist (not a leap year) - error expected
-              console.log(
-                `  ${calendarNames[index]}: Expected error for invalid date - ${error.message}`
-              );
               expect(error).toBeDefined();
             } else {
-              console.log(`  ${calendarNames[index]}: Unexpected error - ${error.message}`);
               throw error;
             }
           }
         });
       });
-
-      console.log('✅ LEAP YEAR BOUNDARIES: Correctly handled with worldTime conversion');
     });
   });
 
   describe('⏱️ Time Component Edge Cases', () => {
     test('Handle precise time components in worldTime conversion', () => {
-      console.log('\n=== PRECISE TIME COMPONENT TEST ===');
-
       // Test various time combinations that might cause precision issues
       const timeTests = [
         { hour: 0, minute: 0, second: 0, description: 'Midnight' },
@@ -263,10 +183,6 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
       const testDate = { year: 2024, month: 6, day: 15 }; // Middle of year, safe date
 
       timeTests.forEach(timeTest => {
-        console.log(
-          `\nTesting time: ${timeTest.description} (${timeTest.hour}:${timeTest.minute}:${timeTest.second})`
-        );
-
         const fullDate = {
           ...testDate,
           time: {
@@ -282,29 +198,15 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
           const worldTime = engine.dateToWorldTime(fullDate);
           const roundTrip = engine.worldTimeToDate(worldTime);
 
-          console.log(`  ${calendarNames[index]}: worldTime=${worldTime}`);
-          console.log(
-            `    Original: ${fullDate.time.hour}:${fullDate.time.minute}:${fullDate.time.second}`
-          );
-          console.log(
-            `    Round-trip: ${roundTrip.time?.hour || 0}:${roundTrip.time?.minute || 0}:${roundTrip.time?.second || 0}`
-          );
-
           // Time should be preserved exactly
           expect(roundTrip.time?.hour || 0).toBe(timeTest.hour);
           expect(roundTrip.time?.minute || 0).toBe(timeTest.minute);
           expect(roundTrip.time?.second || 0).toBe(timeTest.second);
         });
       });
-
-      console.log(
-        '✅ TIME PRECISION: All time components preserved exactly through worldTime conversion'
-      );
     });
 
     test('Handle time arithmetic edge cases', () => {
-      console.log('\n=== TIME ARITHMETIC EDGE CASES ===');
-
       // Test adding seconds that cross minute/hour/day boundaries
       const baseDate = {
         year: 2024,
@@ -313,31 +215,18 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
         time: { hour: 23, minute: 59, second: 58 },
       };
 
-      console.log(
-        `Base time: ${baseDate.time.hour}:${baseDate.time.minute}:${baseDate.time.second}`
-      );
-
       [gregorianEngine, golarionEngine].forEach((engine, index) => {
         const calendarNames = ['Gregorian', 'Golarion'];
 
-        console.log(`\n${calendarNames[index]} Calendar:`);
-
         const baseWorldTime = engine.dateToWorldTime(baseDate);
-        console.log(`  Base worldTime: ${baseWorldTime}`);
 
         // Test adding 1 second (should roll to 23:59:59)
         const plus1Sec = engine.worldTimeToDate(baseWorldTime + 1);
-        console.log(
-          `  +1 sec: ${plus1Sec.year}/${plus1Sec.month}/${plus1Sec.day} ${plus1Sec.time?.hour}:${plus1Sec.time?.minute}:${plus1Sec.time?.second}`
-        );
         expect(plus1Sec.time?.second).toBe(59);
         expect(plus1Sec.day).toBe(baseDate.day); // Same day
 
         // Test adding 2 seconds (should roll to next minute: 24:00:00 -> 00:00:00 next day)
         const plus2Sec = engine.worldTimeToDate(baseWorldTime + 2);
-        console.log(
-          `  +2 sec: ${plus2Sec.year}/${plus2Sec.month}/${plus2Sec.day} ${plus2Sec.time?.hour}:${plus2Sec.time?.minute}:${plus2Sec.time?.second}`
-        );
         expect(plus2Sec.time?.hour).toBe(0);
         expect(plus2Sec.time?.minute).toBe(0);
         expect(plus2Sec.time?.second).toBe(0);
@@ -345,23 +234,16 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
 
         // Test adding 1 hour + 2 seconds (should be next day, 01:00:00)
         const plus1Hour2Sec = engine.worldTimeToDate(baseWorldTime + 3600 + 2);
-        console.log(
-          `  +1h 2s: ${plus1Hour2Sec.year}/${plus1Hour2Sec.month}/${plus1Hour2Sec.day} ${plus1Hour2Sec.time?.hour}:${plus1Hour2Sec.time?.minute}:${plus1Hour2Sec.time?.second}`
-        );
         expect(plus1Hour2Sec.time?.hour).toBe(1);
         expect(plus1Hour2Sec.time?.minute).toBe(0);
         expect(plus1Hour2Sec.time?.second).toBe(0);
         expect(plus1Hour2Sec.day).toBe(baseDate.day + 1); // Next day
       });
-
-      console.log('✅ TIME ARITHMETIC: Correctly handles second/minute/hour/day boundaries');
     });
   });
 
   describe('🔄 Bidirectional Conversion Stress Tests', () => {
     test('Gregorian round-trip conversion with known dates', () => {
-      console.log('\n=== GREGORIAN ROUND-TRIP TEST ===');
-
       const testDates = [
         { year: 2024, month: 1, day: 1, time: { hour: 0, minute: 0, second: 0 } },
         { year: 2024, month: 6, day: 15, time: { hour: 12, minute: 30, second: 45 } },
@@ -374,10 +256,6 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
         const worldTime = gregorianEngine.dateToWorldTime(testDate);
         const roundTrip = gregorianEngine.worldTimeToDate(worldTime);
 
-        console.log(
-          `  Test ${index + 1}: ${testDate.year}/${testDate.month}/${testDate.day} -> worldTime=${worldTime} -> ${roundTrip.year}/${roundTrip.month}/${roundTrip.day}`
-        );
-
         expect(roundTrip.year).toBe(testDate.year);
         expect(roundTrip.month).toBe(testDate.month);
         expect(roundTrip.day).toBe(testDate.day);
@@ -385,13 +263,9 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
         expect(roundTrip.time?.minute || 0).toBe(testDate.time.minute);
         expect(roundTrip.time?.second || 0).toBe(testDate.time.second);
       });
-
-      console.log('✅ GREGORIAN ROUND-TRIP: All known dates converted correctly');
     });
 
     test('Golarion round-trip conversion with known dates', () => {
-      console.log('\n=== GOLARION ROUND-TRIP TEST ===');
-
       const testDates = [
         { year: 2700, month: 1, day: 1, time: { hour: 0, minute: 0, second: 0 } }, // Epoch
         { year: 4712, month: 10, day: 21, time: { hour: 5, minute: 0, second: 6 } }, // Issue #66 date
@@ -403,10 +277,6 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
         const worldTime = golarionEngine.dateToWorldTime(testDate);
         const roundTrip = golarionEngine.worldTimeToDate(worldTime);
 
-        console.log(
-          `  Test ${index + 1}: ${testDate.year}/${testDate.month}/${testDate.day} -> worldTime=${worldTime} -> ${roundTrip.year}/${roundTrip.month}/${roundTrip.day}`
-        );
-
         expect(roundTrip.year).toBe(testDate.year);
         expect(roundTrip.month).toBe(testDate.month);
         expect(roundTrip.day).toBe(testDate.day);
@@ -414,13 +284,9 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
         expect(roundTrip.time?.minute || 0).toBe(testDate.time.minute);
         expect(roundTrip.time?.second || 0).toBe(testDate.time.second);
       });
-
-      console.log('✅ GOLARION ROUND-TRIP: All known dates converted correctly');
     });
 
     test('Vale Reckoning round-trip conversion with known dates', () => {
-      console.log('\n=== VALE RECKONING ROUND-TRIP TEST ===');
-
       const testDates = [
         { year: 0, month: 1, day: 1, time: { hour: 0, minute: 0, second: 0 } }, // Epoch
         { year: 1542, month: 4, day: 15, time: { hour: 12, minute: 0, second: 0 } }, // Current year
@@ -432,10 +298,6 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
         const worldTime = valeReckoningEngine.dateToWorldTime(testDate);
         const roundTrip = valeReckoningEngine.worldTimeToDate(worldTime);
 
-        console.log(
-          `  Test ${index + 1}: ${testDate.year}/${testDate.month}/${testDate.day} -> worldTime=${worldTime} -> ${roundTrip.year}/${roundTrip.month}/${roundTrip.day}`
-        );
-
         expect(roundTrip.year).toBe(testDate.year);
         expect(roundTrip.month).toBe(testDate.month);
         expect(roundTrip.day).toBe(testDate.day);
@@ -443,34 +305,21 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
         expect(roundTrip.time?.minute || 0).toBe(testDate.time.minute);
         expect(roundTrip.time?.second || 0).toBe(testDate.time.second);
       });
-
-      console.log('✅ VALE RECKONING ROUND-TRIP: All known dates converted correctly');
     });
 
     test('Test worldTime sequence continuity', () => {
-      console.log('\n=== WORLDTIME SEQUENCE CONTINUITY TEST ===');
-
       // Test that sequential worldTime values produce sequential dates
       const baseWorldTime = 86400 * 1000; // Start at day 1000 to avoid epoch issues
 
       [gregorianEngine, golarionEngine].forEach((engine, index) => {
         const calendarNames = ['Gregorian', 'Golarion'];
 
-        console.log(`\n${calendarNames[index]} Calendar:`);
-
         let previousDate = engine.worldTimeToDate(baseWorldTime);
-        console.log(
-          `  Base (worldTime=${baseWorldTime}): ${previousDate.year}/${previousDate.month}/${previousDate.day}`
-        );
 
         // Test 10 sequential days
         for (let dayOffset = 1; dayOffset <= 10; dayOffset++) {
           const currentWorldTime = baseWorldTime + dayOffset * 86400;
           const currentDate = engine.worldTimeToDate(currentWorldTime);
-
-          console.log(
-            `  Day +${dayOffset} (worldTime=${currentWorldTime}): ${currentDate.year}/${currentDate.month}/${currentDate.day}`
-          );
 
           // Calculate expected next day
           const expectedDate = engine.addDays(previousDate, 1);
@@ -482,28 +331,19 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
 
           previousDate = currentDate;
         }
-
-        console.log(`  ✅ Sequential worldTime values produce sequential dates`);
       });
-
-      console.log('✅ SEQUENCE CONTINUITY: WorldTime increments produce expected date sequences');
     });
   });
 
   describe('🌍 Calendar-Specific WorldTime Behavior', () => {
     test('Compare worldTime interpretation across calendar types', () => {
-      console.log('\n=== CROSS-CALENDAR WORLDTIME COMPARISON ===');
-
       const testWorldTimes = [0, 86400, 31536000]; // 0 days, 1 day, ~1 year
 
       testWorldTimes.forEach(worldTime => {
-        console.log(`\nWorldTime = ${worldTime} (${Math.floor(worldTime / 86400)} days):`);
-
         [gregorianEngine, golarionEngine, valeReckoningEngine].forEach((engine, index) => {
           const calendarNames = ['Gregorian', 'Golarion', 'Vale Reckoning'];
 
           const date = engine.worldTimeToDate(worldTime);
-          console.log(`  ${calendarNames[index]}: ${date.year}/${date.month}/${date.day}`);
 
           // All calendars should produce valid dates for the same worldTime
           expect(date.year).toBeGreaterThanOrEqual(0);
@@ -511,13 +351,9 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
           expect(date.day).toBeGreaterThanOrEqual(1);
         });
       });
-
-      console.log('✅ CROSS-CALENDAR: All calendars produce valid dates for same worldTime values');
     });
 
     test('Verify calendar-specific worldTime configuration effects', () => {
-      console.log('\n=== CALENDAR WORLDTIME CONFIGURATION TEST ===');
-
       // Test how different worldTime configurations affect date calculation
       const calendars = [
         { name: 'Gregorian', engine: gregorianEngine },
@@ -526,40 +362,25 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
       ];
 
       calendars.forEach(({ name, engine }) => {
-        console.log(`\n${name} Configuration:`);
-
         const calendar = engine.getCalendar();
 
         if (calendar.worldTime) {
-          console.log(`  Interpretation: ${calendar.worldTime.interpretation}`);
-          console.log(`  Epoch year: ${calendar.worldTime.epochYear}`);
-          console.log(`  Current year: ${calendar.worldTime.currentYear}`);
         } else {
-          console.log(`  No worldTime configuration - using legacy mode`);
         }
 
         // Test worldTime=0 behavior
         const worldTimeZeroDate = engine.worldTimeToDate(0);
-        console.log(
-          `  WorldTime=0 produces: ${worldTimeZeroDate.year}/${worldTimeZeroDate.month}/${worldTimeZeroDate.day}`
-        );
 
         // Verify the interpretation works as expected
         if (calendar.worldTime?.interpretation === 'real-time-based') {
           // Should produce a year close to currentYear, not epochYear
           expect(worldTimeZeroDate.year).toBeCloseTo(calendar.worldTime.currentYear, -1);
-          console.log(
-            `  ✅ Real-time interpretation: Year close to ${calendar.worldTime.currentYear}`
-          );
         } else {
           // Should produce a year close to epochYear
           const epochYear = calendar.worldTime?.epochYear || calendar.year.epoch;
           expect(worldTimeZeroDate.year).toBeCloseTo(epochYear, -1);
-          console.log(`  ✅ Epoch-based interpretation: Year close to ${epochYear}`);
         }
       });
-
-      console.log('✅ CONFIGURATION: WorldTime interpretation modes work as designed');
     });
   });
 });
