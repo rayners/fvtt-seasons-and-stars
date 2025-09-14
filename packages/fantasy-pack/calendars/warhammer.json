@@ -263,5 +263,49 @@
       "icon": "winter",
       "description": "The harsh season of survival and dark magic. Kaldezeit and Ulriczeit test the Empire's endurance, while Vorhexen and Nachexen bring the most dangerous magical times of the year."
     }
-  ]
+  ],
+
+  "dateFormats": {
+    "imperial": "{{ss-day}} {{ss-month format=\"name\"}}, {{year}} IC",
+    "short": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} IC",
+    "date": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} IC",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}}",
+    "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, in the {{year}} year of the Imperial Calendar",
+    "feast": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} - {{ss-season format=\"name\"}} {{year}} IC",
+    "moon": "{{ss-day}} {{ss-month format=\"abbr\"}} {{year}} ({{moon name=\"Mannslieb\" format=\"name\"}})",
+
+    "imperial-intercalary": "{{intercalary}}, {{year}} IC",
+    "short-intercalary": "{{intercalary}}",
+    "long-intercalary": "{{intercalary}}, {{year}} IC",
+    "date-intercalary": "{{intercalary}}, {{year}} IC",
+    "datetime-intercalary": "{{intercalary}}, {{year}} IC at {{ss-dateFmt \"time\"}}",
+    "brief-intercalary": "{{intercalary}} {{year}}",
+    "formal-intercalary": "{{intercalary}} in the {{year}} year of the Imperial Calendar",
+    "feast-intercalary": "{{intercalary}} - {{year}} IC",
+    "moon-intercalary": "{{intercalary}} {{year}} ({{moon name=\"Mannslieb\" format=\"name\"}})",
+
+    "variants": {
+      "common": {
+        "short": "{{ss-day}} {{ss-month format=\"name\"}}",
+        "long": "{{ss-dateFmt \"imperial\"}}"
+      },
+      "noble": {
+        "short": "{{ss-dateFmt \"imperial\"}}",
+        "long": "{{ss-dateFmt \"formal\"}}"
+      }
+    },
+
+    "widgets": {
+      "mini": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}",
+
+      "mini-intercalary": "{{intercalary}}",
+      "main-intercalary": "{{intercalary}}, {{year}} IC",
+      "grid-intercalary": "{{intercalary}}"
+    }
+  }
 }
