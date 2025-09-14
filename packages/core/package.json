@@ -44,7 +44,7 @@
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-scss": "^4.0.0",
     "rollup-plugin-serve": "^2.0.2",
-    "sass": "^1.92.1",
+    "sass": "^1.90.0",
     "tslib": "^2.5.0",
     "tsx": "^4.20.4",
     "typescript": "^5.0.4",
