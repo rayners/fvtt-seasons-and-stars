@@ -80,7 +80,7 @@ export interface BridgeCalendarWidget {
   addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void;
   removeSidebarButton(name: string): void;
   hasSidebarButton(name: string): boolean;
-  getInstance(): unknown;
+  getInstance(): any;
 }
 
 export enum WidgetPreference {
@@ -148,21 +148,21 @@ export class SeasonsStarsIntegration {
    * Get API interface
    */
   get api(): SeasonsStarsAPI {
-    return new IntegrationAPI(this.manager) as unknown as SeasonsStarsAPI;
+    return new IntegrationAPI(this.manager) as any; // TODO: Fix interface mismatches
   }
 
   /**
    * Get widgets interface
    */
   get widgets(): SeasonsStarsWidgets {
-    return this.widgetManager as unknown as SeasonsStarsWidgets;
+    return this.widgetManager as any; // TODO: Fix interface mismatches
   }
 
   /**
    * Get hooks interface
    */
   get hooks(): SeasonsStarsHooks {
-    return this.hookManager as unknown as SeasonsStarsHooks;
+    return this.hookManager as any; // TODO: Fix interface mismatches
   }
 
   /**
@@ -465,7 +465,7 @@ class IntegrationWidgetManager {
   notifyWidgetChange(): void {
     for (const callback of this.changeCallbacks) {
       try {
-        callback(this as unknown as SeasonsStarsWidgets);
+        callback(this as any); // TODO: Fix interface mismatch
       } catch (error) {
         Logger.error(
           'Widget change callback error',
@@ -485,7 +485,7 @@ class IntegrationWidgetManager {
  */
 class BridgeWidgetWrapper implements BridgeCalendarWidget {
   constructor(
-    private widget: unknown,
+    private widget: any,
     private widgetType: string
   ) {}
 
@@ -494,41 +494,31 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
   }
 
   get isVisible(): boolean {
-    return (this.widget as { rendered?: boolean }).rendered || false;
+    return this.widget.rendered || false;
   }
 
   addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void {
-    const widget = this.widget as {
-      addSidebarButton?: (
-        name: string,
-        icon: string,
-        tooltip: string,
-        callback: () => void
-      ) => void;
-    };
-    if (typeof widget.addSidebarButton === 'function') {
-      widget.addSidebarButton(name, icon, tooltip, callback);
+    if (typeof this.widget.addSidebarButton === 'function') {
+      this.widget.addSidebarButton(name, icon, tooltip, callback);
     } else {
       throw new Error(`Widget ${this.widgetType} does not support sidebar buttons`);
     }
   }
 
   removeSidebarButton(name: string): void {
-    const widget = this.widget as { removeSidebarButton?: (name: string) => void };
-    if (typeof widget.removeSidebarButton === 'function') {
-      widget.removeSidebarButton(name);
+    if (typeof this.widget.removeSidebarButton === 'function') {
+      this.widget.removeSidebarButton(name);
     }
   }
 
   hasSidebarButton(name: string): boolean {
-    const widget = this.widget as { hasSidebarButton?: (name: string) => boolean };
-    if (typeof widget.hasSidebarButton === 'function') {
-      return widget.hasSidebarButton(name);
+    if (typeof this.widget.hasSidebarButton === 'function') {
+      return this.widget.hasSidebarButton(name);
     }
     return false;
   }
 
-  getInstance(): unknown {
+  getInstance(): any {
     return this.widget;
   }
 }
@@ -545,15 +535,15 @@ class IntegrationHookManager {
 
   private setupHookListeners(): void {
     // Listen to internal S&S hooks and translate for bridges
-    Hooks.on('seasons-stars:dateChanged', (data: unknown) => {
+    Hooks.on('seasons-stars:dateChanged', (data: any) => {
       this.emitToCallbacks('dateChanged', data);
     });
 
-    Hooks.on('seasons-stars:calendarChanged', (data: unknown) => {
+    Hooks.on('seasons-stars:calendarChanged', (data: any) => {
       this.emitToCallbacks('calendarChanged', data);
     });
 
-    Hooks.on('seasons-stars:ready', (data: unknown) => {
+    Hooks.on('seasons-stars:ready', (data: any) => {
       this.emitToCallbacks('ready', data);
     });
   }
@@ -587,7 +577,7 @@ class IntegrationHookManager {
     this.hookCallbacks.get(hookName)!.push(callback);
   }
 
-  private emitToCallbacks(hookName: string, data: unknown): void {
+  private emitToCallbacks(hookName: string, data: any): void {
     const callbacks = this.hookCallbacks.get(hookName);
     if (callbacks) {
       for (const callback of callbacks) {
@@ -620,11 +610,11 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
   async addNote(
     title: string,
     content: string,
-    startDate: Record<string, unknown>,
-    endDate?: Record<string, unknown>,
+    startDate: any,
+    endDate?: any,
     allDay: boolean = true,
     playerVisible: boolean = true
-  ): Promise<unknown> {
+  ): Promise<any> {
     const notesManager = game.seasonsStars?.notes;
     if (!notesManager) {
       throw new Error('Notes system not available');
@@ -659,7 +649,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     await (notesManager as NotesManagerInterface).deleteNote(noteId);
   }
 
-  getNotesForDay(year: number, month: number, day: number, _calendarId?: string): unknown[] {
+  getNotesForDay(year: number, month: number, day: number, _calendarId?: string): any[] {
     const notesManager = game.seasonsStars?.notes;
     if (!notesManager) {
       return [];
@@ -760,7 +750,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
   }
 
   // Module integration methods
-  async setNoteModuleData(noteId: string, moduleId: string, data: unknown): Promise<void> {
+  async setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void> {
     const notesManager = game.seasonsStars?.notes;
     if (!notesManager) {
       throw new Error('Notes system not available');
@@ -769,7 +759,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     return (notesManager as NotesManagerInterface).setNoteModuleData(noteId, moduleId, data);
   }
 
-  getNoteModuleData(noteId: string, moduleId: string): unknown {
+  getNoteModuleData(noteId: string, moduleId: string): any {
     const notesManager = game.seasonsStars?.notes;
     if (!notesManager) {
       return null;
@@ -779,13 +769,13 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
   }
 
   // Date conversion utilities
-  private convertSCDateToSS(scDate: Record<string, unknown>): CalendarDate {
+  private convertSCDateToSS(scDate: any): CalendarDate {
     // Simple Calendar uses 0-based months and days
     // Seasons & Stars uses 1-based months and days
     const engine = this.manager.getActiveEngine();
-    const year = typeof scDate.year === 'number' ? scDate.year : 0;
-    const month = (typeof scDate.month === 'number' ? scDate.month : 0) + 1;
-    const day = (typeof scDate.day === 'number' ? scDate.day : 0) + 1;
+    const year = scDate.year;
+    const month = (scDate.month || 0) + 1;
+    const day = (scDate.day || 0) + 1;
 
     // Calculate weekday using engine
     const weekday = engine ? engine.calculateWeekday(year, month, day) : 0;
@@ -804,7 +794,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     return new CalendarDateClass(dateData, calendar);
   }
 
-  private convertSSDateToSC(ssDate: CalendarDate): Record<string, unknown> {
+  private convertSSDateToSC(ssDate: CalendarDate): any {
     // Convert 1-based S&S format to 0-based SC format
     return {
       year: ssDate.year,
@@ -813,7 +803,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     };
   }
 
-  private convertNoteToSCFormat(note: JournalEntry): Record<string, unknown> {
+  private convertNoteToSCFormat(note: JournalEntry): any {
     const flags = note.flags?.['seasons-and-stars'];
     if (!flags?.calendarNote) {
       throw new Error('Invalid calendar note');
@@ -888,7 +878,7 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     return textPage?.text?.content || '';
   }
 
-  formatNoteDisplay(note: JournalEntry): Record<string, unknown> {
+  formatNoteDisplay(note: any): any {
     // Convert note to display format for compatibility
     return this.convertNoteToSCFormat(note);
   }

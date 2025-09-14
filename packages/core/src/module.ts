@@ -28,15 +28,15 @@ import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import { TimeAdvancementService } from './core/time-advancement-service';
-import { MemoryMageAPI } from './types/external-integrations';
+import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
-import { SeasonsStarsAPI } from './types/foundry-extensions';
-import {
+import type { SeasonsStarsAPI } from './types/foundry-extensions';
+import type {
   ErrorsAndEchoesAPI,
   ExtendedNotesManager,
   ExtendedCalendarManager,
 } from './types/external-integrations';
-import {
+import type {
   CalendarDate as ICalendarDate,
   DateFormatOptions,
   SeasonsStarsCalendar,
