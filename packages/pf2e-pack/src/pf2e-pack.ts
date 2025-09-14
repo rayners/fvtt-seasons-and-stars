@@ -1,3 +1,5 @@
+/// <reference path="../../core/src/types/foundry-v13-essentials.d.ts" />
+
 /**
  * Seasons & Stars - Pathfinder 2e Integration Pack
  *
