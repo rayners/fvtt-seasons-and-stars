@@ -3,6 +3,7 @@
  */
 
 // Schema files will be loaded dynamically from the module
+import { Logger } from './logger';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -27,7 +28,7 @@ async function getAjvValidators() {
       addFormats(ajvInstance);
     } catch {
       // ajv-formats is optional
-      console.warn('ajv-formats not available, some validations may be limited');
+      Logger.warn('ajv-formats not available, some validations may be limited');
     }
 
     // Load schemas based on environment
@@ -148,7 +149,7 @@ export class CalendarValidator {
       return result;
     } catch (error) {
       // Fallback to non-schema validation if AJV fails
-      console.warn('Schema validation failed, falling back to legacy validation:', error);
+      Logger.warn('Schema validation failed, falling back to legacy validation:', error);
       return this.validateLegacy(calendar);
     }
   }
