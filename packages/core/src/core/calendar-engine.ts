@@ -14,7 +14,9 @@ import { CalendarDate } from './calendar-date';
 import { CalendarTimeUtils } from './calendar-time-utils';
 import { compatibilityManager } from './compatibility-manager';
 import { Logger } from './logger';
-import gregorianDefaults from '../../calendars/gregorian.json';
+// Import JSON using require for better Node.js/CI compatibility
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const gregorianDefaults = require('../../calendars/gregorian.json');
 
 export class CalendarEngine {
   private calendar: SeasonsStarsCalendar;
