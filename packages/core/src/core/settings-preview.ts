@@ -547,7 +547,8 @@ function enhanceCalendarBrowserSetting(html: HTMLElement): void {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'button';
-    button.style.cssText = 'background: var(--color-border-highlight-alt); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;';
+    button.style.cssText =
+      'background: var(--color-border-highlight-alt); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;';
     button.innerHTML = '<i class="fas fa-calendar-alt"></i> Open Calendar Browser';
 
     // Add click handler

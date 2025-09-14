@@ -712,7 +712,8 @@ function registerCalendarSettings(): void {
   const calendars = calendarManager.getAllCalendars();
   Logger.debug('Calendars loaded for browser dialog', {
     count: calendars instanceof Map ? calendars.size : calendars.length,
-    calendarIds: calendars instanceof Map ? Array.from(calendars.keys()) : calendars.map((c, i) => c.id || i),
+    calendarIds:
+      calendars instanceof Map ? Array.from(calendars.keys()) : calendars.map((c, i) => c.id || i),
   });
 }
 

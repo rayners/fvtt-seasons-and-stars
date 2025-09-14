@@ -133,7 +133,7 @@ export class CalendarBrowserDialog extends foundry.applications.api.HandlebarsAp
 
     // Register handlebars helper for array includes check
     if (!Handlebars.helpers.includes) {
-      Handlebars.registerHelper('includes', function(array: unknown[], value: unknown) {
+      Handlebars.registerHelper('includes', function (array: unknown[], value: unknown) {
         return Array.isArray(array) && array.includes(value);
       });
     }
@@ -167,7 +167,8 @@ export class CalendarBrowserDialog extends foundry.applications.api.HandlebarsAp
     const availableFilters = this.calculateAvailableFilters(calendarItems);
 
     // Get file picker state
-    const customFilePath = (game.settings?.get('seasons-and-stars', 'activeCalendarFile') as string) || '';
+    const customFilePath =
+      (game.settings?.get('seasons-and-stars', 'activeCalendarFile') as string) || '';
     const hasCustomFile = customFilePath !== '';
 
     return Object.assign(context, {
@@ -182,7 +183,10 @@ export class CalendarBrowserDialog extends foundry.applications.api.HandlebarsAp
     });
   }
 
-  protected override async _onRender(context: Record<string, unknown>, options: any): Promise<void> {
+  protected override async _onRender(
+    context: Record<string, unknown>,
+    options: any
+  ): Promise<void> {
     await super._onRender(context, options);
 
     // Set up manual event listener for search input
@@ -239,7 +243,9 @@ export class CalendarBrowserDialog extends foundry.applications.api.HandlebarsAp
   };
 
   private _filterCalendarList(): void {
-    const calendarItems = this.element?.querySelectorAll('.calendar-list-item:not(.file-picker-item)');
+    const calendarItems = this.element?.querySelectorAll(
+      '.calendar-list-item:not(.file-picker-item)'
+    );
     if (!calendarItems) return;
 
     let visibleCount = 0;
@@ -264,11 +270,7 @@ export class CalendarBrowserDialog extends foundry.applications.api.HandlebarsAp
       // Apply search filter
       let isVisible = true;
       if (searchTerm) {
-        const searchableFields = [
-          calendar.name,
-          calendar.description || '',
-          calendarId
-        ];
+        const searchableFields = [calendar.name, calendar.description || '', calendarId];
 
         // Include translated fields
         if (calendar.translations?.en) {
@@ -308,9 +310,19 @@ export class CalendarBrowserDialog extends foundry.applications.api.HandlebarsAp
     if (countElement) {
       countElement.textContent = `${game.i18n.localize('SEASONS_STARS.dialog.calendar_browser.calendars')} (${visibleCount})`;
     }
-  };
+  }
 
-  private getCalendarSourceInfo(id: string, calendar: SeasonsStarsCalendar): { type: string; icon: string; label: string; description: string; author: string; moduleId?: string } {
+  private getCalendarSourceInfo(
+    id: string,
+    calendar: SeasonsStarsCalendar
+  ): {
+    type: string;
+    icon: string;
+    label: string;
+    description: string;
+    author: string;
+    moduleId?: string;
+  } {
     if (calendar?.sourceInfo) {
       return {
         type: calendar.sourceInfo.type,
@@ -358,11 +370,12 @@ export class CalendarBrowserDialog extends foundry.applications.api.HandlebarsAp
     // Apply search filter
     if (this.searchTerm) {
       const searchLower = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(cal =>
-        cal.id.toLowerCase().includes(searchLower) ||
-        cal.name.toLowerCase().includes(searchLower) ||
-        cal.description.toLowerCase().includes(searchLower) ||
-        cal.author.toLowerCase().includes(searchLower)
+      filtered = filtered.filter(
+        cal =>
+          cal.id.toLowerCase().includes(searchLower) ||
+          cal.name.toLowerCase().includes(searchLower) ||
+          cal.description.toLowerCase().includes(searchLower) ||
+          cal.author.toLowerCase().includes(searchLower)
       );
     }
 
@@ -372,7 +385,6 @@ export class CalendarBrowserDialog extends foundry.applications.api.HandlebarsAp
         this.activeFilters.tags.some(tag => cal.tags.includes(tag))
       );
     }
-
 
     if (this.activeFilters.sourceModules.length > 0) {
       filtered = filtered.filter(cal =>
@@ -468,7 +480,9 @@ export class CalendarBrowserDialog extends foundry.applications.api.HandlebarsAp
     };
 
     // Clear all filter checkboxes
-    const filterCheckboxes = this.element?.querySelectorAll('.filter-checkbox input[type="checkbox"]');
+    const filterCheckboxes = this.element?.querySelectorAll(
+      '.filter-checkbox input[type="checkbox"]'
+    );
     filterCheckboxes?.forEach((checkbox: Element) => {
       (checkbox as HTMLInputElement).checked = false;
     });
@@ -516,7 +530,7 @@ export class CalendarBrowserDialog extends foundry.applications.api.HandlebarsAp
 
       ui.notifications?.info(
         game.i18n.format('SEASONS_STARS.notifications.calendar_changed', {
-          calendar: this.selectedCalendar.name
+          calendar: this.selectedCalendar.name,
         })
       );
     }
@@ -567,7 +581,6 @@ export class CalendarBrowserDialog extends foundry.applications.api.HandlebarsAp
 
     return super.close(options);
   }
-
 
   /**
    * Static method to show the calendar browser dialog

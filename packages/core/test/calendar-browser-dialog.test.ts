@@ -157,7 +157,6 @@ describe('CalendarBrowserDialog', () => {
       expect(context.calendars).toHaveLength(1);
       expect(context.calendars[0].id).toBe('gregorian');
     });
-
   });
 
   describe('Static Methods', () => {
