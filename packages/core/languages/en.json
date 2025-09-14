@@ -45,12 +45,43 @@
         "status": "Status",
         "click_to_select": "Click to select a calendar file"
       },
+      "calendar_browser": {
+        "title": "📅 Calendar Browser",
+        "search_placeholder": "Search calendars...",
+        "clear_search": "Clear search",
+        "filters": "Filters",
+        "filter_tags": "Features",
+        "filter_sources": "Sources",
+        "clear_filters": "Clear All Filters",
+        "calendars": "Available Calendars",
+        "current_calendar": "Currently active",
+        "select_calendar": "Select Calendar",
+        "select_calendar_hint": "Choose a calendar from the list to see detailed information",
+        "description": "Description",
+        "source_info": "Source Information",
+        "source": "Source",
+        "features": "Features",
+        "structure": "Calendar Structure",
+        "preview": "Preview",
+        "cancel": "Cancel",
+        "current": "Active",
+        "already_active": "Already Active",
+        "custom_file": "Custom Calendar File",
+        "click_to_browse": "Click to browse for file",
+        "custom_calendar_file": "Custom calendar file",
+        "clear_custom_file": "Clear custom file"
+      },
       "calendar_preview": {
         "title": "Calendar Preview: {calendar}"
       },
       "close": "Close"
     },
     "settings": {
+      "calendar_browser_button": "📅 Change Calendar System",
+      "calendar_browser_hint": "Open the calendar browser to select a different calendar system or load a custom calendar file.",
+      "calendar_browser_label": "Open Calendar Browser",
+      "calendar_browser_open": "Open Calendar Browser",
+      "calendar_browser_action": "Click to Open Calendar Browser",
       "active_calendar": "📅 Active Calendar System",
       "active_calendar_hint": "Choose which calendar system to use for date display and time tracking. This is the primary setting for configuring your world's calendar.",
       "active_calendar_file": "📄 Custom Calendar File Path",

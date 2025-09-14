@@ -13,12 +13,12 @@ import { NotesManager } from './core/notes-manager';
 import { compatibilityManager } from './core/compatibility-manager';
 import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
-import { CalendarLocalization } from './core/calendar-localization';
 import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
 import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
 import { CalendarDeprecationDialog } from './ui/calendar-deprecation-dialog';
+import { CalendarBrowserMenuApplication } from './ui/calendar-browser-menu';
 // Note editing dialog imported when needed
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
@@ -361,15 +361,24 @@ function registerSettings(): void {
 
   // === CORE CALENDAR SETTINGS ===
 
-  // Calendar setting registered early with basic choices, updated later when calendars load
+  // Calendar browser menu - creates a proper settings button
+  game.settings.registerMenu('seasons-and-stars', 'calendarBrowserMenu', {
+    name: 'SEASONS_STARS.settings.calendar_browser_button',
+    hint: 'SEASONS_STARS.settings.calendar_browser_hint',
+    label: 'SEASONS_STARS.settings.calendar_browser_label',
+    icon: 'fas fa-calendar-alt',
+    type: CalendarBrowserMenuApplication,
+    restricted: true,
+  });
+
+  // Actual calendar storage setting (hidden from UI)
   game.settings.register('seasons-and-stars', 'activeCalendar', {
-    name: 'SEASONS_STARS.settings.active_calendar',
-    hint: 'SEASONS_STARS.settings.active_calendar_hint',
+    name: 'Active Calendar (Internal)',
+    hint: 'Internal setting for storing the active calendar ID',
     scope: 'world',
-    config: true,
+    config: false, // Hidden from settings UI
     type: String,
     default: 'gregorian',
-    choices: { gregorian: 'Gregorian Calendar' }, // Basic default, updated later
     onChange: async (value: string) => {
       if (value && value.trim() !== '' && calendarManager) {
         // Clear file picker calendar when regular calendar is selected
@@ -693,34 +702,18 @@ function registerSettings(): void {
 }
 
 /**
- * Update calendar setting choices after calendars are loaded
+ * Initialize calendar system after calendars are loaded
+ * Note: No longer updates settings choices since we use the calendar browser dialog
  */
 function registerCalendarSettings(): void {
   if (!game.settings) return;
 
-  // Get available calendars and create choices
+  // Log available calendars for debugging
   const calendars = calendarManager.getAllCalendars();
-  const choices = CalendarLocalization.createCalendarChoices(calendars);
-
-  // Re-register the setting with updated choices to overwrite the basic one
-  game.settings.register('seasons-and-stars', 'activeCalendar', {
-    name: 'SEASONS_STARS.settings.active_calendar',
-    hint: 'SEASONS_STARS.settings.active_calendar_hint',
-    scope: 'world',
-    config: true,
-    type: String,
-    default: 'gregorian',
-    choices: choices,
-    onChange: async (value: string) => {
-      if (value && value.trim() !== '' && calendarManager) {
-        // Clear file picker calendar when regular calendar is selected
-        await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
-        await calendarManager.setActiveCalendar(value);
-      }
-    },
+  Logger.debug('Calendars loaded for browser dialog', {
+    count: calendars instanceof Map ? calendars.size : calendars.length,
+    calendarIds: calendars instanceof Map ? Array.from(calendars.keys()) : calendars.map((c, i) => c.id || i),
   });
-
-  Logger.debug('Updated calendar setting with full choices', { choices });
 }
 
 /**
