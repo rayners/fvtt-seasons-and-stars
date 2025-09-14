@@ -49,7 +49,7 @@
       "name": "Serliela",
       "abbreviation": "Ser",
       "days": 30,
-      "description": "Rain Month. Autumn storms wash the land clean as the skies weep for the dying year and the approaching darkness."
+      "description": "Rain Month. Winter storms soak the land as cold rains herald the dark season's dominance."
     },
     {
       "name": "Morangal",
@@ -67,31 +67,31 @@
       "name": "Agani",
       "abbreviation": "Aga",
       "days": 30,
-      "description": "Indigent Month. The month of want and need, when stores run low and the hungry time tests the resolve of all living things."
+      "description": "Indigent Month. Early spring's scarcity tests resolve as supplies dwindle while the world slowly awakens from winter."
     },
     {
       "name": "Elisal",
       "abbreviation": "Eli",
       "days": 30,
-      "description": "Thaw Month. Winter's grip begins to loosen as ice melts and the first hints of spring stir beneath the warming earth."
+      "description": "Thaw Month. Early spring melts winter's ice as the land begins to awaken beneath the warming earth."
     },
     {
       "name": "Verion",
       "abbreviation": "Ver",
       "days": 30,
-      "description": "Sowing Month. The time of planting and new beginnings, when seeds are placed in fertile soil with hope for future abundance."
+      "description": "Sowing Month. Mid-spring planting and new beginnings place seeds in fertile soil with hope for future abundance."
     },
     {
       "name": "Konelia",
       "abbreviation": "Kon",
       "days": 30,
-      "description": "Blooming Month. Spring reaches its crescendo as flowers burst forth and the world awakens in vibrant, living color."
+      "description": "Blooming Month. Early summer bursts into color as flowers open and the world thrives in vibrant life."
     },
     {
       "name": "Leandro",
       "abbreviation": "Lea",
       "days": 30,
-      "description": "Luscious Month. Early summer brings lush growth and verdant beauty as nature displays its full, fertile power."
+      "description": "Luscious Month. Summer's richness brings lush growth and verdant beauty as nature displays its full, fertile power."
     }
   ],
 
@@ -156,6 +156,37 @@
           "description": "The pale moon watching over the dark world of Symbaroum, witness to corruption and hope alike"
         }
       }
+    }
+  ],
+
+  "seasons": [
+    {
+      "name": "Autumn",
+      "startMonth": 2,
+      "endMonth": 4,
+      "icon": "fall",
+      "description": "The harvest season when the world withers and preparations are made for winter's approach."
+    },
+    {
+      "name": "Winter",
+      "startMonth": 5,
+      "endMonth": 7,
+      "icon": "winter",
+      "description": "The dark season of rain, deepening shadows, and midwinter's deadly chill."
+    },
+    {
+      "name": "Spring",
+      "startMonth": 8,
+      "endMonth": 10,
+      "icon": "spring",
+      "description": "The season of renewal as scarcity yields to thaw, sowing, and new growth."
+    },
+    {
+      "name": "Summer",
+      "startMonth": 11,
+      "endMonth": 1,
+      "icon": "summer",
+      "description": "The bright season of blooming, lush abundance, and high summer's heat."
     }
   ],
 
