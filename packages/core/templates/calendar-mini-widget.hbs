@@ -1,5 +1,5 @@
 {{!-- Calendar Mini Widget Template --}}
-<div class="calendar-mini-content">
+<div class="calendar-mini-content{{#if compactMode}} compact-mode{{/if}}">
   {{#if error}}
     <div class="mini-error">{{error}}</div>
   {{else}}

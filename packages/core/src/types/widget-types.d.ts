@@ -25,6 +25,7 @@ export interface MiniWidgetContext extends BaseWidgetContext {
   weekdayDisplay: string;
   timeAdvancementActive?: boolean;
   advancementRatioDisplay?: string;
+  compactMode: boolean;
 }
 
 // Main widget specific context
