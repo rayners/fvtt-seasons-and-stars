@@ -162,7 +162,12 @@ export class CalendarDate implements ICalendarDate {
     // Try widget.mini format first
     const dateFormats = this.calendar.dateFormats;
     if (dateFormats?.widgets?.mini) {
-      return this.formatter.formatWidget(this, 'mini');
+      try {
+        return this.formatter.formatWidget(this, 'mini');
+      } catch (error) {
+        console.debug('[S&S] Widget mini format failed:', error);
+        // Fall through to next method
+      }
     }
 
     // Fallback to basic string formatting for calendars without dateFormats
@@ -510,6 +515,30 @@ export class CalendarDate implements ICalendarDate {
       intercalary: this.intercalary,
       time: this.time ? { ...this.time } : undefined,
     };
+  }
+
+  /**
+   * Check if this intercalary day counts for weekdays
+   * Returns true for non-intercalary days or intercalary days with countsForWeekdays: true
+   */
+  countsForWeekdays(): boolean {
+    if (!this.intercalary) {
+      return true; // Regular days always count for weekdays
+    }
+
+    try {
+      const intercalaryDef = this.calendar.intercalary?.find(i => i.name === this.intercalary);
+      if (!intercalaryDef) {
+        console.debug(`[S&S] Intercalary definition not found: ${this.intercalary}`);
+        return true; // Default to true if definition not found
+      }
+
+      // Default to true if countsForWeekdays is not specified (backward compatibility)
+      return intercalaryDef.countsForWeekdays ?? true;
+    } catch (error) {
+      console.debug('[S&S] Error checking intercalary countsForWeekdays:', error);
+      return true; // Default to true on error
+    }
   }
 
   /**

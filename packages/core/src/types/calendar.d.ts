@@ -203,6 +203,7 @@ export interface CalendarDate extends CalendarDateData {
   toLongString(): string;
   toDateString(): string;
   toTimeString(): string;
+  countsForWeekdays(): boolean;
 }
 
 export interface CalendarCalculation {

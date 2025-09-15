@@ -98,11 +98,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       game.settings?.get('seasons-and-stars', 'miniWidgetShowDayOfWeek') || false;
 
     // Get weekday name/abbreviation with enhanced null safety
+    // Don't show weekday for intercalary days that don't count for weekdays
     let weekdayDisplay = '';
     if (
       showDayOfWeek &&
       activeCalendar?.weekdays?.length > 0 &&
-      currentDate.weekday !== undefined
+      currentDate.weekday !== undefined &&
+      currentDate.countsForWeekdays()
     ) {
       const weekdayIndex = currentDate.weekday;
       if (weekdayIndex >= 0 && weekdayIndex < activeCalendar.weekdays.length) {
@@ -136,8 +138,17 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false);
     const compactMode = showDayOfWeek && showTimeControlsValue;
 
+    const shortDateValue = currentDate.toShortString();
+    console.debug(`[S&S] Mini widget preparing context - currentDate:`, {
+      year: currentDate.year,
+      month: currentDate.month,
+      day: currentDate.day,
+      intercalary: currentDate.intercalary,
+      shortDate: shortDateValue,
+    });
+
     return Object.assign(context, {
-      shortDate: currentDate.toShortString(),
+      shortDate: shortDateValue,
       hasSmallTime: hasSmallTime,
       showTimeControls: showTimeControlsValue,
       isGM: game.user?.isGM || false,
