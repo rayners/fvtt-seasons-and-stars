@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.3.0...seasons-and-stars-fantasy-v0.4.0) (2025-09-15)
+
+
+### Features
+
+* **fantasy-pack:** add initial Gloranthan calendars ([#241](https://github.com/rayners/fvtt-seasons-and-stars/issues/241)) ([c42ef9e](https://github.com/rayners/fvtt-seasons-and-stars/commit/c42ef9e0f1f7f717a4f9825238cbb7c49950b7a7))
+
+
+### Bug Fixes
+
+* **fantasy-pack:** correct Symbaroum calendar seasons ([#240](https://github.com/rayners/fvtt-seasons-and-stars/issues/240)) ([0cb3347](https://github.com/rayners/fvtt-seasons-and-stars/commit/0cb33470f2107949d5b9408a2d4b43672790c33e))
+* intercalary day display with -intercalary format scheme ([#247](https://github.com/rayners/fvtt-seasons-and-stars/issues/247)) ([daf8ccc](https://github.com/rayners/fvtt-seasons-and-stars/commit/daf8cccd38e79c11836f393a4109c817b8cb15d4))
+
 ## [0.3.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.2.2...seasons-and-stars-fantasy-v0.3.0) (2025-08-09)
 
 
