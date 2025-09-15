@@ -4,7 +4,7 @@ Fantasy RPG calendar collection for Seasons & Stars - includes calendars for D&D
 
 ## Calendar Management for Fantasy Campaigns
 
-This calendar pack provides 11 fantasy calendar systems designed for popular RPG settings. Works with the Seasons & Stars calendar module to bring authentic timekeeping to your fantasy campaigns.
+This calendar pack provides 16 fantasy calendar systems designed for popular RPG settings. Works with the Seasons & Stars calendar module to bring authentic timekeeping to your fantasy campaigns.
 
 ## Included Fantasy Calendars
 
@@ -15,6 +15,14 @@ This calendar pack provides 11 fantasy calendar systems designed for popular RPG
 - **Greyhawk Calendar** - Classic D&D setting with festival weeks
 - **Eberron Calendar** - Galifar Calendar with 12 regular 28-day months
 - **Athasian Calendar** - Complex Dark Sun calendar with named year cycles
+
+### Glorantha
+
+- **Orlanthi Calendar** - Standard Gloranthan calendar of five seasons and Sacred Time
+- **Brithini Calendar** - Ten 28-day months used by the Malkioni Brithini
+- **Dara Happan Calendar** - Four 70-day seasons with ten-day weeks
+- **Lunar Calendar** - Imperial calendar of the Lunar Empire
+- **Pamaltelan Calendar** - Southern calendar of four 72-day seasons and Holy Week
 
 ### Popular RPGs
 

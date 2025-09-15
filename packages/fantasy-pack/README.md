@@ -4,7 +4,7 @@ Calendar pack providing fantasy RPG calendars for the Seasons & Stars module.
 
 ## What This Is
 
-A data module containing 11 fantasy calendar systems for use with Seasons & Stars. Includes calendars from D&D settings, popular RPGs, and generic fantasy systems.
+A data module containing 16 fantasy calendar systems for use with Seasons & Stars. Includes calendars from D&D settings, popular RPGs, Glorantha, and generic fantasy systems.
 
 ## Requirements
 
@@ -24,6 +24,14 @@ Install from Foundry's package manager when available.
 - **Greyhawk Calendar**
 - **Eberron Calendar** (Galifar Calendar)
 - **Athasian Calendar** (Dark Sun)
+
+### Glorantha
+
+- **Orlanthi Calendar**
+- **Brithini Calendar**
+- **Dara Happan Calendar**
+- **Lunar Calendar**
+- **Pamaltelan Calendar**
 
 ### Other RPGs
 
