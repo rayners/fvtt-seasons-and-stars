@@ -223,6 +223,28 @@ export class DateFormatter {
 
   /**
    * Format a date using a named format from calendar dateFormats
+   *
+   * Automatically selects intercalary-specific format variants for intercalary dates:
+   * - For intercalary dates, tries `${formatName}-intercalary` first
+   * - Falls back to regular `${formatName}` if intercalary variant doesn't exist
+   * - Regular dates always use the standard format
+   *
+   * @example
+   * ```typescript
+   * // Calendar dateFormats:
+   * {
+   *   "short": "{{day}} {{month}} {{year}}",
+   *   "short-intercalary": "{{intercalary}}, {{year}}"
+   * }
+   *
+   * // Regular date (15th of January)
+   * formatter.formatNamed(regularDate, 'short')
+   * // Returns: "15 January 2024"
+   *
+   * // Intercalary date (Midwinter Festival)
+   * formatter.formatNamed(intercalaryDate, 'short')
+   * // Returns: "Midwinter Festival, 2024" (uses short-intercalary)
+   * ```
    */
   formatNamed(
     date: ICalendarDate,
@@ -327,6 +349,28 @@ export class DateFormatter {
 
   /**
    * Format a date using widget-specific format from calendar dateFormats
+   *
+   * Automatically selects intercalary-specific widget format variants for intercalary dates:
+   * - For intercalary dates, tries `${widgetType}-intercalary` first
+   * - Falls back to regular `${widgetType}` if intercalary variant doesn't exist
+   * - Regular dates always use the standard widget format
+   *
+   * @example
+   * ```typescript
+   * // Calendar dateFormats.widgets:
+   * {
+   *   "mini": "{{day}} {{month abbr}}",
+   *   "mini-intercalary": "{{intercalary}}"
+   * }
+   *
+   * // Regular date (15th of January)
+   * formatter.formatWidget(regularDate, 'mini')
+   * // Returns: "15 Jan"
+   *
+   * // Intercalary date (Midwinter Festival)
+   * formatter.formatWidget(intercalaryDate, 'mini')
+   * // Returns: "Midwinter Festival" (uses mini-intercalary)
+   * ```
    */
   formatWidget(date: ICalendarDate, widgetType: 'mini' | 'main' | 'grid'): string {
     const dateFormats = this.calendar.dateFormats;

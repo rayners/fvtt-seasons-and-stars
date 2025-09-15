@@ -152,7 +152,12 @@ Create individual calendar files following the [Calendar Format Guide](../CALEND
   "dateFormats": {
     "default": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}} AR",
     "short": "{{ss-day}}/{{ss-month}}/{{year}}",
-    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}} AR"
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}} AR",
+    "widgets": {
+      "mini": "{{ss-day}} {{ss-month format=\"abbr\"}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}"
+    }
   }
 }
 ```
@@ -278,6 +283,53 @@ await game.seasonsStars.api.loadModuleCalendars('seasons-and-stars-mypack');
 - `Calendar entry missing URL or file` - Add `file` property to collection entry
 - `Invalid URL format` - Check JSON syntax and file paths
 - `Schema validation failed` - Validate JSON against schema
+
+### 🗓️ Intercalary Day Formatting
+
+_Added in v0.14.0_
+
+Calendar packs can include specialized formatting for intercalary days (special days outside the normal calendar flow like festivals, leap days, or ceremonial observances).
+
+**Automatic `-intercalary` Format Selection:**
+
+For any named format, add an `-intercalary` variant that automatically applies to intercalary dates:
+
+```json
+{
+  "dateFormats": {
+    "default": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}} AR",
+    "default-intercalary": "{{intercalary}}, {{year}} AR",
+    "short": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "short-intercalary": "{{intercalary}}",
+    "widgets": {
+      "mini": "{{ss-day}} {{ss-month format=\"abbr\"}}",
+      "mini-intercalary": "{{intercalary}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day}} {{ss-month format=\"name\"}}",
+      "main-intercalary": "{{intercalary}}, {{year}} AR"
+    }
+  }
+}
+```
+
+**Results for Intercalary Days:**
+
+- Mini widget: Shows `"Midwinter Festival"` instead of `"32 Dec"`
+- Main widget: Shows `"Midwinter Festival, 1024 AR"` instead of broken date
+- User date displays: Clean, readable intercalary day names
+
+**Backwards Compatibility:**
+
+Traditional `{{#if intercalary}}` conditional logic still works:
+
+```json
+{
+  "dateFormats": {
+    "mixed": "{{#if intercalary}}{{intercalary}} (Festival){{else}}{{ss-day}} {{ss-month}} {{year}}{{/if}}"
+  }
+}
+```
+
+When both exist, `-intercalary` formats take precedence for cleaner calendar definitions.
 
 ### 🕐 Canonical Hours Support
 

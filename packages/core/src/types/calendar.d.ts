@@ -109,7 +109,7 @@ export type CalendarIntercalary = {
   name: string;
   days?: number;
   leapYearOnly: boolean;
-  countsForWeekdays: boolean;
+  countsForWeekdays?: boolean;
   description?: string;
   translations?: {
     [languageCode: string]: {
