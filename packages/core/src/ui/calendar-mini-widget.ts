@@ -270,8 +270,21 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Render any existing sidebar buttons
     this.renderExistingSidebarButtons();
 
-    // Position widget after render (SmallTime approach)
-    this.positionWidget();
+    this.enableDrag();
+
+    this.element?.addEventListener('contextmenu', event => {
+      event.preventDefault();
+      if (game.settings?.get('seasons-and-stars', 'miniWidgetPinned')) {
+        this.unpin();
+      }
+    });
+
+    const pinned = game.settings?.get('seasons-and-stars', 'miniWidgetPinned');
+    if (pinned) {
+      this.applyPinnedPosition();
+    } else {
+      this.positionWidget();
+    }
   }
 
   /**
@@ -297,21 +310,99 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Check if SmallTime is pinned/docked in DOM or floating
       if (this.isSmallTimeDocked(smallTimeElement)) {
         Logger.debug('Mini widget: SmallTime is docked - using DOM positioning');
-        // SmallTime is docked - use DOM positioning
         this.dockAboveSmallTime(smallTimeElement);
       } else {
         Logger.debug('Mini widget: SmallTime is floating - using fixed positioning');
-        // SmallTime is floating - use fixed positioning
         this.positionAboveSmallTime(smallTimeElement);
       }
-    } else {
+    } else if (document.getElementById('players')) {
       Logger.debug('Mini widget: No SmallTime - docking to player list');
-      // No SmallTime - dock to player list
       this.dockToPlayerList();
+    } else {
+      Logger.debug('Mini widget: No SmallTime or player list - using standalone positioning');
+      this.positionStandalone();
     }
 
     // Mark as positioned to avoid repeated repositioning during time advancement
     this.hasBeenPositioned = true;
+  }
+
+  /**
+   * Apply stored pinned position
+   */
+  private applyPinnedPosition(): void {
+    if (!this.element) return;
+    const pos = game.settings?.get('seasons-and-stars', 'miniWidgetPosition') as
+      | { top: number; left: number }
+      | undefined;
+    if (!pos || pos.top === null || pos.left === null) {
+      this.positionWidget();
+      return;
+    }
+    this.element.style.position = 'fixed';
+    this.element.style.top = `${pos.top}px`;
+    this.element.style.left = `${pos.left}px`;
+    this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
+    this.element.classList.add('standalone-mode');
+    this.element.classList.remove(
+      'docked-mode',
+      'above-smalltime',
+      'below-smalltime',
+      'beside-smalltime'
+    );
+    this.hasBeenPositioned = true;
+  }
+
+  /**
+   * Enable dragging to allow manual positioning
+   */
+  private enableDrag(): void {
+    if (!this.element) return;
+    let dragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+    const onMouseDown = (event: MouseEvent) => {
+      if (event.button !== 0) return;
+      dragging = true;
+      const rect = this.element!.getBoundingClientRect();
+      offsetX = event.clientX - rect.left;
+      offsetY = event.clientY - rect.top;
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    };
+    const onMouseMove = (event: MouseEvent) => {
+      if (!dragging) return;
+      this.element!.style.position = 'fixed';
+      this.element!.style.left = `${event.clientX - offsetX}px`;
+      this.element!.style.top = `${event.clientY - offsetY}px`;
+      this.element!.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
+    };
+    const onMouseUp = async () => {
+      if (!dragging) return;
+      dragging = false;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      await game.settings?.set('seasons-and-stars', 'miniWidgetPinned', true);
+      await game.settings?.set('seasons-and-stars', 'miniWidgetPosition', {
+        top: parseInt(this.element!.style.top, 10),
+        left: parseInt(this.element!.style.left, 10),
+      });
+      this.hasBeenPositioned = true;
+    };
+    this.element.addEventListener('mousedown', onMouseDown);
+  }
+
+  /**
+   * Unpin the widget and reset to automatic positioning
+   */
+  private async unpin(): Promise<void> {
+    await game.settings?.set('seasons-and-stars', 'miniWidgetPinned', false);
+    await game.settings?.set('seasons-and-stars', 'miniWidgetPosition', {
+      top: null,
+      left: null,
+    });
+    this.hasBeenPositioned = false;
+    this.positionWidget();
   }
 
   /**
@@ -763,6 +854,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   private autoPositionRelativeToSmallTime(): void {
     if (this.isClosing) return;
+    if (game.settings?.get('seasons-and-stars', 'miniWidgetPinned')) {
+      this.applyPinnedPosition();
+      return;
+    }
 
     // Reset positioning flag to force repositioning when SmallTime moves
     this.hasBeenPositioned = false;
@@ -819,8 +914,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Fallback: Try to find where player list would typically be
       // Usually bottom-right area of UI
       position = {
-        top: window.innerHeight - WIDGET_POSITIONING.STANDALONE_BOTTOM_OFFSET, // Typical player list area
-        left: window.innerWidth - 240, // Typical player list left edge
+        top: window.innerHeight - WIDGET_POSITIONING.STANDALONE_BOTTOM_OFFSET,
+        left: 20,
       };
 
       Logger.debug('Player list not found, using typical location', position);
@@ -1066,6 +1161,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   private handlePlayerListChange(): void {
     if (this.isClosing) return;
+    if (game.settings?.get('seasons-and-stars', 'miniWidgetPinned')) return;
 
     const playerList = document.getElementById('players');
 

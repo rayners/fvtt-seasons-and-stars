@@ -453,6 +453,22 @@ function registerSettings(): void {
     },
   });
 
+  game.settings.register('seasons-and-stars', 'miniWidgetPosition', {
+    name: 'Mini Widget Position',
+    scope: 'client',
+    config: false,
+    type: Object,
+    default: { top: null, left: null },
+  });
+
+  game.settings.register('seasons-and-stars', 'miniWidgetPinned', {
+    name: 'Mini Widget Pinned',
+    scope: 'client',
+    config: false,
+    type: Boolean,
+    default: false,
+  });
+
   game.settings.register('seasons-and-stars', 'miniWidgetCanonicalMode', {
     name: 'Canonical Hours Display Mode',
     hint: 'How to display time when canonical hours are available: Auto (canonical hours when available, exact time otherwise), Canonical Only (hide time when no canonical hour), or Exact Time (always show exact time)',
