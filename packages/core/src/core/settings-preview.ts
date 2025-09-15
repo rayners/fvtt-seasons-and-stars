@@ -459,7 +459,7 @@ function updateTimeAdvancementExplanation(ratio: number): void {
 /**
  * Generate human-readable ratio explanation
  */
-function generateRatioExplanation(ratio: number): string {
+export function generateRatioExplanation(ratio: number): string {
   if (ratio === 1.0) {
     return `<strong>Real Time:</strong> 1 second of real time = 1 second of game time`;
   } else if (ratio > 1.0) {
@@ -482,7 +482,7 @@ function generateRatioExplanation(ratio: number): string {
 /**
  * Generate technical interval explanation
  */
-function generateIntervalExplanation(ratio: number, interval: number): string {
+export function generateIntervalExplanation(ratio: number, interval: number): string {
   const intervalSeconds = interval / 1000;
   const gameSecondsAdvanced = ratio * intervalSeconds;
 

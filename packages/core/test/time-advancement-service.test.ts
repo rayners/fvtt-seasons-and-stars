@@ -250,8 +250,11 @@ describe('TimeAdvancementService', () => {
       vi.useFakeTimers();
 
       mockGame.settings.get.mockImplementation((module: string, key: string) => {
-        if (key === 'pauseOnCombat') return true;
-        return key === 'timeAdvancementRatio' ? 1.0 : false;
+        const settings: Record<string, any> = {
+          timeAdvancementRatio: 1.0,
+          pauseOnCombat: true,
+        };
+        return settings[key];
       });
 
       await service.play();
@@ -272,8 +275,11 @@ describe('TimeAdvancementService', () => {
       vi.useFakeTimers();
 
       mockGame.settings.get.mockImplementation((module: string, key: string) => {
-        if (key === 'pauseOnCombat') return false;
-        return key === 'timeAdvancementRatio' ? 1.0 : false;
+        const settings: Record<string, any> = {
+          timeAdvancementRatio: 1.0,
+          pauseOnCombat: false,
+        };
+        return settings[key];
       });
 
       await service.play();
@@ -366,8 +372,11 @@ describe('TimeAdvancementService', () => {
 
     it('should not attempt resume for non-GMs even with setting enabled', async () => {
       mockGame.settings.get.mockImplementation((module: string, key: string) => {
-        if (key === 'resumeAfterCombat') return true;
-        return key === 'timeAdvancementRatio' ? 1.0 : false;
+        const settings: Record<string, any> = {
+          timeAdvancementRatio: 1.0,
+          resumeAfterCombat: true,
+        };
+        return settings[key];
       });
 
       // Set user as non-GM
@@ -386,8 +395,11 @@ describe('TimeAdvancementService', () => {
 
     it('should allow pause for all users during combat start', async () => {
       mockGame.settings.get.mockImplementation((module: string, key: string) => {
-        if (key === 'pauseOnCombat') return true;
-        return key === 'timeAdvancementRatio' ? 1.0 : false;
+        const settings: Record<string, any> = {
+          timeAdvancementRatio: 1.0,
+          pauseOnCombat: true,
+        };
+        return settings[key];
       });
 
       // Start time advancement first
