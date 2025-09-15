@@ -269,31 +269,46 @@ export class DateFormatter {
     // Note: Empty string is still considered intercalary, null/undefined is not
     if (date.intercalary !== null && date.intercalary !== undefined) {
       const intercalaryFormatName = `${formatName}-intercalary`;
-      const intercalaryFormat = dateFormats[intercalaryFormatName];
 
-      if (intercalaryFormat) {
-        // Handle intercalary format variants (format as object)
-        if (typeof intercalaryFormat === 'object' && !Array.isArray(intercalaryFormat)) {
-          if (variant && intercalaryFormat[variant]) {
-            const formatString = intercalaryFormat[variant];
-            const formatDisplayName = `${intercalaryFormatName}:${variant}`;
-            const newVisited = new Set(visited);
-            newVisited.add(intercalaryFormatName);
-            return this.formatWithContext(date, formatString, formatDisplayName, newVisited);
-          } else {
-            // Try 'default' or first available for intercalary format
-            const defaultFormat = intercalaryFormat.default || Object.values(intercalaryFormat)[0];
-            if (defaultFormat) {
+      // Avoid infinite recursion when an intercalary format references its base format
+      if (!visited.has(intercalaryFormatName)) {
+        const intercalaryFormat = dateFormats[intercalaryFormatName];
+
+        if (intercalaryFormat) {
+          // Handle intercalary format variants (format as object)
+          if (typeof intercalaryFormat === 'object' && !Array.isArray(intercalaryFormat)) {
+            if (variant && intercalaryFormat[variant]) {
+              const formatString = intercalaryFormat[variant];
+              const formatDisplayName = `${intercalaryFormatName}:${variant}`;
               const newVisited = new Set(visited);
               newVisited.add(intercalaryFormatName);
-              return this.formatWithContext(date, defaultFormat, intercalaryFormatName, newVisited);
+              return this.formatWithContext(date, formatString, formatDisplayName, newVisited);
+            } else {
+              // Try 'default' or first available for intercalary format
+              const defaultFormat =
+                intercalaryFormat.default || Object.values(intercalaryFormat)[0];
+              if (defaultFormat) {
+                const newVisited = new Set(visited);
+                newVisited.add(intercalaryFormatName);
+                return this.formatWithContext(
+                  date,
+                  defaultFormat,
+                  intercalaryFormatName,
+                  newVisited
+                );
+              }
             }
+          } else if (typeof intercalaryFormat === 'string') {
+            // Simple string intercalary format
+            const newVisited = new Set(visited);
+            newVisited.add(intercalaryFormatName);
+            return this.formatWithContext(
+              date,
+              intercalaryFormat,
+              intercalaryFormatName,
+              newVisited
+            );
           }
-        } else if (typeof intercalaryFormat === 'string') {
-          // Simple string intercalary format
-          const newVisited = new Set(visited);
-          newVisited.add(intercalaryFormatName);
-          return this.formatWithContext(date, intercalaryFormat, intercalaryFormatName, newVisited);
         }
       }
     }
