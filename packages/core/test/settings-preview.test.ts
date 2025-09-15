@@ -1,69 +1,47 @@
 /**
- * Tests for Settings Preview functionality
+ * Tests for Settings Preview explanations
  */
 
 import { describe, it, expect } from 'vitest';
+import * as settingsPreview from '../src/core/settings-preview';
 
-// Since the functions are not exported, we'll test through a simple simulation
-describe('Time Advancement Ratio Explanations', () => {
-  // Replicate the explanation generation functions for testing
-  function generateRatioExplanation(ratio: number): string {
-    if (ratio === 1.0) {
-      return `<strong>Real Time:</strong> 1 second of real time = 1 second of game time`;
-    } else if (ratio > 1.0) {
-      if (ratio === Math.floor(ratio)) {
-        return `<strong>Accelerated Time:</strong> 1 second of real time = ${ratio} seconds of game time (${ratio}x speed)`;
-      } else {
-        return `<strong>Accelerated Time:</strong> 1 second of real time = ${ratio} seconds of game time (${ratio}x speed)`;
-      }
-    } else {
-      const realSecondsPerGameSecond = Math.round(1 / ratio);
-      if (realSecondsPerGameSecond <= 60) {
-        return `<strong>Slow Time:</strong> ${realSecondsPerGameSecond} seconds of real time = 1 second of game time`;
-      } else {
-        const realMinutesPerGameSecond = Math.round(realSecondsPerGameSecond / 60);
-        return `<strong>Very Slow Time:</strong> ${realMinutesPerGameSecond} minutes of real time = 1 second of game time`;
-      }
-    }
-  }
+const { generateRatioExplanation, generateIntervalExplanation } = settingsPreview as any;
 
-  function generateIntervalExplanation(ratio: number, interval: number): string {
-    const intervalSeconds = interval / 1000;
-    const gameSecondsAdvanced = ratio * intervalSeconds;
+function calculateOptimalInterval(ratio: number): number {
+  return Math.max(10000, Math.ceil(1000 / ratio));
+}
 
-    return `Technical: Every ${intervalSeconds} seconds, game time advances by ${gameSecondsAdvanced} seconds`;
-  }
-
-  describe('Ratio Explanations', () => {
-    it('should explain 1:1 ratio correctly', () => {
+describe('Settings Preview', () => {
+  describe('Ratio explanations', () => {
+    it('explains 1:1 ratio', () => {
       const explanation = generateRatioExplanation(1.0);
       expect(explanation).toBe(
         '<strong>Real Time:</strong> 1 second of real time = 1 second of game time'
       );
     });
 
-    it('should explain 2x speed correctly', () => {
+    it('explains 2x speed', () => {
       const explanation = generateRatioExplanation(2.0);
       expect(explanation).toBe(
         '<strong>Accelerated Time:</strong> 1 second of real time = 2 seconds of game time (2x speed)'
       );
     });
 
-    it('should explain 0.5x speed correctly', () => {
+    it('explains 0.5x speed', () => {
       const explanation = generateRatioExplanation(0.5);
       expect(explanation).toBe(
         '<strong>Slow Time:</strong> 2 seconds of real time = 1 second of game time'
       );
     });
 
-    it('should explain very slow speed correctly', () => {
+    it('explains very slow speed', () => {
       const explanation = generateRatioExplanation(0.01);
       expect(explanation).toBe(
         '<strong>Very Slow Time:</strong> 2 minutes of real time = 1 second of game time'
       );
     });
 
-    it('should explain fractional speeds correctly', () => {
+    it('explains fractional speeds', () => {
       const explanation = generateRatioExplanation(1.5);
       expect(explanation).toBe(
         '<strong>Accelerated Time:</strong> 1 second of real time = 1.5 seconds of game time (1.5x speed)'
@@ -71,48 +49,44 @@ describe('Time Advancement Ratio Explanations', () => {
     });
   });
 
-  describe('Interval Explanations', () => {
-    it('should explain 1:1 ratio interval correctly', () => {
-      const interval = Math.max(10000, Math.ceil(1000 / 1.0)); // 10000ms
+  describe('Interval explanations', () => {
+    it('explains 1:1 ratio interval', () => {
+      const interval = calculateOptimalInterval(1.0);
       const explanation = generateIntervalExplanation(1.0, interval);
       expect(explanation).toBe('Technical: Every 10 seconds, game time advances by 10 seconds');
     });
 
-    it('should explain 2x speed interval correctly', () => {
-      const interval = Math.max(10000, Math.ceil(1000 / 2.0)); // 10000ms (minimum)
+    it('explains 2x speed interval', () => {
+      const interval = calculateOptimalInterval(2.0);
       const explanation = generateIntervalExplanation(2.0, interval);
       expect(explanation).toBe('Technical: Every 10 seconds, game time advances by 20 seconds');
     });
 
-    it('should explain slow speed interval correctly', () => {
-      const interval = Math.max(10000, Math.ceil(1000 / 0.5)); // 10000ms
+    it('explains slow speed interval', () => {
+      const interval = calculateOptimalInterval(0.5);
       const explanation = generateIntervalExplanation(0.5, interval);
       expect(explanation).toBe('Technical: Every 10 seconds, game time advances by 5 seconds');
     });
   });
 
-  describe('Smart Interval Calculation', () => {
-    function calculateOptimalInterval(ratio: number): number {
-      return Math.max(10000, Math.ceil(1000 / ratio));
-    }
-
-    it('should calculate correct interval for 1:1 ratio', () => {
+  describe('Smart interval calculation', () => {
+    it('calculates 1:1 ratio interval', () => {
       expect(calculateOptimalInterval(1.0)).toBe(10000);
     });
 
-    it('should calculate correct interval for 0.5 ratio (slow)', () => {
+    it('calculates 0.5 ratio interval', () => {
       expect(calculateOptimalInterval(0.5)).toBe(10000);
     });
 
-    it('should calculate correct interval for 2.0 ratio (fast)', () => {
+    it('calculates 2.0 ratio interval', () => {
       expect(calculateOptimalInterval(2.0)).toBe(10000);
     });
 
-    it('should enforce minimum interval of 10000ms', () => {
+    it('enforces minimum interval', () => {
       expect(calculateOptimalInterval(100.0)).toBe(10000);
     });
 
-    it('should calculate correct interval for very slow ratios', () => {
+    it('calculates very slow interval', () => {
       expect(calculateOptimalInterval(0.1)).toBe(10000);
     });
   });
