@@ -335,7 +335,15 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const pos = game.settings?.get('seasons-and-stars', 'miniWidgetPosition') as
       | { top: number; left: number }
       | undefined;
-    if (!pos || pos.top === null || pos.left === null) {
+    if (
+      !pos ||
+      pos.top === null ||
+      pos.left === null ||
+      typeof pos.top !== 'number' ||
+      typeof pos.left !== 'number' ||
+      !Number.isFinite(pos.top) ||
+      !Number.isFinite(pos.left)
+    ) {
       this.positionWidget();
       return;
     }
@@ -358,34 +366,69 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   private enableDrag(): void {
     if (!this.element) return;
-    let dragging = false;
+    const dragThreshold = 5;
+    let pointerDown = false;
+    let hasDragged = false;
     let offsetX = 0;
     let offsetY = 0;
+    let startX = 0;
+    let startY = 0;
     const onMouseDown = (event: MouseEvent) => {
       if (event.button !== 0) return;
-      dragging = true;
+      pointerDown = true;
+      hasDragged = false;
       const rect = this.element!.getBoundingClientRect();
       offsetX = event.clientX - rect.left;
       offsetY = event.clientY - rect.top;
+      startX = event.clientX;
+      startY = event.clientY;
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
     };
     const onMouseMove = (event: MouseEvent) => {
-      if (!dragging) return;
-      this.element!.style.position = 'fixed';
-      this.element!.style.left = `${event.clientX - offsetX}px`;
-      this.element!.style.top = `${event.clientY - offsetY}px`;
-      this.element!.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
+      if (!pointerDown) return;
+      const deltaX = event.clientX - startX;
+      const deltaY = event.clientY - startY;
+      if (!hasDragged) {
+        const distanceSquared = deltaX * deltaX + deltaY * deltaY;
+        if (distanceSquared < dragThreshold * dragThreshold) {
+          return;
+        }
+        this.element!.style.position = 'fixed';
+        this.element!.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
+        this.element!.classList.add('standalone-mode');
+        this.element!.classList.remove(
+          'docked-mode',
+          'above-smalltime',
+          'below-smalltime',
+          'beside-smalltime'
+        );
+        hasDragged = true;
+      }
+      const newLeft = Math.round(event.clientX - offsetX);
+      const newTop = Math.round(event.clientY - offsetY);
+      this.element!.style.left = `${newLeft}px`;
+      this.element!.style.top = `${newTop}px`;
     };
     const onMouseUp = async () => {
-      if (!dragging) return;
-      dragging = false;
+      if (!pointerDown) return;
+      pointerDown = false;
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
+      if (!hasDragged) {
+        return;
+      }
+      hasDragged = false;
+      const parsedTop = Number.parseInt(this.element!.style.top, 10);
+      const parsedLeft = Number.parseInt(this.element!.style.left, 10);
+      if (!Number.isFinite(parsedTop) || !Number.isFinite(parsedLeft)) {
+        Logger.warn('Mini widget: Skipping pin save due to invalid drag position');
+        return;
+      }
       await game.settings?.set('seasons-and-stars', 'miniWidgetPinned', true);
       await game.settings?.set('seasons-and-stars', 'miniWidgetPosition', {
-        top: parseInt(this.element!.style.top, 10),
-        left: parseInt(this.element!.style.left, 10),
+        top: parsedTop,
+        left: parsedLeft,
       });
       this.hasBeenPositioned = true;
     };
