@@ -69,6 +69,7 @@ describe('Mini Widget Day of Week Display', () => {
         day: 15,
         weekday: 1,
       })),
+      countsForWeekdays: vi.fn(() => true), // Default to true for regular dates
     } as any;
 
     // Setup mock returns
@@ -285,6 +286,90 @@ describe('Mini Widget Day of Week Display', () => {
 
       const context = await widget._prepareContext();
       expect(context.weekdayDisplay).toBe('D8');
+    });
+  });
+
+  describe('Intercalary Days Behavior', () => {
+    beforeEach(() => {
+      mockSettings.set('seasons-and-stars.miniWidgetShowDayOfWeek', true);
+    });
+
+    it('should not show weekday for intercalary days with countsForWeekdays: false', async () => {
+      // Add intercalary definition to calendar
+      mockCalendar.intercalary = [
+        {
+          name: 'Midwinter Festival',
+          after: 'December',
+          days: 1,
+          leapYearOnly: false,
+          countsForWeekdays: false,
+        },
+      ];
+
+      // Set up mock date as intercalary day
+      mockDate.intercalary = 'Midwinter Festival';
+      mockDate.weekday = 3; // Has a weekday value but shouldn't show
+
+      // Mock countsForWeekdays method on the date
+      mockDate.countsForWeekdays = vi.fn(() => false);
+
+      const context = await widget._prepareContext();
+
+      expect(context.showDayOfWeek).toBe(true);
+      expect(context.weekdayDisplay).toBe(''); // Should be empty for intercalary days that don't count
+    });
+
+    it('should show weekday for intercalary days with countsForWeekdays: true', async () => {
+      // Add intercalary definition to calendar
+      mockCalendar.intercalary = [
+        {
+          name: 'New Year Festival',
+          after: 'December',
+          days: 1,
+          leapYearOnly: false,
+          countsForWeekdays: true,
+        },
+      ];
+
+      // Set up mock date as intercalary day
+      mockDate.intercalary = 'New Year Festival';
+      mockDate.weekday = 1; // Monday
+
+      // Mock countsForWeekdays method on the date
+      mockDate.countsForWeekdays = vi.fn(() => true);
+
+      const context = await widget._prepareContext();
+
+      expect(context.showDayOfWeek).toBe(true);
+      expect(context.weekdayDisplay).toBe('Mon'); // Should show weekday for intercalary days that count
+    });
+
+    it('should show weekday for regular non-intercalary days', async () => {
+      // Ensure it's not an intercalary day
+      mockDate.intercalary = undefined;
+      mockDate.weekday = 2; // Tuesday
+
+      // Mock countsForWeekdays method on the date
+      mockDate.countsForWeekdays = vi.fn(() => true);
+
+      const context = await widget._prepareContext();
+
+      expect(context.showDayOfWeek).toBe(true);
+      expect(context.weekdayDisplay).toBe('Tue'); // Should show weekday for regular days
+    });
+
+    it('should handle missing intercalary definition gracefully', async () => {
+      // Set up intercalary day but no calendar definition
+      mockDate.intercalary = 'Unknown Festival';
+      mockDate.weekday = 1;
+
+      // Mock countsForWeekdays method to return true (default behavior)
+      mockDate.countsForWeekdays = vi.fn(() => true);
+
+      const context = await widget._prepareContext();
+
+      expect(context.showDayOfWeek).toBe(true);
+      expect(context.weekdayDisplay).toBe('Mon'); // Should default to showing weekday
     });
   });
 

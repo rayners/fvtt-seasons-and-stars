@@ -98,11 +98,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       game.settings?.get('seasons-and-stars', 'miniWidgetShowDayOfWeek') || false;
 
     // Get weekday name/abbreviation with enhanced null safety
+    // Don't show weekday for intercalary days that don't count for weekdays
     let weekdayDisplay = '';
     if (
       showDayOfWeek &&
       activeCalendar?.weekdays?.length > 0 &&
-      currentDate.weekday !== undefined
+      currentDate.weekday !== undefined &&
+      currentDate.countsForWeekdays()
     ) {
       const weekdayIndex = currentDate.weekday;
       if (weekdayIndex >= 0 && weekdayIndex < activeCalendar.weekdays.length) {

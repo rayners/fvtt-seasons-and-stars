@@ -253,5 +253,53 @@
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "harptos": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}} DR",
+    "short": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+    "long": "{{ss-weekday format=\"ordinal\"}} day, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} DR",
+    "date": "{{ss-weekday format=\"ordinal\"}} day, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} DR",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}}",
+    "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, in the {{year}} year of Dalereckoning",
+    "tenday": "{{ss-weekday format=\"ordinal\"}} day, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}",
+    "season": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{ss-season format=\"name\"}} {{year}} DR",
+
+    "harptos-intercalary": "{{intercalary}}, {{year}} DR",
+    "short-intercalary": "{{intercalary}}",
+    "long-intercalary": "{{intercalary}}, {{year}} DR",
+    "date-intercalary": "{{intercalary}}, {{year}} DR",
+    "datetime-intercalary": "{{intercalary}}, {{year}} DR at {{ss-dateFmt \"time\"}}",
+    "brief-intercalary": "{{intercalary}} {{year}}",
+    "formal-intercalary": "{{intercalary}} in the {{year}} year of Dalereckoning",
+    "tenday-intercalary": "{{intercalary}}, {{year}} DR",
+    "season-intercalary": "{{intercalary}}, {{year}} DR",
+
+    "variants": {
+      "commoner": {
+        "short": "{{ss-day}} {{ss-month format=\"name\"}}",
+        "long": "{{ss-dateFmt \"harptos\"}}"
+      },
+      "noble": {
+        "short": "{{ss-dateFmt \"harptos\"}}",
+        "long": "{{ss-dateFmt \"formal\"}}"
+      },
+      "druid": {
+        "short": "{{ss-season format=\"name\"}} {{ss-day}}, {{year}}",
+        "long": "{{ss-dateFmt \"season\"}}"
+      }
+    },
+
+    "widgets": {
+      "mini": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+      "main": "{{ss-weekday format=\"ordinal\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}",
+
+      "mini-intercalary": "{{intercalary}}",
+      "main-intercalary": "{{intercalary}}, {{year}} DR",
+      "grid-intercalary": "{{intercalary}}"
+    }
   }
 }

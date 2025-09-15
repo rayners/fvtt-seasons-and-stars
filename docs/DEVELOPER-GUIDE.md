@@ -266,6 +266,71 @@ Define advanced formats in your calendar JSON:
 }
 ```
 
+### Intercalary Day Formatting
+
+_Added in v0.14.0_
+
+**Automatic `-intercalary` Format Selection**
+
+Seasons & Stars automatically provides specialized formatting for intercalary days (special days outside the normal calendar flow). For any named format, you can define an `-intercalary` variant that will be automatically selected when formatting intercalary dates.
+
+**Format Resolution Priority:**
+
+1. For intercalary dates: `${formatName}-intercalary` (if exists)
+2. Fallback: `${formatName}` (standard format)
+3. For regular dates: Always uses `${formatName}`
+
+**Basic Example:**
+
+```json
+{
+  "dateFormats": {
+    "short": "{{day}} {{month}} {{year}}",
+    "short-intercalary": "{{intercalary}}, {{year}}",
+    "long": "{{weekday}}, {{day}} {{month}} {{year}}",
+    "long-intercalary": "{{intercalary}} ({{year}})",
+    "widgets": {
+      "mini": "{{day}}/{{month}}",
+      "mini-intercalary": "{{intercalary}}",
+      "main": "{{weekday}}, {{day}} {{month}}",
+      "main-intercalary": "{{intercalary}}, {{year}}"
+    }
+  }
+}
+```
+
+**Results:**
+
+- Regular date: `formatter.formatNamed(date, 'short')` → `"15 January 2024"`
+- Intercalary date: `formatter.formatNamed(date, 'short')` → `"Midwinter Festival, 2024"`
+
+**Advanced Intercalary Templates:**
+
+```json
+{
+  "dateFormats": {
+    "formal": "{{weekday}}, the {{day format=\"ordinal\"}} of {{month}}, {{year}}",
+    "formal-intercalary": "{{intercalary}}, observed on the {{day format=\"ordinal\"}} day, {{year}}",
+    "diplomatic": "In the {{year format=\"ordinal\"}} year of the realm, {{month}} {{day}}",
+    "diplomatic-intercalary": "In the {{year format=\"ordinal\"}} year of the realm, the {{intercalary}} observance"
+  }
+}
+```
+
+**Backward Compatibility:**
+
+The traditional `{{#if intercalary}}...{{/if}}` approach continues to work:
+
+```json
+{
+  "dateFormats": {
+    "mixed": "{{#if intercalary}}{{intercalary}} (Special Day){{else}}{{day}} {{month}} {{year}}{{/if}}"
+  }
+}
+```
+
+**When both approaches exist, `-intercalary` formats take precedence**, allowing for cleaner calendar definitions while maintaining compatibility with existing calendars.
+
 ### Calendar Management
 
 #### `getActiveCalendar()`

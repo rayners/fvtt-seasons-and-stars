@@ -84,6 +84,21 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
     "secondsInMinute": 60
   },
 
+  "dateFormats": {
+    "default": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}}",
+    "short": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}}",
+    "short-intercalary": "{{intercalary}}, {{year}}",
+    "long-intercalary": "{{intercalary}} ({{year}})",
+    "widgets": {
+      "mini": "{{ss-day}} {{ss-month format=\"abbr\"}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}",
+      "mini-intercalary": "{{intercalary}}",
+      "main-intercalary": "{{intercalary}}, {{year}}"
+    }
+  },
+
   "moons": [
     {
       "name": "Luna",
@@ -187,6 +202,78 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 | `description`       | string  | ❌      | Cultural significance and traditions      |
 
 **Note**: Each intercalary day must have either `after` OR `before`, but not both.
+
+### Date Format Definitions
+
+> Optional – Handlebars templates for custom date formatting.
+
+| Field                | Type   | Description                                        |
+| -------------------- | ------ | -------------------------------------------------- |
+| `default`            | string | Default date format used throughout the UI         |
+| `short`              | string | Compact date format for space-constrained contexts |
+| `long`               | string | Full date format with complete information         |
+| `{name}-intercalary` | string | Specialized format variants for intercalary days   |
+| `widgets`            | object | Widget-specific format definitions                 |
+
+#### Widget Formats
+
+| Field                  | Type   | Description                             |
+| ---------------------- | ------ | --------------------------------------- |
+| `mini`                 | string | Ultra-compact format for mini widgets   |
+| `main`                 | string | Standard format for main widgets        |
+| `grid`                 | string | Minimal format for calendar grid cells  |
+| `{widget}-intercalary` | string | Widget-specific intercalary day formats |
+
+#### Format Template Syntax
+
+Date formats use [Handlebars](https://handlebarsjs.com/) template syntax with S&S-specific helpers:
+
+**Basic Variables:**
+
+- `{{year}}` - Calendar year with prefix/suffix
+- `{{month}}` - Month number (1-based)
+- `{{day}}` - Day number (1-based)
+- `{{weekday}}` - Weekday number (0-based)
+- `{{intercalary}}` - Intercalary day name (only for intercalary dates)
+
+**S&S Helpers:**
+
+- `{{ss-day format="ordinal"}}` - Day with ordinal suffix (1st, 2nd, 3rd)
+- `{{ss-month format="name"}}` - Month name or abbreviation
+- `{{ss-weekday format="name"}}` - Weekday name or abbreviation
+- `{{ss-dateFmt "format-name"}}` - Embed other named formats
+
+#### Automatic Intercalary Format Selection
+
+_Added in v0.14.0_
+
+For any named format, you can define an `-intercalary` variant that automatically applies to intercalary dates:
+
+**Priority System:**
+
+1. For intercalary dates: `${formatName}-intercalary` (if exists)
+2. Fallback: `${formatName}` (standard format)
+3. For regular dates: Always uses `${formatName}`
+
+**Example:**
+
+```json
+{
+  "dateFormats": {
+    "short": "{{day}} {{month}} {{year}}",
+    "short-intercalary": "{{intercalary}}, {{year}}",
+    "widgets": {
+      "mini": "{{day}}/{{month}}",
+      "mini-intercalary": "{{intercalary}}"
+    }
+  }
+}
+```
+
+**Results:**
+
+- Regular date: `"15 January 2024"`
+- Intercalary date: `"Midwinter Festival, 2024"`
 
 ### Time Configuration
 
@@ -357,7 +444,23 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
       "after": "Uktar",
       "description": "Festival honoring the dead and ancestors"
     }
-  ]
+  ],
+
+  "dateFormats": {
+    "default": "{{ss-day format=\"ordinal\"}} of {{ss-month format=\"name\"}}, {{year}} DR",
+    "default-intercalary": "{{intercalary}}, {{year}} DR",
+    "short": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "short-intercalary": "{{intercalary}} {{year}}",
+    "festival": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} ({{ss-weekday format=\"name\"}})",
+    "festival-intercalary": "{{intercalary}} Festival",
+    "widgets": {
+      "mini": "{{ss-day}} {{ss-month format=\"abbr\"}}",
+      "main": "{{ss-weekday format=\"name\"}}, {{ss-day}} {{ss-month format=\"name\"}} {{year}}",
+      "grid": "{{ss-day}}",
+      "mini-intercalary": "{{intercalary}}",
+      "main-intercalary": "{{intercalary}}, {{year}} DR"
+    }
+  }
 }
 ```
 

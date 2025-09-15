@@ -39,6 +39,7 @@ const mockGame = {
         toLongString: vi.fn().mockReturnValue('January 1, 2024'),
         toObject: vi.fn().mockReturnValue({ day: 1, month: 1, year: 2024 }),
         time: { hour: 12, minute: 0, second: 0 },
+        countsForWeekdays: vi.fn().mockReturnValue(true),
       }),
     },
   },
