@@ -198,10 +198,6 @@ export class DateFormatter {
 
       // Validate template output - detect malformed templates that produce empty/invalid output
       if (this.isInvalidTemplateOutput(result, template)) {
-        console.debug('[S&S] Template produced invalid output, falling back to basic format:', {
-          template,
-          result,
-        });
         return this.getBasicFormat(date);
       }
 
@@ -276,10 +272,6 @@ export class DateFormatter {
       const intercalaryFormat = dateFormats[intercalaryFormatName];
 
       if (intercalaryFormat) {
-        console.debug(
-          `[S&S] Using intercalary format '${intercalaryFormatName}' for intercalary day '${date.intercalary}'`
-        );
-
         // Handle intercalary format variants (format as object)
         if (typeof intercalaryFormat === 'object' && !Array.isArray(intercalaryFormat)) {
           if (variant && intercalaryFormat[variant]) {
@@ -386,9 +378,6 @@ export class DateFormatter {
       const intercalaryWidgetFormat = dateFormats.widgets[intercalaryWidgetType];
 
       if (intercalaryWidgetFormat) {
-        console.debug(
-          `[S&S] Using intercalary widget format 'widgets.${intercalaryWidgetType}' for intercalary day '${date.intercalary}'`
-        );
         return this.formatWithContext(
           date,
           intercalaryWidgetFormat,

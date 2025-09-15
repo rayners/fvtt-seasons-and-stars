@@ -43,7 +43,7 @@ export class CalendarDate implements ICalendarDate {
       this.time = data.time;
       this.calendar = calendar;
       this.formatter = new DateFormatter(calendar);
-    } catch (error) {
+    } catch {
       console.debug('[S&S] Error creating CalendarDate:', error);
       throw error;
     }
@@ -181,8 +181,7 @@ export class CalendarDate implements ICalendarDate {
         includeWeekday: false,
         format: 'short',
       });
-    } catch (error) {
-      console.debug('[S&S] Error formatting short date string:', error);
+    } catch {
       // Handle intercalary days in error fallback
       if (this.intercalary) {
         return this.intercalary;
@@ -224,8 +223,7 @@ export class CalendarDate implements ICalendarDate {
         includeYear: true,
         format: 'long',
       });
-    } catch (error) {
-      console.debug('[S&S] Error formatting long date string:', error);
+    } catch {
       // Handle intercalary days in error fallback
       if (this.intercalary) {
         const timeString = this.time ? ` ${this.getTimeString()}` : '';
@@ -267,7 +265,7 @@ export class CalendarDate implements ICalendarDate {
         includeYear: true,
         format: 'long',
       });
-    } catch (error) {
+    } catch {
       console.debug('[S&S] Error formatting date string:', error);
       const weekdayName = this.getWeekdayName('long');
       const monthName = this.getMonthName('long');
@@ -308,7 +306,7 @@ export class CalendarDate implements ICalendarDate {
     try {
       const weekday = this.calendar.weekdays?.[this.weekday];
       if (!weekday) {
-        console.debug(`[S&S] Invalid weekday index: ${this.weekday}`);
+        // Invalid weekday index, using fallback
         return 'Unknown';
       }
 
@@ -317,7 +315,7 @@ export class CalendarDate implements ICalendarDate {
       }
 
       return weekday.name || 'Unknown';
-    } catch (error) {
+    } catch {
       console.debug('[S&S] Error getting weekday name:', error);
       return 'Unknown';
     }
@@ -330,7 +328,7 @@ export class CalendarDate implements ICalendarDate {
     try {
       const month = this.calendar.months?.[this.month - 1];
       if (!month) {
-        console.debug(`[S&S] Invalid month index: ${this.month}`);
+        // Invalid month index, using fallback
         return 'Unknown';
       }
 
@@ -339,7 +337,7 @@ export class CalendarDate implements ICalendarDate {
       }
 
       return month.name || 'Unknown';
-    } catch (error) {
+    } catch {
       console.debug('[S&S] Error getting month name:', error);
       return 'Unknown';
     }
@@ -351,7 +349,7 @@ export class CalendarDate implements ICalendarDate {
   private getDayString(format: 'short' | 'long' | 'numeric'): string {
     try {
       if (typeof this.day !== 'number' || this.day < 1) {
-        console.debug(`[S&S] Invalid day value: ${this.day}`);
+        // Invalid day value, using fallback
         return '1';
       }
 
@@ -365,8 +363,7 @@ export class CalendarDate implements ICalendarDate {
       }
 
       return this.day.toString();
-    } catch (error) {
-      console.debug('[S&S] Error formatting day string:', error);
+    } catch {
       return '1';
     }
   }
@@ -383,8 +380,7 @@ export class CalendarDate implements ICalendarDate {
 
       const { prefix = '', suffix = '' } = this.calendar.year || {};
       return `${prefix}${this.year}${suffix}`.trim();
-    } catch (error) {
-      console.debug('[S&S] Error formatting year string:', error);
+    } catch {
       return this.year?.toString() || '1';
     }
   }
@@ -410,8 +406,7 @@ export class CalendarDate implements ICalendarDate {
       const secondStr = CalendarTimeUtils.formatTimeComponent(second);
 
       return `${hourStr}:${minuteStr}:${secondStr}`;
-    } catch (error) {
-      console.debug('[S&S] Error formatting time string:', error);
+    } catch {
       return '00:00:00';
     }
   }
@@ -426,7 +421,7 @@ export class CalendarDate implements ICalendarDate {
         return '1st';
       }
       return CalendarTimeUtils.addOrdinalSuffix(num);
-    } catch (error) {
+    } catch {
       console.debug('[S&S] Error adding ordinal suffix:', error);
       return `${num || 1}th`;
     }
@@ -471,7 +466,7 @@ export class CalendarDate implements ICalendarDate {
       }
 
       return 0;
-    } catch (error) {
+    } catch {
       console.debug('[S&S] Error comparing dates:', error);
       return 0;
     }
@@ -530,8 +525,7 @@ export class CalendarDate implements ICalendarDate {
 
       // Default to true if countsForWeekdays is not specified (backward compatibility)
       return intercalaryDef.countsForWeekdays ?? true;
-    } catch (error) {
-      console.debug('[S&S] Error checking intercalary countsForWeekdays:', error);
+    } catch {
       return true; // Default to true on error
     }
   }
