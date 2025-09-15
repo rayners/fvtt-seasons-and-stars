@@ -162,12 +162,7 @@ export class CalendarDate implements ICalendarDate {
     // Try widget.mini format first
     const dateFormats = this.calendar.dateFormats;
     if (dateFormats?.widgets?.mini) {
-      try {
-        return this.formatter.formatWidget(this, 'mini');
-      } catch (error) {
-        console.debug('[S&S] Widget mini format failed:', error);
-        // Fall through to next method
-      }
+      return this.formatter.formatWidget(this, 'mini');
     }
 
     // Fallback to basic string formatting for calendars without dateFormats

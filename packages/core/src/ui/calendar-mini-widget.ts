@@ -138,17 +138,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false);
     const compactMode = showDayOfWeek && showTimeControlsValue;
 
-    const shortDateValue = currentDate.toShortString();
-    console.debug(`[S&S] Mini widget preparing context - currentDate:`, {
-      year: currentDate.year,
-      month: currentDate.month,
-      day: currentDate.day,
-      intercalary: currentDate.intercalary,
-      shortDate: shortDateValue,
-    });
-
     return Object.assign(context, {
-      shortDate: shortDateValue,
+      shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
       showTimeControls: showTimeControlsValue,
       isGM: game.user?.isGM || false,
