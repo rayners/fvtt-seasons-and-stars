@@ -85,7 +85,9 @@ A compact calendar companion that works alongside SmallTime.
 
 - **With SmallTime**: Appears above SmallTime automatically
 - **Without SmallTime**: Positions near player list
-- **Responsive**: Adapts to UI changes and window resizing
+- **Draggable**: Drag the widget to any position to pin it in place
+- **Persistent**: Pinned positions are saved and restored when the world reloads
+- **Responsive**: Adapts to UI changes and window resizing when not pinned
 
 ### 3. Monthly Grid View
 
@@ -479,11 +481,12 @@ When SmallTime is enabled:
 
 ### Manual Configuration
 
-If automatic positioning doesn't work:
+The mini widget now provides drag-and-drop positioning:
 
-1. Disable auto-positioning in settings
-2. Use CSS to manually position the mini widget
-3. Or disable the mini widget and use only the full calendar
+1. **Drag to Position**: Simply drag the mini widget anywhere on screen to pin it
+2. **Right-click to Unpin**: Right-click the widget to return to automatic positioning
+3. **Persistent Storage**: Pinned positions are automatically saved and restored
+4. **Fallback**: If needed, disable the mini widget and use only the full calendar
 
 ### Without SmallTime
 
@@ -530,10 +533,11 @@ Your support helps fund new features, bug fixes, and comprehensive documentation
 
 **Solution:**
 
-1. Try refreshing the page
-2. Toggle the widget off and on in settings
-3. Check for UI module conflicts
-4. Use manual positioning if needed
+1. **Drag and Pin**: Simply drag the mini widget to your preferred position - it will automatically pin and remember the location
+2. **Unpin**: Right-click the widget to unpin and return to automatic positioning
+3. Try refreshing the page if positioning seems incorrect
+4. Toggle the widget off and on in settings if needed
+5. Check for UI module conflicts with other positioning systems
 
 #### SmallTime Integration Problems
 

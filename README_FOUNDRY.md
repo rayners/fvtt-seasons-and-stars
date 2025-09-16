@@ -67,7 +67,7 @@ _Note: This is an alpha release. Testing has been focused on D&D 5e, Pathfinder 
 
 ### **SmallTime**
 
-The mini widget is designed to position alongside SmallTime for complementary time display.
+The mini widget automatically positions alongside SmallTime and supports drag-and-drop positioning with persistent storage.
 
 ### **Simple Weather**
 
