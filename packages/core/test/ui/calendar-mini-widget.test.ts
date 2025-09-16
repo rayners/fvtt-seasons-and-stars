@@ -50,6 +50,21 @@ vi.mock('../../src/ui/calendar-selection-dialog', () => ({
   })),
 }));
 
+// Mock foundry.utils and Draggable
+(global as any).foundry = {
+  utils: {
+    mergeObject: (original: any, other: any) => ({ ...original, ...other }),
+  },
+  applications: {
+    ux: {
+      Draggable: vi.fn().mockImplementation(() => ({
+        _onDragMouseDown: vi.fn(),
+        _onDragMouseUp: vi.fn(),
+      })),
+    },
+  },
+};
+
 describe('CalendarMiniWidget', () => {
   let widget: CalendarMiniWidget;
   let mockCalendar: SeasonsStarsCalendar;

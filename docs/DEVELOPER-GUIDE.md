@@ -698,6 +698,12 @@ integration.widgets.main?.addSidebarButton('weather', 'fas fa-cloud', 'Weather',
   console.log('Weather button clicked');
 });
 
+// Mini widget supports drag-and-drop positioning
+// Position is automatically saved when users drag the widget
+// Right-click to unpin and return to automatic positioning
+integration.widgets.mini?.show(); // Show mini widget
+integration.widgets.mini?.toggle(); // Toggle mini widget visibility
+
 // Hook system
 integration.hooks.onDateChanged(event => {
   console.log('Date changed:', event.newDate);
