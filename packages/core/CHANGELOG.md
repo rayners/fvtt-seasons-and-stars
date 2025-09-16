@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.14.0...seasons-and-stars-v0.15.0) (2025-09-16)
+
+
+### Features
+
+* **core:** add movable mini widget with pinning ([#251](https://github.com/rayners/fvtt-seasons-and-stars/issues/251)) ([9890ac9](https://github.com/rayners/fvtt-seasons-and-stars/commit/9890ac903517390372738257815101a38e9f465c))
+
 ## [0.14.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.13.0...seasons-and-stars-v0.14.0) (2025-09-15)
 
 
