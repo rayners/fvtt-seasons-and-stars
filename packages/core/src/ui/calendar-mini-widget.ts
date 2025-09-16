@@ -26,9 +26,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       | { top: number; left: number }
       | undefined;
 
-    Logger.debug(`Mini widget: Constructor - pinned: ${pinned}, position:`, pos);
-    Logger.debug(`Mini widget: Constructor - incoming options:`, options);
-
     // If pinned and we have a valid position, apply it to options
     if (
       pinned &&
@@ -38,22 +35,15 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       Number.isFinite(pos.top) &&
       Number.isFinite(pos.left)
     ) {
-      Logger.debug(
-        `Mini widget: Constructor - applying pinned position top=${pos.top}, left=${pos.left}`
-      );
       options = (foundry.utils as any).mergeObject(options, {
         position: {
           top: pos.top,
           left: pos.left,
         },
       });
-      Logger.debug(`Mini widget: Constructor - merged options:`, options);
     }
 
     super(options);
-
-    // Check what position ApplicationV2 actually received
-    Logger.debug(`Mini widget: Constructor - ApplicationV2 position after super():`, this.position);
   }
 
   static DEFAULT_OPTIONS = {
@@ -315,13 +305,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     });
 
     const pinned = game.settings?.get('seasons-and-stars', 'miniWidgetPinned');
-    Logger.debug(`Mini widget: _onRender - pinned status: ${pinned}`);
-    Logger.debug(`Mini widget: _onRender - ApplicationV2 position:`, this.position);
-    Logger.debug(`Mini widget: _onRender - element position before positioning:`, {
-      position: this.element?.style.position,
-      top: this.element?.style.top,
-      left: this.element?.style.left,
-    });
 
     if (pinned) {
       this.applyPinnedPosition();
@@ -379,23 +362,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   private applyPinnedPosition(): void {
     if (!this.element) return;
 
-    Logger.debug('Mini widget: Applying pinned position styling');
-    Logger.debug('Mini widget: ApplicationV2 position:', this.position);
-    Logger.debug('Mini widget: Element position before applying ApplicationV2 position:', {
-      position: this.element.style.position,
-      top: this.element.style.top,
-      left: this.element.style.left,
-    });
-
     // ApplicationV2 has the position but doesn't automatically apply it to the DOM
     // We need to manually apply the position from ApplicationV2's position property
     if (this.position.top !== undefined && this.position.left !== undefined) {
       this.element.style.position = 'fixed';
       this.element.style.top = `${this.position.top}px`;
       this.element.style.left = `${this.position.left}px`;
-      Logger.debug(
-        `Mini widget: Applied ApplicationV2 position - top=${this.position.top}, left=${this.position.left}`
-      );
     }
 
     // Apply the visual styling for pinned mode
@@ -407,12 +379,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       'below-smalltime',
       'beside-smalltime'
     );
-
-    Logger.debug('Mini widget: Element position after applying position and styling:', {
-      position: this.element.style.position,
-      top: this.element.style.top,
-      left: this.element.style.left,
-    });
 
     this.hasBeenPositioned = true;
   }
@@ -452,7 +418,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
       // Apply pinned styling and save position
       const rect = this.app.element.getBoundingClientRect();
-      Logger.debug(`Mini widget: Drag end - saving position top=${rect.top}, left=${rect.left}`);
 
       this.app.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
       this.app.element.classList.add('standalone-mode');
@@ -469,12 +434,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         left: rect.left,
       });
 
-      Logger.debug(`Mini widget: Position saved to settings`);
-
-      // Verify the position was actually applied
-      const savedPos = game.settings?.get('seasons-and-stars', 'miniWidgetPosition');
-      Logger.debug(`Mini widget: Verified saved position:`, savedPos);
-
       return result;
     };
   }
@@ -483,7 +442,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Unpin the widget and reset to automatic positioning
    */
   private async unpin(): Promise<void> {
-    Logger.debug('Mini widget: Unpinning and resetting to automatic positioning');
     await game.settings?.set('seasons-and-stars', 'miniWidgetPinned', false);
     await game.settings?.set('seasons-and-stars', 'miniWidgetPosition', {
       top: null,

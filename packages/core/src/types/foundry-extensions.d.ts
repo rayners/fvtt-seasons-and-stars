@@ -16,6 +16,23 @@ import type { LoadResult, ExternalCalendarSource } from '../core/calendar-loader
 
 // Extend the Game interface to include S&S specific properties
 declare global {
+  namespace foundry {
+    namespace applications {
+      namespace ux {
+        class Draggable {
+          constructor(
+            app: any,
+            element: HTMLElement,
+            handle: HTMLElement | false,
+            resizable: boolean | any
+          );
+          activateListeners(): void;
+          _onDragMouseDown(event: MouseEvent): any;
+          _onDragMouseUp(event: MouseEvent): any;
+        }
+      }
+    }
+  }
   interface String {
     stripScripts(): string;
   }
