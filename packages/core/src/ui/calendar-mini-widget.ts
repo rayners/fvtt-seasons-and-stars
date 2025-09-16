@@ -19,6 +19,43 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   private sidebarButtons: SidebarButton[] = [];
   private hasBeenPositioned: boolean = false;
 
+  constructor(options: any = {}) {
+    // Check if widget is pinned and get saved position
+    const pinned = game.settings?.get('seasons-and-stars', 'miniWidgetPinned');
+    const pos = game.settings?.get('seasons-and-stars', 'miniWidgetPosition') as
+      | { top: number; left: number }
+      | undefined;
+
+    Logger.debug(`Mini widget: Constructor - pinned: ${pinned}, position:`, pos);
+    Logger.debug(`Mini widget: Constructor - incoming options:`, options);
+
+    // If pinned and we have a valid position, apply it to options
+    if (
+      pinned &&
+      pos &&
+      typeof pos.top === 'number' &&
+      typeof pos.left === 'number' &&
+      Number.isFinite(pos.top) &&
+      Number.isFinite(pos.left)
+    ) {
+      Logger.debug(
+        `Mini widget: Constructor - applying pinned position top=${pos.top}, left=${pos.left}`
+      );
+      options = (foundry.utils as any).mergeObject(options, {
+        position: {
+          top: pos.top,
+          left: pos.left,
+        },
+      });
+      Logger.debug(`Mini widget: Constructor - merged options:`, options);
+    }
+
+    super(options);
+
+    // Check what position ApplicationV2 actually received
+    Logger.debug(`Mini widget: Constructor - ApplicationV2 position after super():`, this.position);
+  }
+
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-mini-widget',
     classes: ['seasons-stars', 'calendar-mini-widget'],
@@ -29,12 +66,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       minimizable: false,
       resizable: false,
     },
-    position: {
-      width: 200,
-      height: 'auto' as const,
-      top: -1000, // Start off-screen to minimize flash
-      left: -1000,
-    },
+    // position: {
+    //   width: 200,
+    //   height: 'auto' as const,
+    //   top: -1000, // Start off-screen to minimize flash
+    //   left: -1000,
+    // },
     actions: {
       advanceTime: CalendarMiniWidget.prototype._onAdvanceTime,
       openCalendarSelection: CalendarMiniWidget.prototype._onOpenCalendarSelection,
@@ -270,8 +307,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Render any existing sidebar buttons
     this.renderExistingSidebarButtons();
 
-    this.enableDrag();
-
     this.element?.addEventListener('contextmenu', event => {
       event.preventDefault();
       if (game.settings?.get('seasons-and-stars', 'miniWidgetPinned')) {
@@ -280,11 +315,22 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     });
 
     const pinned = game.settings?.get('seasons-and-stars', 'miniWidgetPinned');
+    Logger.debug(`Mini widget: _onRender - pinned status: ${pinned}`);
+    Logger.debug(`Mini widget: _onRender - ApplicationV2 position:`, this.position);
+    Logger.debug(`Mini widget: _onRender - element position before positioning:`, {
+      position: this.element?.style.position,
+      top: this.element?.style.top,
+      left: this.element?.style.left,
+    });
+
     if (pinned) {
       this.applyPinnedPosition();
     } else {
       this.positionWidget();
     }
+
+    // Setup dragging after positioning
+    this.setupDragging();
   }
 
   /**
@@ -328,28 +374,31 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
-   * Apply stored pinned position
+   * Apply pinned position styling
    */
   private applyPinnedPosition(): void {
     if (!this.element) return;
-    const pos = game.settings?.get('seasons-and-stars', 'miniWidgetPosition') as
-      | { top: number; left: number }
-      | undefined;
-    if (
-      !pos ||
-      pos.top === null ||
-      pos.left === null ||
-      typeof pos.top !== 'number' ||
-      typeof pos.left !== 'number' ||
-      !Number.isFinite(pos.top) ||
-      !Number.isFinite(pos.left)
-    ) {
-      this.positionWidget();
-      return;
+
+    Logger.debug('Mini widget: Applying pinned position styling');
+    Logger.debug('Mini widget: ApplicationV2 position:', this.position);
+    Logger.debug('Mini widget: Element position before applying ApplicationV2 position:', {
+      position: this.element.style.position,
+      top: this.element.style.top,
+      left: this.element.style.left,
+    });
+
+    // ApplicationV2 has the position but doesn't automatically apply it to the DOM
+    // We need to manually apply the position from ApplicationV2's position property
+    if (this.position.top !== undefined && this.position.left !== undefined) {
+      this.element.style.position = 'fixed';
+      this.element.style.top = `${this.position.top}px`;
+      this.element.style.left = `${this.position.left}px`;
+      Logger.debug(
+        `Mini widget: Applied ApplicationV2 position - top=${this.position.top}, left=${this.position.left}`
+      );
     }
-    this.element.style.position = 'fixed';
-    this.element.style.top = `${pos.top}px`;
-    this.element.style.left = `${pos.left}px`;
+
+    // Apply the visual styling for pinned mode
     this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
     this.element.classList.add('standalone-mode');
     this.element.classList.remove(
@@ -358,87 +407,83 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       'below-smalltime',
       'beside-smalltime'
     );
+
+    Logger.debug('Mini widget: Element position after applying position and styling:', {
+      position: this.element.style.position,
+      top: this.element.style.top,
+      left: this.element.style.left,
+    });
+
     this.hasBeenPositioned = true;
   }
 
   /**
-   * Enable dragging to allow manual positioning
+   * Setup dragging using Foundry's built-in Draggable class
    */
-  private enableDrag(): void {
+  private setupDragging(): void {
     if (!this.element) return;
-    const dragThreshold = 5;
-    let pointerDown = false;
-    let hasDragged = false;
-    let offsetX = 0;
-    let offsetY = 0;
-    let startX = 0;
-    let startY = 0;
-    const onMouseDown = (event: MouseEvent) => {
-      if (event.button !== 0) return;
-      pointerDown = true;
-      hasDragged = false;
-      const rect = this.element!.getBoundingClientRect();
-      offsetX = event.clientX - rect.left;
-      offsetY = event.clientY - rect.top;
-      startX = event.clientX;
-      startY = event.clientY;
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
+
+    // Create a Draggable instance and wrap the drag end method
+    const draggable = new (foundry.applications.ux.Draggable as any)(
+      this, // app
+      this.element, // element (outer)
+      this.element, // handle (drag element - use the whole widget)
+      false // resizable
+    );
+
+    // Store the original drag start method and wrap it
+    const originalOnDragMouseDown = draggable._onDragMouseDown;
+    draggable._onDragMouseDown = function (event: MouseEvent) {
+      // Switch to fixed positioning for free dragging
+      const rect = this.app.element.getBoundingClientRect();
+      this.app.element.style.position = 'fixed';
+      this.app.element.style.top = `${rect.top}px`;
+      this.app.element.style.left = `${rect.left}px`;
+      this.app.element.style.margin = '0';
+
+      return originalOnDragMouseDown.call(this, event);
     };
-    const onMouseMove = (event: MouseEvent) => {
-      if (!pointerDown) return;
-      const deltaX = event.clientX - startX;
-      const deltaY = event.clientY - startY;
-      if (!hasDragged) {
-        const distanceSquared = deltaX * deltaX + deltaY * deltaY;
-        if (distanceSquared < dragThreshold * dragThreshold) {
-          return;
-        }
-        this.element!.style.position = 'fixed';
-        this.element!.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
-        this.element!.classList.add('standalone-mode');
-        this.element!.classList.remove(
-          'docked-mode',
-          'above-smalltime',
-          'below-smalltime',
-          'beside-smalltime'
-        );
-        hasDragged = true;
-      }
-      const newLeft = Math.round(event.clientX - offsetX);
-      const newTop = Math.round(event.clientY - offsetY);
-      this.element!.style.left = `${newLeft}px`;
-      this.element!.style.top = `${newTop}px`;
-    };
-    const onMouseUp = async () => {
-      if (!pointerDown) return;
-      pointerDown = false;
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-      if (!hasDragged) {
-        return;
-      }
-      hasDragged = false;
-      const parsedTop = Number.parseInt(this.element!.style.top, 10);
-      const parsedLeft = Number.parseInt(this.element!.style.left, 10);
-      if (!Number.isFinite(parsedTop) || !Number.isFinite(parsedLeft)) {
-        Logger.warn('Mini widget: Skipping pin save due to invalid drag position');
-        return;
-      }
+
+    // Store the original drag end method and wrap it
+    const originalOnDragMouseUp = draggable._onDragMouseUp;
+    draggable._onDragMouseUp = async function (event: MouseEvent) {
+      // Call the original method first
+      const result = originalOnDragMouseUp.call(this, event);
+
+      // Apply pinned styling and save position
+      const rect = this.app.element.getBoundingClientRect();
+      Logger.debug(`Mini widget: Drag end - saving position top=${rect.top}, left=${rect.left}`);
+
+      this.app.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
+      this.app.element.classList.add('standalone-mode');
+      this.app.element.classList.remove(
+        'docked-mode',
+        'above-smalltime',
+        'below-smalltime',
+        'beside-smalltime'
+      );
+
       await game.settings?.set('seasons-and-stars', 'miniWidgetPinned', true);
       await game.settings?.set('seasons-and-stars', 'miniWidgetPosition', {
-        top: parsedTop,
-        left: parsedLeft,
+        top: rect.top,
+        left: rect.left,
       });
-      this.hasBeenPositioned = true;
+
+      Logger.debug(`Mini widget: Position saved to settings`);
+
+      // Verify the position was actually applied
+      const savedPos = game.settings?.get('seasons-and-stars', 'miniWidgetPosition');
+      Logger.debug(`Mini widget: Verified saved position:`, savedPos);
+
+      return result;
     };
-    this.element.addEventListener('mousedown', onMouseDown);
   }
 
   /**
    * Unpin the widget and reset to automatic positioning
    */
   private async unpin(): Promise<void> {
+    Logger.debug('Mini widget: Unpinning and resetting to automatic positioning');
     await game.settings?.set('seasons-and-stars', 'miniWidgetPinned', false);
     await game.settings?.set('seasons-and-stars', 'miniWidgetPosition', {
       top: null,
