@@ -17,6 +17,24 @@
 - Refer to the GitHub Action config in `.github/workflows/semantic-pull-request.yml` for allowed commit message types and scopes.
 - Releases are automated with [release-please](https://github.com/googleapis/release-please); do not manually edit version numbers or `CHANGELOG.md`.
 
+### Simple Calendar Compatibility Bridge Coordination
+
+- **Coordinate early:** When planning any Seasons & Stars API change, notify the maintainers of the [Simple Calendar Compatibility Bridge](https://github.com/rayners/foundryvtt-simple-calendar-compat) and link to the tracking issue/PR in both repositories.
+- **What counts as an API change?** Treat the following as externally consumed surfaces that require Bridge validation:
+  - Hook events documented in `docs/DEVELOPER-GUIDE.md` or exposed through `Hooks.call`/`Hooks.callAll`.
+  - Exported TypeScript definitions, interfaces, or enums under `packages/core/src/types/` and any symbols re-exported from package entry points.
+  - Public methods on `CalendarManager`, `CalendarEngine`, `BridgeIntegration`, or other classes referenced in integration guides.
+  - JSON contracts passed between the compatibility layer and downstream modules (e.g., note payloads, time advancement messages).
+- **Examples that require coordination:**
+  - Renaming or removing a hook such as `seasons-and-stars.calendarUpdated` or changing its payload structure.
+  - Adding mandatory parameters to `BridgeIntegration` methods or modifying the Simple Calendar translation tables.
+  - Changing the schema of exported interfaces like `CalendarDateData` that compatibility bridges deserialize.
+- **Process checklist:**
+  1. Open or update an issue in the Bridge repository describing the required adjustments and reference the Seasons & Stars PR.
+  2. Provide migration notes or a draft PR for the Bridge when feasible so dependent modules can test pre-release builds.
+  3. Call out the coordination requirement in the Seasons & Stars changelog or release notes once the work lands.
+- **Automation:** We are evaluating a GitHub Action that diffs exported symbols and hook declarations to flag potential API changes automatically. Until it lands, rely on manual review and err on the side of coordinating even “minor” tweaks.
+
 ## Module Architecture Deep Dive
 
 ### Calendar Engine Core (packages/core/src/core/)
