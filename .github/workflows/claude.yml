@@ -30,6 +30,13 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Checkout dev-context repository
+        uses: actions/checkout@v4
+        with:
+          repository: rayners/dev-context
+          path: dev-context
+          fetch-depth: 1
+
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@v1
