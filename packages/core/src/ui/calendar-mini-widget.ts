@@ -1045,7 +1045,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Check if calculated position would be outside viewport
       const bounds = this.isPositionOutsideViewport(newPosition);
       if (bounds.outsideTop || bounds.outsideBottom || bounds.outsideLeft || bounds.outsideRight) {
-        Logger.debug('Position relative to SmallTime would be outside viewport, correcting', newPosition);
+        Logger.debug(
+          'Position relative to SmallTime would be outside viewport, correcting',
+          newPosition
+        );
         newPosition = this.correctPositionForViewport(newPosition);
       }
 

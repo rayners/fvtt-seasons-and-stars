@@ -204,6 +204,30 @@
 - Advanced search and filtering capabilities
 - Performance optimization for large note collections
 
+## Development Context Reference
+
+### dev-context/ Directory
+
+The `dev-context/` directory contains comprehensive development standards and patterns for FoundryVTT module development. This reference collection provides:
+
+**Core Reference Documents**:
+
+- `foundry-development-practices.md` - Complete development workflow and quality standards
+- `testing-practices.md` - Comprehensive testing strategies (Vitest + Quench) and TDD workflow
+- `module-architecture-patterns.md` - Universal module structure and system-agnostic design patterns
+- `documentation-standards.md` - Documentation organization and quality requirements
+- `automation-infrastructure.md` - Professional CI/CD workflows and release management
+- `ai-code-access-restrictions.md` - Security boundaries for AI code access (READ FIRST)
+- `external-documentation-references.md` - Official FoundryVTT docs and approved community resources
+
+**Usage Pattern**: Reference specific documents as needed rather than loading all context. For example:
+
+- Development workflow questions → `dev-context/foundry-development-practices.md`
+- Testing implementation → `dev-context/testing-practices.md`
+- Architecture decisions → `dev-context/module-architecture-patterns.md`
+
+**Integration**: This context enforces universal standards including documentation accuracy (no hyperbole), TDD workflow, 90%+ test coverage for core logic, and system-agnostic design patterns.
+
 ## Session Context Requirements
 
 ### Essential Context Sources
