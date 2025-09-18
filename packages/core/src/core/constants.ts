@@ -21,11 +21,15 @@ export const STORAGE_CONSTANTS = {
 // Widget positioning constants (consolidated from individual widgets)
 export const WIDGET_POSITIONING = {
   Z_INDEX: 101,
-  ESTIMATED_MINI_HEIGHT: 32,
+  ESTIMATED_MINI_HEIGHT: 80, // Fixed inconsistency - now matches general usage
   POSITIONING_RETRY_DELAY: 100,
   MAX_POSITIONING_ATTEMPTS: 10,
   FADE_ANIMATION_DURATION: 200,
   STANDALONE_BOTTOM_OFFSET: 150,
+  VIEWPORT_PADDING: 10, // Minimum distance from viewport edges
+  // Widget dimensions for consistency
+  MINI_WIDGET_WIDTH: 200,
+  MINI_WIDGET_HEIGHT: 80,
 } as const;
 
 // API and system constants

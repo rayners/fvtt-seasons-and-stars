@@ -57,7 +57,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       resizable: false,
     },
     position: {
-      width: 200,
+      width: WIDGET_POSITIONING.MINI_WIDGET_WIDTH,
       height: 'auto' as const,
       top: 100, // Start within viewport
       left: 20,
@@ -959,11 +959,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Check if fallback position is within viewport bounds
     const bounds = this.isPositionOutsideViewport(position);
     if (bounds.outsideTop || bounds.outsideBottom || bounds.outsideLeft || bounds.outsideRight) {
-      Logger.debug('Fallback position outside viewport, correcting', position);
       position = this.correctPositionForViewport(position);
     }
-
-    Logger.debug('Using standalone position', position);
 
     // Apply the fixed position as last resort
     this.element.style.position = 'fixed';
@@ -1004,8 +1001,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     requestAnimationFrame(() => {
       const smallTimeRect = smallTimeElement.getBoundingClientRect();
 
-      // Use a fixed height estimate instead of getBoundingClientRect() which can be wrong
-      const estimatedMiniHeight = WIDGET_POSITIONING.ESTIMATED_MINI_HEIGHT;
+      // Use standardized mini widget height
+      const estimatedMiniHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
 
       Logger.debug('SmallTime rect', smallTimeRect);
       Logger.debug(`Using estimated mini height: ${estimatedMiniHeight}`);
@@ -1045,10 +1042,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Check if calculated position would be outside viewport
       const bounds = this.isPositionOutsideViewport(newPosition);
       if (bounds.outsideTop || bounds.outsideBottom || bounds.outsideLeft || bounds.outsideRight) {
-        Logger.debug(
-          'Position relative to SmallTime would be outside viewport, correcting',
-          newPosition
-        );
         newPosition = this.correctPositionForViewport(newPosition);
       }
 
@@ -1221,9 +1214,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       return { outsideTop: false, outsideBottom: false, outsideLeft: false, outsideRight: false };
     }
 
-    // Estimated widget dimensions
-    const widgetWidth = 200;
-    const widgetHeight = 80;
+    // Use standardized widget dimensions
+    const widgetWidth = WIDGET_POSITIONING.MINI_WIDGET_WIDTH;
+    const widgetHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
 
     const viewportHeight = window.innerHeight || 768;
     const viewportWidth = window.innerWidth || 1024;
@@ -1252,9 +1245,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       return this.getFallbackPosition();
     }
 
-    const padding = 10; // Minimum distance from viewport edges
-    const widgetWidth = 200;
-    const widgetHeight = 80;
+    const padding = WIDGET_POSITIONING.VIEWPORT_PADDING;
+    const widgetWidth = WIDGET_POSITIONING.MINI_WIDGET_WIDTH;
+    const widgetHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
 
     const viewportHeight = window.innerHeight || 768;
     const viewportWidth = window.innerWidth || 1024;
@@ -1297,7 +1290,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Position in lower-left area, typical for UI widgets
     return {
-      top: viewportHeight - 150, // STANDALONE_BOTTOM_OFFSET from constants
+      top: viewportHeight - WIDGET_POSITIONING.STANDALONE_BOTTOM_OFFSET,
       left: 20,
     };
   }
@@ -1337,13 +1330,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Check if player list position would put widget outside viewport
       const playerListRect = playerList.getBoundingClientRect();
       const testPosition = {
-        top: playerListRect.top - 80, // Estimated widget height
+        top: playerListRect.top - WIDGET_POSITIONING.MINI_WIDGET_HEIGHT,
         left: playerListRect.left,
       };
 
       const bounds = this.isPositionOutsideViewport(testPosition);
       if (bounds.outsideTop || bounds.outsideLeft) {
-        Logger.debug('Player list position would be outside viewport, using fallback');
+        // Player list position would be outside viewport, using fallback
         this.positionStandalone();
         return;
       }
@@ -1385,7 +1378,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (!this.element) return;
 
     const smallTimeRect = smallTimeElement.getBoundingClientRect();
-    const estimatedMiniHeight = 32;
+    const estimatedMiniHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
 
     // Calculate position above SmallTime
     let position = {
@@ -1396,7 +1389,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Check if position would be outside viewport
     const bounds = this.isPositionOutsideViewport(position);
     if (bounds.outsideTop || bounds.outsideBottom || bounds.outsideLeft || bounds.outsideRight) {
-      Logger.debug('Position above SmallTime would be outside viewport, using fallback');
+      // Position above SmallTime would be outside viewport, using fallback
       position = this.getFallbackPosition();
       position = this.correctPositionForViewport(position);
     }
