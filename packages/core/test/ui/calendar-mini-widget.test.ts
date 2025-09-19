@@ -566,4 +566,177 @@ describe('CalendarMiniWidget', () => {
       expect(widget.hasSidebarButton('test-button')).toBe(true);
     });
   });
+
+  describe('Viewport Bounds Checking', () => {
+    beforeEach(() => {
+      global.window = { innerHeight: 768, innerWidth: 1024 } as any;
+    });
+
+    describe('Viewport Bounds Detection', () => {
+      it('should detect when position would be outside top viewport boundary', () => {
+        const position = { top: -50, left: 100 };
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideTop).toBe(true);
+        expect(bounds.outsideBottom).toBe(false);
+        expect(bounds.outsideLeft).toBe(false);
+        expect(bounds.outsideRight).toBe(false);
+      });
+
+      it('should detect when position would be outside bottom viewport boundary', () => {
+        const position = { top: 800, left: 100 };
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideTop).toBe(false);
+        expect(bounds.outsideBottom).toBe(true);
+        expect(bounds.outsideLeft).toBe(false);
+        expect(bounds.outsideRight).toBe(false);
+      });
+
+      it('should detect when position would be outside left viewport boundary', () => {
+        const position = { top: 100, left: -20 };
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideTop).toBe(false);
+        expect(bounds.outsideBottom).toBe(false);
+        expect(bounds.outsideLeft).toBe(true);
+        expect(bounds.outsideRight).toBe(false);
+      });
+
+      it('should detect when position would be outside right viewport boundary', () => {
+        const position = { top: 100, left: 1100 };
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideTop).toBe(false);
+        expect(bounds.outsideBottom).toBe(false);
+        expect(bounds.outsideLeft).toBe(false);
+        expect(bounds.outsideRight).toBe(true);
+      });
+
+      it('should detect when position is within all viewport boundaries', () => {
+        const position = { top: 100, left: 100 };
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideTop).toBe(false);
+        expect(bounds.outsideBottom).toBe(false);
+        expect(bounds.outsideLeft).toBe(false);
+        expect(bounds.outsideRight).toBe(false);
+      });
+
+      it('should account for widget dimensions when checking boundaries', () => {
+        // Widget is estimated at 200px wide and 80px tall
+        const position = { top: 700, left: 900 }; // Would put bottom-right corner outside
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideBottom).toBe(true);
+        expect(bounds.outsideRight).toBe(true);
+      });
+    });
+
+    describe('Viewport Bounds Correction', () => {
+      it('should correct position when outside top boundary', () => {
+        const position = { top: -50, left: 100 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBeGreaterThanOrEqual(10); // Minimum padding from edge
+        expect(corrected.left).toBe(100); // Left unchanged
+      });
+
+      it('should correct position when outside bottom boundary', () => {
+        const position = { top: 800, left: 100 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBeLessThanOrEqual(768 - 80 - 10); // viewport - widget height - padding
+        expect(corrected.left).toBe(100); // Left unchanged
+      });
+
+      it('should correct position when outside left boundary', () => {
+        const position = { top: 100, left: -50 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBe(100); // Top unchanged
+        expect(corrected.left).toBeGreaterThanOrEqual(10); // Minimum padding from edge
+      });
+
+      it('should correct position when outside right boundary', () => {
+        const position = { top: 100, left: 1100 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBe(100); // Top unchanged
+        expect(corrected.left).toBeLessThanOrEqual(1024 - 200 - 10); // viewport - widget width - padding
+      });
+
+      it('should correct multiple boundaries simultaneously', () => {
+        const position = { top: -50, left: -50 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBeGreaterThanOrEqual(10);
+        expect(corrected.left).toBeGreaterThanOrEqual(10);
+      });
+
+      it('should not change position when within boundaries', () => {
+        const position = { top: 100, left: 100 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBe(100);
+        expect(corrected.left).toBe(100);
+      });
+
+      it('should handle edge case at exact viewport boundaries', () => {
+        const position = { top: 0, left: 0 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBeGreaterThanOrEqual(10); // Should add padding
+        expect(corrected.left).toBeGreaterThanOrEqual(10); // Should add padding
+      });
+    });
+
+    describe('Fallback Position Strategy', () => {
+      it('should calculate sensible fallback position based on viewport size', () => {
+        const fallback = widget.getFallbackPosition();
+
+        // Should be in lower-left area (typical for UI widgets)
+        expect(fallback.top).toBe(768 - 150); // Bottom offset
+        expect(fallback.left).toBe(20); // Left margin
+      });
+
+      it('should adjust fallback position for small viewports', () => {
+        global.window = { innerHeight: 400, innerWidth: 600 } as any;
+        const fallback = widget.getFallbackPosition();
+
+        // Should still be visible but adjusted for small screen
+        expect(fallback.top).toBe(250); // 400 - 150
+        expect(fallback.left).toBe(20);
+      });
+
+      it('should handle missing window object gracefully', () => {
+        const originalWindow = global.window;
+        (global as any).window = undefined;
+
+        const position = { top: 100, left: 100 };
+        const corrected = widget.correctPositionForViewport(position);
+
+        // Should return original position when window is unavailable
+        expect(corrected).toEqual(position);
+
+        global.window = originalWindow;
+      });
+
+      it('should handle zero-sized viewport', () => {
+        global.window = { innerHeight: 0, innerWidth: 0 } as any;
+
+        const position = { top: 100, left: 100 };
+        const corrected = widget.correctPositionForViewport(position);
+
+        // Should apply minimum positioning
+        expect(corrected.top).toBeGreaterThanOrEqual(0);
+        expect(corrected.left).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle NaN or invalid position values', () => {
+        const position = { top: NaN, left: undefined as any };
+        const corrected = widget.correctPositionForViewport(position);
+
+        // Should return fallback position
+        expect(Number.isFinite(corrected.top)).toBe(true);
+        expect(Number.isFinite(corrected.left)).toBe(true);
+      });
+
+      it('should handle extremely large position values', () => {
+        const position = { top: Number.MAX_SAFE_INTEGER, left: Number.MAX_SAFE_INTEGER };
+        const corrected = widget.correctPositionForViewport(position);
+
+        // Should clamp to viewport
+        expect(corrected.top).toBeLessThan(1000);
+        expect(corrected.left).toBeLessThan(1500);
+      });
+    });
+  });
 });
