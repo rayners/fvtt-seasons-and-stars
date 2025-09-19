@@ -29,6 +29,7 @@ globalThis.game = {
     register: vi.fn((module: string, key: string, data: any) => {
       mockRegisteredSettings.set(`${module}.${key}`, data);
     }),
+    registerMenu: vi.fn(),
   },
   seasonsStars: {
     manager: {

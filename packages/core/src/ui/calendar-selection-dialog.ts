@@ -18,6 +18,11 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private collectionEntries: Map<string, CalendarCollectionEntry>;
   private externalSources: Map<string, ExternalCalendarSource>;
   private currentCalendarId: string;
+  private searchQuery = '';
+  private filterTag = '';
+  private filterAuthor = '';
+  private filterSource = '';
+  private selectedFilePath = '';
 
   constructor(
     calendars: Map<string, SeasonsStarsCalendar> | SeasonsStarsCalendar[],
@@ -102,11 +107,12 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     },
     actions: {
       selectCalendar: CalendarSelectionDialog.prototype._onSelectCalendar,
-      previewCalendar: CalendarSelectionDialog.prototype._onPreviewCalendar,
       chooseCalendar: CalendarSelectionDialog.prototype._onChooseCalendar,
       cancel: CalendarSelectionDialog.prototype._onCancel,
       openFilePicker: CalendarSelectionDialog.prototype._onOpenFilePicker,
       clearFilePicker: CalendarSelectionDialog.prototype._onClearFilePicker,
+      search: CalendarSelectionDialog.prototype._onSearch,
+      setFilter: CalendarSelectionDialog.prototype._onSetFilter,
     },
   };
 
@@ -114,7 +120,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     main: {
       id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-selection-dialog.hbs',
-      scrollable: ['.calendar-selection-grid'],
+      scrollable: ['.calendar-list'],
     },
   };
 
@@ -169,6 +175,10 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
 
       // Generate mini widget preview (use collection preview for consistency if available)
       const miniPreview = collectionEntry?.preview || this.generateMiniWidgetPreview(calendar);
+      const tags = collectionEntry?.tags || [];
+      const author = collectionEntry?.author || '';
+      const sourceModule =
+        calendar.sourceInfo?.moduleId || calendar.sourceInfo?.externalSourceId || sourceInfo.label;
 
       return {
         id,
@@ -189,6 +199,9 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         isModuleSource: sourceInfo.type === 'module',
         isBuiltinSource: sourceInfo.type === 'builtin',
         isExternalSource: sourceInfo.type === 'external',
+        tags,
+        author,
+        sourceModule,
       };
     });
 
@@ -242,6 +255,41 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         sortedCalendars.push(variant);
       }
     }
+    // Build filter option sets
+    const tagOptions = new Set<string>();
+    const authorOptions = new Set<string>();
+    const sourceOptions = new Map<string, string>();
+    for (const cal of sortedCalendars) {
+      cal.tags?.forEach((t: string) => tagOptions.add(t));
+      if (cal.author) authorOptions.add(cal.author);
+      if (cal.sourceModule) sourceOptions.set(cal.sourceModule, cal.sourceLabel);
+    }
+
+    // Apply search and filters
+    const filteredCalendars = sortedCalendars.filter(cal => {
+      if (this.filterTag && !(cal.tags || []).includes(this.filterTag)) return false;
+      if (this.filterAuthor && cal.author !== this.filterAuthor) return false;
+      if (this.filterSource && cal.sourceModule !== this.filterSource) return false;
+      if (this.searchQuery) {
+        const text = `${cal.id} ${cal.label} ${cal.description}`.toLowerCase();
+        if (!text.includes(this.searchQuery)) return false;
+      }
+      return true;
+    });
+
+    let selectedData =
+      filteredCalendars.find(c => c.id === this.selectedCalendarId) ||
+      sortedCalendars.find(c => c.id === this.selectedCalendarId) ||
+      null;
+    if (this.selectedCalendarId === '__FILE_PICKER__' && selectedFilePath) {
+      selectedData = {
+        id: '__FILE_PICKER__',
+        label: 'Custom File',
+        description: selectedFilePath,
+        sampleDate: '',
+        miniPreview: '',
+      } as unknown as typeof selectedData;
+    }
 
     // Determine if file picker should be considered "selected"
     // Only show as selected if there's actually a file selected AND it's either the selected ID or is currently active
@@ -249,14 +297,28 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       selectedFilePath !== '' &&
       (this.selectedCalendarId === '__FILE_PICKER__' || filePickerActive);
 
+    this.selectedFilePath = selectedFilePath;
+
     return Object.assign(context, {
-      calendars: sortedCalendars,
+      calendars: filteredCalendars,
+      selected: selectedData,
       selectedCalendar: this.selectedCalendarId,
       currentCalendar: this.currentCalendarId,
       showFilePicker,
       selectedFilePath,
       filePickerActive,
       filePickerSelected,
+      searchQuery: this.searchQuery,
+      filterOptions: {
+        tags: Array.from(tagOptions).sort(),
+        authors: Array.from(authorOptions).sort(),
+        sources: Array.from(sourceOptions.entries()).map(([id, label]) => ({ id, label })),
+      },
+      selectedFilters: {
+        tag: this.filterTag,
+        author: this.filterAuthor,
+        source: this.filterSource,
+      },
     });
   }
 
@@ -266,17 +328,17 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     super._attachPartListeners(partId, htmlElement, options);
 
     Logger.debug('Attaching part listeners', { partId, element: htmlElement });
-    Logger.debug('Scrollable elements', htmlElement.querySelectorAll('.calendar-selection-grid'));
+    Logger.debug('Scrollable elements', htmlElement.querySelectorAll('.calendar-list'));
 
     // Add action buttons to window and update button state after rendering
     this.addActionButtons($(htmlElement));
     this.updateSelectButton($(htmlElement));
 
     // Debug: Check if scrolling is working
-    const scrollableGrid = htmlElement.querySelector('.calendar-selection-grid');
+    const scrollableGrid = htmlElement.querySelector('.calendar-list');
     if (scrollableGrid) {
       const style = getComputedStyle(scrollableGrid);
-      Logger.debug('Found scrollable grid', {
+      Logger.debug('Found scrollable list', {
         overflow: style.overflow,
         clientHeight: scrollableGrid.clientHeight,
         scrollHeight: scrollableGrid.scrollHeight,
@@ -290,6 +352,17 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private addActionButtons(html: JQuery): void {
     const footer = $(`
       <div class="dialog-buttons flexrow">
+        <button data-action="openFilePicker" type="button" class="button">
+          <i class="fas fa-folder-open"></i>
+          ${game.i18n.localize('SEASONS_STARS.dialog.calendar_selection.browse')}
+        </button>
+        <button data-action="clearFilePicker" type="button" class="button" ${
+          this.selectedFilePath ? '' : 'disabled'
+        }>
+          <i class="fas fa-times"></i>
+          ${game.i18n.localize('SEASONS_STARS.dialog.calendar_selection.clear')}
+        </button>
+        <div class="flex-spacer"></div>
         <button data-action="cancel" type="button" class="button">
           <i class="fas fa-times"></i>
           ${game.i18n.localize('SEASONS_STARS.dialog.calendar_selection.cancel')}
@@ -823,6 +896,28 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       Logger.error('Failed to clear file picker:', error as Error);
       ui.notifications?.error(game.i18n.localize('SEASONS_STARS.errors.clear_file_failed'));
     }
+  }
+
+  /**
+   * Handle search input changes
+   */
+  private _onSearch(event: Event, target: HTMLElement): void {
+    const input = target as HTMLInputElement;
+    this.searchQuery = input.value.toLowerCase();
+    this.render(true);
+  }
+
+  /**
+   * Handle filter selections
+   */
+  private _onSetFilter(event: Event, target: HTMLElement): void {
+    const select = target as HTMLSelectElement;
+    const type = target.dataset.filterType;
+    const value = select.value;
+    if (type === 'tag') this.filterTag = value;
+    else if (type === 'author') this.filterAuthor = value;
+    else if (type === 'source') this.filterSource = value;
+    this.render(true);
   }
 
   /**
