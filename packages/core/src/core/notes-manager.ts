@@ -76,6 +76,47 @@ export class NotesManager {
   }
 
   /**
+   * Initialize the notes manager synchronously for immediate API availability
+   * Defers folder creation and optimization to async operations
+   */
+  initializeSync(): void {
+    if (this.initialized) return;
+
+    Logger.debug('Initializing Notes Manager synchronously');
+
+    // Initialize storage system (this is synchronous)
+    this.storage.initialize();
+
+    // Mark as initialized so basic note operations work
+    this.initialized = true;
+
+    // Schedule async initialization for folder creation and optimization
+    setTimeout(async () => {
+      try {
+        await this.initializeNotesFolder();
+
+        // Check if we have a large collection and optimize accordingly
+        const noteCount = this.getAllCalendarNotes().length;
+        if (noteCount > 500) {
+          Logger.info(
+            `Large note collection detected (${noteCount} notes) - applying optimizations`
+          );
+          await this.storage.optimizeForLargeCollections();
+        }
+
+        Logger.info('Notes Manager async initialization complete');
+      } catch (error) {
+        Logger.error(
+          'Failed to complete notes manager async initialization:',
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+    }, 0);
+
+    Logger.debug('Notes Manager synchronous initialization complete');
+  }
+
+  /**
    * Initialize the notes manager
    */
   async initialize(): Promise<void> {
