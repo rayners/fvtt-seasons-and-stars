@@ -114,7 +114,7 @@ describe('CalendarManager Synchronous Initialization - Core Logic', () => {
       expect(loadCalendarSpy).toHaveBeenCalledWith(
         testCalendar,
         expect.objectContaining({
-          type: 'built-in',
+          type: 'builtin',
           sourceName: 'Seasons & Stars',
           description: 'Built-in calendar from cached data',
           icon: 'fa-solid fa-calendar',
@@ -217,13 +217,14 @@ describe('CalendarManager Synchronous Initialization - Core Logic', () => {
     });
 
     it('should handle missing calendar data gracefully in async setActiveCalendar', async () => {
-      await manager.setActiveCalendar('missing-calendar', true);
+      const result = await manager.setActiveCalendar('missing-calendar', true);
 
-      // Should set the calendar ID but not the calendar data since calendar doesn't exist
-      expect(mockSettings.set).toHaveBeenCalledWith(
+      // Should return false and not set any settings since calendar doesn't exist
+      expect(result).toBe(false);
+      expect(mockSettings.set).not.toHaveBeenCalledWith(
         'seasons-and-stars',
         'activeCalendar',
-        'missing-calendar'
+        expect.anything()
       );
       expect(mockSettings.set).not.toHaveBeenCalledWith(
         'seasons-and-stars',

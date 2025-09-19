@@ -148,6 +148,11 @@ describe('NotesManager Synchronous Initialization - Core Logic', () => {
         }))
       );
 
+      // Mock initializeNotesFolder to prevent errors
+      const initializeFolderSpy = vi
+        .spyOn(manager as any, 'initializeNotesFolder')
+        .mockResolvedValue(undefined);
+
       const optimizeSpy = vi
         .spyOn(manager.storage as any, 'optimizeForLargeCollections')
         .mockResolvedValue(undefined);
@@ -163,6 +168,7 @@ describe('NotesManager Synchronous Initialization - Core Logic', () => {
       ).toBeGreaterThan(0);
 
       getAllNotesSpy.mockRestore();
+      initializeFolderSpy.mockRestore();
       optimizeSpy.mockRestore();
     });
 
@@ -212,10 +218,9 @@ describe('NotesManager Synchronous Initialization - Core Logic', () => {
         .spyOn(manager as any, 'initializeNotesFolder')
         .mockResolvedValue(undefined);
 
-      const result = await manager.initialize();
+      await manager.initialize();
 
-      // Should return early since already initialized
-      expect(result).toBe(true);
+      // Should return early since already initialized (no return value expected)
       expect(manager.isInitialized()).toBe(true);
 
       initializeFolderSpy.mockRestore();
@@ -239,7 +244,7 @@ describe('NotesManager Synchronous Initialization - Core Logic', () => {
       }).not.toThrow();
 
       expect(() => {
-        manager.getNotesForDate('2024-01-01');
+        manager.getNotesForDate({ year: 2024, month: 1, day: 1 } as any);
       }).not.toThrow();
 
       expect(() => {

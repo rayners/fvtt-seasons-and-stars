@@ -85,7 +85,14 @@ export class NotesManager {
     Logger.debug('Initializing Notes Manager synchronously');
 
     // Initialize storage system (this is synchronous)
-    this.storage.initialize();
+    try {
+      this.storage.initialize();
+    } catch (error) {
+      Logger.error(
+        'Storage initialization failed during sync init:',
+        error instanceof Error ? error : new Error(String(error))
+      );
+    }
 
     // Mark as initialized so basic note operations work
     this.initialized = true;
