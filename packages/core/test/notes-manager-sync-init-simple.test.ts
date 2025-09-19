@@ -81,14 +81,14 @@ describe('NotesManager Synchronous Initialization - Core Logic', () => {
       storageSpy.mockRestore();
     });
 
-    it('should schedule async initialization with setTimeout', () => {
-      const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
+    it('should schedule async initialization with queueMicrotask', () => {
+      const queueMicrotaskSpy = vi.spyOn(global, 'queueMicrotask');
 
       manager.initializeSync();
 
-      expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 0);
+      expect(queueMicrotaskSpy).toHaveBeenCalled();
 
-      setTimeoutSpy.mockRestore();
+      queueMicrotaskSpy.mockRestore();
     });
 
     it('should handle storage initialization errors gracefully', () => {

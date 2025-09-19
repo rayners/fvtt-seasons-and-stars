@@ -98,7 +98,8 @@ export class NotesManager {
     this.initialized = true;
 
     // Schedule async initialization for folder creation and optimization
-    setTimeout(async () => {
+    // Use queueMicrotask for better timing guarantees than setTimeout
+    queueMicrotask(async () => {
       try {
         await this.initializeNotesFolder();
 

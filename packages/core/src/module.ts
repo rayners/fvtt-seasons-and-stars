@@ -222,72 +222,81 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
 /**
  * Module initialization - MUST be synchronous to block until calendars are loaded
  */
-Hooks.once('init', () => {
-  Logger.debug('Initializing module (BLOCKING)');
+export function init(): void {
+  try {
+    Logger.debug('Initializing module (BLOCKING)');
 
-  // Register module settings
-  registerSettings();
+    // Register module settings
+    registerSettings();
 
-  // Register Handlebars helpers
-  registerQuickTimeButtonsHelper();
+    // Register Handlebars helpers
+    registerQuickTimeButtonsHelper();
 
-  // Register settings preview functionality
-  registerSettingsPreviewHooks();
+    // Register settings preview functionality
+    registerSettingsPreviewHooks();
 
-  // Register keyboard shortcuts (must be in init hook)
-  Logger.debug('Registering keyboard shortcuts');
-  SeasonsStarsKeybindings.registerKeybindings();
+    // Register keyboard shortcuts (must be in init hook)
+    Logger.debug('Registering keyboard shortcuts');
+    SeasonsStarsKeybindings.registerKeybindings();
 
-  // Note: Note editing hooks temporarily disabled - see KNOWN-ISSUES.md
-  // registerNoteEditingHooks();
+    // Note: Note editing hooks temporarily disabled - see KNOWN-ISSUES.md
+    // registerNoteEditingHooks();
 
-  // Initialize note categories after settings are available
-  initializeNoteCategories();
+    // Initialize note categories after settings are available
+    initializeNoteCategories();
 
-  // Initialize managers first
-  calendarManager = new CalendarManager();
-  notesManager = new NotesManager();
+    // Initialize managers first
+    calendarManager = new CalendarManager();
+    notesManager = new NotesManager();
 
-  // Try to load active calendar synchronously from cached data first
-  // This ensures compatibility bridges can access the API immediately
-  Logger.debug('Attempting synchronous calendar initialization from cached data');
-  const syncSuccess = calendarManager.initializeSync();
-  if (syncSuccess) {
-    Logger.debug('Successfully initialized active calendar synchronously');
-  } else {
-    Logger.debug('No cached calendar data available, will load asynchronously');
-  }
+    // Try to load active calendar synchronously from cached data first
+    // This ensures compatibility bridges can access the API immediately
+    Logger.debug('Attempting synchronous calendar initialization from cached data');
+    const syncSuccess = calendarManager.initializeSync();
+    if (syncSuccess) {
+      Logger.debug('Successfully initialized active calendar synchronously');
+    } else {
+      Logger.debug('No cached calendar data available, will load asynchronously');
+    }
 
-  // Load all calendars during init - this MUST complete before setup hook
-  Logger.debug('Loading calendars during init (BLOCKING)');
+    // Load all calendars during init - this MUST complete before setup hook
+    Logger.debug('Loading calendars during init (BLOCKING)');
 
-  // Start calendar loading immediately but don't block on it
-  // The calendars will be loaded by the time setup runs
-  calendarManager
-    .loadBuiltInCalendars()
-    .then(async () => {
-      Logger.debug('Built-in calendars loaded successfully during init');
+    // Start calendar loading immediately but don't block on it
+    // The calendars will be loaded by the time setup runs
+    calendarManager
+      .loadBuiltInCalendars()
+      .then(async () => {
+        Logger.debug('Built-in calendars loaded successfully during init');
 
-      // Also load calendar packs so all calendars are available during setup
-      try {
-        await calendarManager.autoLoadCalendarPacks();
-        Logger.debug('Calendar packs loaded successfully during init');
-      } catch (error) {
+        // Also load calendar packs so all calendars are available during setup
+        try {
+          await calendarManager.autoLoadCalendarPacks();
+          Logger.debug('Calendar packs loaded successfully during init');
+        } catch (error) {
+          Logger.error(
+            'Failed to load calendar packs during init:',
+            error instanceof Error ? error : new Error(String(error))
+          );
+        }
+      })
+      .catch(error => {
         Logger.error(
-          'Failed to load calendar packs during init:',
+          'Failed to load calendars during init:',
           error instanceof Error ? error : new Error(String(error))
         );
-      }
-    })
-    .catch(error => {
-      Logger.error(
-        'Failed to load calendars during init:',
-        error instanceof Error ? error : new Error(String(error))
-      );
-    });
+      });
 
-  Logger.debug('Module initialized - calendar loading initiated');
-});
+    Logger.debug('Module initialized - calendar loading initiated');
+  } catch (error) {
+    Logger.error(
+      'Module initialization failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
+  }
+}
+
+Hooks.once('init', init);
 
 /**
  * Core module setup during setup - exposes fully functional API before any module's ready hook
@@ -295,108 +304,116 @@ Hooks.once('init', () => {
  * CRITICAL: This must be synchronous and block until complete
  * Calendars are already loaded from init hook - now we activate one and expose API
  */
-Hooks.once('setup', () => {
-  Logger.debug('Core setup during setup - calendars already loaded, setting up API (BLOCKING)');
-
-  // Register calendar-specific settings now that calendars are loaded (from init hook)
-  registerCalendarSettings();
-
-  // Set active calendar from settings (synchronous since calendars are already loaded)
-  // This creates the time converter needed for getCurrentDate() API calls
+export function setup(): void {
   try {
-    // Get the active calendar setting and set it directly
-    const activeCalendarId =
-      game.settings?.get('seasons-and-stars', 'activeCalendar') || 'gregorian';
+    Logger.debug('Core setup during setup - calendars already loaded, setting up API (BLOCKING)');
 
-    // Set the active calendar synchronously (calendars already loaded in init)
-    const success = calendarManager.setActiveCalendarSync(activeCalendarId);
-    if (success) {
-      Logger.debug(`Active calendar set to ${activeCalendarId} during setup`);
-    } else {
-      Logger.warn(`Failed to set active calendar ${activeCalendarId}, falling back to gregorian`);
-      calendarManager.setActiveCalendarSync('gregorian');
-    }
-  } catch (error) {
-    Logger.error(
-      'Failed to set active calendar during setup:',
-      error instanceof Error ? error : new Error(String(error))
-    );
-    // Try to fall back to gregorian
+    // Register calendar-specific settings now that calendars are loaded (from init hook)
+    registerCalendarSettings();
+
+    // Set active calendar from settings (synchronous since calendars are already loaded)
+    // This creates the time converter needed for getCurrentDate() API calls
     try {
-      calendarManager.setActiveCalendarSync('gregorian');
-    } catch (fallbackError) {
+      // Get the active calendar setting and set it directly
+      const activeCalendarId =
+        game.settings?.get('seasons-and-stars', 'activeCalendar') || 'gregorian';
+
+      // Set the active calendar synchronously (calendars already loaded in init)
+      const success = calendarManager.setActiveCalendarSync(activeCalendarId);
+      if (success) {
+        Logger.debug(`Active calendar set to ${activeCalendarId} during setup`);
+      } else {
+        Logger.warn(`Failed to set active calendar ${activeCalendarId}, falling back to gregorian`);
+        calendarManager.setActiveCalendarSync('gregorian');
+      }
+    } catch (error) {
       Logger.error(
-        'Failed to set fallback gregorian calendar:',
-        fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError))
+        'Failed to set active calendar during setup:',
+        error instanceof Error ? error : new Error(String(error))
       );
+      // Try to fall back to gregorian
+      try {
+        calendarManager.setActiveCalendarSync('gregorian');
+      } catch (fallbackError) {
+        Logger.error(
+          'Failed to set fallback gregorian calendar:',
+          fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError))
+        );
+      }
     }
-  }
 
-  // Initialize time advancement service and register combat hooks
-  const timeAdvancementService = TimeAdvancementService.getInstance();
-  timeAdvancementService.initialize();
+    // Initialize time advancement service and register combat hooks
+    const timeAdvancementService = TimeAdvancementService.getInstance();
+    timeAdvancementService.initialize();
 
-  // Reset seasons warning flag when calendar changes
-  Hooks.on('seasons-stars:calendarChanged', () => {
-    resetSeasonsWarningState();
-  });
+    // Reset seasons warning flag when calendar changes
+    Hooks.on('seasons-stars:calendarChanged', () => {
+      resetSeasonsWarningState();
+    });
 
-  // Initialize notes manager synchronously
-  try {
-    notesManager.initializeSync();
-    Logger.debug('Notes manager initialized synchronously during setup');
-  } catch (error) {
-    Logger.error(
-      'Failed to initialize notes manager synchronously:',
-      error instanceof Error ? error : new Error(String(error))
+    // Initialize notes manager synchronously
+    try {
+      notesManager.initializeSync();
+      Logger.debug('Notes manager initialized synchronously during setup');
+    } catch (error) {
+      Logger.error(
+        'Failed to initialize notes manager synchronously:',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      // Continue - notes functionality may be limited but API will still work
+    }
+
+    // Register notes cleanup hooks for external journal deletion
+    registerNotesCleanupHooks();
+
+    // Register with Memory Mage if available
+    registerMemoryMageIntegration();
+
+    // CRITICAL: Expose fully functional API - calendar and time converter should be ready now
+    setupAPI();
+
+    // Register UI component hooks
+    CalendarWidget.registerHooks();
+    CalendarMiniWidget.registerHooks();
+    CalendarGridWidget.registerHooks();
+    CalendarMiniWidget.registerSmallTimeIntegration();
+
+    // Register widget factories for CalendarWidgetManager
+    Logger.debug('Registering widget factories');
+    CalendarWidgetManager.registerWidget(
+      'main',
+      () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
     );
-    // Continue - notes functionality may be limited but API will still work
+    CalendarWidgetManager.registerWidget(
+      'mini',
+      () =>
+        new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+    );
+    CalendarWidgetManager.registerWidget(
+      'grid',
+      () =>
+        new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+    );
+
+    // Scene controls registered at top level for timing requirements
+    Logger.debug('Registering macros');
+    SeasonsStarsSceneControls.registerMacros();
+
+    // Fire ready hook for compatibility modules - API is now fully functional
+    Hooks.callAll('seasons-stars:ready', {
+      manager: calendarManager,
+      api: game.seasonsStars?.api,
+    });
+
+    Logger.info(
+      'Core module fully initialized synchronously during setup - API ready for compatibility modules'
+    );
+  } catch (error) {
+    Logger.error('Module setup failed:', error instanceof Error ? error : new Error(String(error)));
   }
+}
 
-  // Register notes cleanup hooks for external journal deletion
-  registerNotesCleanupHooks();
-
-  // Register with Memory Mage if available
-  registerMemoryMageIntegration();
-
-  // CRITICAL: Expose fully functional API - calendar and time converter should be ready now
-  setupAPI();
-
-  // Register UI component hooks
-  CalendarWidget.registerHooks();
-  CalendarMiniWidget.registerHooks();
-  CalendarGridWidget.registerHooks();
-  CalendarMiniWidget.registerSmallTimeIntegration();
-
-  // Register widget factories for CalendarWidgetManager
-  Logger.debug('Registering widget factories');
-  CalendarWidgetManager.registerWidget(
-    'main',
-    () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
-  );
-  CalendarWidgetManager.registerWidget(
-    'mini',
-    () => new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
-  );
-  CalendarWidgetManager.registerWidget(
-    'grid',
-    () => new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
-  );
-
-  // Scene controls registered at top level for timing requirements
-  Logger.debug('Registering macros');
-  SeasonsStarsSceneControls.registerMacros();
-
-  // Fire ready hook for compatibility modules - API is now fully functional
-  Hooks.callAll('seasons-stars:ready', {
-    manager: calendarManager,
-    api: game.seasonsStars?.api,
-  });
-
-  Logger.info(
-    'Core module fully initialized synchronously during setup - API ready for compatibility modules'
-  );
-});
+Hooks.once('setup', setup);
 
 /**
  * Complete setup after Foundry is ready
