@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.4.0...seasons-and-stars-fantasy-v0.5.0) (2025-09-20)
+
+
+### Features
+
+* add headless testing architecture with Playwright ([#237](https://github.com/rayners/fvtt-seasons-and-stars/issues/237)) ([8e01b9d](https://github.com/rayners/fvtt-seasons-and-stars/commit/8e01b9de3d7ecdaea52526719d5b36815dd6c061))
+
 ## [0.4.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.3.0...seasons-and-stars-fantasy-v0.4.0) (2025-09-15)
 
 

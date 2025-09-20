@@ -1,6 +1,6 @@
 {
-  "packages/core": "0.15.0",
-  "packages/fantasy-pack": "0.4.0",
+  "packages/core": "0.16.0",
+  "packages/fantasy-pack": "0.5.0",
   "packages/scifi-pack": "0.2.3",
-  "packages/pf2e-pack": "0.3.0"
+  "packages/pf2e-pack": "0.4.0"
 }
