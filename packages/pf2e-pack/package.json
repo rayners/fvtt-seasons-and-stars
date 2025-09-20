@@ -31,7 +31,7 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-typescript": "^11.0.0",
-    "@rayners/foundry-dev-tools": "1.5.1",
+    "@rayners/foundry-dev-tools": "1.6.1",
     "@rayners/foundry-test-utils": "1.1.0",
     "rollup": "^4.24.0",
     "rollup-plugin-copy": "^3.4.0",
