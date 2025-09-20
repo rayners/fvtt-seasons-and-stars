@@ -186,6 +186,7 @@ interface ClientSettings {
   get(module: string, setting: string): any;
   set(module: string, setting: string, value: any): Promise<any>;
   register(module: string, setting: string, config: any): void;
+  registerMenu(module: string, setting: string, config: any): void;
 }
 
 interface FoundryUser {

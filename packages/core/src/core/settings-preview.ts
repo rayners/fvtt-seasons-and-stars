@@ -25,6 +25,7 @@ export function registerSettingsPreviewHooks(): void {
     Logger.debug('Settings config rendered, attempting to enhance settings');
     enhanceButtonSettingsWithUnifiedPreview(html);
     enhanceTimeAdvancementRatioSetting(html);
+    enhanceCalendarBrowserSetting(html);
   });
 
   Logger.debug('Settings preview hooks registered');
@@ -511,6 +512,67 @@ function showTimeAdvancementError(message: string): void {
 
   if (ratioContainer) ratioContainer.innerHTML = errorHtml;
   if (intervalContainer) intervalContainer.innerHTML = '';
+}
+
+/**
+ * Enhance the calendar browser setting with a custom button
+ */
+function enhanceCalendarBrowserSetting(html: HTMLElement): void {
+  try {
+    // Find the calendar browser trigger setting
+    const triggerInput = html.querySelector(
+      'input[name="seasons-and-stars.calendarBrowserTrigger"]'
+    ) as HTMLInputElement;
+
+    if (!triggerInput) {
+      Logger.debug('Calendar browser trigger setting not found');
+      return;
+    }
+
+    // Find the parent form group
+    const formGroup = triggerInput.closest('.form-group');
+    if (!formGroup) {
+      Logger.debug('Could not find form group for calendar browser setting');
+      return;
+    }
+
+    // Hide the original input
+    triggerInput.style.display = 'none';
+
+    // Create a custom button
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'calendar-browser-button-container';
+    buttonContainer.style.cssText = 'margin-top: 0.5rem;';
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'button';
+    button.style.cssText = 'background: var(--color-border-highlight-alt); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;';
+    button.innerHTML = '<i class="fas fa-calendar-alt"></i> Open Calendar Browser';
+
+    // Add click handler
+    button.addEventListener('click', async () => {
+      try {
+        const { CalendarBrowserDialog } = await import('../ui/calendar-browser-dialog');
+        await CalendarBrowserDialog.show();
+      } catch (error) {
+        Logger.error('Failed to open calendar browser', error as Error);
+        ui.notifications?.error('Failed to open Calendar Browser');
+      }
+    });
+
+    buttonContainer.appendChild(button);
+
+    // Insert the button after the input's parent
+    const inputParent = triggerInput.parentElement;
+    if (inputParent) {
+      inputParent.appendChild(buttonContainer);
+    }
+
+    Logger.debug('Enhanced calendar browser setting with custom button');
+  } catch (error) {
+    Logger.error('Error enhancing calendar browser setting', error as Error);
+  }
 }
 
 /**
