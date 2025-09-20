@@ -12,7 +12,7 @@
   - `npm run build`
 - Use `npm run format` or `npm run lint:fix` to resolve formatting issues.
 - Write descriptive commit messages and keep pull requests focused.
-- Continuous integration runs on Node 18 and 20, executing lint, typecheck, build, tests, and calendar validation.
+- Continuous integration runs on Node 20, 22, and 24, executing lint, typecheck, build, tests, and calendar validation.
 - PR titles must follow the Conventional Commits style.
 - Refer to the GitHub Action config in `.github/workflows/semantic-pull-request.yml` for allowed commit message types and scopes.
 - Releases are automated with [release-please](https://github.com/googleapis/release-please); do not manually edit version numbers or `CHANGELOG.md`.

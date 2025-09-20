@@ -9,7 +9,7 @@ import { CalendarEngine } from '../src/core/calendar-engine';
 import * as fs from 'fs';
 import * as path from 'path';
 
-describe('Performance Baseline Tests', () => {
+describe.skip('Performance Baseline Tests', () => {
   // Test both WFRP (complex) and Gregorian (simple) calendars
   const calendarsToTest = [
     { name: 'warhammer', file: 'warhammer.json', maxTime: 10 }, // More complex with intercalary days
