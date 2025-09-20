@@ -9,6 +9,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      ROLLUP_SKIP_NODE_JS_NATIVE: '1'
+      ROLLUP_DISABLE_BUNDLE_CACHE: '1'
     permissions:
       contents: read
       packages: read
@@ -19,6 +22,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install Rollup JS runtime
+        run: npm install --no-save rollup
 
       - name: Run CI Pipeline
         uses: rayners/foundry-module-actions/ci@v5

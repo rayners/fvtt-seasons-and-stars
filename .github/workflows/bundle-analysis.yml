@@ -16,6 +16,9 @@ on:
 jobs:
   analyze:
     runs-on: ubuntu-latest
+    env:
+      ROLLUP_SKIP_NODE_JS_NATIVE: '1'
+      ROLLUP_DISABLE_BUNDLE_CACHE: '1'
     permissions:
       contents: read
       pull-requests: write
@@ -25,6 +28,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Required for bundle size comparison
+
+      - name: Install Rollup JS runtime
+        run: npm install --no-save rollup
 
       - name: Core Module Bundle Analysis
         uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
