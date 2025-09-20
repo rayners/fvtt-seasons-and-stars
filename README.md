@@ -12,7 +12,7 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Smart Year Navigation**: Click year to jump instantly instead of clicking arrows repeatedly
 - **Convenient Defaults**: Gregorian calendars can initialize with current date/time
 - **Module Integration**: Clean APIs for weather modules and other integrations via compatibility bridges
-- **SmallTime Integration**: Seamless positioning and visual consistency. Time display intelligently hidden when SmallTime is present (configurable)
+- **SmallTime Integration**: Seamless positioning and visual consistency. Time display intelligently hidden when SmallTime is present (configurable). Mini widget provides drag-and-drop positioning with persistent storage.
 - **16 Available Calendars**: Switch between core calendars (Gregorian, Golarion PF2e) and calendar pack collections featuring fantasy calendars (D&D, Critical Role, etc.), sci-fi calendars (Star Trek, Starfinder, Traveller), and custom formats based on official game sources
 - **Calendar Pack Auto-Detection**: Automatically discovers and loads calendar modules following the `seasons-and-stars-*` naming convention - no JavaScript required, just JSON data files
 - **External Calendar Registration**: New hook system (v0.8.0+) allows modules to register calendars programmatically for dynamic calendar loading

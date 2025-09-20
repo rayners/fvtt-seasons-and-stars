@@ -1,6 +1,6 @@
 {
   "name": "seasons-and-stars",
-  "version": "0.13.0",
+  "version": "0.15.0",
   "description": "A clean calendar and timekeeping module for Foundry VTT v13+",
   "type": "module",
   "calendar-pack": {
@@ -13,7 +13,7 @@
   },
   "main": "dist/module.js",
   "scripts": {
-    "prebuild": "node ../../scripts/generate-calendar-list.js core",
+    "prebuild": "node ../../scripts/generate-calendar-list.js core && node ../../scripts/generate-gregorian-defaults.js",
     "build": "rollup -c ../../rollup.config.core.js",
     "watch": "rollup -c ../../rollup.config.core.js -w",
     "typecheck": "tsc --noEmit",
@@ -35,7 +35,7 @@
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/jquery": "^3.5.33",
-    "@types/node": "^24.3.1",
+    "@types/node": "^24.4.0",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.2",
     "jsdom": "^26.1.0",
@@ -44,7 +44,7 @@
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-scss": "^4.0.0",
     "rollup-plugin-serve": "^2.0.2",
-    "sass": "^1.92.1",
+    "sass": "^1.90.0",
     "tslib": "^2.5.0",
     "tsx": "^4.20.4",
     "typescript": "^5.0.4",

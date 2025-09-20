@@ -19,6 +19,33 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   private sidebarButtons: SidebarButton[] = [];
   private hasBeenPositioned: boolean = false;
 
+  constructor(options: any = {}) {
+    // Check if widget is pinned and get saved position
+    const pinned = game.settings?.get('seasons-and-stars', 'miniWidgetPinned');
+    const pos = game.settings?.get('seasons-and-stars', 'miniWidgetPosition') as
+      | { top: number; left: number }
+      | undefined;
+
+    // If pinned and we have a valid position, apply it to options
+    if (
+      pinned &&
+      pos &&
+      typeof pos.top === 'number' &&
+      typeof pos.left === 'number' &&
+      Number.isFinite(pos.top) &&
+      Number.isFinite(pos.left)
+    ) {
+      options = (foundry.utils as any).mergeObject(options, {
+        position: {
+          top: pos.top,
+          left: pos.left,
+        },
+      });
+    }
+
+    super(options);
+  }
+
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-mini-widget',
     classes: ['seasons-stars', 'calendar-mini-widget'],
@@ -30,10 +57,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       resizable: false,
     },
     position: {
-      width: 200,
+      width: WIDGET_POSITIONING.MINI_WIDGET_WIDTH,
       height: 'auto' as const,
-      top: -1000, // Start off-screen to minimize flash
-      left: -1000,
+      top: 100, // Start within viewport
+      left: 20,
     },
     actions: {
       advanceTime: CalendarMiniWidget.prototype._onAdvanceTime,
@@ -98,11 +125,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       game.settings?.get('seasons-and-stars', 'miniWidgetShowDayOfWeek') || false;
 
     // Get weekday name/abbreviation with enhanced null safety
+    // Don't show weekday for intercalary days that don't count for weekdays
     let weekdayDisplay = '';
     if (
       showDayOfWeek &&
       activeCalendar?.weekdays?.length > 0 &&
-      currentDate.weekday !== undefined
+      currentDate.weekday !== undefined &&
+      currentDate.countsForWeekdays()
     ) {
       const weekdayIndex = currentDate.weekday;
       if (weekdayIndex >= 0 && weekdayIndex < activeCalendar.weekdays.length) {
@@ -131,10 +160,15 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     }
 
+    // Determine if compact mode should be applied based on active features
+    const showTimeControlsValue =
+      (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false);
+    const compactMode = showDayOfWeek && showTimeControlsValue;
+
     return Object.assign(context, {
       shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
-      showTimeControls: (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false),
+      showTimeControls: showTimeControlsValue,
       isGM: game.user?.isGM || false,
       showTime: showTime,
       timeString:
@@ -145,6 +179,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       weekdayDisplay: weekdayDisplay,
       timeAdvancementActive: timeAdvancementActive,
       advancementRatioDisplay: advancementRatioDisplay,
+      compactMode: compactMode,
       calendar: {
         id: activeCalendar.id || 'unknown',
         label: activeCalendar.label || activeCalendar.name || 'Unknown Calendar',
@@ -237,9 +272,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Register this as the active instance
     CalendarMiniWidget.activeInstance = this;
 
-    // Apply compact mode if multiple features are active
-    this.applyCompactModeIfNeeded(context);
-
     // Add click handlers for mini-date element
     const miniDateElement = this.element?.querySelector('.mini-date');
     if (miniDateElement) {
@@ -265,26 +297,23 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Render any existing sidebar buttons
     this.renderExistingSidebarButtons();
 
-    // Position widget after render (SmallTime approach)
-    this.positionWidget();
-  }
+    this.element?.addEventListener('contextmenu', event => {
+      event.preventDefault();
+      if (game.settings?.get('seasons-and-stars', 'miniWidgetPinned')) {
+        this.unpin();
+      }
+    });
 
-  /**
-   * Apply compact mode CSS class if multiple features are active to optimize layout
-   */
-  private applyCompactModeIfNeeded(context: MiniWidgetContext): void {
-    if (!this.element) return;
+    const pinned = game.settings?.get('seasons-and-stars', 'miniWidgetPinned');
 
-    // Check if we should apply compact mode
-    // Apply when both weekday display and time controls are active
-    const needsCompactMode = context.showDayOfWeek && context.showTimeControls;
-
-    if (needsCompactMode) {
-      this.element.classList.add('compact-mode');
-      Logger.debug('Applied compact mode for tighter layout');
+    if (pinned) {
+      this.applyPinnedPosition();
     } else {
-      this.element.classList.remove('compact-mode');
+      this.positionWidget();
     }
+
+    // Setup dragging after positioning
+    this.setupDragging();
   }
 
   /**
@@ -310,21 +339,116 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Check if SmallTime is pinned/docked in DOM or floating
       if (this.isSmallTimeDocked(smallTimeElement)) {
         Logger.debug('Mini widget: SmallTime is docked - using DOM positioning');
-        // SmallTime is docked - use DOM positioning
         this.dockAboveSmallTime(smallTimeElement);
       } else {
         Logger.debug('Mini widget: SmallTime is floating - using fixed positioning');
-        // SmallTime is floating - use fixed positioning
         this.positionAboveSmallTime(smallTimeElement);
       }
-    } else {
+    } else if (document.getElementById('players')) {
       Logger.debug('Mini widget: No SmallTime - docking to player list');
-      // No SmallTime - dock to player list
       this.dockToPlayerList();
+    } else {
+      Logger.debug('Mini widget: No SmallTime or player list - using standalone positioning');
+      this.positionStandalone();
     }
 
     // Mark as positioned to avoid repeated repositioning during time advancement
     this.hasBeenPositioned = true;
+  }
+
+  /**
+   * Apply pinned position styling
+   */
+  private applyPinnedPosition(): void {
+    if (!this.element) return;
+
+    // ApplicationV2 has the position but doesn't automatically apply it to the DOM
+    // We need to manually apply the position from ApplicationV2's position property
+    if (this.position.top !== undefined && this.position.left !== undefined) {
+      this.element.style.position = 'fixed';
+      this.element.style.top = `${this.position.top}px`;
+      this.element.style.left = `${this.position.left}px`;
+    }
+
+    // Apply the visual styling for pinned mode
+    this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
+    this.element.classList.add('standalone-mode');
+    this.element.classList.remove(
+      'docked-mode',
+      'above-smalltime',
+      'below-smalltime',
+      'beside-smalltime'
+    );
+
+    this.hasBeenPositioned = true;
+  }
+
+  /**
+   * Setup dragging using Foundry's built-in Draggable class
+   */
+  private setupDragging(): void {
+    if (!this.element) return;
+
+    // Create a Draggable instance and wrap the drag end method
+    const draggable = new (foundry.applications.ux.Draggable as any)(
+      this, // app
+      this.element, // element (outer)
+      this.element, // handle (drag element - use the whole widget)
+      false // resizable
+    );
+
+    // Store the original drag start method and wrap it
+    const originalOnDragMouseDown = draggable._onDragMouseDown;
+    draggable._onDragMouseDown = function (event: MouseEvent) {
+      // Switch to fixed positioning for free dragging
+      const rect = this.app.element.getBoundingClientRect();
+      this.app.element.style.position = 'fixed';
+      this.app.element.style.top = `${rect.top}px`;
+      this.app.element.style.left = `${rect.left}px`;
+      this.app.element.style.margin = '0';
+
+      return originalOnDragMouseDown.call(this, event);
+    };
+
+    // Store the original drag end method and wrap it
+    const originalOnDragMouseUp = draggable._onDragMouseUp;
+    draggable._onDragMouseUp = async function (event: MouseEvent) {
+      // Call the original method first
+      const result = originalOnDragMouseUp.call(this, event);
+
+      // Apply pinned styling and save position
+      const rect = this.app.element.getBoundingClientRect();
+
+      this.app.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
+      this.app.element.classList.add('standalone-mode');
+      this.app.element.classList.remove(
+        'docked-mode',
+        'above-smalltime',
+        'below-smalltime',
+        'beside-smalltime'
+      );
+
+      await game.settings?.set('seasons-and-stars', 'miniWidgetPinned', true);
+      await game.settings?.set('seasons-and-stars', 'miniWidgetPosition', {
+        top: rect.top,
+        left: rect.left,
+      });
+
+      return result;
+    };
+  }
+
+  /**
+   * Unpin the widget and reset to automatic positioning
+   */
+  private async unpin(): Promise<void> {
+    await game.settings?.set('seasons-and-stars', 'miniWidgetPinned', false);
+    await game.settings?.set('seasons-and-stars', 'miniWidgetPosition', {
+      top: null,
+      left: null,
+    });
+    this.hasBeenPositioned = false;
+    this.positionWidget();
   }
 
   /**
@@ -776,6 +900,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   private autoPositionRelativeToSmallTime(): void {
     if (this.isClosing) return;
+    if (game.settings?.get('seasons-and-stars', 'miniWidgetPinned')) {
+      this.applyPinnedPosition();
+      return;
+    }
 
     // Reset positioning flag to force repositioning when SmallTime moves
     this.hasBeenPositioned = false;
@@ -826,19 +954,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     }
 
     // Fallback: Fixed positioning if player list not found
-    let position = { top: 80, left: 20 }; // Default fallback
+    let position = this.getFallbackPosition();
 
-    try {
-      // Fallback: Try to find where player list would typically be
-      // Usually bottom-right area of UI
-      position = {
-        top: window.innerHeight - WIDGET_POSITIONING.STANDALONE_BOTTOM_OFFSET, // Typical player list area
-        left: window.innerWidth - 240, // Typical player list left edge
-      };
-
-      Logger.debug('Player list not found, using typical location', position);
-    } catch (error) {
-      Logger.warn('Error in standalone positioning, using fallback', error);
+    // Check if fallback position is within viewport bounds
+    const bounds = this.isPositionOutsideViewport(position);
+    if (bounds.outsideTop || bounds.outsideBottom || bounds.outsideLeft || bounds.outsideRight) {
+      position = this.correctPositionForViewport(position);
     }
 
     // Apply the fixed position as last resort
@@ -880,8 +1001,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     requestAnimationFrame(() => {
       const smallTimeRect = smallTimeElement.getBoundingClientRect();
 
-      // Use a fixed height estimate instead of getBoundingClientRect() which can be wrong
-      const estimatedMiniHeight = WIDGET_POSITIONING.ESTIMATED_MINI_HEIGHT;
+      // Use standardized mini widget height
+      const estimatedMiniHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
 
       Logger.debug('SmallTime rect', smallTimeRect);
       Logger.debug(`Using estimated mini height: ${estimatedMiniHeight}`);
@@ -916,6 +1037,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           this.element?.classList.add('below-smalltime');
           this.element?.classList.remove('above-smalltime', 'beside-smalltime');
           break;
+      }
+
+      // Check if calculated position would be outside viewport
+      const bounds = this.isPositionOutsideViewport(newPosition);
+      if (bounds.outsideTop || bounds.outsideBottom || bounds.outsideLeft || bounds.outsideRight) {
+        newPosition = this.correctPositionForViewport(newPosition);
       }
 
       Logger.debug('Positioning mini widget at', newPosition);
@@ -1075,10 +1202,105 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Check if a position would place the widget outside viewport boundaries
+   */
+  isPositionOutsideViewport(position: { top: number; left: number }): {
+    outsideTop: boolean;
+    outsideBottom: boolean;
+    outsideLeft: boolean;
+    outsideRight: boolean;
+  } {
+    if (!window) {
+      return { outsideTop: false, outsideBottom: false, outsideLeft: false, outsideRight: false };
+    }
+
+    // Use standardized widget dimensions
+    const widgetWidth = WIDGET_POSITIONING.MINI_WIDGET_WIDTH;
+    const widgetHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
+
+    const viewportHeight = window.innerHeight || 768;
+    const viewportWidth = window.innerWidth || 1024;
+
+    return {
+      outsideTop: position.top < 0,
+      outsideBottom: position.top + widgetHeight > viewportHeight,
+      outsideLeft: position.left < 0,
+      outsideRight: position.left + widgetWidth > viewportWidth,
+    };
+  }
+
+  /**
+   * Correct a position to ensure it stays within viewport boundaries
+   */
+  correctPositionForViewport(position: { top: number; left: number }): {
+    top: number;
+    left: number;
+  } {
+    if (!window) {
+      return position;
+    }
+
+    // Handle invalid values
+    if (!Number.isFinite(position.top) || !Number.isFinite(position.left)) {
+      return this.getFallbackPosition();
+    }
+
+    const padding = WIDGET_POSITIONING.VIEWPORT_PADDING;
+    const widgetWidth = WIDGET_POSITIONING.MINI_WIDGET_WIDTH;
+    const widgetHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
+
+    const viewportHeight = window.innerHeight || 768;
+    const viewportWidth = window.innerWidth || 1024;
+
+    let correctedTop = position.top;
+    let correctedLeft = position.left;
+
+    // Correct top boundary
+    if (correctedTop < padding) {
+      correctedTop = padding;
+    }
+
+    // Correct bottom boundary
+    if (correctedTop + widgetHeight > viewportHeight - padding) {
+      correctedTop = Math.max(padding, viewportHeight - widgetHeight - padding);
+    }
+
+    // Correct left boundary
+    if (correctedLeft < padding) {
+      correctedLeft = padding;
+    }
+
+    // Correct right boundary
+    if (correctedLeft + widgetWidth > viewportWidth - padding) {
+      correctedLeft = Math.max(padding, viewportWidth - widgetWidth - padding);
+    }
+
+    return { top: correctedTop, left: correctedLeft };
+  }
+
+  /**
+   * Get a sensible fallback position for the widget
+   */
+  getFallbackPosition(): { top: number; left: number } {
+    if (!window) {
+      return { top: 80, left: 20 };
+    }
+
+    const viewportHeight = window.innerHeight || 768;
+
+    // Position in lower-left area, typical for UI widgets
+    return {
+      top: viewportHeight - WIDGET_POSITIONING.STANDALONE_BOTTOM_OFFSET,
+      left: 20,
+    };
+  }
+
+  /**
    * Handle player list expansion/contraction
    */
   private handlePlayerListChange(): void {
     if (this.isClosing) return;
+    if (game.settings?.get('seasons-and-stars', 'miniWidgetPinned')) return;
 
     const playerList = document.getElementById('players');
 
@@ -1105,6 +1327,20 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (!playerList) return;
 
     try {
+      // Check if player list position would put widget outside viewport
+      const playerListRect = playerList.getBoundingClientRect();
+      const testPosition = {
+        top: playerListRect.top - WIDGET_POSITIONING.MINI_WIDGET_HEIGHT,
+        left: playerListRect.left,
+      };
+
+      const bounds = this.isPositionOutsideViewport(testPosition);
+      if (bounds.outsideTop || bounds.outsideLeft) {
+        // Player list position would be outside viewport, using fallback
+        this.positionStandalone();
+        return;
+      }
+
       // Use SmallTime's approach: insert before the player list in the DOM
       // This automatically moves with player list expansion/contraction
       const uiLeft = document.getElementById('ui-left');
@@ -1142,12 +1378,26 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (!this.element) return;
 
     const smallTimeRect = smallTimeElement.getBoundingClientRect();
-    const estimatedMiniHeight = 32;
+    const estimatedMiniHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
 
-    // Position above SmallTime
+    // Calculate position above SmallTime
+    let position = {
+      top: smallTimeRect.top - estimatedMiniHeight - 8,
+      left: smallTimeRect.left,
+    };
+
+    // Check if position would be outside viewport
+    const bounds = this.isPositionOutsideViewport(position);
+    if (bounds.outsideTop || bounds.outsideBottom || bounds.outsideLeft || bounds.outsideRight) {
+      // Position above SmallTime would be outside viewport, using fallback
+      position = this.getFallbackPosition();
+      position = this.correctPositionForViewport(position);
+    }
+
+    // Apply position
     this.element.style.position = 'fixed';
-    this.element.style.top = `${smallTimeRect.top - estimatedMiniHeight - 8}px`;
-    this.element.style.left = `${smallTimeRect.left}px`;
+    this.element.style.top = `${position.top}px`;
+    this.element.style.left = `${position.left}px`;
     this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
 
     this.element.classList.add('above-smalltime');

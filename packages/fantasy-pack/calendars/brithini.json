@@ -1,0 +1,56 @@
+{
+  "id": "brithini",
+  "translations": {
+    "en": {
+      "label": "Brithini Calendar (Glorantha)",
+      "description": "Malkioni Brithini calendar dividing the 294-day year into ten 28-day months followed by a two-week Sacred Time.",
+      "setting": "Glorantha"
+    }
+  },
+  "year": {
+    "epoch": 0,
+    "currentYear": 1625,
+    "prefix": "",
+    "suffix": " ST",
+    "startDay": 0
+  },
+  "leapYear": { "rule": "none" },
+  "months": [
+    {
+      "name": "Malkinel",
+      "abbreviation": "Mal",
+      "days": 28,
+      "description": "First month of the Brithini year."
+    },
+    { "name": "Demas", "abbreviation": "Dem", "days": 28, "description": "Second month." },
+    { "name": "Kaldine", "abbreviation": "Kal", "days": 28, "description": "Third month." },
+    { "name": "Wemago", "abbreviation": "Wem", "days": 28, "description": "Fourth month." },
+    { "name": "Untha", "abbreviation": "Unt", "days": 28, "description": "Fifth month." },
+    { "name": "Intha", "abbreviation": "Int", "days": 28, "description": "Sixth month." },
+    { "name": "Brithe", "abbreviation": "Bri", "days": 28, "description": "Seventh month." },
+    { "name": "Sona", "abbreviation": "Son", "days": 28, "description": "Eighth month." },
+    { "name": "Odemak", "abbreviation": "Ode", "days": 28, "description": "Ninth month." },
+    { "name": "Tilntel", "abbreviation": "Til", "days": 28, "description": "Tenth month." },
+    {
+      "name": "Sacred Time",
+      "abbreviation": "Sac",
+      "days": 14,
+      "description": "Two weeks of holy observances."
+    }
+  ],
+  "weekdays": [
+    { "name": "Freezeday", "abbreviation": "Frz" },
+    { "name": "Waterday", "abbreviation": "Wat" },
+    { "name": "Clayday", "abbreviation": "Cla" },
+    { "name": "Windsday", "abbreviation": "Win" },
+    { "name": "Fireday", "abbreviation": "Fir" },
+    { "name": "Wildday", "abbreviation": "Wld" },
+    { "name": "Godsday", "abbreviation": "Gds" }
+  ],
+  "intercalary": [],
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}

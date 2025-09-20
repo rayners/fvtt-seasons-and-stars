@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-scifi-v0.2.2...seasons-and-stars-scifi-v0.2.3) (2025-09-15)
+
+
+### Bug Fixes
+
+* intercalary day display with -intercalary format scheme ([#247](https://github.com/rayners/fvtt-seasons-and-stars/issues/247)) ([daf8ccc](https://github.com/rayners/fvtt-seasons-and-stars/commit/daf8cccd38e79c11836f393a4109c817b8cb15d4))
+
 ## [0.2.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-scifi-v0.2.1...seasons-and-stars-scifi-v0.2.2) (2025-07-21)
 
 

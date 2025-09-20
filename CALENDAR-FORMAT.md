@@ -12,6 +12,13 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 - **Flexibility**: Extensible format for future features
 - **Compatibility**: Migration path from Simple Calendar format
 
+## Defaults and Missing Sections
+
+Seasons & Stars can operate with minimal calendar data. If core sections like
+`year`, `leapYear`, `months`, `weekdays`, `intercalary`, or `time` are omitted,
+the engine fills them with Gregorian defaults and logs a console warning. To
+disable leap years entirely, include `"leapYear": { "rule": "none" }`.
+
 ## Complete Format Specification
 
 ```json
@@ -77,6 +84,21 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
     "secondsInMinute": 60
   },
 
+  "dateFormats": {
+    "default": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}}",
+    "short": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}}",
+    "short-intercalary": "{{intercalary}}, {{year}}",
+    "long-intercalary": "{{intercalary}} ({{year}})",
+    "widgets": {
+      "mini": "{{ss-day}} {{ss-month format=\"abbr\"}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}",
+      "mini-intercalary": "{{intercalary}}",
+      "main-intercalary": "{{intercalary}}, {{year}}"
+    }
+  },
+
   "moons": [
     {
       "name": "Luna",
@@ -116,6 +138,8 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 
 ### Year Configuration
 
+> Optional – defaults to Gregorian year settings when omitted.
+
 | Field         | Type   | Default | Description                                   |
 | ------------- | ------ | ------- | --------------------------------------------- |
 | `epoch`       | number | 0       | What year is considered "year zero"           |
@@ -125,6 +149,9 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 | `startDay`    | number | 0       | Which weekday the year starts on (0-based)    |
 
 ### Leap Year Rules
+
+> Optional – omitting this block applies Gregorian leap-year rules. Use
+> `{ "rule": "none" }` to disable leap years entirely.
 
 | Field       | Type   | Default | Description                                          |
 | ----------- | ------ | ------- | ---------------------------------------------------- |
@@ -141,6 +168,8 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 
 ### Month Definitions
 
+> Optional – missing months fall back to the 12 Gregorian months.
+
 | Field          | Type   | Required | Description                      |
 | -------------- | ------ | -------- | -------------------------------- |
 | `name`         | string | ✅       | Full month name                  |
@@ -150,6 +179,8 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 
 ### Weekday Definitions
 
+> Optional – missing weekdays fall back to the 7-day Gregorian week.
+
 | Field          | Type   | Required | Description                      |
 | -------------- | ------ | -------- | -------------------------------- |
 | `name`         | string | ✅       | Full weekday name                |
@@ -157,6 +188,8 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 | `description`  | string | ❌       | Cultural significance or meaning |
 
 ### Intercalary Days
+
+> Optional – absence means no intercalary days.
 
 | Field               | Type    | Default | Description                               |
 | ------------------- | ------- | ------- | ----------------------------------------- |
@@ -170,7 +203,81 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
 
 **Note**: Each intercalary day must have either `after` OR `before`, but not both.
 
+### Date Format Definitions
+
+> Optional – Handlebars templates for custom date formatting.
+
+| Field                | Type   | Description                                        |
+| -------------------- | ------ | -------------------------------------------------- |
+| `default`            | string | Default date format used throughout the UI         |
+| `short`              | string | Compact date format for space-constrained contexts |
+| `long`               | string | Full date format with complete information         |
+| `{name}-intercalary` | string | Specialized format variants for intercalary days   |
+| `widgets`            | object | Widget-specific format definitions                 |
+
+#### Widget Formats
+
+| Field                  | Type   | Description                             |
+| ---------------------- | ------ | --------------------------------------- |
+| `mini`                 | string | Ultra-compact format for mini widgets   |
+| `main`                 | string | Standard format for main widgets        |
+| `grid`                 | string | Minimal format for calendar grid cells  |
+| `{widget}-intercalary` | string | Widget-specific intercalary day formats |
+
+#### Format Template Syntax
+
+Date formats use [Handlebars](https://handlebarsjs.com/) template syntax with S&S-specific helpers:
+
+**Basic Variables:**
+
+- `{{year}}` - Calendar year with prefix/suffix
+- `{{month}}` - Month number (1-based)
+- `{{day}}` - Day number (1-based)
+- `{{weekday}}` - Weekday number (0-based)
+- `{{intercalary}}` - Intercalary day name (only for intercalary dates)
+
+**S&S Helpers:**
+
+- `{{ss-day format="ordinal"}}` - Day with ordinal suffix (1st, 2nd, 3rd)
+- `{{ss-month format="name"}}` - Month name or abbreviation
+- `{{ss-weekday format="name"}}` - Weekday name or abbreviation
+- `{{ss-dateFmt "format-name"}}` - Embed other named formats
+
+#### Automatic Intercalary Format Selection
+
+_Added in v0.14.0_
+
+For any named format, you can define an `-intercalary` variant that automatically applies to intercalary dates:
+
+**Priority System:**
+
+1. For intercalary dates: `${formatName}-intercalary` (if exists)
+2. Fallback: `${formatName}` (standard format)
+3. For regular dates: Always uses `${formatName}`
+
+**Example:**
+
+```json
+{
+  "dateFormats": {
+    "short": "{{day}} {{month}} {{year}}",
+    "short-intercalary": "{{intercalary}}, {{year}}",
+    "widgets": {
+      "mini": "{{day}}/{{month}}",
+      "mini-intercalary": "{{intercalary}}"
+    }
+  }
+}
+```
+
+**Results:**
+
+- Regular date: `"15 January 2024"`
+- Intercalary date: `"Midwinter Festival, 2024"`
+
 ### Time Configuration
+
+> Optional – defaults to 24‑hour days with 60‑minute hours.
 
 | Field             | Type   | Default | Description                   |
 | ----------------- | ------ | ------- | ----------------------------- |
@@ -337,7 +444,23 @@ This document defines the JSON format used by Seasons & Stars for calendar defin
       "after": "Uktar",
       "description": "Festival honoring the dead and ancestors"
     }
-  ]
+  ],
+
+  "dateFormats": {
+    "default": "{{ss-day format=\"ordinal\"}} of {{ss-month format=\"name\"}}, {{year}} DR",
+    "default-intercalary": "{{intercalary}}, {{year}} DR",
+    "short": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "short-intercalary": "{{intercalary}} {{year}}",
+    "festival": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} ({{ss-weekday format=\"name\"}})",
+    "festival-intercalary": "{{intercalary}} Festival",
+    "widgets": {
+      "mini": "{{ss-day}} {{ss-month format=\"abbr\"}}",
+      "main": "{{ss-weekday format=\"name\"}}, {{ss-day}} {{ss-month format=\"name\"}} {{year}}",
+      "grid": "{{ss-day}}",
+      "mini-intercalary": "{{intercalary}}",
+      "main-intercalary": "{{intercalary}}, {{year}} DR"
+    }
+  }
 }
 ```
 
@@ -465,7 +588,7 @@ For calendars with lunar cycles, add moon definitions with phase tracking:
 
 ### Required Fields
 
-- Root: `id`, `label`, `months`, `weekdays`
+- Root: `id`, `label`
 - Months: `name`, `days`
 - Weekdays: `name`
 - Intercalary: `name`, `after`
@@ -489,6 +612,12 @@ For calendars with lunar cycles, add moon definitions with phase tracking:
 - `leapYear.month`: Must match a month name
 - `intercalary[].after`: Must match a month name
 - All month and weekday names must be unique within their arrays
+
+### Default Handling
+
+When any core section (`year`, `leapYear`, `months`, `weekdays`, `intercalary`, or
+`time`) is omitted, Seasons & Stars substitutes Gregorian defaults and emits a
+console warning.
 
 ## Migration from Simple Calendar
 

@@ -1,5 +1,40 @@
 # Seasons & Stars Internal Development Context
 
+> `AGENTS.md` is a symlink to this file for tool compatibility.
+
+## Development Guidelines
+
+- Source code is written in TypeScript and bundled with Rollup; do not commit generated `dist` output.
+- Before committing, run:
+  - `npm run lint`
+  - `npm run typecheck`
+  - `npm run test:run`
+  - `npm run build`
+- Use `npm run format` or `npm run lint:fix` to resolve formatting issues.
+- Write descriptive commit messages and keep pull requests focused.
+- Continuous integration runs on Node 18 and 20, executing lint, typecheck, build, tests, and calendar validation.
+- PR titles must follow the Conventional Commits style.
+- Refer to the GitHub Action config in `.github/workflows/semantic-pull-request.yml` for allowed commit message types and scopes.
+- Releases are automated with [release-please](https://github.com/googleapis/release-please); do not manually edit version numbers or `CHANGELOG.md`.
+
+### Simple Calendar Compatibility Bridge Coordination
+
+- **Coordinate early:** When planning any Seasons & Stars API change, notify the maintainers of the [Simple Calendar Compatibility Bridge](https://github.com/rayners/foundryvtt-simple-calendar-compat) and link to the tracking issue/PR in both repositories.
+- **What counts as an API change?** Treat the following as externally consumed surfaces that require Bridge validation:
+  - Hook events documented in `docs/DEVELOPER-GUIDE.md` or exposed through `Hooks.call`/`Hooks.callAll`.
+  - Exported TypeScript definitions, interfaces, or enums under `packages/core/src/types/` and any symbols re-exported from package entry points.
+  - Public methods on `CalendarManager`, `CalendarEngine`, `BridgeIntegration`, or other classes referenced in integration guides.
+  - JSON contracts passed between the compatibility layer and downstream modules (e.g., note payloads, time advancement messages).
+- **Examples that require coordination:**
+  - Renaming or removing a hook such as `seasons-and-stars.calendarUpdated` or changing its payload structure.
+  - Adding mandatory parameters to `BridgeIntegration` methods or modifying the Simple Calendar translation tables.
+  - Changing the schema of exported interfaces like `CalendarDateData` that compatibility bridges deserialize.
+- **Process checklist:**
+  1. Open or update an issue in the Bridge repository describing the required adjustments and reference the Seasons & Stars PR.
+  2. Provide migration notes or a draft PR for the Bridge when feasible so dependent modules can test pre-release builds.
+  3. Call out the coordination requirement in the Seasons & Stars changelog or release notes once the work lands.
+- **Automation:** We are evaluating a GitHub Action that diffs exported symbols and hook declarations to flag potential API changes automatically. Until it lands, rely on manual review and err on the side of coordinating even “minor” tweaks.
+
 ## Module Architecture Deep Dive
 
 ### Calendar Engine Core (packages/core/src/core/)
@@ -168,6 +203,30 @@
 - Permission-based visibility (GM-only, player-visible, etc.)
 - Advanced search and filtering capabilities
 - Performance optimization for large note collections
+
+## Development Context Reference
+
+### dev-context/ Directory
+
+The `dev-context/` directory contains comprehensive development standards and patterns for FoundryVTT module development. This reference collection provides:
+
+**Core Reference Documents**:
+
+- `foundry-development-practices.md` - Complete development workflow and quality standards
+- `testing-practices.md` - Comprehensive testing strategies (Vitest + Quench) and TDD workflow
+- `module-architecture-patterns.md` - Universal module structure and system-agnostic design patterns
+- `documentation-standards.md` - Documentation organization and quality requirements
+- `automation-infrastructure.md` - Professional CI/CD workflows and release management
+- `ai-code-access-restrictions.md` - Security boundaries for AI code access (READ FIRST)
+- `external-documentation-references.md` - Official FoundryVTT docs and approved community resources
+
+**Usage Pattern**: Reference specific documents as needed rather than loading all context. For example:
+
+- Development workflow questions → `dev-context/foundry-development-practices.md`
+- Testing implementation → `dev-context/testing-practices.md`
+- Architecture decisions → `dev-context/module-architecture-patterns.md`
+
+**Integration**: This context enforces universal standards including documentation accuracy (no hyperbole), TDD workflow, 90%+ test coverage for core logic, and system-agnostic design patterns.
 
 ## Session Context Requirements
 

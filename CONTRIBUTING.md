@@ -251,6 +251,33 @@ npm run test:watch    # Run tests in watch mode
 npm run coverage      # Generate coverage report
 ```
 
+## Simple Calendar Compatibility Bridge Coordination
+
+Maintaining parity with the [Simple Calendar Compatibility Bridge](https://github.com/rayners/foundryvtt-simple-calendar-compat) keeps downstream modules functioning when we evolve the Seasons & Stars API.
+
+### When to Coordinate
+
+- Changes to documented hook names, payloads, or invocation timing.
+- Updates to exported TypeScript interfaces, enums, or helper types under `packages/core/src/types/` (including re-exports from package entry points).
+- Signature or behavior changes for public classes that integrators touch, such as `CalendarManager`, `CalendarEngine`, `BridgeIntegration`, and other APIs highlighted in `docs/DEVELOPER-GUIDE.md` and `docs/INTEGRATION-GUIDE.md`.
+- Adjustments to JSON structures passed between the bridge and external modules (note payloads, time advancement messages, integration metadata, etc.).
+
+### Examples Requiring Bridge Updates
+
+- Removing or renaming hooks like `seasons-and-stars.calendarUpdated` or altering the shape of their payload objects.
+- Adding new required parameters to bridge translation utilities or changing default behaviors that Simple Calendar expects.
+- Refactoring exported types such as `CalendarDateData` or `BridgeRegistrationConfig` in a way that breaks existing consumers.
+
+### Coordination Checklist
+
+1. Open or update an issue in the Bridge repository describing the planned change and link to the Seasons & Stars PR.
+2. Provide migration guidance or a draft PR for the Bridge when feasible so dependent module authors can test against the update.
+3. Reference the bridge coordination in release notes or changelog entries to keep the community informed.
+
+### Automation Outlook
+
+We are exploring a GitHub Action that monitors exported symbols and hook declarations to automatically flag potential API changes. Until that lands, treat manual coordination as mandatory for any change that might affect the bridge.
+
 ## Documentation
 
 ### Code Documentation

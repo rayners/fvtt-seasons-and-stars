@@ -167,6 +167,10 @@ export class CalendarDate implements ICalendarDate {
 
     // Fallback to basic string formatting for calendars without dateFormats
     if (!dateFormats) {
+      // Handle intercalary days first
+      if (this.intercalary) {
+        return this.intercalary;
+      }
       return `${this.day} ${this.getMonthName('short')} ${this.getYearString()}`;
     }
 
@@ -177,8 +181,11 @@ export class CalendarDate implements ICalendarDate {
         includeWeekday: false,
         format: 'short',
       });
-    } catch (error) {
-      console.debug('[S&S] Error formatting short date string:', error);
+    } catch {
+      // Handle intercalary days in error fallback
+      if (this.intercalary) {
+        return this.intercalary;
+      }
       return `${this.day} ${this.getMonthName('short')} ${this.getYearString()}`;
     }
   }
@@ -195,6 +202,11 @@ export class CalendarDate implements ICalendarDate {
 
     // Fallback to basic string formatting for calendars without dateFormats
     if (!dateFormats) {
+      // Handle intercalary days first
+      if (this.intercalary) {
+        const timeString = this.time ? ` ${this.getTimeString()}` : '';
+        return `${this.intercalary}${timeString}`;
+      }
       const weekdayName = this.getWeekdayName('long');
       const monthName = this.getMonthName('long');
       const dayOrdinal = this.getDayString('long');
@@ -211,8 +223,12 @@ export class CalendarDate implements ICalendarDate {
         includeYear: true,
         format: 'long',
       });
-    } catch (error) {
-      console.debug('[S&S] Error formatting long date string:', error);
+    } catch {
+      // Handle intercalary days in error fallback
+      if (this.intercalary) {
+        const timeString = this.time ? ` ${this.getTimeString()}` : '';
+        return `${this.intercalary}${timeString}`;
+      }
       const weekdayName = this.getWeekdayName('long');
       const monthName = this.getMonthName('long');
       const dayOrdinal = this.getDayString('long');
@@ -290,7 +306,7 @@ export class CalendarDate implements ICalendarDate {
     try {
       const weekday = this.calendar.weekdays?.[this.weekday];
       if (!weekday) {
-        console.debug(`[S&S] Invalid weekday index: ${this.weekday}`);
+        // Invalid weekday index, using fallback
         return 'Unknown';
       }
 
@@ -312,7 +328,7 @@ export class CalendarDate implements ICalendarDate {
     try {
       const month = this.calendar.months?.[this.month - 1];
       if (!month) {
-        console.debug(`[S&S] Invalid month index: ${this.month}`);
+        // Invalid month index, using fallback
         return 'Unknown';
       }
 
@@ -333,7 +349,7 @@ export class CalendarDate implements ICalendarDate {
   private getDayString(format: 'short' | 'long' | 'numeric'): string {
     try {
       if (typeof this.day !== 'number' || this.day < 1) {
-        console.debug(`[S&S] Invalid day value: ${this.day}`);
+        // Invalid day value, using fallback
         return '1';
       }
 
@@ -347,8 +363,7 @@ export class CalendarDate implements ICalendarDate {
       }
 
       return this.day.toString();
-    } catch (error) {
-      console.debug('[S&S] Error formatting day string:', error);
+    } catch {
       return '1';
     }
   }
@@ -365,8 +380,7 @@ export class CalendarDate implements ICalendarDate {
 
       const { prefix = '', suffix = '' } = this.calendar.year || {};
       return `${prefix}${this.year}${suffix}`.trim();
-    } catch (error) {
-      console.debug('[S&S] Error formatting year string:', error);
+    } catch {
       return this.year?.toString() || '1';
     }
   }
@@ -392,8 +406,7 @@ export class CalendarDate implements ICalendarDate {
       const secondStr = CalendarTimeUtils.formatTimeComponent(second);
 
       return `${hourStr}:${minuteStr}:${secondStr}`;
-    } catch (error) {
-      console.debug('[S&S] Error formatting time string:', error);
+    } catch {
       return '00:00:00';
     }
   }
@@ -492,6 +505,29 @@ export class CalendarDate implements ICalendarDate {
       intercalary: this.intercalary,
       time: this.time ? { ...this.time } : undefined,
     };
+  }
+
+  /**
+   * Check if this intercalary day counts for weekdays
+   * Returns true for non-intercalary days or intercalary days with countsForWeekdays: true
+   */
+  countsForWeekdays(): boolean {
+    if (!this.intercalary) {
+      return true; // Regular days always count for weekdays
+    }
+
+    try {
+      const intercalaryDef = this.calendar.intercalary?.find(i => i.name === this.intercalary);
+      if (!intercalaryDef) {
+        console.debug(`[S&S] Intercalary definition not found: ${this.intercalary}`);
+        return true; // Default to true if definition not found
+      }
+
+      // Default to true if countsForWeekdays is not specified (backward compatibility)
+      return intercalaryDef.countsForWeekdays ?? true;
+    } catch {
+      return true; // Default to true on error
+    }
   }
 
   /**

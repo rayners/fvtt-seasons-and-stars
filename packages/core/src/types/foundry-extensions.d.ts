@@ -16,6 +16,66 @@ import type { LoadResult, ExternalCalendarSource } from '../core/calendar-loader
 
 // Extend the Game interface to include S&S specific properties
 declare global {
+  namespace foundry {
+    namespace applications {
+      namespace api {
+        class ApplicationV2 {
+          constructor(options?: any);
+
+          element?: HTMLElement;
+          position: {
+            top?: number;
+            left?: number;
+            width?: number | string;
+            height?: number | string;
+            scale?: number;
+          };
+          rendered: boolean;
+
+          // Core lifecycle methods
+          render(force?: boolean): Promise<void>;
+          close(options?: any): Promise<any>;
+
+          // Protected lifecycle hooks
+          protected _onRender(context: any, options: any): void;
+          protected _prepareContext(options: any): any;
+          protected _attachPartListeners(
+            partId: string,
+            htmlElement: HTMLElement,
+            options: any
+          ): void;
+
+          // Static properties
+          static DEFAULT_OPTIONS: any;
+          static PARTS: any;
+        }
+
+        function HandlebarsApplicationMixin<T extends typeof ApplicationV2>(BaseApplication: T): T;
+
+        class DialogV2 extends ApplicationV2 {
+          // DialogV2 specific properties if needed
+        }
+      }
+      namespace ux {
+        class Draggable {
+          constructor(
+            app: any,
+            element: HTMLElement,
+            handle: HTMLElement | false,
+            resizable: boolean | any
+          );
+          activateListeners(): void;
+          _onDragMouseDown(event: MouseEvent): any;
+          _onDragMouseUp(event: MouseEvent): any;
+        }
+      }
+    }
+
+    namespace utils {
+      function mergeObject(original: any, other: any, options?: any): any;
+      function deepClone(obj: any): any;
+    }
+  }
   interface String {
     stripScripts(): string;
   }

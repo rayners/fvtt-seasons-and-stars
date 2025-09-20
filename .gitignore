@@ -7,6 +7,7 @@ dist/
 # Generated files
 src/generated/
 packages/*/src/generated/
+packages/core/src/core/gregorian-defaults.ts
 
 # Generated calendar index files (rebuilt during build)
 packages/*/calendars/index.json
@@ -135,3 +136,4 @@ test-results/
 # Playwright test artifacts
 playwright-report/
 test-results/
+dev-context

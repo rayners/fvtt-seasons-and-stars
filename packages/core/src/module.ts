@@ -220,108 +220,297 @@ Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
 });
 
 /**
- * Module initialization
+ * Module initialization - MUST be synchronous to block until calendars are loaded
  */
-Hooks.once('init', async () => {
-  Logger.debug('Initializing module');
+export function init(): void {
+  try {
+    Logger.debug('Initializing module (BLOCKING)');
 
-  // Register module settings
-  registerSettings();
+    // Register module settings
+    registerSettings();
 
-  // Register Handlebars helpers
-  registerQuickTimeButtonsHelper();
+    // Register Handlebars helpers
+    registerQuickTimeButtonsHelper();
 
-  // Register settings preview functionality
-  registerSettingsPreviewHooks();
+    // Register settings preview functionality
+    registerSettingsPreviewHooks();
 
-  // Register keyboard shortcuts (must be in init hook)
-  Logger.debug('Registering keyboard shortcuts');
-  SeasonsStarsKeybindings.registerKeybindings();
+    // Register keyboard shortcuts (must be in init hook)
+    Logger.debug('Registering keyboard shortcuts');
+    SeasonsStarsKeybindings.registerKeybindings();
 
-  // Note: Note editing hooks temporarily disabled - see KNOWN-ISSUES.md
-  // registerNoteEditingHooks();
+    // Note: Note editing hooks temporarily disabled - see KNOWN-ISSUES.md
+    // registerNoteEditingHooks();
 
-  // Initialize note categories after settings are available
-  initializeNoteCategories();
+    // Initialize note categories after settings are available
+    initializeNoteCategories();
 
-  // Initialize managers first
-  calendarManager = new CalendarManager();
-  notesManager = new NotesManager();
+    // Initialize managers first
+    calendarManager = new CalendarManager();
+    notesManager = new NotesManager();
 
-  Logger.debug('Module initialized');
-});
+    // Try to load active calendar synchronously from cached data first
+    // This ensures compatibility bridges can access the API immediately
+    Logger.debug('Attempting synchronous calendar initialization from cached data');
+    const syncSuccess = calendarManager.initializeSync();
+    if (syncSuccess) {
+      Logger.debug('Successfully initialized active calendar synchronously');
+    } else {
+      Logger.debug('No cached calendar data available, will load asynchronously');
+    }
+
+    // Load all calendars during init - this MUST complete before setup hook
+    Logger.debug('Loading calendars during init (BLOCKING)');
+
+    // Start calendar loading immediately but don't block on it
+    // The calendars will be loaded by the time setup runs
+    calendarManager
+      .loadBuiltInCalendars()
+      .then(async () => {
+        Logger.debug('Built-in calendars loaded successfully during init');
+
+        // Also load calendar packs so all calendars are available during setup
+        try {
+          await calendarManager.autoLoadCalendarPacks();
+          Logger.debug('Calendar packs loaded successfully during init');
+        } catch (error) {
+          Logger.error(
+            'Failed to load calendar packs during init:',
+            error instanceof Error ? error : new Error(String(error))
+          );
+        }
+      })
+      .catch(error => {
+        Logger.error(
+          'Failed to load calendars during init:',
+          error instanceof Error ? error : new Error(String(error))
+        );
+      });
+
+    Logger.debug('Module initialized - calendar loading initiated');
+  } catch (error) {
+    Logger.error(
+      'Module initialization failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
+  }
+}
+
+Hooks.once('init', init);
 
 /**
- * Early setup during setupGame - for future module initialization needs
+ * Core module setup during setup - exposes fully functional API before any module's ready hook
+ * This ensures compatibility modules can access the S&S API immediately during ready
+ * CRITICAL: This must be synchronous and block until complete
+ * Calendars are already loaded from init hook - now we activate one and expose API
  */
-Hooks.once('setupGame', () => {
-  Logger.debug('Early setup during setupGame');
+export function setup(): void {
+  try {
+    Logger.debug('Core setup during setup - calendars already loaded, setting up API (BLOCKING)');
 
-  // Reserved for future setup needs
-});
+    // Register calendar-specific settings now that calendars are loaded (from init hook)
+    registerCalendarSettings();
+
+    // Set active calendar from settings (synchronous since calendars are already loaded)
+    // This creates the time converter needed for getCurrentDate() API calls
+    try {
+      // Get the active calendar setting and set it directly
+      const activeCalendarId =
+        game.settings?.get('seasons-and-stars', 'activeCalendar') || 'gregorian';
+
+      // Set the active calendar synchronously (calendars already loaded in init)
+      const success = calendarManager.setActiveCalendarSync(activeCalendarId);
+      if (success) {
+        Logger.debug(`Active calendar set to ${activeCalendarId} during setup`);
+      } else {
+        Logger.warn(`Failed to set active calendar ${activeCalendarId}, falling back to gregorian`);
+        calendarManager.setActiveCalendarSync('gregorian');
+      }
+    } catch (error) {
+      Logger.error(
+        'Failed to set active calendar during setup:',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      // Try to fall back to gregorian
+      try {
+        calendarManager.setActiveCalendarSync('gregorian');
+      } catch (fallbackError) {
+        Logger.error(
+          'Failed to set fallback gregorian calendar:',
+          fallbackError instanceof Error ? fallbackError : new Error(String(fallbackError))
+        );
+      }
+    }
+
+    // Initialize time advancement service and register combat hooks
+    const timeAdvancementService = TimeAdvancementService.getInstance();
+    timeAdvancementService.initialize();
+
+    // Reset seasons warning flag when calendar changes
+    Hooks.on('seasons-stars:calendarChanged', () => {
+      resetSeasonsWarningState();
+    });
+
+    // Initialize notes manager synchronously
+    try {
+      notesManager.initializeSync();
+      Logger.debug('Notes manager initialized synchronously during setup');
+    } catch (error) {
+      Logger.error(
+        'Failed to initialize notes manager synchronously:',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      // Continue - notes functionality may be limited but API will still work
+    }
+
+    // Register notes cleanup hooks for external journal deletion
+    registerNotesCleanupHooks();
+
+    // Register with Memory Mage if available
+    registerMemoryMageIntegration();
+
+    // CRITICAL: Expose fully functional API - calendar and time converter should be ready now
+    setupAPI();
+
+    // Register UI component hooks
+    CalendarWidget.registerHooks();
+    CalendarMiniWidget.registerHooks();
+    CalendarGridWidget.registerHooks();
+    CalendarMiniWidget.registerSmallTimeIntegration();
+
+    // Register widget factories for CalendarWidgetManager
+    Logger.debug('Registering widget factories');
+    CalendarWidgetManager.registerWidget(
+      'main',
+      () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+    );
+    CalendarWidgetManager.registerWidget(
+      'mini',
+      () =>
+        new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+    );
+    CalendarWidgetManager.registerWidget(
+      'grid',
+      () =>
+        new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+    );
+
+    // Scene controls registered at top level for timing requirements
+    Logger.debug('Registering macros');
+    SeasonsStarsSceneControls.registerMacros();
+
+    // Fire ready hook for compatibility modules - API is now fully functional
+    Hooks.callAll('seasons-stars:ready', {
+      manager: calendarManager,
+      api: game.seasonsStars?.api,
+    });
+
+    Logger.info(
+      'Core module fully initialized synchronously during setup - API ready for compatibility modules'
+    );
+  } catch (error) {
+    Logger.error('Module setup failed:', error instanceof Error ? error : new Error(String(error)));
+  }
+}
+
+Hooks.once('setup', setup);
 
 /**
- * Setup after Foundry is ready
+ * Complete setup after Foundry is ready
+ * Core functionality and API are already available, now complete calendar selection
  */
 Hooks.once('ready', async () => {
-  Logger.debug('Setting up module');
+  Logger.debug('Completing setup during ready - setting active calendar from settings');
 
-  // Load calendars first (without reading settings)
-  await calendarManager.loadBuiltInCalendars();
+  // Migration: Cache existing active calendar data for synchronous loading
+  // This is needed for users upgrading to the new settings-based caching system
+  try {
+    const activeCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
+    const cachedCalendarData = game.settings?.get(
+      'seasons-and-stars',
+      'activeCalendarData'
+    ) as SeasonsStarsCalendar | null;
 
-  // Register calendar-specific settings now that calendars are loaded
-  registerCalendarSettings();
+    // If we have an active calendar but no cached data, show migration dialog
+    if (
+      activeCalendarId &&
+      !cachedCalendarData &&
+      calendarManager.calendars.has(activeCalendarId)
+    ) {
+      const calendarData = calendarManager.calendars.get(activeCalendarId);
+      if (calendarData && game.user?.isGM) {
+        // Show migration dialog to GM
+        const confirmed = await new Promise<boolean>(resolve => {
+          const dialog = new foundry.applications.api.DialogV2({
+            window: {
+              title: 'Seasons & Stars: Calendar Data Migration',
+            },
+            content: `
+              <h3>Calendar Data Migration Required</h3>
+              <p>Seasons & Stars has been updated to improve compatibility with other calendar modules.</p>
+              <p>This requires migrating your current calendar data to a new storage format.</p>
+              <p><strong>This migration is safe and will not affect your calendar configuration.</strong></p>
+              <p><em>A reload will be required after migration to activate compatibility improvements.</em></p>
+              <p>Would you like to proceed with the migration now?</p>
+            `,
+            buttons: [
+              {
+                action: 'yes',
+                icon: 'fas fa-check',
+                label: 'Migrate Now',
+                callback: () => resolve(true),
+              },
+              {
+                action: 'no',
+                icon: 'fas fa-times',
+                label: 'Cancel',
+                callback: () => resolve(false),
+              },
+            ],
+            default: 'yes',
+            close: () => resolve(false),
+          });
+          dialog.render(true);
+        });
+
+        if (confirmed) {
+          await game.settings.set('seasons-and-stars', 'activeCalendarData', calendarData);
+          Logger.info(`Migration: Successfully cached calendar data for ${activeCalendarId}`);
+
+          // Log calendar data structure for debugging
+          Logger.debug('Calendar data structure:', calendarData);
+
+          const calendarName = calendarData.name || calendarData.id || 'Unknown Calendar';
+          ui.notifications?.info(
+            `Calendar data migration completed for "${calendarName}". Please reload Foundry for compatibility improvements to take effect.`
+          );
+        } else {
+          Logger.warn('Migration declined by user - calendar data not cached');
+          ui.notifications?.warn(
+            'Calendar data migration was declined. Some compatibility features may not work until migration is completed.'
+          );
+        }
+      } else if (calendarData && !game.user?.isGM) {
+        // Non-GM users just see a notification
+        Logger.debug(`Migration needed for ${activeCalendarId} but user is not GM`);
+        ui.notifications?.info(
+          'A GM needs to complete a calendar data migration for full compatibility with other modules.'
+        );
+      }
+    }
+  } catch (error) {
+    Logger.warn(
+      'Migration failed to cache calendar data:',
+      error instanceof Error ? error : new Error(String(error))
+    );
+    ui.notifications?.error(
+      'Calendar data migration failed. Please check the console for details.'
+    );
+  }
 
   // Complete calendar manager initialization (read settings and set active calendar)
+  // This must happen during ready hook since it sets world-level settings
   await calendarManager.completeInitialization();
-
-  // Initialize time advancement service and register combat hooks
-  const timeAdvancementService = TimeAdvancementService.getInstance();
-  timeAdvancementService.initialize();
-
-  // Reset seasons warning flag when calendar changes
-  Hooks.on('seasons-stars:calendarChanged', () => {
-    resetSeasonsWarningState();
-  });
-
-  // Initialize notes manager
-  await notesManager.initialize();
-
-  // Register notes cleanup hooks for external journal deletion
-  registerNotesCleanupHooks();
-
-  // Register with Memory Mage if available
-  registerMemoryMageIntegration();
-
-  // Expose API
-  setupAPI();
-
-  // Note: Errors and Echoes registration moved to top-level hook for better timing
-
-  // Register UI component hooks
-  CalendarWidget.registerHooks();
-  CalendarMiniWidget.registerHooks();
-  CalendarGridWidget.registerHooks();
-  CalendarMiniWidget.registerSmallTimeIntegration();
-
-  // Register widget factories for CalendarWidgetManager
-  Logger.debug('Registering widget factories');
-  CalendarWidgetManager.registerWidget(
-    'main',
-    () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
-  );
-  CalendarWidgetManager.registerWidget(
-    'mini',
-    () => new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
-  );
-  CalendarWidgetManager.registerWidget(
-    'grid',
-    () => new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
-  );
-
-  // Scene controls registered at top level for timing requirements
-  Logger.debug('Registering macros');
-  SeasonsStarsSceneControls.registerMacros();
 
   // Show default widget if enabled in settings
   if (game.settings?.get('seasons-and-stars', 'showTimeWidget')) {
@@ -341,16 +530,10 @@ Hooks.once('ready', async () => {
     }
   }
 
-  // Fire ready hook for compatibility modules
-  Hooks.callAll('seasons-stars:ready', {
-    manager: calendarManager,
-    api: game.seasonsStars?.api,
-  });
-
   // Show deprecation warning to GMs
   await CalendarDeprecationDialog.showWarningIfNeeded();
 
-  Logger.info('Module ready');
+  Logger.info('UI setup complete - module fully ready');
 });
 
 /**
@@ -377,6 +560,17 @@ function registerSettings(): void {
         await calendarManager.setActiveCalendar(value);
       }
     },
+  });
+
+  // Store the full calendar JSON for the active calendar (for synchronous loading)
+  game.settings.register('seasons-and-stars', 'activeCalendarData', {
+    name: 'Active Calendar Data',
+    hint: 'Cached calendar data for immediate loading',
+    scope: 'world',
+    config: false, // Hidden setting
+    type: Object,
+    default: null,
+    requiresReload: true, // Changes require reload since this affects init hook behavior
   });
 
   // File picker calendar setting - allows users to load custom calendar files
@@ -451,6 +645,22 @@ function registerSettings(): void {
     onChange: () => {
       Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowDayOfWeek');
     },
+  });
+
+  game.settings.register('seasons-and-stars', 'miniWidgetPosition', {
+    name: 'Mini Widget Position',
+    scope: 'client',
+    config: false,
+    type: Object,
+    default: { top: null, left: null },
+  });
+
+  game.settings.register('seasons-and-stars', 'miniWidgetPinned', {
+    name: 'Mini Widget Pinned',
+    scope: 'client',
+    config: false,
+    type: Boolean,
+    default: false,
   });
 
   game.settings.register('seasons-and-stars', 'miniWidgetCanonicalMode', {
@@ -552,7 +762,7 @@ function registerSettings(): void {
 
   game.settings.register('seasons-and-stars', 'timeAdvancementRatio', {
     name: 'Time Advancement Ratio',
-    hint: 'Game time advancement per real-time second. 1.0 = real time, 2.0 = 2x speed, 0.5 = half speed. Range: 0.1 to 100.',
+    hint: 'Game time advancement ratio. 1.0 = real time (10s real = 10s game), 2.0 = 2x speed (10s real = 20s game), 0.5 = half speed (10s real = 5s game). Range: 0.1 to 100.',
     scope: 'world',
     config: true,
     type: Number,

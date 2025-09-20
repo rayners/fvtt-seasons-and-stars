@@ -217,5 +217,34 @@
     "hoursInDay": 24,
     "minutesInHour": 60,
     "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "common": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} CY",
+    "short": "{{ss-day}} {{ss-month format=\"abbr\"}} {{year}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} CY",
+    "date": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} CY",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}}",
+    "festival": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}} {{year}} - {{ss-season format=\"name\"}}",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}} in the {{year}} year of the Common Year",
+
+    "common-intercalary": "{{intercalary}}, {{year}} CY",
+    "short-intercalary": "{{intercalary}} {{year}}",
+    "long-intercalary": "{{intercalary}}, {{year}} CY",
+    "date-intercalary": "{{intercalary}}, {{year}} CY",
+    "datetime-intercalary": "{{intercalary}}, {{year}} CY at {{ss-dateFmt \"time\"}}",
+    "festival-intercalary": "{{intercalary}}, {{year}} CY",
+    "formal-intercalary": "{{intercalary}} in the {{year}} year of the Common Year",
+
+    "widgets": {
+      "mini": "{{ss-day}} {{ss-month format=\"abbr\"}}",
+      "main": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}",
+
+      "mini-intercalary": "{{intercalary}}",
+      "main-intercalary": "{{intercalary}}, {{year}} CY",
+      "grid-intercalary": "{{intercalary}}"
+    }
   }
 }

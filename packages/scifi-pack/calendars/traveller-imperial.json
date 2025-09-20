@@ -93,10 +93,24 @@
     "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}} Imperial Standard Time",
     "administrative": "Imperial Date: {{year}}.{{ss-day format=\"pad\"}}",
     "formal": "The {{ss-day format=\"ordinal\"}} day of the Imperial year {{year}}",
+
+    "imperial-intercalary": "{{intercalary}}-{{year}}",
+    "standard-intercalary": "{{intercalary}} of {{year}}",
+    "long-intercalary": "{{intercalary}}, {{year}}",
+    "short-intercalary": "{{intercalary}}/{{year}}",
+    "date-intercalary": "{{intercalary}}, {{year}}",
+    "datetime-intercalary": "{{intercalary}}, {{year}} at {{ss-dateFmt \"time\"}} Imperial Standard Time",
+    "administrative-intercalary": "Imperial {{intercalary}}: {{year}}",
+    "formal-intercalary": "{{intercalary}} in the Imperial year {{year}}",
+
     "widgets": {
       "mini": "{{ss-day format=\"pad\"}}/{{year}}",
       "main": "{{ss-weekday format=\"abbr\"}}, Day {{ss-day}}",
-      "grid": "{{ss-day}}"
+      "grid": "{{ss-day}}",
+
+      "mini-intercalary": "{{intercalary}}/{{year}}",
+      "main-intercalary": "{{intercalary}}, {{year}}",
+      "grid-intercalary": "{{intercalary}}"
     }
   }
 }

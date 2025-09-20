@@ -83,10 +83,6 @@ describe('Year Boundary Intercalary Day Bug Investigation', () => {
       const wt2 = engine.dateToWorldTime(yearBoundaryDay);
       const wt3 = engine.dateToWorldTime(firstDayOfNextYear);
 
-      console.log('Last day of year:', year, 'world time:', wt1);
-      console.log('Year boundary day:', year + 1, 'world time:', wt2);
-      console.log('First day of next year:', year + 1, 'world time:', wt3);
-
       // This should be the proper sequence
       expect(wt2).toBeGreaterThan(wt1); // Year boundary should come after last day
       expect(wt3).toBeGreaterThan(wt2); // First day of next year should come after boundary
@@ -127,34 +123,12 @@ describe('Year Boundary Intercalary Day Bug Investigation', () => {
       const worldTimeA = engine.dateToWorldTime(optionA);
       const worldTimeB = engine.dateToWorldTime(optionB);
 
-      console.log('Option A (same year) world time:', worldTimeA);
-      console.log('Option B (next year) world time:', worldTimeB);
-
       // Convert back to see which interpretation the engine uses
       const convertedA = engine.worldTimeToDate(worldTimeA);
       const convertedB = engine.worldTimeToDate(worldTimeB);
 
-      console.log(
-        'Option A converts back to:',
-        convertedA.year,
-        convertedA.month,
-        convertedA.day,
-        convertedA.intercalary
-      );
-      console.log(
-        'Option B converts back to:',
-        convertedB.year,
-        convertedB.month,
-        convertedB.day,
-        convertedB.intercalary
-      );
-
       // The correct interpretation should round-trip properly
-      if (convertedA.intercalary === 'YearBoundary') {
-        console.log('Engine prefers Option A (same year association)');
-      } else if (convertedB.intercalary === 'YearBoundary') {
-        console.log('Engine prefers Option B (next year association)');
-      }
+      expect([convertedA.intercalary, convertedB.intercalary]).toContain('YearBoundary');
     });
   });
 
@@ -178,10 +152,6 @@ describe('Year Boundary Intercalary Day Bug Investigation', () => {
       // Get total days since epoch for these dates
       const totalDaysLastDay = engine.dateToWorldTime(lastDayOfYear) / (24 * 60 * 60);
       const totalDaysFirstDay = engine.dateToWorldTime(firstDayOfNextYear) / (24 * 60 * 60);
-
-      console.log('Total days for last day of year:', totalDaysLastDay);
-      console.log('Total days for first day of next year:', totalDaysFirstDay);
-      console.log('Difference:', totalDaysFirstDay - totalDaysLastDay);
 
       // The difference should account for the intercalary day
       expect(totalDaysFirstDay - totalDaysLastDay).toBe(2); // 1 day + 1 intercalary day
@@ -215,34 +185,8 @@ describe('Year Boundary Intercalary Day Bug Investigation', () => {
       // See which one round-trips correctly
       const converted1 = engine.worldTimeToDate(worldTime1);
       const converted2 = engine.worldTimeToDate(worldTime2);
-
-      console.log('End year interpretation round-trip:', {
-        original: intercalaryDayEndYear,
-        converted: {
-          year: converted1.year,
-          month: converted1.month,
-          day: converted1.day,
-          intercalary: converted1.intercalary,
-        },
-        matches:
-          converted1.year === intercalaryDayEndYear.year &&
-          converted1.month === intercalaryDayEndYear.month &&
-          converted1.intercalary === 'YearBoundary',
-      });
-
-      console.log('Next year interpretation round-trip:', {
-        original: intercalaryDayNextYear,
-        converted: {
-          year: converted2.year,
-          month: converted2.month,
-          day: converted2.day,
-          intercalary: converted2.intercalary,
-        },
-        matches:
-          converted2.year === intercalaryDayNextYear.year &&
-          converted2.month === intercalaryDayNextYear.month &&
-          converted2.intercalary === 'YearBoundary',
-      });
+      expect(converted1.intercalary).toBe('YearBoundary');
+      expect(converted2.intercalary).toBe('YearBoundary');
     });
   });
 });
@@ -265,28 +209,10 @@ describe('Bug Reproduction - Real User Scenario', () => {
       intercalary: 'YearBoundary',
     };
 
-    try {
-      const worldTime = engine.dateToWorldTime(userIntent);
-      const converted = engine.worldTimeToDate(worldTime);
+    const worldTime = engine.dateToWorldTime(userIntent);
+    const converted = engine.worldTimeToDate(worldTime);
 
-      console.log('User intent conversion result:', {
-        input: userIntent,
-        worldTime: worldTime,
-        output: {
-          year: converted.year,
-          month: converted.month,
-          day: converted.day,
-          intercalary: converted.intercalary,
-        },
-        success: converted.intercalary === 'YearBoundary',
-      });
-
-      // If this fails, it explains why user can't create the intercalary day
-      expect(converted.intercalary).toBe('YearBoundary');
-    } catch (error) {
-      console.log('User intent failed with error:', error);
-      // If this throws, that could be the problem the user is experiencing
-      throw error;
-    }
+    // If this fails, it explains why user can't create the intercalary day
+    expect(converted.intercalary).toBe('YearBoundary');
   });
 });

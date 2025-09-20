@@ -198,10 +198,6 @@ export class DateFormatter {
 
       // Validate template output - detect malformed templates that produce empty/invalid output
       if (this.isInvalidTemplateOutput(result, template)) {
-        console.debug('[S&S] Template produced invalid output, falling back to basic format:', {
-          template,
-          result,
-        });
         return this.getBasicFormat(date);
       }
 
@@ -223,6 +219,28 @@ export class DateFormatter {
 
   /**
    * Format a date using a named format from calendar dateFormats
+   *
+   * Automatically selects intercalary-specific format variants for intercalary dates:
+   * - For intercalary dates, tries `${formatName}-intercalary` first
+   * - Falls back to regular `${formatName}` if intercalary variant doesn't exist
+   * - Regular dates always use the standard format
+   *
+   * @example
+   * ```typescript
+   * // Calendar dateFormats:
+   * {
+   *   "short": "{{day}} {{month}} {{year}}",
+   *   "short-intercalary": "{{intercalary}}, {{year}}"
+   * }
+   *
+   * // Regular date (15th of January)
+   * formatter.formatNamed(regularDate, 'short')
+   * // Returns: "15 January 2024"
+   *
+   * // Intercalary date (Midwinter Festival)
+   * formatter.formatNamed(intercalaryDate, 'short')
+   * // Returns: "Midwinter Festival, 2024" (uses short-intercalary)
+   * ```
    */
   formatNamed(
     date: ICalendarDate,
@@ -247,6 +265,55 @@ export class DateFormatter {
       return this.getBasicFormat(date);
     }
 
+    // Check for intercalary-specific format first if this is an intercalary date
+    // Note: Empty string is still considered intercalary, null/undefined is not
+    if (date.intercalary !== null && date.intercalary !== undefined) {
+      const intercalaryFormatName = `${formatName}-intercalary`;
+
+      // Avoid infinite recursion when an intercalary format references its base format
+      if (!visited.has(intercalaryFormatName)) {
+        const intercalaryFormat = dateFormats[intercalaryFormatName];
+
+        if (intercalaryFormat) {
+          // Handle intercalary format variants (format as object)
+          if (typeof intercalaryFormat === 'object' && !Array.isArray(intercalaryFormat)) {
+            if (variant && intercalaryFormat[variant]) {
+              const formatString = intercalaryFormat[variant];
+              const formatDisplayName = `${intercalaryFormatName}:${variant}`;
+              const newVisited = new Set(visited);
+              newVisited.add(intercalaryFormatName);
+              return this.formatWithContext(date, formatString, formatDisplayName, newVisited);
+            } else {
+              // Try 'default' or first available for intercalary format
+              const defaultFormat =
+                intercalaryFormat.default || Object.values(intercalaryFormat)[0];
+              if (defaultFormat) {
+                const newVisited = new Set(visited);
+                newVisited.add(intercalaryFormatName);
+                return this.formatWithContext(
+                  date,
+                  defaultFormat,
+                  intercalaryFormatName,
+                  newVisited
+                );
+              }
+            }
+          } else if (typeof intercalaryFormat === 'string') {
+            // Simple string intercalary format
+            const newVisited = new Set(visited);
+            newVisited.add(intercalaryFormatName);
+            return this.formatWithContext(
+              date,
+              intercalaryFormat,
+              intercalaryFormatName,
+              newVisited
+            );
+          }
+        }
+      }
+    }
+
+    // Fall back to regular format lookup if no intercalary format found
     const format = dateFormats[formatName];
 
     if (!format) {
@@ -289,6 +356,28 @@ export class DateFormatter {
 
   /**
    * Format a date using widget-specific format from calendar dateFormats
+   *
+   * Automatically selects intercalary-specific widget format variants for intercalary dates:
+   * - For intercalary dates, tries `${widgetType}-intercalary` first
+   * - Falls back to regular `${widgetType}` if intercalary variant doesn't exist
+   * - Regular dates always use the standard widget format
+   *
+   * @example
+   * ```typescript
+   * // Calendar dateFormats.widgets:
+   * {
+   *   "mini": "{{day}} {{month abbr}}",
+   *   "mini-intercalary": "{{intercalary}}"
+   * }
+   *
+   * // Regular date (15th of January)
+   * formatter.formatWidget(regularDate, 'mini')
+   * // Returns: "15 Jan"
+   *
+   * // Intercalary date (Midwinter Festival)
+   * formatter.formatWidget(intercalaryDate, 'mini')
+   * // Returns: "Midwinter Festival" (uses mini-intercalary)
+   * ```
    */
   formatWidget(date: ICalendarDate, widgetType: 'mini' | 'main' | 'grid'): string {
     const dateFormats = this.calendar.dateFormats;
@@ -297,6 +386,22 @@ export class DateFormatter {
       return this.getBasicFormat(date);
     }
 
+    // Check for intercalary-specific widget format first if this is an intercalary date
+    // Note: Empty string is still considered intercalary, null/undefined is not
+    if (date.intercalary !== null && date.intercalary !== undefined) {
+      const intercalaryWidgetType = `${widgetType}-intercalary` as keyof typeof dateFormats.widgets;
+      const intercalaryWidgetFormat = dateFormats.widgets[intercalaryWidgetType];
+
+      if (intercalaryWidgetFormat) {
+        return this.formatWithContext(
+          date,
+          intercalaryWidgetFormat,
+          `widgets.${intercalaryWidgetType}`
+        );
+      }
+    }
+
+    // Fall back to regular widget format if no intercalary format found
     const widgetFormat = dateFormats.widgets[widgetType];
 
     if (!widgetFormat) {
@@ -386,7 +491,13 @@ export class DateFormatter {
           time?: { hour: number; minute: number; second: number };
         }
   ): string {
-    // For calendars without dateFormats, return a simple format
+    // Handle intercalary days first - they should display the intercalary name, not regular date format
+    // Note: Empty string is still considered intercalary, null/undefined is not
+    if (date.intercalary !== null && date.intercalary !== undefined) {
+      return date.intercalary;
+    }
+
+    // For regular dates, use the standard format
     const monthName = this.getMonthName(date.month);
     const weekdayName = this.getWeekdayName(date.weekday);
     const dayOrdinal = this.addOrdinalSuffix(date.day);

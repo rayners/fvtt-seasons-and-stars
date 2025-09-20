@@ -53,7 +53,7 @@ export interface CalendarNoteFlags {
     created: number; // timestamp
     modified: number; // timestamp
   };
-  [moduleId: string]: any; // Module-specific data
+  [moduleId: string]: unknown; // Module-specific data
 }
 
 /**
@@ -73,6 +73,55 @@ export class NotesManager {
    */
   isInitialized(): boolean {
     return this.initialized;
+  }
+
+  /**
+   * Initialize the notes manager synchronously for immediate API availability
+   * Defers folder creation and optimization to async operations
+   */
+  initializeSync(): void {
+    if (this.initialized) return;
+
+    Logger.debug('Initializing Notes Manager synchronously');
+
+    // Initialize storage system (this is synchronous)
+    try {
+      this.storage.initialize();
+    } catch (error) {
+      Logger.error(
+        'Storage initialization failed during sync init:',
+        error instanceof Error ? error : new Error(String(error))
+      );
+    }
+
+    // Mark as initialized so basic note operations work
+    this.initialized = true;
+
+    // Schedule async initialization for folder creation and optimization
+    // Use queueMicrotask for better timing guarantees than setTimeout
+    queueMicrotask(async () => {
+      try {
+        await this.initializeNotesFolder();
+
+        // Check if we have a large collection and optimize accordingly
+        const noteCount = this.getAllCalendarNotes().length;
+        if (noteCount > 500) {
+          Logger.info(
+            `Large note collection detected (${noteCount} notes) - applying optimizations`
+          );
+          await this.storage.optimizeForLargeCollections();
+        }
+
+        Logger.info('Notes Manager async initialization complete');
+      } catch (error) {
+        Logger.error(
+          'Failed to complete notes manager async initialization:',
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+    });
+
+    Logger.debug('Notes Manager synchronous initialization complete');
   }
 
   /**
@@ -184,7 +233,7 @@ export class NotesManager {
     }
 
     // Build update object
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
     // Update basic properties
     if (data.title !== undefined) {
@@ -192,7 +241,7 @@ export class NotesManager {
     }
 
     // Update flags
-    const flagUpdates: any = {
+    const flagUpdates: Record<string, unknown> = {
       modified: Date.now(),
     };
 
@@ -301,7 +350,7 @@ export class NotesManager {
   /**
    * Set module-specific data on a note
    */
-  async setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void> {
+  async setNoteModuleData(noteId: string, moduleId: string, data: unknown): Promise<void> {
     const journal = game.journal?.get(noteId);
     if (!journal) {
       throw new Error(`Note ${noteId} not found`);
@@ -316,7 +365,7 @@ export class NotesManager {
   /**
    * Get module-specific data from a note
    */
-  getNoteModuleData(noteId: string, moduleId: string): any {
+  getNoteModuleData(noteId: string, moduleId: string): unknown {
     const journal = game.journal?.get(noteId);
     if (!journal) return null;
 
@@ -338,7 +387,10 @@ export class NotesManager {
     const existingFolder = game.folders?.find(
       f =>
         f.type === 'JournalEntry' &&
-        (f as any).getFlag?.('seasons-and-stars', 'notesFolder') === true
+        (f as { getFlag?: (scope: string, key: string) => unknown }).getFlag?.(
+          'seasons-and-stars',
+          'notesFolder'
+        ) === true
     );
 
     if (existingFolder) {
@@ -404,9 +456,15 @@ export class NotesManager {
   /**
    * Get storage statistics for debugging
    */
-  getStorageStats(): any {
+  getStorageStats(): { totalNotes: number; indexSize: number; cacheSize: number } | null {
     if (!this.initialized) return null;
-    return this.storage.getCacheStats();
+
+    const stats = this.storage.getCacheStats();
+    return {
+      totalNotes: stats.size || 0,
+      indexSize: stats.maxSize || 0,
+      cacheSize: stats.size || 0,
+    };
   }
 
   /**

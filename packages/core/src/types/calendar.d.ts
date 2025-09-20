@@ -109,7 +109,7 @@ export type CalendarIntercalary = {
   name: string;
   days?: number;
   leapYearOnly: boolean;
-  countsForWeekdays: boolean;
+  countsForWeekdays?: boolean;
   description?: string;
   translations?: {
     [languageCode: string]: {
@@ -122,7 +122,7 @@ export interface CalendarSeason {
   name: string;
   description?: string;
   startMonth: number;
-  startDay: number;
+  startDay?: number;
   endMonth?: number;
   icon?: string;
   color?: string;
@@ -203,6 +203,7 @@ export interface CalendarDate extends CalendarDateData {
   toLongString(): string;
   toDateString(): string;
   toTimeString(): string;
+  countsForWeekdays(): boolean;
 }
 
 export interface CalendarCalculation {

@@ -7,19 +7,29 @@
 /// <reference path="test-types.d.ts" />
 
 import { vi, beforeEach, afterEach } from 'vitest';
+
 // Preserve the original console for restoration between tests
 const originalConsole = globalThis.console;
+let logSpy: ReturnType<typeof vi.spyOn>;
+let infoSpy: ReturnType<typeof vi.spyOn>;
+let debugSpy: ReturnType<typeof vi.spyOn>;
 let warnSpy: ReturnType<typeof vi.spyOn>;
 let errorSpy: ReturnType<typeof vi.spyOn>;
 
-// Silence console warnings and errors during tests to keep output clean
+// Silence console output during tests to keep logs clean
 beforeEach(() => {
   globalThis.console = originalConsole;
+  logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+  infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+  debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
   warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {
+  logSpy.mockRestore();
+  infoSpy.mockRestore();
+  debugSpy.mockRestore();
   warnSpy.mockRestore();
   errorSpy.mockRestore();
 });
@@ -179,8 +189,8 @@ class MockHooks {
         if (callbackResult === false) {
           result = false;
         }
-      } catch (error) {
-        console.warn(`Hook callback error for ${event}:`, error);
+      } catch {
+        // Ignore hook callback errors to keep test output clean
       }
     }
     return result;
@@ -202,11 +212,11 @@ class MockLogger {
   static info(..._args: any[]): void {
     // Silent in tests
   }
-  static warn(...args: any[]): void {
-    console.warn(...args);
+  static warn(..._args: any[]): void {
+    // Silent in tests
   }
-  static error(...args: any[]): void {
-    console.error(...args);
+  static error(..._args: any[]): void {
+    // Silent in tests
   }
 }
 

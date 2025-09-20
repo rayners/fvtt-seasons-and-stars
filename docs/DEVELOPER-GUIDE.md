@@ -266,6 +266,71 @@ Define advanced formats in your calendar JSON:
 }
 ```
 
+### Intercalary Day Formatting
+
+_Added in v0.14.0_
+
+**Automatic `-intercalary` Format Selection**
+
+Seasons & Stars automatically provides specialized formatting for intercalary days (special days outside the normal calendar flow). For any named format, you can define an `-intercalary` variant that will be automatically selected when formatting intercalary dates.
+
+**Format Resolution Priority:**
+
+1. For intercalary dates: `${formatName}-intercalary` (if exists)
+2. Fallback: `${formatName}` (standard format)
+3. For regular dates: Always uses `${formatName}`
+
+**Basic Example:**
+
+```json
+{
+  "dateFormats": {
+    "short": "{{day}} {{month}} {{year}}",
+    "short-intercalary": "{{intercalary}}, {{year}}",
+    "long": "{{weekday}}, {{day}} {{month}} {{year}}",
+    "long-intercalary": "{{intercalary}} ({{year}})",
+    "widgets": {
+      "mini": "{{day}}/{{month}}",
+      "mini-intercalary": "{{intercalary}}",
+      "main": "{{weekday}}, {{day}} {{month}}",
+      "main-intercalary": "{{intercalary}}, {{year}}"
+    }
+  }
+}
+```
+
+**Results:**
+
+- Regular date: `formatter.formatNamed(date, 'short')` → `"15 January 2024"`
+- Intercalary date: `formatter.formatNamed(date, 'short')` → `"Midwinter Festival, 2024"`
+
+**Advanced Intercalary Templates:**
+
+```json
+{
+  "dateFormats": {
+    "formal": "{{weekday}}, the {{day format=\"ordinal\"}} of {{month}}, {{year}}",
+    "formal-intercalary": "{{intercalary}}, observed on the {{day format=\"ordinal\"}} day, {{year}}",
+    "diplomatic": "In the {{year format=\"ordinal\"}} year of the realm, {{month}} {{day}}",
+    "diplomatic-intercalary": "In the {{year format=\"ordinal\"}} year of the realm, the {{intercalary}} observance"
+  }
+}
+```
+
+**Backward Compatibility:**
+
+The traditional `{{#if intercalary}}...{{/if}}` approach continues to work:
+
+```json
+{
+  "dateFormats": {
+    "mixed": "{{#if intercalary}}{{intercalary}} (Special Day){{else}}{{day}} {{month}} {{year}}{{/if}}"
+  }
+}
+```
+
+**When both approaches exist, `-intercalary` formats take precedence**, allowing for cleaner calendar definitions while maintaining compatibility with existing calendars.
+
 ### Calendar Management
 
 #### `getActiveCalendar()`
@@ -632,6 +697,12 @@ await integration.api.advanceDays(1);
 integration.widgets.main?.addSidebarButton('weather', 'fas fa-cloud', 'Weather', () => {
   console.log('Weather button clicked');
 });
+
+// Mini widget supports drag-and-drop positioning
+// Position is automatically saved when users drag the widget
+// Right-click to unpin and return to automatic positioning
+integration.widgets.mini?.show(); // Show mini widget
+integration.widgets.mini?.toggle(); // Toggle mini widget visibility
 
 // Hook system
 integration.hooks.onDateChanged(event => {
@@ -1061,6 +1132,9 @@ interface CalendarCanonicalHour {
 
 ### Calendar Structure
 
+> The engine substitutes Gregorian defaults and logs a warning when any
+> section is omitted.
+
 ```typescript
 interface SeasonsStarsCalendar {
   id: string;
@@ -1072,30 +1146,30 @@ interface SeasonsStarsCalendar {
     };
   };
 
-  year: {
+  year?: {
     epoch: number; // Starting year for calculations
     currentYear: number; // Default current year
     prefix: string; // Text before year (e.g., "")
     suffix: string; // Text after year (e.g., " CE")
     startDay: number; // Which weekday the epoch starts on
-  };
+  }; // Defaults to Gregorian year if omitted
 
-  months: CalendarMonth[];
-  weekdays: CalendarWeekday[];
-  intercalary: CalendarIntercalary[]; // Special days
+  months?: CalendarMonth[]; // Defaults to Gregorian months
+  weekdays?: CalendarWeekday[]; // Defaults to 7-day week
+  intercalary?: CalendarIntercalary[]; // Defaults to none
 
-  leapYear: {
+  leapYear?: {
     rule: 'none' | 'gregorian' | 'custom';
     interval?: number; // For custom rules
     month?: string; // Which month gets extra days
     extraDays?: number; // How many extra days
-  };
+  }; // Defaults to Gregorian; use { rule: 'none' } to disable
 
-  time: {
+  time?: {
     hoursInDay: number; // Usually 24
     minutesInHour: number; // Usually 60
     secondsInMinute: number; // Usually 60
-  };
+  }; // Defaults to 24/60/60
 
   // Optional canonical hours for time period naming (added in v0.8.0)
   canonicalHours?: CalendarCanonicalHour[];
