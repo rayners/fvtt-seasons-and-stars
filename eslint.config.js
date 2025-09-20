@@ -22,12 +22,12 @@ export default [
     },
   },
 
-  // Core test files with TypeScript project
+  // Core test files without TypeScript project (simpler unused var checking)
   {
     files: ['packages/core/test/**/*.{js,ts}'],
     languageOptions: {
       parserOptions: {
-        project: './tsconfig.test.json',
+        project: null, // Disable TypeScript project checking
       },
     },
     rules: {
