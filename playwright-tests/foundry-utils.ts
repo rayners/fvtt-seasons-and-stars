@@ -307,6 +307,65 @@ export class FoundryUtils {
       .catch(() => undefined);
   }
 
+  async getSimpleCalendarBridgeState() {
+    return await this.page.evaluate(() => {
+      const simple = (window as any).SimpleCalendar;
+      const globalSimple = (globalThis as any).SimpleCalendar;
+      const game = (window as any).game;
+
+      const module = game?.modules?.get?.('foundryvtt-simple-calendar');
+      const compatModule = game?.modules?.get?.('foundryvtt-simple-calendar-compat');
+
+      const safeCall = <T>(fn?: () => T): T | null => {
+        try {
+          return typeof fn === 'function' ? fn() ?? null : null;
+        } catch (error) {
+          console.warn('SimpleCalendar bridge evaluation failed', error);
+          return null;
+        }
+      };
+
+      const currentDate = safeCall(() => simple?.api?.getCurrentDate());
+      const display = safeCall(() => simple?.api?.currentDateTimeDisplay());
+      const calendar = safeCall(() => simple?.api?.getCurrentCalendar());
+      const timestamp = safeCall(() => simple?.api?.timestamp());
+      const worldTime = game?.time?.worldTime ?? null;
+
+      const iconsKeys = simple?.Icons ? Object.keys(simple.Icons) : [];
+
+      return {
+        exists: !!simple,
+        globalSame: simple && globalSimple ? simple === globalSimple : false,
+        apiMethods: {
+          timestamp: typeof simple?.api?.timestamp,
+          getCurrentDate: typeof simple?.api?.getCurrentDate,
+          currentDateTimeDisplay: typeof simple?.api?.currentDateTimeDisplay,
+          getCurrentCalendar: typeof simple?.api?.getCurrentCalendar,
+          changeDate: typeof simple?.api?.changeDate,
+        },
+        hooks: simple?.Hooks ?? null,
+        iconsCount: iconsKeys.length,
+        module: module
+          ? { id: module.id, active: module.active, title: module.title }
+          : null,
+        compatModule: compatModule
+          ? { id: compatModule.id, active: compatModule.active, title: compatModule.title }
+          : null,
+        currentDate,
+        display,
+        calendar: calendar
+          ? {
+              id: calendar.id ?? null,
+              name: calendar.name ?? calendar.label ?? null,
+              months: Array.isArray(calendar.months) ? calendar.months.length : null,
+            }
+          : null,
+        timestamp,
+        worldTime,
+      };
+    });
+  }
+
   /**
    * Get current calendar state from the widget
    * Based on observed widget structure

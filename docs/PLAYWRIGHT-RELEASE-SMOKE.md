@@ -8,6 +8,7 @@ The release smoke suite provides a fast, high-confidence check of the module's c
 - **Quick time advancement** – ensure the one-hour button updates `game.time.worldTime` and the visible clock.
 - **Calendar grid access** – open the grid, confirm navigation works, and validate the active day highlight.
 - **Mini widget display** – surface the compact widget and verify it shows the current date/time snapshot.
+- **Simple Calendar bridge** – ensure `window.SimpleCalendar` exposes the compatibility API, hooks, and fake module registration.
 - **Note authoring** – confirm the GM can open the note creation dialog and required fields are present.
 - **Player permissions** – validate the player view remains read-only and hides GM-only controls.
 

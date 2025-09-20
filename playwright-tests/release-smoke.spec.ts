@@ -100,6 +100,43 @@ test.describe('Release Core Smoke Suite', () => {
     });
   });
 
+  test('@release-core Simple Calendar compatibility bridge active', async ({ page }) => {
+    await test.step('Login as Gamemaster', async () => {
+      await foundryUtils.loginAndWait('Gamemaster');
+    });
+
+    const bridgeState = await test.step('Capture Simple Calendar bridge state', async () => {
+      return await foundryUtils.getSimpleCalendarBridgeState();
+    });
+
+    expect(bridgeState?.exists).toBe(true);
+    expect(bridgeState?.globalSame).toBe(true);
+
+    expect(bridgeState?.module?.active).toBe(true);
+    expect(bridgeState?.compatModule?.active).toBe(true);
+
+    expect(bridgeState?.apiMethods?.timestamp).toBe('function');
+    expect(bridgeState?.apiMethods?.getCurrentDate).toBe('function');
+    expect(bridgeState?.apiMethods?.currentDateTimeDisplay).toBe('function');
+    expect(bridgeState?.apiMethods?.getCurrentCalendar).toBe('function');
+
+    expect(bridgeState?.hooks?.Init).toBe('simple-calendar-init');
+    expect(bridgeState?.hooks?.DateTimeChange).toBe('simple-calendar-date-time-change');
+    expect(bridgeState?.hooks?.ClockStartStop).toBe('simple-calendar-clock-start-stop');
+
+    expect(bridgeState?.iconsCount ?? 0).toBeGreaterThan(0);
+    expect(bridgeState?.currentDate).toBeTruthy();
+    expect(bridgeState?.display).toBeTruthy();
+    expect(bridgeState?.calendar?.months ?? 0).toBeGreaterThan(0);
+
+    if (
+      typeof bridgeState?.timestamp === 'number' &&
+      typeof bridgeState?.worldTime === 'number'
+    ) {
+      expect(Math.abs(bridgeState.timestamp - bridgeState.worldTime)).toBeLessThanOrEqual(1);
+    }
+  });
+
   test('@release-core Calendar grid opens and navigates', async ({ page }) => {
     await test.step('Login as Gamemaster', async () => {
       await foundryUtils.loginAndWait('Gamemaster');
