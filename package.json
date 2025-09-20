@@ -32,6 +32,7 @@
     "test:headless:headed": "playwright test --config packages/core/test-headless/headless-test.config.ts --headed",
     "test:headless:debug": "playwright test --config packages/core/test-headless/headless-test.config.ts --debug",
     "test:headless:ui": "playwright test --config packages/core/test-headless/headless-test.config.ts --ui",
+    "test:playwright:core": "playwright test --grep \"@release-core\" --project chromium",
     "prevalidate:calendars": "npm run prebuild --workspaces --if-present",
     "validate:calendars": "npm run validate:calendars --workspaces --if-present",
     "prebuild:all": "npm run prebuild --workspaces --if-present",

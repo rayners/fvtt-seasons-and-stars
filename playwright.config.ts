@@ -29,6 +29,9 @@ export default defineConfig({
     /* Base URL for FoundryVTT instance */
     baseURL: 'http://localhost:30000',
 
+    /* Run headless by default for local smoke runs */
+    headless: true,
+
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
 
