@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.16.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.15.0...seasons-and-stars-v0.16.0) (2025-09-20)
+
+
+### Features
+
+* add headless testing architecture with Playwright ([#237](https://github.com/rayners/fvtt-seasons-and-stars/issues/237)) ([8e01b9d](https://github.com/rayners/fvtt-seasons-and-stars/commit/8e01b9de3d7ecdaea52526719d5b36815dd6c061))
+* **core:** add synchronous initialization for improved bridge compatibility ([#259](https://github.com/rayners/fvtt-seasons-and-stars/issues/259)) ([fd1cfb8](https://github.com/rayners/fvtt-seasons-and-stars/commit/fd1cfb8c652070ed21ab9294ea41e2b9c076a246))
+
+
+### Bug Fixes
+
+* add viewport bounds checking to mini calendar widget ([#258](https://github.com/rayners/fvtt-seasons-and-stars/issues/258)) ([1639210](https://github.com/rayners/fvtt-seasons-and-stars/commit/16392102327be001744d649cc668cdc08daeeaa3))
+
 ## [0.15.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.14.0...seasons-and-stars-v0.15.0) (2025-09-16)
 
 
