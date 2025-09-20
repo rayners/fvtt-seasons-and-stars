@@ -35,11 +35,11 @@ describe('Forbidden Lands Calendar - Season Alignment', () => {
       // Test should fail if seasons are missing - most fantasy calendars should have seasons
       expect(forbiddenLandsCalendar.seasons).toBeDefined();
       expect(Array.isArray(forbiddenLandsCalendar.seasons)).toBe(true);
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
       expect(forbiddenLandsCalendar.seasons!.length).toBeGreaterThan(0);
 
       const year = forbiddenLandsCalendar.year.currentYear + 1;
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
       forbiddenLandsCalendar.seasons!.forEach((season, index) => {
         // Test that season start aligns with month boundaries
         const seasonStartDate = { year, month: season.startMonth, day: 1 };

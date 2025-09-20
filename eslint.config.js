@@ -120,6 +120,7 @@ export default [
       '@typescript-eslint/no-unsafe-function-type': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off', // Allow non-null assertions in tests
       'no-console': 'off',
       'prefer-const': 'warn',
     },
@@ -127,7 +128,11 @@ export default [
 
   // Pack test files without TypeScript project (simpler unused var checking)
   {
-    files: ['packages/fantasy-pack/test/**/*.{js,ts}', 'packages/scifi-pack/test/**/*.{js,ts}'],
+    files: [
+      'packages/fantasy-pack/test/**/*.{js,ts}',
+      'packages/scifi-pack/test/**/*.{js,ts}',
+      'packages/pf2e-pack/test/**/*.{js,ts}',
+    ],
     languageOptions: {
       parserOptions: {
         project: null, // Disable TypeScript project checking
@@ -139,6 +144,7 @@ export default [
       '@typescript-eslint/no-unsafe-function-type': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off', // Allow non-null assertions in tests
       'no-console': 'off',
       'prefer-const': 'warn',
     },

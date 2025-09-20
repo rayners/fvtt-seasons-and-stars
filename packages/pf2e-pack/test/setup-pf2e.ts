@@ -6,7 +6,7 @@
  */
 
 /* eslint-disable @typescript-eslint/triple-slash-reference */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /// <reference path="../../core/test/test-types.d.ts" />
 
 interface PF2eEnvironmentConfig {
