@@ -170,7 +170,10 @@ export interface MoonPhaseInfo {
   phase: MoonPhase;
   phaseIndex: number;
   dayInPhase: number;
+  dayInPhaseExact: number;
   daysUntilNext: number;
+  daysUntilNextExact: number;
+  phaseProgress: number;
 }
 
 export interface CalendarCanonicalHour {
