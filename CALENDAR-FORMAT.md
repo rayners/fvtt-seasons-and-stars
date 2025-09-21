@@ -39,6 +39,7 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
   "leapYear": {
     "rule": "none",
     "interval": 4,
+    "offset": 0,
     "month": "February",
     "extraDays": 1
   },
@@ -610,6 +611,7 @@ For calendars with lunar cycles, add moon definitions with phase tracking:
 ### Cross-References
 
 - `leapYear.month`: Must match a month name
+- `leapYear.offset`: Optional number indicating how many years to subtract before applying the interval rule (defaults to 0)
 - `intercalary[].after`: Must match a month name
 - All month and weekday names must be unique within their arrays
 

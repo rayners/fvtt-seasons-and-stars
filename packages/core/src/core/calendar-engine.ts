@@ -917,7 +917,7 @@ export class CalendarEngine {
     const leapYear = this.calendar.leapYear;
     if (!leapYear) return false;
 
-    const { rule, interval } = leapYear;
+    const { rule, interval, offset = 0 } = leapYear;
 
     switch (rule) {
       case 'none':
@@ -927,7 +927,10 @@ export class CalendarEngine {
         return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 
       case 'custom':
-        return interval ? year % interval === 0 : false;
+        if (!interval) return false;
+        const normalizedYear = year - offset;
+        const remainder = normalizedYear % interval;
+        return (remainder + interval) % interval === 0;
 
       default:
         return false;

@@ -3,7 +3,7 @@
   "translations": {
     "en": {
       "label": "Golarion Calendar (Pathfinder 2e)",
-      "description": "The Absalom Reckoning calendar system used throughout Golarion, the campaign setting for Pathfinder Second Edition. Features twelve months with leap years following Gregorian rules.",
+      "description": "The Absalom Reckoning calendar system used throughout Golarion, the campaign setting for Pathfinder Second Edition. Features twelve months, Somal's synodic lunar cycle, and the traditional eight-year leap year pattern.",
       "setting": "Pathfinder 2e"
     }
   },
@@ -26,11 +26,13 @@
     "currentYear": 4725,
     "prefix": "",
     "suffix": " AR",
-    "startDay": 6
+    "startDay": 4
   },
 
   "leapYear": {
-    "rule": "gregorian",
+    "rule": "custom",
+    "interval": 8,
+    "offset": 4,
     "month": "Calistril",
     "extraDays": 1
   },
@@ -153,22 +155,42 @@
   "moons": [
     {
       "name": "Somal",
-      "cycleLength": 28,
-      "firstNewMoon": { "year": 4725, "month": 1, "day": 7 },
+      "cycleLength": 29.53059,
+      "firstNewMoon": { "year": 4713, "month": 1, "day": 11 },
       "phases": [
         { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
-        { "name": "Waxing Crescent", "length": 6, "singleDay": false, "icon": "waxing-crescent" },
+        {
+          "name": "Waxing Crescent",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waxing-crescent"
+        },
         { "name": "First Quarter", "length": 1, "singleDay": true, "icon": "first-quarter" },
-        { "name": "Waxing Gibbous", "length": 6, "singleDay": false, "icon": "waxing-gibbous" },
+        {
+          "name": "Waxing Gibbous",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waxing-gibbous"
+        },
         { "name": "Full Moon", "length": 1, "singleDay": true, "icon": "full" },
-        { "name": "Waning Gibbous", "length": 6, "singleDay": false, "icon": "waning-gibbous" },
+        {
+          "name": "Waning Gibbous",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waning-gibbous"
+        },
         { "name": "Last Quarter", "length": 1, "singleDay": true, "icon": "last-quarter" },
-        { "name": "Waning Crescent", "length": 6, "singleDay": false, "icon": "waning-crescent" }
+        {
+          "name": "Waning Crescent",
+          "length": 6.3826475,
+          "singleDay": false,
+          "icon": "waning-crescent"
+        }
       ],
       "color": "#d0d0d0",
       "translations": {
         "en": {
-          "description": "Golarion's pale moon, witness to the struggles of mortals and gods alike"
+          "description": "Golarion's pale moon, following the synodic cycle recorded in Blood of the Moon (4713 AR)"
         }
       }
     }
@@ -177,29 +199,29 @@
   "seasons": [
     {
       "name": "Winter",
-      "startMonth": 11,
-      "endMonth": 1,
+      "startMonth": 12,
+      "endMonth": 2,
       "icon": "winter",
       "description": "The cold season when snow blankets much of Golarion's northern regions."
     },
     {
       "name": "Spring",
-      "startMonth": 2,
-      "endMonth": 4,
+      "startMonth": 3,
+      "endMonth": 5,
       "icon": "spring",
       "description": "The season of renewal when Golarion awakens from winter's grip."
     },
     {
       "name": "Summer",
-      "startMonth": 5,
-      "endMonth": 7,
+      "startMonth": 6,
+      "endMonth": 8,
       "icon": "summer",
       "description": "The warm season of growth and exploration across the Inner Sea region."
     },
     {
       "name": "Autumn",
-      "startMonth": 8,
-      "endMonth": 10,
+      "startMonth": 9,
+      "endMonth": 11,
       "icon": "fall",
       "description": "The harvest season as communities prepare for the coming winter."
     }
@@ -286,7 +308,7 @@
 
     "earth-historical": {
       "name": "Earth Historical (AD)",
-      "description": "Earth Anno Domini calendar for modern campaigns and real-world synchronization",
+      "description": "Non-canon Earth Anno Domini calendar for modern campaigns and real-world synchronization",
       "config": {
         "yearOffset": -95
       },

@@ -33,6 +33,7 @@ export interface SeasonsStarsCalendar {
   leapYear: {
     rule: 'none' | 'gregorian' | 'custom';
     interval?: number;
+    offset?: number;
     month?: string;
     extraDays?: number;
   };
