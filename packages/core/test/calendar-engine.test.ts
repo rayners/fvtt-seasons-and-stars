@@ -124,6 +124,24 @@ describe('CalendarValidator', () => {
     expect(result.errors).toHaveLength(0);
   });
 
+  it('should accept negative leap year offsets', async () => {
+    const negativeOffsetCalendar: SeasonsStarsCalendar = {
+      ...simpleCalendar,
+      id: 'negative-offset',
+      leapYear: {
+        rule: 'custom',
+        interval: 6,
+        offset: -2,
+        month: 'Month2',
+        extraDays: 1,
+      },
+    };
+
+    const result = await CalendarValidator.validate(negativeOffsetCalendar);
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
   it('should reject invalid calendar', async () => {
     const invalid = { id: 'test' }; // Missing required fields
     const result = await CalendarValidator.validate(invalid);

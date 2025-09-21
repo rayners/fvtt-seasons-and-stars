@@ -3,7 +3,7 @@
   "translations": {
     "en": {
       "label": "Golarion Calendar (Pathfinder 2e)",
-      "description": "The Absalom Reckoning calendar system used throughout Golarion, the campaign setting for Pathfinder Second Edition. Features twelve months, Somal's synodic lunar cycle, and the traditional eight-year leap year pattern.",
+      "description": "The Absalom Reckoning calendar system used throughout Golarion, the campaign setting for Pathfinder Second Edition. Features twelve months, Somal's synodic lunar cycle, and the traditional eight-year leap year pattern. Calistril's extra day appears in years congruent to 4 AR modulo 8 (4708, 4716, 4724, ...), matching Absalom Reckoning almanacs by applying a +4 leap-year offset.",
       "setting": "Pathfinder 2e"
     }
   },
