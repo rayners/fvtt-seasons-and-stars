@@ -15,7 +15,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../../core/src/core/calendar-engine';
 import { CalendarManager } from '../../core/src/core/calendar-manager';
-import { TimeConverter } from '../../core/src/core/time-converter';
 import { setupFoundryEnvironment } from '../../core/test/setup';
 import golarionCalendarData from '../calendars/golarion-pf2e.json';
 import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
@@ -29,7 +28,7 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
   });
 
   describe('Imperial Calendar Year Offset', () => {
-    it('should have correct year offset of 7200 for Imperial Calendar variant', () => {
+    it('should have correct year offset of 5200 for Imperial Calendar variant', () => {
       // Load the Golarion calendar
       const calendar = golarionCalendarData as unknown as SeasonsStarsCalendar;
       calendarManager.loadCalendar(calendar);
@@ -37,7 +36,7 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
       // Get the Imperial Calendar variant config
       const imperialVariant = calendar.variants?.['imperial-calendar'];
       expect(imperialVariant).toBeDefined();
-      expect(imperialVariant?.config?.yearOffset).toBe(7200);
+      expect(imperialVariant?.config?.yearOffset).toBe(5200);
     });
 
     it('should show year 7225 IC when base calendar is at 4725 AR', () => {
@@ -47,66 +46,66 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
       // The base calendar should be at year 4725 AR
       expect(calendar.year.currentYear).toBe(4725);
 
-      // Imperial Calendar variant should have yearOffset of 7200
+      // Imperial Calendar variant should have yearOffset of 5200
       const imperialVariant = calendar.variants?.['imperial-calendar'];
-      expect(imperialVariant?.config?.yearOffset).toBe(7200);
+      expect(imperialVariant?.config?.yearOffset).toBe(5200);
 
       // When applied, this should result in year 7225 IC (4725 + 2500)
-      // Note: The yearOffset is the epoch difference, so:
-      // Base epoch: 2700, Imperial epoch: 7200
-      // Difference: 7200 - 2700 = 4500 (but this is wrong, should be 2500)
-      // Actually, looking at the calculation: Imperial year = base year + (imperial epoch - base epoch)
-      // So: 4725 + (7200 - 2700) = 4725 + 4500 = 9225
-      // But that's not right either. Let me check the actual implementation...
-
-      // Actually, the year offset in variants adds to the epoch, not the current year
-      // So with base epoch 2700 and yearOffset 7200:
-      // Imperial epoch = 7200
+      // The yearOffset mechanics work as follows:
+      // Base epoch: 2700, Imperial epoch: 5200
+      // Difference: 5200 - 2700 = 2500 years
       // Imperial current year = base current year + (imperial epoch - base epoch)
-      // = 4725 + (7200 - 2700) = 4725 + 4500 = 9225
-
-      // But according to the issue, it should be 2500 years after standard
-      // So the correct calculation should be:
-      // Imperial year = 4725 + 2500 = 7225
-      // Which means the epoch difference should be 2500
-      // So imperial epoch should be 2700 + 2500 = 5200
-
-      // Wait, let's recalculate:
-      // If the Imperial Calendar is 2500 years after Golarion standard
-      // And Golarion is at year 4725 AR with epoch 2700
-      // Then Imperial should be at year 7225 IC
-      // The epoch offset should make this work out correctly
+      // = 4725 + (5200 - 2700) = 4725 + 2500 = 7225 IC
     });
 
-    it('should calculate correct year difference between AR and IC variants', () => {
+    it('should calculate correct year difference between AR and IC variants using real calendars', () => {
+      const calendar = golarionCalendarData as unknown as SeasonsStarsCalendar;
+      calendarManager.loadCalendar(calendar);
+
+      // Get both variants from the manager - these are the real calendar instances
+      const absalomCalendar = calendarManager.getCalendar('golarion-pf2e(absalom-reckoning)');
+      const imperialCalendar = calendarManager.getCalendar('golarion-pf2e(imperial-calendar)');
+
+      expect(absalomCalendar).toBeDefined();
+      expect(imperialCalendar).toBeDefined();
+
+      // Check the year values directly from the calendar objects
+      // These are the "currentYear" values that represent the starting year
+      expect(absalomCalendar!.year.currentYear).toBe(4725); // AR starts at 4725
+      expect(imperialCalendar!.year.currentYear).toBe(7225); // IC should be 4725 + 2500 = 7225
+
+      // The year difference should be exactly 2500
+      const yearDifference = imperialCalendar!.year.currentYear - absalomCalendar!.year.currentYear;
+      expect(yearDifference).toBe(2500);
+    });
+
+    it('should maintain 2500 year difference when converting worldTime to dates', () => {
       const calendar = golarionCalendarData as unknown as SeasonsStarsCalendar;
       calendarManager.loadCalendar(calendar);
 
       // Get both variants
-      const absalomVariant = calendarManager.calendars.get('golarion-pf2e(absalom-reckoning)');
-      const imperialVariant = calendarManager.calendars.get('golarion-pf2e(imperial-calendar)');
-
-      expect(absalomVariant).toBeDefined();
-      expect(imperialVariant).toBeDefined();
+      const absalomCalendar = calendarManager.getCalendar('golarion-pf2e(absalom-reckoning)');
+      const imperialCalendar = calendarManager.getCalendar('golarion-pf2e(imperial-calendar)');
 
       // Create engines for both variants
-      const absalomEngine = new CalendarEngine(absalomVariant!);
-      const imperialEngine = new CalendarEngine(imperialVariant!);
+      const absalomEngine = new CalendarEngine(absalomCalendar!);
+      const imperialEngine = new CalendarEngine(imperialCalendar!);
 
-      // Set world time to 0 (beginning of time)
-      (globalThis as any).game.time.worldTime = 0;
+      // Test with worldTime = 0
+      const absalomDate = absalomEngine.worldTimeToDate(0);
+      const imperialDate = imperialEngine.worldTimeToDate(0);
 
-      // Convert world time to calendar dates
-      const absalomConverter = new TimeConverter(absalomEngine);
-      const imperialConverter = new TimeConverter(imperialEngine);
-
-      const absalomDate = absalomConverter.toCalendarDate(0);
-      const imperialDate = imperialConverter.toCalendarDate(0);
-
-      // The year difference should be 2500
-      // Imperial Calendar is 2500 years after Golarion standard
+      // The year difference should always be 2500
       const yearDifference = imperialDate.year - absalomDate.year;
       expect(yearDifference).toBe(2500);
+
+      // Test with a different worldTime (1 year worth of seconds)
+      const oneYearSeconds = 365 * 24 * 60 * 60;
+      const absalomDateYear1 = absalomEngine.worldTimeToDate(oneYearSeconds);
+      const imperialDateYear1 = imperialEngine.worldTimeToDate(oneYearSeconds);
+
+      const yearDifferenceYear1 = imperialDateYear1.year - absalomDateYear1.year;
+      expect(yearDifferenceYear1).toBe(2500);
     });
 
     it('should have correct description mentioning Tian Xia instead of Cheliax', () => {
@@ -125,6 +124,39 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
 
       // The variant should not have month overrides
       expect(imperialVariant?.overrides?.months).toBeUndefined();
+    });
+
+    it('should verify specific year examples: 0 AR -> 2500 IC, 4725 AR -> 7225 IC', () => {
+      const calendar = golarionCalendarData as unknown as SeasonsStarsCalendar;
+      calendarManager.loadCalendar(calendar);
+
+      // Create engines for both variants
+      const absalomCalendar = calendarManager.getCalendar('golarion-pf2e(absalom-reckoning)');
+      const imperialCalendar = calendarManager.getCalendar('golarion-pf2e(imperial-calendar)');
+
+      const absalomEngine = new CalendarEngine(absalomCalendar!);
+      const imperialEngine = new CalendarEngine(imperialCalendar!);
+
+      // Calculate worldTime for year 0 AR (going back from year 4725)
+      // The calendar starts at year 4725, which is at worldTime 0
+      // To get to year 0 AR, we need to go back 4725 years
+      const yearsToGoBack = 4725;
+      const secondsPerYear = 365 * 24 * 60 * 60;
+      const worldTimeForYear0 = -(yearsToGoBack * secondsPerYear);
+
+      const absalomYear0 = absalomEngine.worldTimeToDate(worldTimeForYear0);
+      const imperialYear0 = imperialEngine.worldTimeToDate(worldTimeForYear0);
+
+      // At year 0 AR, Imperial should be at year 2500 IC
+      expect(absalomYear0.year).toBe(0);
+      expect(imperialYear0.year).toBe(2500);
+
+      // At worldTime 0 (the starting point), we have year 4725 AR and 7225 IC
+      const absalomCurrent = absalomEngine.worldTimeToDate(0);
+      const imperialCurrent = imperialEngine.worldTimeToDate(0);
+
+      expect(absalomCurrent.year).toBe(4725);
+      expect(imperialCurrent.year).toBe(7225);
     });
   });
 });

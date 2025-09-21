@@ -230,7 +230,7 @@
       "name": "Imperial Calendar",
       "description": "Tian Xia Imperial dating system used in the Dragon Empires",
       "config": {
-        "yearOffset": 7200
+        "yearOffset": 5200
       },
       "overrides": {
         "year": {
