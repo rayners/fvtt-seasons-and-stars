@@ -4,7 +4,7 @@ Some Seasons & Stars calendar definitions are original creations by the project 
 
 ## Traditional Fantasy Epoch
 
-_Epoch-based high fantasy calendar used by default in the Seasons & Stars core module._
+_Epoch-based high fantasy calendar included in the Seasons & Stars core module._
 
 - **Year structure:** 12 months totaling 365 days, with a leap day inserted every fourth year in **Frost-moon**.
 - **Months:**
