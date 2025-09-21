@@ -228,27 +228,13 @@
 
     "imperial-calendar": {
       "name": "Imperial Calendar",
-      "description": "Chelish Imperial dating system used in Cheliax and its territories",
+      "description": "Tian Xia Imperial dating system used in the Dragon Empires",
       "config": {
         "yearOffset": 5200
       },
       "overrides": {
         "year": {
           "suffix": " IC"
-        },
-        "months": {
-          "Abadius": {
-            "name": "First Imperial",
-            "description": "The first month of the Imperial calendar, marking the beginning of the fiscal year in Cheliax."
-          },
-          "Calistril": {
-            "name": "Second Imperial",
-            "description": "The second month of the Imperial calendar, often marked by increased devil worship ceremonies."
-          },
-          "Pharast": {
-            "name": "Third Imperial",
-            "description": "The third month of the Imperial calendar, when the Imperial bureaucracy reaches peak activity."
-          }
         }
       }
     },
