@@ -158,6 +158,7 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 | ----------- | ------ | ------- | ---------------------------------------------------- |
 | `rule`      | string | "none"  | Leap year calculation: "none", "gregorian", "custom" |
 | `interval`  | number | 4       | For custom rules: leap year every N years            |
+| `offset`    | number | 0       | Optional year offset before applying the interval    |
 | `month`     | string | -       | Which month receives extra days                      |
 | `extraDays` | number | 1       | How many extra days in leap years                    |
 
@@ -166,6 +167,7 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 - `"none"`: No leap years
 - `"gregorian"`: Standard Gregorian calendar rules (every 4 years, except centuries not divisible by 400)
 - `"custom"`: Simple interval-based (every N years)
+- `offset`: Shift the starting point of the custom cycle (e.g., `interval: 8` and `offset: 4` leap on years 4, 12, 20, ...)
 
 ### Month Definitions
 

@@ -106,6 +106,24 @@ describe('CalendarValidator', () => {
     expect(result.errors).toHaveLength(0);
   });
 
+  it('should accept custom leap year offsets', async () => {
+    const offsetCalendar: SeasonsStarsCalendar = {
+      ...simpleCalendar,
+      id: 'custom-offset',
+      leapYear: {
+        rule: 'custom',
+        interval: 8,
+        offset: 4,
+        month: 'Month1',
+        extraDays: 1,
+      },
+    };
+
+    const result = await CalendarValidator.validate(offsetCalendar);
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
   it('should reject invalid calendar', async () => {
     const invalid = { id: 'test' }; // Missing required fields
     const result = await CalendarValidator.validate(invalid);
