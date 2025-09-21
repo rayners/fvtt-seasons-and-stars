@@ -124,7 +124,7 @@ describe('Calendar Variants System', () => {
           'imperial-calendar': {
             name: 'Imperial Calendar',
             description: 'Chelish Imperial dating system',
-            config: { yearOffset: 5200 },
+            config: { yearOffset: 7200 },
             overrides: {
               year: { suffix: ' IC' },
               months: { Abadius: { name: 'First Imperial' } },
@@ -161,7 +161,7 @@ describe('Calendar Variants System', () => {
           'imperial-calendar': {
             name: 'Imperial Calendar',
             description: 'Chelish Imperial dating system',
-            config: { yearOffset: 5200 },
+            config: { yearOffset: 7200 },
             overrides: {
               year: { suffix: ' IC' },
               months: {

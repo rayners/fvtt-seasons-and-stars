@@ -351,7 +351,7 @@ describe('Calendar Year Offset Variants Bug Fix', () => {
             name: 'Imperial Calendar',
             description: 'Chelish Imperial dating system',
             config: {
-              yearOffset: 5200, // +2500 years from base
+              yearOffset: 7200, // +4500 years from base
             },
             overrides: {
               year: {
@@ -393,9 +393,9 @@ describe('Calendar Year Offset Variants Bug Fix', () => {
       expect(absalomVariant?.year.currentYear).toBe(4725);
       expect(absalomVariant?.year.suffix).toBe(' AR');
 
-      // Imperial Calendar: +2500 years from base
-      expect(imperialVariant?.year.epoch).toBe(5200);
-      expect(imperialVariant?.year.currentYear).toBe(7225); // 4725 + 2500
+      // Imperial Calendar: +4500 years from base
+      expect(imperialVariant?.year.epoch).toBe(7200);
+      expect(imperialVariant?.year.currentYear).toBe(9225); // 4725 + 4500
       expect(imperialVariant?.year.suffix).toBe(' IC');
 
       // Earth Historical: -2795 years from base
@@ -406,7 +406,7 @@ describe('Calendar Year Offset Variants Bug Fix', () => {
 
     it('should demonstrate the user-reported bug with Imperial Calendar', () => {
       // This test specifically demonstrates the bug reported in issue #141
-      // When switching from AR to IC, the year should change by +2500
+      // When switching from AR to IC, the year should change by +4500
 
       // Arrange: Simplified calendar to focus on the bug
       const golarionCalendar: SeasonsStarsCalendar = {
@@ -437,7 +437,7 @@ describe('Calendar Year Offset Variants Bug Fix', () => {
           'imperial-calendar': {
             name: 'Imperial Calendar',
             description: 'Chelish Imperial dating system',
-            config: { yearOffset: 5200 }, // This should add 2500 years
+            config: { yearOffset: 7200 }, // This should add 4500 years
             overrides: { year: { suffix: ' IC' } },
           },
         },
@@ -452,13 +452,13 @@ describe('Calendar Year Offset Variants Bug Fix', () => {
       // Assert: This demonstrates the exact bug - years should be different but aren't
       expect(arVariant?.year.currentYear).toBe(4725); // AR year
 
-      // FAILING TEST: IC should show 7225 (4725 + 2500) but currently shows 4725
-      expect(icVariant?.year.currentYear).toBe(7225); // Should be AR year + 2500
+      // FAILING TEST: IC should show 9225 (4725 + 4500) but currently shows 4725
+      expect(icVariant?.year.currentYear).toBe(9225); // Should be AR year + 4500
 
-      // The difference should be exactly 2500 years
+      // The difference should be exactly 4500 years
       const yearDifference =
         (icVariant?.year.currentYear || 0) - (arVariant?.year.currentYear || 0);
-      expect(yearDifference).toBe(2500);
+      expect(yearDifference).toBe(4500);
     });
   });
 });
