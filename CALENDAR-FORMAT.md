@@ -147,12 +147,15 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 
 ### Sources
 
-> Optional – strongly recommended for published calendars.
+> Optional – strongly recommended for published calendars to ensure data accuracy.
 
-- Provide publicly accessible URLs that validate the calendar's structure (months, weekdays, leap rules, moons, etc.).
-- Only include book or reference citations when the user supplies the exact text; do not invent bibliographic entries.
-- Leave the array empty or omit the field entirely if no authoritative source exists yet (flag for follow-up).
-- When a user provides a bibliographic reference, represent it as an object with a `citation` string and optional `notes` for context:
+The `sources` field provides references that validate the calendar's structure (months, weekdays, leap rules, moons, etc.). This helps ensure calendar data is accurate and verifiable.
+
+#### Format
+
+Sources can be either:
+1. **URL strings** - Publicly accessible web pages that document the calendar
+2. **Citation objects** - User-provided bibliographic references with optional notes
 
 ```json
 "sources": [
@@ -164,7 +167,34 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 ]
 ```
 
-- Keep citation objects exactly as supplied by the user and avoid editing the wording or formatting.
+#### Guidelines
+
+- Provide publicly accessible URLs that validate the calendar's structure
+- Only include book or reference citations when the user supplies the exact text; do not invent bibliographic entries
+- Leave the array empty or omit the field entirely if no authoritative source exists yet (flag for follow-up)
+- Keep citation objects exactly as supplied by the user and avoid editing the wording or formatting
+
+#### Validation
+
+Source URLs are automatically validated in certain environments to ensure they remain accessible:
+
+**When validation runs:**
+- During CI/CD workflows (GitHub Actions)
+- When running `npm run validate:calendars` locally
+- When the `SEASONS_AND_STARS_VALIDATE_SOURCES` environment variable is set to `"true"`
+
+**How validation works:**
+- Each URL source receives a HEAD request to verify it exists and is accessible
+- HTTP status codes 200-399 are considered successful
+- HTTP status codes 404 indicate the source no longer exists (validation error)
+- HTTP status codes 405/501 (method not allowed) are treated as warnings
+- Network errors and timeouts are treated as warnings, not errors
+- Citation objects (non-URL sources) are not validated
+
+**Controlling validation:**
+- Set `SEASONS_AND_STARS_VALIDATE_SOURCES="true"` to force validation
+- Set `SEASONS_AND_STARS_VALIDATE_SOURCES="false"` to skip validation
+- Validation is automatically disabled in browser environments
 
 ### Year Configuration
 
