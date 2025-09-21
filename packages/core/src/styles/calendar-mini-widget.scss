@@ -33,10 +33,11 @@
 
   .calendar-mini-content {
     // Match SmallTime's exact dimensions and styling
-    width: 200px; // Same width as SmallTime
-    min-width: 200px; // Ensure minimum width
-    min-height: 24px; // Similar height to SmallTime's content area, expandable for controls
-    height: auto; // Allow height to grow with time controls
+    width: auto;              // CHANGED (was: 200px)
+    min-width: 200px;         // Ensure minimum width (unchanged)
+    max-width: 90vw;          // CHANGED: prevent off-screen overflow
+    min-height: 24px;         // Similar height to SmallTime's content area, expandable for controls
+    height: auto;             // Allow height to grow with time controls
     background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
@@ -72,6 +73,7 @@
       align-items: center;
       width: 100%;
       gap: 0.15rem; // Reduced from 0.25rem for tighter layout
+      white-space: nowrap; // CHANGED: keep date + controls on one line
       
       .mini-weekday {
         color: rgba(255, 255, 255, 0.85);
