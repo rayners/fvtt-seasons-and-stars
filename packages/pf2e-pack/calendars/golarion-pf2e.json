@@ -7,6 +7,7 @@
       "setting": "Pathfinder 2e"
     }
   },
+  "sources": ["https://pathfinderwiki.com/wiki/Calendar", "https://pathfinderwiki.com/wiki/Somal"],
 
   "worldTime": {
     "interpretation": "epoch-based",

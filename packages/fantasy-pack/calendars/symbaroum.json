@@ -7,6 +7,7 @@
       "setting": "Symbaroum RPG"
     }
   },
+  "sources": ["https://symbaroumwikia.fandom.com/wiki/Calendar"],
 
   "year": {
     "epoch": 0,

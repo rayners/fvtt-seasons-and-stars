@@ -7,6 +7,7 @@
       "setting": "Forbidden Lands RPG"
     }
   },
+  "sources": ["https://forbiddenlands.fandom.com/wiki/Calendar"],
 
   "year": {
     "epoch": 0,

@@ -7,6 +7,11 @@
       "setting": "D&D Greyhawk"
     }
   },
+  "sources": [
+    "https://greyhawk.fandom.com/wiki/Common_Year_calendar",
+    "https://greyhawk.fandom.com/wiki/Luna_(moon)",
+    "https://greyhawk.fandom.com/wiki/Celene_(moon)"
+  ],
 
   "year": {
     "epoch": 0,

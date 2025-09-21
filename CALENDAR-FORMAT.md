@@ -27,6 +27,14 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
   "label": "Human Readable Calendar Name",
   "description": "Detailed description of the calendar and its cultural context",
   "setting": "Optional game setting or system name",
+  "sources": [
+    "https://example.com/calendar-reference",
+    "https://example.com/moon-data",
+    {
+      "citation": "User-supplied: Doe, Jane. *Chronicles of the Twin Suns.* Emberfall Press, 1492.",
+      "notes": "Confirmed by campaign GM"
+    }
+  ],
 
   "year": {
     "epoch": 0,
@@ -129,12 +137,34 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 
 ### Root Level Fields
 
-| Field         | Type   | Required | Description                                     |
-| ------------- | ------ | -------- | ----------------------------------------------- |
-| `id`          | string | ✅       | Unique identifier for the calendar              |
-| `label`       | string | ✅       | Display name for users                          |
-| `description` | string | ❌       | Detailed description and cultural context       |
-| `setting`     | string | ❌       | Game setting or system this calendar belongs to |
+| Field         | Type   | Required | Description                                      |
+| ------------- | ------ | -------- | ------------------------------------------------ |
+| `id`          | string | ✅       | Unique identifier for the calendar               |
+| `label`       | string | ✅       | Display name for users                           |
+| `description` | string | ❌       | Detailed description and cultural context        |
+| `setting`     | string | ❌       | Game setting or system this calendar belongs to  |
+| `sources`     | array  | ❌       | URLs (or user-provided citations) verifying data |
+
+### Sources
+
+> Optional – strongly recommended for published calendars.
+
+- Provide publicly accessible URLs that validate the calendar's structure (months, weekdays, leap rules, moons, etc.).
+- Only include book or reference citations when the user supplies the exact text; do not invent bibliographic entries.
+- Leave the array empty or omit the field entirely if no authoritative source exists yet (flag for follow-up).
+- When a user provides a bibliographic reference, represent it as an object with a `citation` string and optional `notes` for context:
+
+```json
+"sources": [
+  "https://example.com/calendar-reference",
+  {
+    "citation": "User-supplied: Aveni, Anthony. *Empires of Time: Calendars, Clocks, and Cultures.* Tauris Parke, 2002.",
+    "notes": "Provided by GM Tallis on 2024-12-11"
+  }
+]
+```
+
+- Keep citation objects exactly as supplied by the user and avoid editing the wording or formatting.
 
 ### Year Configuration
 

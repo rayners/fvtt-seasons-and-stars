@@ -7,6 +7,7 @@
       "setting": "D&D Eberron"
     }
   },
+  "sources": ["https://eberron.fandom.com/wiki/Calendar", "https://eberron.fandom.com/wiki/Week"],
 
   "year": {
     "epoch": 0,

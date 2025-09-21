@@ -5,6 +5,8 @@
 ## Development Guidelines
 
 - Source code is written in TypeScript and bundled with Rollup; do not commit generated `dist` output.
+- All calendar data must be verifiable against publicly available information unless the user has explicitly confirmed the data's validity from an external source. Document verification by adding a `sources` array to calendar definitions when possible.
+- Only include reference or book citations in the `sources` array when a user has supplied the exact citation text. Do not invent or summarize bibliography entries—use publicly accessible URLs instead.
 - Before committing, run:
   - `npm run lint`
   - `npm run typecheck`

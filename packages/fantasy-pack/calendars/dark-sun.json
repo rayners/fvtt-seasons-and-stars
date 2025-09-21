@@ -7,6 +7,11 @@
       "setting": "D&D Dark Sun"
     }
   },
+  "sources": [
+    "https://athas.fandom.com/wiki/Calendar_of_Athas",
+    "https://athas.fandom.com/wiki/Ral_(moon)",
+    "https://athas.fandom.com/wiki/Guthay"
+  ],
   "year": {
     "epoch": 0,
     "currentYear": 14579,
