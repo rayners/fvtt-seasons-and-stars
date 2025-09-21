@@ -1,7 +1,5 @@
 # Seasons & Stars
 
-**Forked to allow the mini widget width to flex based on the content.**
-
 A calendar and timekeeping module for Foundry VTT v13+ with clean integration APIs and extensible architecture.
 
 ## 🌟 Features
