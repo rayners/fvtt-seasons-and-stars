@@ -1213,13 +1213,14 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         const height = rect.height > 0 ? rect.height : WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
         return { width, height };
       }
-    } catch (_) {}
+    } catch {
+      // Silently handle any errors during element measurement
+    }
     return {
       width: WIDGET_POSITIONING.MINI_WIDGET_WIDTH,
-      height: WIDGET_POSITIONING.MINI_WIDGET_HEIGHT
+      height: WIDGET_POSITIONING.MINI_WIDGET_HEIGHT,
     };
   }
-
 
   /**
    * Check if a position would place the widget outside viewport boundaries
