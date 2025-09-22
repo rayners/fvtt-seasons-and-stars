@@ -12,7 +12,7 @@
  */
 
 /* eslint-disable @typescript-eslint/triple-slash-reference */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 /// <reference path="../../core/test/test-types.d.ts" />
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -89,7 +89,8 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
         expect(imperialCalendar!.year.currentYear).toBe(7225); // IC should be 4725 + 2500 = 7225
 
         // The year difference should be exactly 2500
-        const yearDifference = imperialCalendar!.year.currentYear - absalomCalendar!.year.currentYear;
+        const yearDifference =
+          imperialCalendar!.year.currentYear - absalomCalendar!.year.currentYear;
         expect(yearDifference).toBe(2500);
       });
 
@@ -190,7 +191,7 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
         worldCreationTimestamp,
         currentWorldTime: 0,
         expectedWorldCreationYear: 4725,
-        dateTheme: 'AR'
+        dateTheme: 'AR',
       });
 
       calendarManager = new CalendarManager();
@@ -225,7 +226,8 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
         expect(imperialCalendar).toBeDefined();
 
         // The year difference should be exactly 2500 regardless of worldCreatedOn
-        const yearDifference = imperialCalendar!.year.currentYear - absalomCalendar!.year.currentYear;
+        const yearDifference =
+          imperialCalendar!.year.currentYear - absalomCalendar!.year.currentYear;
         expect(yearDifference).toBe(2500);
       });
 
@@ -270,7 +272,8 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
         const imperialCalendar = calendarManager.getCalendar('golarion-pf2e(imperial-calendar)');
 
         // Even with different dateTheme, the year difference should remain 2500
-        const yearDifference = imperialCalendar!.year.currentYear - absalomCalendar!.year.currentYear;
+        const yearDifference =
+          imperialCalendar!.year.currentYear - absalomCalendar!.year.currentYear;
         expect(yearDifference).toBe(2500);
       });
 
