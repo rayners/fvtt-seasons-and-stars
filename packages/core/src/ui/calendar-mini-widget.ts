@@ -1001,8 +1001,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     requestAnimationFrame(() => {
       const smallTimeRect = smallTimeElement.getBoundingClientRect();
 
-      // Use standardized mini widget height
-      const estimatedMiniHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
+      const { height: estimatedMiniHeight } = this.getMiniDimensions();
 
       Logger.debug('SmallTime rect', smallTimeRect);
       Logger.debug(`Using estimated mini height: ${estimatedMiniHeight}`);
@@ -1202,6 +1201,27 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Measure the rendered mini widget, with fallbacks to constants
+   */
+  private getMiniDimensions(): { width: number; height: number } {
+    try {
+      const el = this.element?.querySelector?.('.calendar-mini-content') as HTMLElement | null;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        // Guard against 0 width before paint
+        const width = rect.width > 0 ? rect.width : WIDGET_POSITIONING.MINI_WIDGET_WIDTH;
+        const height = rect.height > 0 ? rect.height : WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
+        return { width, height };
+      }
+    } catch (_) {}
+    return {
+      width: WIDGET_POSITIONING.MINI_WIDGET_WIDTH,
+      height: WIDGET_POSITIONING.MINI_WIDGET_HEIGHT
+    };
+  }
+
+
+  /**
    * Check if a position would place the widget outside viewport boundaries
    */
   isPositionOutsideViewport(position: { top: number; left: number }): {
@@ -1215,8 +1235,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     }
 
     // Use standardized widget dimensions
-    const widgetWidth = WIDGET_POSITIONING.MINI_WIDGET_WIDTH;
-    const widgetHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
+    const { width: widgetWidth, height: widgetHeight } = this.getMiniDimensions();
 
     const viewportHeight = window.innerHeight || 768;
     const viewportWidth = window.innerWidth || 1024;
@@ -1246,8 +1265,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     }
 
     const padding = WIDGET_POSITIONING.VIEWPORT_PADDING;
-    const widgetWidth = WIDGET_POSITIONING.MINI_WIDGET_WIDTH;
-    const widgetHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
+    const { width: widgetWidth, height: widgetHeight } = this.getMiniDimensions();
 
     const viewportHeight = window.innerHeight || 768;
     const viewportWidth = window.innerWidth || 1024;
@@ -1378,7 +1396,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (!this.element) return;
 
     const smallTimeRect = smallTimeElement.getBoundingClientRect();
-    const estimatedMiniHeight = WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
+    const { height: estimatedMiniHeight } = this.getMiniDimensions();
 
     // Calculate position above SmallTime
     let position = {
