@@ -33,6 +33,11 @@ export interface SeasonsStarsCalendar {
   leapYear: {
     rule: 'none' | 'gregorian' | 'custom';
     interval?: number;
+    /**
+     * Optional base-year shift applied before evaluating the interval.
+     * Allows lore-specific rules such as "every 8 years starting with 4708 AR".
+     */
+    offset?: number;
     month?: string;
     extraDays?: number;
   };
@@ -169,7 +174,10 @@ export interface MoonPhaseInfo {
   phase: MoonPhase;
   phaseIndex: number;
   dayInPhase: number;
+  dayInPhaseExact: number;
   daysUntilNext: number;
+  daysUntilNextExact: number;
+  phaseProgress: number;
 }
 
 export interface CalendarCanonicalHour {

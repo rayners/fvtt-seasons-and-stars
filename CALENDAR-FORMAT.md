@@ -39,6 +39,7 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
   "leapYear": {
     "rule": "none",
     "interval": 4,
+    "offset": 0,
     "month": "February",
     "extraDays": 1
   },
@@ -157,6 +158,7 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 | ----------- | ------ | ------- | ---------------------------------------------------- |
 | `rule`      | string | "none"  | Leap year calculation: "none", "gregorian", "custom" |
 | `interval`  | number | 4       | For custom rules: leap year every N years            |
+| `offset`    | number | 0       | Optional year offset before applying the interval    |
 | `month`     | string | -       | Which month receives extra days                      |
 | `extraDays` | number | 1       | How many extra days in leap years                    |
 
@@ -165,6 +167,7 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 - `"none"`: No leap years
 - `"gregorian"`: Standard Gregorian calendar rules (every 4 years, except centuries not divisible by 400)
 - `"custom"`: Simple interval-based (every N years)
+- `offset`: Shift the starting point of the custom cycle (e.g., `interval: 8` and `offset: 4` leap on years 4, 12, 20, ...)
 
 ### Month Definitions
 
@@ -610,6 +613,7 @@ For calendars with lunar cycles, add moon definitions with phase tracking:
 ### Cross-References
 
 - `leapYear.month`: Must match a month name
+- `leapYear.offset`: Optional number indicating how many years to subtract before applying the interval rule (defaults to 0)
 - `intercalary[].after`: Must match a month name
 - All month and weekday names must be unique within their arrays
 

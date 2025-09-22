@@ -291,6 +291,9 @@ export interface CalendarDayData {
     moonColor?: string;
     dayInPhase: number;
     daysUntilNext: number;
+    dayInPhaseExact?: number;
+    daysUntilNextExact?: number;
+    phaseProgress?: number;
   }>;
   primaryMoonPhase?: string; // Icon for the primary/first moon
   primaryMoonColor?: string; // Color for the primary/first moon
