@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { CalendarDate } from '../src/core/calendar-date';
-import type { SeasonsStarsCalendar, CalendarMoon } from '../src/types/calendar';
+import type { SeasonsStarsCalendar } from '../src/types/calendar';
 
 describe('Moon Phase Tracking', () => {
   let testCalendar: SeasonsStarsCalendar;
@@ -384,6 +384,7 @@ describe('Moon Phase Tracking', () => {
       const moonPhases = engine.getMoonPhaseInfo(newMoonDate);
 
       expect(moonPhases[0].daysUntilNext).toBe(1); // Should be 1 day until waxing crescent starts
+      expect(moonPhases[0].daysUntilNextExact).toBeCloseTo(1, 6);
     });
 
     it('should provide accurate day in phase', () => {
@@ -401,6 +402,9 @@ describe('Moon Phase Tracking', () => {
 
       expect(moonPhases[0].phase.name).toBe('Waxing Crescent');
       expect(moonPhases[0].dayInPhase).toBe(1); // Second day of waxing crescent phase
+      expect(moonPhases[0].dayInPhaseExact).toBeCloseTo(1, 6);
+      expect(moonPhases[0].daysUntilNextExact).toBeCloseTo(5.3826475, 6);
+      expect(moonPhases[0].phaseProgress).toBeCloseTo(1 / 6.3826475, 6);
     });
   });
 
@@ -413,7 +417,7 @@ describe('Moon Phase Tracking', () => {
         { month: 3, day: 11, expectedPhase: 'New Moon' }, // March 11, 2024 - approximately two cycles later (30 days)
       ];
 
-      lunarDates.forEach(({ month, day, expectedPhase }) => {
+      lunarDates.forEach(({ month, day }) => {
         const date = new CalendarDate(
           {
             year: 2024,

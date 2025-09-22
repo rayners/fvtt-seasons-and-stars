@@ -337,6 +337,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         moonColor?: string;
         dayInPhase: number;
         daysUntilNext: number;
+        dayInPhaseExact: number;
+        daysUntilNextExact: number;
+        phaseProgress: number;
       }> = [];
       let primaryMoonPhase: string | undefined;
       let primaryMoonColor: string | undefined;
@@ -353,6 +356,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             moonColor: info.moon.color,
             dayInPhase: info.dayInPhase,
             daysUntilNext: info.daysUntilNext,
+            dayInPhaseExact: info.dayInPhaseExact,
+            daysUntilNextExact: info.daysUntilNextExact,
+            phaseProgress: info.phaseProgress,
           }));
 
           // Set primary moon (first moon) for simple display
@@ -365,12 +371,18 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           if (moonPhaseInfo.length === 1) {
             const moon = moonPhaseInfo[0];
             moonTooltip = `${moon.moon.name}: ${moon.phase.name}`;
-            if (moon.daysUntilNext > 0) {
-              moonTooltip += ` (${moon.daysUntilNext} days until next phase)`;
+            if (moon.daysUntilNextExact > 0) {
+              moonTooltip += ` (${this.formatDaysUntilNext(moon.daysUntilNextExact)} until next phase)`;
             }
           } else {
             moonTooltip = moonPhaseInfo
-              .map(info => `${info.moon.name}: ${info.phase.name}`)
+              .map(info => {
+                const base = `${info.moon.name}: ${info.phase.name}`;
+                if (info.daysUntilNextExact > 0) {
+                  return `${base} (${this.formatDaysUntilNext(info.daysUntilNextExact)} until next phase)`;
+                }
+                return base;
+              })
               .join('\n');
           }
         }
@@ -501,6 +513,20 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   private formatDateKey(date: ICalendarDate): string {
     return `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
+  }
+
+  private formatDaysUntilNext(days: number): string {
+    const safeDays = Math.max(days, 0);
+    const rounded = Math.round(safeDays * 10) / 10;
+    const hasFraction = Math.abs(rounded - Math.trunc(rounded)) > 1e-9;
+    const locale = game.i18n?.lang ?? 'en';
+    const formatter = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: hasFraction ? 1 : 0,
+      maximumFractionDigits: hasFraction ? 1 : 0,
+    });
+    const value = formatter.format(rounded);
+    const unit = Math.abs(rounded - 1) < 1e-9 ? 'day' : 'days';
+    return `${value} ${unit}`;
   }
 
   /**

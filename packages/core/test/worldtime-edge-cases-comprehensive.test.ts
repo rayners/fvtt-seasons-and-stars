@@ -134,12 +134,12 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
     test('Handle leap year boundaries with worldTime conversion', () => {
       // Test leap day and surrounding dates
       const leapYearTests = [
-        { year: 2024, month: 2, day: 28, description: 'Day before leap day' },
-        { year: 2024, month: 2, day: 29, description: 'Leap day itself' },
-        { year: 2024, month: 3, day: 1, description: 'Day after leap day' },
+        { year: 4724, month: 2, day: 28, description: 'Day before leap day' },
+        { year: 4724, month: 2, day: 29, description: 'Leap day itself' },
+        { year: 4724, month: 3, day: 1, description: 'Day after leap day' },
         // Non-leap year for comparison
-        { year: 2023, month: 2, day: 28, description: 'Feb 28 in non-leap year' },
-        { year: 2023, month: 3, day: 1, description: 'Mar 1 in non-leap year' },
+        { year: 4723, month: 2, day: 28, description: 'Feb 28 in non-leap year' },
+        { year: 4723, month: 3, day: 1, description: 'Mar 1 in non-leap year' },
       ];
 
       leapYearTests.forEach(testDate => {
@@ -155,7 +155,7 @@ describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
             expect(roundTrip.month).toBe(testDate.month);
             expect(roundTrip.day).toBe(testDate.day);
           } catch (error) {
-            if (testDate.month === 2 && testDate.day === 29 && testDate.year === 2023) {
+            if (testDate.month === 2 && testDate.day === 29 && testDate.year === 4723) {
               // Feb 29, 2023 doesn't exist (not a leap year) - error expected
               expect(error).toBeDefined();
             } else {
