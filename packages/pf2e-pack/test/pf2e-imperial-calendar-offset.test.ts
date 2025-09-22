@@ -114,10 +114,15 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
         const yearDifference = imperialDate.year - absalomDate.year;
         expect(yearDifference).toBe(2500);
 
-        // Test with a different worldTime (1 year worth of seconds)
-        const oneYearSeconds = 365 * 24 * 60 * 60;
-        const absalomDateYear1 = absalomEngine.worldTimeToDate(oneYearSeconds);
-        const imperialDateYear1 = imperialEngine.worldTimeToDate(oneYearSeconds);
+        // Test with a different worldTime (advance to next year properly using engine)
+        // Get the current date and advance to the same date next year
+        const currentAbsalomDate = absalomEngine.worldTimeToDate(0);
+        const nextYearAbsalomDate = currentAbsalomDate.clone();
+        nextYearAbsalomDate.year = currentAbsalomDate.year + 1;
+        const nextYearWorldTime = absalomEngine.dateToWorldTime(nextYearAbsalomDate);
+
+        const absalomDateYear1 = absalomEngine.worldTimeToDate(nextYearWorldTime);
+        const imperialDateYear1 = imperialEngine.worldTimeToDate(nextYearWorldTime);
 
         const yearDifferenceYear1 = imperialDateYear1.year - absalomDateYear1.year;
         expect(yearDifferenceYear1).toBe(2500);
@@ -152,12 +157,14 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
         const absalomEngine = new CalendarEngine(absalomCalendar!);
         const imperialEngine = new CalendarEngine(imperialCalendar!);
 
-        // Calculate worldTime for year 0 AR (going back from year 4725)
-        // The calendar starts at year 4725, which is at worldTime 0
-        // To get to year 0 AR, we need to go back 4725 years
-        const yearsToGoBack = 4725;
-        const secondsPerYear = 365 * 24 * 60 * 60;
-        const worldTimeForYear0 = -(yearsToGoBack * secondsPerYear);
+        // Calculate worldTime for year 0 AR using the engine's date conversion
+        // Get a base date and modify it to year 0 AR
+        const baseDateAR = absalomEngine.worldTimeToDate(0);
+        const year0ARDate = baseDateAR.clone();
+        year0ARDate.year = 0;
+        year0ARDate.month = 1;
+        year0ARDate.day = 1;
+        const worldTimeForYear0 = absalomEngine.dateToWorldTime(year0ARDate);
 
         const absalomYear0 = absalomEngine.worldTimeToDate(worldTimeForYear0);
         const imperialYear0 = imperialEngine.worldTimeToDate(worldTimeForYear0);
@@ -166,12 +173,12 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
         expect(absalomYear0.year).toBe(0);
         expect(imperialYear0.year).toBe(2500);
 
-        // At worldTime 0 (the starting point), we have year 4725 AR and 7225 IC
+        // At worldTime 0 (the epoch), we have year 2700 AR and 5200 IC
         const absalomCurrent = absalomEngine.worldTimeToDate(0);
         const imperialCurrent = imperialEngine.worldTimeToDate(0);
 
-        expect(absalomCurrent.year).toBe(4725);
-        expect(imperialCurrent.year).toBe(7225);
+        expect(absalomCurrent.year).toBe(2700); // Epoch year
+        expect(imperialCurrent.year).toBe(5200); // Epoch year + 2500
       });
     });
   });
@@ -288,10 +295,14 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
         const absalomEngine = new CalendarEngine(absalomCalendar!);
         const imperialEngine = new CalendarEngine(imperialCalendar!);
 
-        // Calculate worldTime for year 0 AR
-        const yearsToGoBack = 4725;
-        const secondsPerYear = 365 * 24 * 60 * 60;
-        const worldTimeForYear0 = -(yearsToGoBack * secondsPerYear);
+        // Calculate worldTime for year 0 AR using the engine's date conversion
+        // Get a base date and modify it to year 0 AR
+        const baseDateAR = absalomEngine.worldTimeToDate(0);
+        const year0ARDate = baseDateAR.clone();
+        year0ARDate.year = 0;
+        year0ARDate.month = 1;
+        year0ARDate.day = 1;
+        const worldTimeForYear0 = absalomEngine.dateToWorldTime(year0ARDate);
 
         const absalomYear0 = absalomEngine.worldTimeToDate(worldTimeForYear0);
         const imperialYear0 = imperialEngine.worldTimeToDate(worldTimeForYear0);
@@ -300,12 +311,12 @@ describe('PF2e Imperial Calendar Offset Tests', () => {
         expect(absalomYear0.year).toBe(0);
         expect(imperialYear0.year).toBe(2500);
 
-        // At worldTime 0 (the starting point), we have year 4725 AR and 7225 IC
+        // At worldTime 0 (the epoch), we have year 2700 AR and 5200 IC
         const absalomCurrent = absalomEngine.worldTimeToDate(0);
         const imperialCurrent = imperialEngine.worldTimeToDate(0);
 
-        expect(absalomCurrent.year).toBe(4725);
-        expect(imperialCurrent.year).toBe(7225);
+        expect(absalomCurrent.year).toBe(2700); // Epoch year
+        expect(imperialCurrent.year).toBe(5200); // Epoch year + 2500
       });
     });
   });
