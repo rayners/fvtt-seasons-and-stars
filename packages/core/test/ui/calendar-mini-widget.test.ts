@@ -738,5 +738,105 @@ describe('CalendarMiniWidget', () => {
         expect(corrected.left).toBeLessThan(1500);
       });
     });
+
+    describe('getMiniDimensions()', () => {
+      it('should return actual dimensions when element exists and has size', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockReturnValue({
+            getBoundingClientRect: vi.fn().mockReturnValue({
+              width: 250,
+              height: 150,
+            }),
+          }),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions).toEqual({ width: 250, height: 150 });
+        expect(mockElement.querySelector).toHaveBeenCalledWith('.calendar-mini-content');
+      });
+
+      it('should use fallback dimensions when element has zero width', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockReturnValue({
+            getBoundingClientRect: vi.fn().mockReturnValue({
+              width: 0,
+              height: 150,
+            }),
+          }),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions.width).toBe(200); // WIDGET_POSITIONING.MINI_WIDGET_WIDTH
+        expect(dimensions.height).toBe(150);
+      });
+
+      it('should use fallback dimensions when element has zero height', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockReturnValue({
+            getBoundingClientRect: vi.fn().mockReturnValue({
+              width: 250,
+              height: 0,
+            }),
+          }),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions.width).toBe(250);
+        expect(dimensions.height).toBe(80); // WIDGET_POSITIONING.MINI_WIDGET_HEIGHT
+      });
+
+      it('should return fallback dimensions when element is null', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockReturnValue(null),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions).toEqual({ width: 200, height: 80 });
+      });
+
+      it('should return fallback dimensions when widget.element is null', () => {
+        widget.element = null;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions).toEqual({ width: 200, height: 80 });
+      });
+
+      it('should handle querySelector errors gracefully', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockImplementation(() => {
+            throw new Error('DOM error');
+          }),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions).toEqual({ width: 200, height: 80 });
+      });
+
+      it('should handle getBoundingClientRect errors gracefully', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockReturnValue({
+            getBoundingClientRect: vi.fn().mockImplementation(() => {
+              throw new Error('Rect error');
+            }),
+          }),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions).toEqual({ width: 200, height: 80 });
+      });
+    });
   });
 });
