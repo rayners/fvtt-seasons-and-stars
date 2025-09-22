@@ -926,11 +926,14 @@ export class CalendarEngine {
       case 'gregorian':
         return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 
-      case 'custom':
+      case 'custom': {
         if (!interval) return false;
         const normalizedYear = year - offset;
         const remainder = normalizedYear % interval;
-        return (remainder + interval) % interval === 0;
+        // Check if the year is divisible by the interval.
+        // For negative remainders, we need to normalize them to positive values.
+        return remainder === 0 || (remainder < 0 && remainder + interval === 0);
+      }
 
       default:
         return false;
