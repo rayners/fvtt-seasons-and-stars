@@ -502,7 +502,8 @@ export class TimeAdvancementService {
    */
   private calculateOptimalInterval(ratio: number): number {
     // Get the configured minimum interval (in seconds) and convert to milliseconds
-    const minIntervalSeconds = game.settings.get('seasons-and-stars', 'realTimeAdvancementInterval') as number || 10;
+    const minIntervalSeconds =
+      (game.settings.get('seasons-and-stars', 'realTimeAdvancementInterval') as number) || 10;
     const minIntervalMs = minIntervalSeconds * 1000;
 
     // Formula: Math.max(minIntervalMs, Math.ceil(1000 / ratio))

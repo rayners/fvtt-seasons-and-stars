@@ -430,7 +430,8 @@ function updateTimeAdvancementExplanation(ratio: number): void {
     }
 
     // Calculate interval using the same formula as TimeAdvancementService
-    const minIntervalSeconds = game.settings.get('seasons-and-stars', 'realTimeAdvancementInterval') as number || 10;
+    const minIntervalSeconds =
+      (game.settings.get('seasons-and-stars', 'realTimeAdvancementInterval') as number) || 10;
     const minIntervalMs = minIntervalSeconds * 1000;
     const interval = Math.max(minIntervalMs, Math.ceil(1000 / ratio));
 
