@@ -101,6 +101,8 @@ This module is developed with AI assistance (Claude/Anthropic) to help with codi
 
 **Learn more**: [Development Process Details](https://www.patreon.com/posts/how-and-why-i-ai-132316710)
 
+Want a deeper look at the standards, prompts, and guardrails involved? Check out the companion documentation repository [rayners/dev-context](https://github.com/rayners/dev-context) for an overview of how AI collaboration fits into development.
+
 ## Support Development
 
 Love this module? Consider supporting continued development on **[Patreon](https://patreon.com/rayners)**. Your support helps fund new features, bug fixes, and comprehensive documentation.

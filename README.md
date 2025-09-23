@@ -207,6 +207,8 @@ You'll see Claude credited as a co-author in commits because it genuinely contri
 
 **Learn more**: [How and Why I Use AI in Development](https://www.patreon.com/posts/how-and-why-i-ai-132316710)
 
+Curious about the broader workflow, guardrails, and review process? The companion repository [rayners/dev-context](https://github.com/rayners/dev-context) documents the standards and practices that guide this AI-assisted development approach.
+
 ## 🗺️ Roadmap
 
 ### **Phase 1: Core Foundation** ✅ _Complete_

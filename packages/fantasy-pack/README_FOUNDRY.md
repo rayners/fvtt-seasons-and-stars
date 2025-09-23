@@ -58,6 +58,10 @@ Each calendar includes authentic month names, festival days, and seasonal calcul
 
 _Note: This is a pure data module - no JavaScript included._
 
+## 🤖 AI-Assisted Development
+
+Calendar data for this pack is prepared with support from Claude (Anthropic's AI assistant) to accelerate formatting and consistency checks. I review each calendar manually before publishing. For an in-depth look at the AI-enabled workflow and safeguards, visit [rayners/dev-context](https://github.com/rayners/dev-context).
+
 ## Community & Support
 
 Join the discussion on [Discord](https://discord.gg/tqZnxAdEqE) or share feedback via [GitHub Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues).

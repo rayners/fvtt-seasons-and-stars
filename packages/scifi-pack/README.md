@@ -37,6 +37,10 @@ This is a pure data module - no JavaScript included. Calendar definitions are JS
 
 MIT License - see main repository for details.
 
+## 🤖 AI-Assisted Development
+
+These sci-fi calendar datasets are assembled with the help of Claude (Anthropic's AI assistant) to streamline data entry, verification, and documentation. Every addition is double-checked by hand before release. Learn more about the AI-enabled workflow in [rayners/dev-context](https://github.com/rayners/dev-context).
+
 ## Support
 
 Need help or want to suggest a sci-fi calendar? Join the community on [Discord](https://discord.gg/tqZnxAdEqE) or open an issue on [GitHub](https://github.com/rayners/fvtt-seasons-and-stars/issues).
