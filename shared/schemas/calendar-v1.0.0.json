@@ -747,6 +747,167 @@
         }
       }
     },
+    "events": {
+      "type": "array",
+      "description": "Optional calendar events (holidays, observances, etc.)",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "recurrence"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Unique identifier for the event"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Display name of the event"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Optional description of the event"
+          },
+          "icon": {
+            "type": "string",
+            "maxLength": 50,
+            "description": "Optional icon identifier for the event"
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "description": "Optional hex color code for the event"
+          },
+          "recurrence": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": ["type", "month", "day"],
+                "additionalProperties": false,
+                "properties": {
+                  "type": { "const": "fixed" },
+                  "month": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Month number (1-based)"
+                  },
+                  "day": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Day of month"
+                  },
+                  "leapYearOnly": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Event only occurs in leap years"
+                  }
+                },
+                "description": "Fixed date recurrence (e.g., February 2nd every year)"
+              },
+              {
+                "type": "object",
+                "required": ["type", "month", "weekday", "ordinal"],
+                "additionalProperties": false,
+                "properties": {
+                  "type": { "const": "ordinal" },
+                  "month": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Month number (1-based)"
+                  },
+                  "weekday": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 13,
+                    "description": "Weekday index (0-based, depends on calendar weekdays)"
+                  },
+                  "ordinal": {
+                    "type": "integer",
+                    "minimum": -5,
+                    "maximum": 5,
+                    "description": "Ordinal position (1=first, -1=last, etc.)"
+                  }
+                },
+                "description": "Ordinal weekday recurrence (e.g., first Monday of September)"
+              },
+              {
+                "type": "object",
+                "required": ["type", "day"],
+                "additionalProperties": false,
+                "properties": {
+                  "type": { "const": "monthly" },
+                  "day": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Day of month"
+                  }
+                },
+                "description": "Monthly recurrence (e.g., 15th of every month)"
+              },
+              {
+                "type": "object",
+                "required": ["type", "startYear", "interval", "month", "day"],
+                "additionalProperties": false,
+                "properties": {
+                  "type": { "const": "interval" },
+                  "startYear": {
+                    "type": "integer",
+                    "description": "Starting year for the interval"
+                  },
+                  "interval": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "description": "Years between occurrences"
+                  },
+                  "month": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Month number (1-based)"
+                  },
+                  "day": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Day of month"
+                  }
+                },
+                "description": "Interval-based recurrence (e.g., every 100 years)"
+              }
+            ],
+            "description": "Recurrence pattern for the event"
+          },
+          "translations": {
+            "type": "object",
+            "patternProperties": {
+              "^[a-z]{2}(-[A-Z]{2})?$": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "Translated name of the event"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "description": "Translated description of the event"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false,
+            "description": "Localized event translations"
+          }
+        }
+      }
+    },
     "extensions": {
       "type": "object",
       "description": "Module-specific extensions and custom data",

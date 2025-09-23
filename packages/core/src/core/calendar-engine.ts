@@ -9,20 +9,25 @@ import type {
   CalendarIntercalary,
   CalendarMoon,
   MoonPhaseInfo,
+  CalendarEvent,
+  CalendarEventOccurrence,
 } from '../types/calendar';
 import { CalendarDate } from './calendar-date';
 import { CalendarTimeUtils } from './calendar-time-utils';
 import { compatibilityManager } from './compatibility-manager';
 import { Logger } from './logger';
 import { GREGORIAN_DEFAULTS } from './gregorian-defaults';
+import { CalendarEventsHandler } from './calendar-events-handler';
 
 export class CalendarEngine {
-  private calendar: SeasonsStarsCalendar;
+  public readonly calendar: SeasonsStarsCalendar;
   private calculationCache: Map<string, CalendarCalculation> = new Map();
+  private eventsHandler: CalendarEventsHandler;
 
   constructor(calendar: SeasonsStarsCalendar) {
     this.calendar = CalendarEngine.applyGregorianDefaults(calendar);
     this.precomputeYearData();
+    this.eventsHandler = new CalendarEventsHandler(this.calendar, this);
   }
 
   private static applyGregorianDefaults(calendar: SeasonsStarsCalendar): SeasonsStarsCalendar {
@@ -1110,5 +1115,76 @@ export class CalendarEngine {
   getMoonPhaseAtWorldTime(worldTime: number, moonName?: string): MoonPhaseInfo[] {
     const date = this.worldTimeToDate(worldTime);
     return this.getMoonPhaseInfo(date, moonName);
+  }
+
+  // Event Management Methods
+
+  /**
+   * Get events for a specific date
+   */
+  getEventsForDate(date: { year: number; month: number; day: number }): CalendarEvent[] {
+    return this.eventsHandler.getEventsForDate(date);
+  }
+
+  /**
+   * Get events for a specific month
+   */
+  getEventsForMonth(date: { year: number; month: number }): CalendarEventOccurrence[] {
+    return this.eventsHandler.getEventsForMonth(date);
+  }
+
+  /**
+   * Get events for a specific year
+   */
+  getEventsForYear(year: number): CalendarEventOccurrence[] {
+    return this.eventsHandler.getEventsForYear(year);
+  }
+
+  /**
+   * Get next occurrence of an event
+   */
+  getNextEventOccurrence(
+    eventId: string,
+    currentDate: { year: number; month: number; day: number }
+  ): CalendarDateData | undefined {
+    return this.eventsHandler.getNextEventOccurrence(eventId, currentDate);
+  }
+
+  /**
+   * Get previous occurrence of an event
+   */
+  getPreviousEventOccurrence(
+    eventId: string,
+    currentDate: { year: number; month: number; day: number }
+  ): CalendarDateData | undefined {
+    return this.eventsHandler.getPreviousEventOccurrence(eventId, currentDate);
+  }
+
+  /**
+   * Add a new event
+   */
+  addEvent(event: CalendarEvent): void {
+    this.eventsHandler.addEvent(event);
+  }
+
+  /**
+   * Remove an event
+   */
+  removeEvent(eventId: string): void {
+    this.eventsHandler.removeEvent(eventId);
+  }
+
+  /**
+   * Update an existing event
+   */
+  updateEvent(event: CalendarEvent): void {
+    this.eventsHandler.updateEvent(event);
+  }
+
+  /**
+   * Merge external events
+   */
+  mergeExternalEvents(externalEvents: CalendarEvent[]): void {
+    this.eventsHandler.mergeExternalEvents(externalEvents);
   }
 }
