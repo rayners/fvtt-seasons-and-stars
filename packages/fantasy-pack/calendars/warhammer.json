@@ -7,6 +7,11 @@
       "setting": "Warhammer Fantasy"
     }
   },
+  "sources": [
+    "https://warhammerfantasy.fandom.com/wiki/Imperial_Calendar",
+    "https://warhammerfantasy.fandom.com/wiki/Mannslieb",
+    "https://warhammerfantasy.fandom.com/wiki/Morrslieb"
+  ],
 
   "year": {
     "epoch": 0,

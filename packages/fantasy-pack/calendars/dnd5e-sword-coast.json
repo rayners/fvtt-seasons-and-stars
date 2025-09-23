@@ -7,6 +7,10 @@
       "setting": "D&D 5e Forgotten Realms"
     }
   },
+  "sources": [
+    "https://forgottenrealms.fandom.com/wiki/Calendar_of_Harptos",
+    "https://forgottenrealms.fandom.com/wiki/Sel%C3%BBne"
+  ],
 
   "worldTime": {
     "interpretation": "real-time-based",

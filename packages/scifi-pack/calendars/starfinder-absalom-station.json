@@ -7,6 +7,7 @@
       "setting": "Starfinder"
     }
   },
+  "sources": ["https://starfinderwiki.com/wiki/Pact_Standard_Time"],
 
   "worldTime": {
     "interpretation": "real-time-based",

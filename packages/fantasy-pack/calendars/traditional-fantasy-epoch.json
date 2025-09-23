@@ -7,6 +7,9 @@
       "setting": "Generic Fantasy"
     }
   },
+  "sources": [
+    "https://github.com/rayners/fvtt-seasons-and-stars/blob/main/docs/original-calendars.md#traditional-fantasy-epoch"
+  ],
 
   "worldTime": {
     "interpretation": "epoch-based",

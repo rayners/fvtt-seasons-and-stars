@@ -24,7 +24,8 @@
     "test:junit": "cd ../../ && vitest run --reporter=junit --reporter=default",
     "test:coverage:junit": "cd ../../ && vitest run --coverage --reporter=junit --reporter=default",
     "prevalidate:calendars": "node ../../scripts/generate-calendar-list.js core",
-    "validate:calendars": "tsx scripts/validate-calendars.ts"
+    "validate:calendars": "tsx scripts/validate-calendars.ts",
+    "validate:calendars:syntax": "tsx scripts/validate-calendars-syntax.ts"
   },
   "devDependencies": {
     "@ethaks/fvtt-quench": "^0.10.0",

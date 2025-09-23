@@ -16,6 +16,13 @@ let validateCalendar: any = null;
 let validateVariants: any = null;
 let validateCollection: any = null;
 
+type SourceVerificationOutcome = 'ok' | 'warning' | 'error';
+
+interface SourceVerificationResult {
+  outcome: SourceVerificationOutcome;
+  message?: string;
+}
+
 async function getAjvValidators() {
   if (!ajvInstance) {
     // Dynamic import to handle different AJV versions
@@ -106,7 +113,7 @@ export class CalendarValidator {
 
       // Determine schema type based on structure
       let validator: any;
-      let schemaType: string;
+      let schemaType: 'calendar' | 'variants' | 'collection';
 
       if (calendar.baseCalendar && calendar.variants) {
         // External variants file
@@ -136,9 +143,9 @@ export class CalendarValidator {
 
       // Add additional custom validations for calendar files
       if (schemaType === 'calendar') {
-        this.validateCalendarSpecific(calendar, result);
+        await this.validateCalendarSpecific(calendar, result);
       } else if (schemaType === 'variants') {
-        this.validateVariantsSpecific(calendar, result);
+        await this.validateVariantsSpecific(calendar, result);
       }
 
       // Add warnings for date formats
@@ -149,7 +156,10 @@ export class CalendarValidator {
     } catch (error) {
       // Fallback to non-schema validation if AJV fails
       console.warn('Schema validation failed, falling back to legacy validation:', error);
-      return this.validateLegacy(calendar);
+      const legacyResult = this.validateLegacy(calendar);
+      await this.validateSourceUrls(calendar, legacyResult);
+      legacyResult.isValid = legacyResult.errors.length === 0;
+      return legacyResult;
     }
   }
 
@@ -199,15 +209,22 @@ export class CalendarValidator {
   /**
    * Additional calendar-specific validations not covered by JSON schema
    */
-  private static validateCalendarSpecific(calendar: any, result: ValidationResult): void {
+  private static async validateCalendarSpecific(
+    calendar: any,
+    result: ValidationResult
+  ): Promise<void> {
     // Cross-reference validations for calendar files
     this.validateCrossReferences(calendar, result);
+    await this.validateSourceUrls(calendar, result);
   }
 
   /**
    * Additional variants-specific validations not covered by JSON schema
    */
-  private static validateVariantsSpecific(_calendar: any, _result: ValidationResult): void {
+  private static async validateVariantsSpecific(
+    _calendar: any,
+    _result: ValidationResult
+  ): Promise<void> {
     // Add any variants-specific cross-reference validations here
     // Currently, the JSON schema handles most validation
   }
@@ -367,5 +384,118 @@ export class CalendarValidator {
    */
   static getErrors(calendar: any): string[] {
     return this.validateWithHelp(calendar).errors;
+  }
+
+  private static shouldVerifySources(): boolean {
+    const envOverride =
+      typeof process !== 'undefined' ? process.env?.SEASONS_AND_STARS_VALIDATE_SOURCES : undefined;
+
+    if (envOverride === 'true') {
+      return true;
+    }
+
+    if (envOverride === 'false') {
+      return false;
+    }
+
+    if (typeof window !== 'undefined') {
+      return false;
+    }
+
+    return typeof process !== 'undefined' && typeof process.versions?.node === 'string';
+  }
+
+  private static async validateSourceUrls(calendar: any, result: ValidationResult): Promise<void> {
+    if (!this.shouldVerifySources()) {
+      return;
+    }
+
+    if (!Array.isArray(calendar.sources) || calendar.sources.length === 0) {
+      return;
+    }
+
+    const urlSources = calendar.sources
+      .map((source: any, index: number) => ({ source, index }))
+      .filter(
+        (entry): entry is { source: string; index: number } => typeof entry.source === 'string'
+      );
+
+    if (urlSources.length === 0) {
+      return;
+    }
+
+    const failures: { index: number; url: string; message: string }[] = [];
+    const warningsToRecord: { index: number; url: string; message: string }[] = [];
+
+    for (const { source, index } of urlSources) {
+      const verification = await this.verifySourceUrl(source);
+
+      if (verification.outcome === 'error') {
+        const message = verification.message || 'Unknown error verifying URL';
+        failures.push({ index, url: source, message });
+      } else if (verification.outcome === 'warning' && verification.message) {
+        warningsToRecord.push({ index, url: source, message: verification.message });
+      }
+    }
+
+    failures.forEach(failure => {
+      result.errors.push(
+        `sources[${failure.index}]: Unable to verify URL '${failure.url}' (${failure.message})`
+      );
+    });
+
+    warningsToRecord.forEach(warning => {
+      result.warnings.push(
+        `sources[${warning.index}]: Unable to confirm URL '${warning.url}' (${warning.message})`
+      );
+    });
+  }
+
+  private static async verifySourceUrl(url: string): Promise<SourceVerificationResult> {
+    const requestInit: RequestInit = {
+      method: 'HEAD',
+      redirect: 'follow',
+    };
+
+    const signal = this.createTimeoutSignal(10000);
+    if (signal) {
+      requestInit.signal = signal;
+    }
+
+    try {
+      const response = await fetch(url, requestInit);
+
+      if (response.status >= 200 && response.status < 400) {
+        return { outcome: 'ok' };
+      }
+
+      if (response.status === 405 || response.status === 501) {
+        return { outcome: 'warning', message: `HTTP status ${response.status}` };
+      }
+
+      return { outcome: 'error', message: `HTTP status ${response.status}` };
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        return { outcome: 'warning', message: 'request timed out' };
+      }
+      return { outcome: 'warning', message: error?.message || 'network error' };
+    }
+  }
+
+  private static createTimeoutSignal(timeoutMs: number): AbortSignal | undefined {
+    if (typeof AbortController === 'undefined') {
+      return undefined;
+    }
+
+    if (typeof AbortSignal !== 'undefined' && typeof (AbortSignal as any).timeout === 'function') {
+      return (AbortSignal as any).timeout(timeoutMs);
+    }
+
+    const controller = new AbortController();
+    const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
+    if (typeof (timeoutHandle as any).unref === 'function') {
+      (timeoutHandle as any).unref();
+    }
+    return controller.signal;
   }
 }

@@ -73,6 +73,11 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **[Roadmap](./docs/ROADMAP.md)** - Development timeline and planned features
 - **[Known Issues](./KNOWN-ISSUES.md)** - Current limitations and workarounds
 
+## 💬 Community & Support
+
+- **Discord**: Join the Seasons & Stars community on [discord.gg/tqZnxAdEqE](https://discord.gg/tqZnxAdEqE) for questions, feedback, and playtest coordination.
+- **GitHub**: Report bugs or request features through [Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues) or [Discussions](https://github.com/rayners/fvtt-seasons-and-stars/discussions).
+
 ### Calendar Variants System
 
 - **[Inline Calendar Variants](./docs/INLINE-CALENDAR-VARIANTS.md)** - Cultural and regional calendar variations within the same file
@@ -201,6 +206,8 @@ This module is developed with the help of AI tools, particularly Claude (Anthrop
 You'll see Claude credited as a co-author in commits because it genuinely contributes to the development process. Transparency matters, and I want to be open about the tools that help make this module possible.
 
 **Learn more**: [How and Why I Use AI in Development](https://www.patreon.com/posts/how-and-why-i-ai-132316710)
+
+Curious about the broader workflow, guardrails, and review process? The companion repository [rayners/dev-context](https://github.com/rayners/dev-context) documents the standards and practices that guide this AI-assisted development approach.
 
 ## 🗺️ Roadmap
 

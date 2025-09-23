@@ -7,6 +7,10 @@
       "setting": "D&D Dark Sun"
     }
   },
+  "sources": [
+    "https://athas.org/articles/the-merchant-s-calendar",
+    "https://moonsofathas.blogspot.com/p/cycles-of-moons.html"
+  ],
   "year": {
     "epoch": 0,
     "currentYear": 14579,

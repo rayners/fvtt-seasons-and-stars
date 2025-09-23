@@ -8,6 +8,11 @@
     }
   },
 
+  "sources": [
+    "https://www.timeanddate.com/calendar/gregorian-calendar.html",
+    "https://en.wikipedia.org/wiki/Synodic_month"
+  ],
+
   "year": {
     "epoch": 0,
     "currentYear": 2024,

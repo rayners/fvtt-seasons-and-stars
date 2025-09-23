@@ -27,6 +27,14 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
   "label": "Human Readable Calendar Name",
   "description": "Detailed description of the calendar and its cultural context",
   "setting": "Optional game setting or system name",
+  "sources": [
+    "https://example.com/calendar-reference",
+    "https://example.com/moon-data",
+    {
+      "citation": "User-supplied: Doe, Jane. *Chronicles of the Twin Suns.* Emberfall Press, 1492.",
+      "notes": "Confirmed by campaign GM"
+    }
+  ],
 
   "year": {
     "epoch": 0,
@@ -130,12 +138,68 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 
 ### Root Level Fields
 
-| Field         | Type   | Required | Description                                     |
-| ------------- | ------ | -------- | ----------------------------------------------- |
-| `id`          | string | ✅       | Unique identifier for the calendar              |
-| `label`       | string | ✅       | Display name for users                          |
-| `description` | string | ❌       | Detailed description and cultural context       |
-| `setting`     | string | ❌       | Game setting or system this calendar belongs to |
+| Field         | Type   | Required | Description                                      |
+| ------------- | ------ | -------- | ------------------------------------------------ |
+| `id`          | string | ✅       | Unique identifier for the calendar               |
+| `label`       | string | ✅       | Display name for users                           |
+| `description` | string | ❌       | Detailed description and cultural context        |
+| `setting`     | string | ❌       | Game setting or system this calendar belongs to  |
+| `sources`     | array  | ❌       | URLs (or user-provided citations) verifying data |
+
+### Sources
+
+> Optional – strongly recommended for published calendars to ensure data accuracy.
+
+The `sources` field provides references that validate the calendar's structure (months, weekdays, leap rules, moons, etc.). This helps ensure calendar data is accurate and verifiable.
+
+#### Format
+
+Sources can be either:
+
+1. **URL strings** - Publicly accessible web pages that document the calendar
+2. **Citation objects** - User-provided bibliographic references with optional notes
+
+```json
+"sources": [
+  "https://example.com/calendar-reference",
+  {
+    "citation": "User-supplied: Aveni, Anthony. *Empires of Time: Calendars, Clocks, and Cultures.* Tauris Parke, 2002.",
+    "notes": "Provided by GM Tallis on 2024-12-11"
+  }
+]
+```
+
+#### Guidelines
+
+- Provide publicly accessible URLs that validate the calendar's structure
+- Only include book or reference citations when the user supplies the exact text; do not invent bibliographic entries
+- Leave the array empty or omit the field entirely if no authoritative source exists yet (flag for follow-up)
+- Keep citation objects exactly as supplied by the user and avoid editing the wording or formatting
+
+#### Validation
+
+Source URLs are automatically validated in certain environments to ensure they remain accessible:
+
+**When validation runs:**
+
+- During CI/CD workflows (GitHub Actions)
+- When running `npm run validate:calendars` locally
+- When the `SEASONS_AND_STARS_VALIDATE_SOURCES` environment variable is set to `"true"`
+
+**How validation works:**
+
+- Each URL source receives a HEAD request to verify it exists and is accessible
+- HTTP status codes 200-399 are considered successful
+- HTTP status codes 404 indicate the source no longer exists (validation error)
+- HTTP status codes 405/501 (method not allowed) are treated as warnings
+- Network errors and timeouts are treated as warnings, not errors
+- Citation objects (non-URL sources) are not validated
+
+**Controlling validation:**
+
+- Set `SEASONS_AND_STARS_VALIDATE_SOURCES="true"` to force validation
+- Set `SEASONS_AND_STARS_VALIDATE_SOURCES="false"` to skip validation
+- Validation is automatically disabled in browser environments
 
 ### Year Configuration
 
