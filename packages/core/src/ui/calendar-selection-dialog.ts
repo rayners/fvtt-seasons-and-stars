@@ -161,7 +161,14 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         if (match) {
           baseCalendarId = match[1];
           const variantId = match[2];
-          variantInfo = `Variant: ${variantId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+          const variantName = variantId
+            .replace(/[-_]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .replace(/\b\w/g, letter => letter.toUpperCase());
+          variantInfo = this.format('SEASONS_STARS.dialog.calendar_selection.variant_label', {
+            variant: variantName,
+          });
         }
       }
 
@@ -505,6 +512,9 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private updateSelectButton(html?: JQuery): void {
     const $html = html || (this.element ? $(this.element) : $());
     const selectButton = $html.find('#select-calendar');
+    if (!selectButton.length) {
+      return;
+    }
     const isDifferent = this.selectedCalendarId !== this.currentCalendarId;
 
     selectButton.prop('disabled', !isDifferent);
@@ -530,27 +540,19 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
           : this.selectedCalendarId;
       }
 
-      const escapedLabel = this.escapeHtml(label);
       const switchLabel = this.format('SEASONS_STARS.dialog.calendar_selection.switch_to', {
-        calendar: escapedLabel,
+        calendar: label,
       });
-      selectButton.html(`<i class="fas fa-check"></i> ${this.escapeHtml(switchLabel)}`);
+
+      selectButton.empty();
+      selectButton.append($('<i class="fas fa-check"></i>'));
+      selectButton.append(document.createTextNode(` ${switchLabel}`));
     } else {
       const selectLabel = this.localize('SEASONS_STARS.dialog.calendar_selection.select');
-      selectButton.html(`<i class="fas fa-check"></i> ${this.escapeHtml(selectLabel)}`);
+      selectButton.empty();
+      selectButton.append($('<i class="fas fa-check"></i>'));
+      selectButton.append(document.createTextNode(` ${selectLabel}`));
     }
-  }
-
-  private escapeHtml(text: string): string {
-    const htmlEscapes: Record<string, string> = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    };
-
-    return text.replace(/[&<>"']/g, char => htmlEscapes[char] ?? char);
   }
 
   private static localizeKey(key: string): string {
@@ -564,13 +566,20 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private static formatKey(key: string, data: Record<string, unknown>): string {
     const formatFn = game.i18n?.format;
     if (typeof formatFn === 'function') {
-      return formatFn.call(game.i18n, key, data);
+      const formatted = formatFn.call(game.i18n, key, data);
+      if (typeof formatted === 'string' && formatted !== key && !formatted.startsWith(`${key} `)) {
+        return formatted;
+      }
     }
 
-    return key.replace(/\{([^}]+)\}/g, (_, token: string) => {
-      const value = data[token as keyof typeof data];
-      return value !== undefined ? String(value) : '';
-    });
+    const localizedTemplate = CalendarSelectionDialog.localizeKey(key);
+    const fallbackTemplates: Record<string, string> = {
+      'SEASONS_STARS.dialog.calendar_selection.variant_label': 'Variant: {variant}',
+      'SEASONS_STARS.dialog.calendar_selection.switch_to': 'Switch to {calendar}',
+    };
+    const template =
+      localizedTemplate !== key ? localizedTemplate : (fallbackTemplates[key] ?? key);
+    return CalendarSelectionDialog.replacePlaceholders(template, data);
   }
 
   private localize(key: string): string {
@@ -579,6 +588,13 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
 
   private format(key: string, data: Record<string, unknown>): string {
     return CalendarSelectionDialog.formatKey(key, data);
+  }
+
+  private static replacePlaceholders(template: string, data: Record<string, unknown>): string {
+    return template.replace(/\{([^}]+)\}/g, (_, token: string) => {
+      const value = data[token as keyof typeof data];
+      return value !== undefined ? String(value) : '';
+    });
   }
 
   /**

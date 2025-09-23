@@ -60,6 +60,7 @@
         "no_selection_message": "Wybierz kalendarz z listy, aby zobaczyć szczegóły.",
         "unknown_source": "Nieznane źródło",
         "unknown_author": "Nieznany autor",
+        "variant_label": "Wariant: {variant}",
         "custom_group_label": "Pliki niestandardowe",
         "custom_group_description": "Kalendarze wczytane z własnych plików JSON.",
         "tag_custom": "Niestandardowy"

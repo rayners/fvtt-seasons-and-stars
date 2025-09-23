@@ -66,6 +66,10 @@
           }
         }
       }
+
+      .button:first-child {
+        margin-right: auto;
+      }
     }
   }
 
@@ -206,6 +210,40 @@
             i {
               font-size: 0.75rem;
               color: var(--color-text-light-7);
+            }
+          }
+
+          .multi-select-options {
+            display: none;
+            position: absolute;
+            top: calc(100% + 0.35rem);
+            left: 0;
+            right: 0;
+            background: rgba(12, 12, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            padding: 0.5rem;
+            pointer-events: none;
+            z-index: 10;
+
+            .multi-select-option {
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              padding: 0.4rem 0.5rem;
+              border-radius: 6px;
+              font-size: 0.8rem;
+              color: var(--color-text-light-6);
+
+              input {
+                pointer-events: none;
+                accent-color: var(--color-warm-2, #f6b26b);
+              }
+
+              span {
+                flex: 1;
+              }
             }
           }
         }
@@ -502,6 +540,7 @@
     .calendar-preview {
       display: grid;
       gap: 0.75rem;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 
       .sample-preview,
       .mini-preview {

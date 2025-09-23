@@ -34,6 +34,14 @@
                 <span class="selected-text">{{localize 'SEASONS_STARS.dialog.calendar_selection.filter_source_all'}}</span>
                 <i class="fas fa-chevron-down"></i>
               </button>
+              <div class="multi-select-options">
+                {{#each calendarGroups}}
+                <label class="multi-select-option">
+                  <input type="checkbox" value="{{id}}" disabled />
+                  <span>{{label}}</span>
+                </label>
+                {{/each}}
+              </div>
             </div>
           </div>
 

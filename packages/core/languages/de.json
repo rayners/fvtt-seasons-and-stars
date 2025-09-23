@@ -48,6 +48,7 @@
         "no_selection_message": "Wählen Sie einen Kalender aus der Liste, um Details anzuzeigen.",
         "unknown_source": "Unbekannte Quelle",
         "unknown_author": "Unbekannter Autor",
+        "variant_label": "Variante: {variant}",
         "custom_group_label": "Eigene Dateien",
         "custom_group_description": "Kalender, die aus eigenen JSON-Dateien geladen wurden.",
         "tag_custom": "Eigen"
