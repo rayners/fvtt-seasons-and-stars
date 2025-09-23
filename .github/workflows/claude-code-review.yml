@@ -3,6 +3,8 @@ name: Claude Code Review
 on:
   pull_request:
     types: [opened, synchronize]
+    branches-ignore:
+      - 'release-please--**'
     # Optional: Only run on specific file changes
     # paths:
     #   - "src/**/*.ts"
@@ -30,6 +32,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+      - name: Checkout dev-context repository
+        uses: actions/checkout@v4
+        with:
+          repository: rayners/dev-context
+          path: dev-context
+          fetch-depth: 1
 
       - name: Run Claude Code Review
         id: claude-review
@@ -39,9 +47,9 @@ jobs:
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
-            
+
             Note: The PR branch is already checked out in the current working directory.
-            
+
             Please review this pull request and provide feedback on:
             - Code quality and best practices
             - Potential bugs or issues
