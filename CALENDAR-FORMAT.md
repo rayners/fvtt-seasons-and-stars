@@ -154,6 +154,7 @@ The `sources` field provides references that validate the calendar's structure (
 #### Format
 
 Sources can be either:
+
 1. **URL strings** - Publicly accessible web pages that document the calendar
 2. **Citation objects** - User-provided bibliographic references with optional notes
 
@@ -179,11 +180,13 @@ Sources can be either:
 Source URLs are automatically validated in certain environments to ensure they remain accessible:
 
 **When validation runs:**
+
 - During CI/CD workflows (GitHub Actions)
 - When running `npm run validate:calendars` locally
 - When the `SEASONS_AND_STARS_VALIDATE_SOURCES` environment variable is set to `"true"`
 
 **How validation works:**
+
 - Each URL source receives a HEAD request to verify it exists and is accessible
 - HTTP status codes 200-399 are considered successful
 - HTTP status codes 404 indicate the source no longer exists (validation error)
@@ -192,6 +195,7 @@ Source URLs are automatically validated in certain environments to ensure they r
 - Citation objects (non-URL sources) are not validated
 
 **Controlling validation:**
+
 - Set `SEASONS_AND_STARS_VALIDATE_SOURCES="true"` to force validation
 - Set `SEASONS_AND_STARS_VALIDATE_SOURCES="false"` to skip validation
 - Validation is automatically disabled in browser environments
