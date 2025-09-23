@@ -12,6 +12,7 @@ export interface SeasonsStarsCalendar {
       label: string;
       description?: string;
       setting?: string;
+      yearName?: string;
     };
   };
   sources?: CalendarSourceReference[];
