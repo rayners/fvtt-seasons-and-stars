@@ -3,11 +3,11 @@
   "translations": {
     "en": {
       "label": "Golarion Calendar (Pathfinder 2e)",
-      "description": "The Absalom Reckoning calendar system used throughout Golarion, the campaign setting for Pathfinder Second Edition. Features twelve months, Somal's synodic lunar cycle, and the traditional eight-year leap year pattern recognized in Absalom Reckoning almanacs.",
+      "description": "The Absalom Reckoning calendar system used throughout Golarion, the campaign setting for Pathfinder Second Edition. Features twelve months, Somal's synodic lunar cycle, and leap years every four years as specified in the Pathfinder Second Edition remaster.",
       "setting": "Pathfinder 2e"
     }
   },
-  "sources": ["https://pathfinderwiki.com/wiki/Calendar", "https://pathfinderwiki.com/wiki/Somal"],
+  "sources": ["https://pathfinderwiki.com/wiki/Calendar", "https://pathfinderwiki.com/wiki/Somal", "https://2e.aonprd.com/Rules.aspx?ID=2989"],
 
   "worldTime": {
     "interpretation": "epoch-based",
@@ -32,8 +32,7 @@
 
   "leapYear": {
     "rule": "custom",
-    "interval": 8,
-    "offset": 4,
+    "interval": 4,
     "month": "Calistril",
     "extraDays": 1
   },
