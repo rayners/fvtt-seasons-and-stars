@@ -6,7 +6,9 @@
 import type {
   CalendarEvent,
   CalendarEventOccurrence,
+  CalendarEventRecurrence,
   CalendarDateData,
+  CalendarDate,
   SeasonsStarsCalendar,
 } from '../types/calendar';
 import { CalendarEngine } from './calendar-engine';
@@ -129,7 +131,7 @@ export class CalendarEventsHandler {
 
     // Search forward up to 10 years
     const maxYearsToSearch = 10;
-    let searchDate = { ...currentDate };
+    const searchDate = { ...currentDate };
 
     // Start from the next day
     searchDate.day++;
@@ -181,7 +183,7 @@ export class CalendarEventsHandler {
 
     // Search backward up to 10 years
     const maxYearsToSearch = 10;
-    let searchDate = { ...currentDate };
+    const searchDate = { ...currentDate };
 
     // Start from the previous day
     searchDate.day--;
@@ -242,7 +244,7 @@ export class CalendarEventsHandler {
         }
         return false;
 
-      case 'ordinal':
+      case 'ordinal': {
         // Ordinal weekday (e.g., first Monday of September)
         if (recurrence.month !== date.month) return false;
 
@@ -257,12 +259,13 @@ export class CalendarEventsHandler {
           const lastOrdinal = this.getLastOrdinalForWeekday(date.year, date.month, weekday);
           return ordinalPosition === lastOrdinal + recurrence.ordinal + 1;
         }
+      }
 
       case 'monthly':
         // Monthly recurrence (e.g., 15th of every month)
         return recurrence.day === date.day;
 
-      case 'interval':
+      case 'interval': {
         // Interval recurrence (e.g., every 100 years)
         if (recurrence.month !== date.month || recurrence.day !== date.day) {
           return false;
@@ -272,9 +275,10 @@ export class CalendarEventsHandler {
         if (yearDiff < 0) return false;
 
         return yearDiff % recurrence.interval === 0;
+      }
 
       default:
-        Logger.warn(`Unknown recurrence type: ${(recurrence as any).type}`);
+        Logger.warn(`Unknown recurrence type: ${(recurrence as CalendarEventRecurrence).type}`);
         return false;
     }
   }
@@ -336,7 +340,7 @@ export class CalendarEventsHandler {
         toDateString: () => '',
         toTimeString: () => '',
         countsForWeekdays: () => true,
-      } as any)
+      } as CalendarDate)
     );
 
     return calendarDate.weekday;

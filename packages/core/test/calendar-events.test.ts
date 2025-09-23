@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../src/core/calendar-engine';
 import { CalendarValidator } from '../src/core/calendar-validator';
-import type { SeasonsStarsCalendar, CalendarEvent, CalendarEventRecurrence } from '../src/types/calendar';
+import type { SeasonsStarsCalendar, CalendarEvent } from '../src/types/calendar';
 
 // Test calendar with events
 const testCalendarWithEvents: SeasonsStarsCalendar = {
