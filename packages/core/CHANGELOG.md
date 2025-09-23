@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.17.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.16.0...seasons-and-stars-v0.17.0) (2025-09-23)
+
+
+### Features
+
+* align Golarion leap cycle with lore ([#265](https://github.com/rayners/fvtt-seasons-and-stars/issues/265)) ([5ff3942](https://github.com/rayners/fvtt-seasons-and-stars/commit/5ff3942bc4150dfabe5c94c2dba0ab843e03dc45))
+* **scifi-pack:** add Coriolis calendars for Third Horizon and The Great Dark ([#286](https://github.com/rayners/fvtt-seasons-and-stars/issues/286)) ([2057ead](https://github.com/rayners/fvtt-seasons-and-stars/commit/2057ead6de86d268f68e9d5b2a252741a34fe6f1))
+* verify calendar source availability ([#270](https://github.com/rayners/fvtt-seasons-and-stars/issues/270)) ([50b286a](https://github.com/rayners/fvtt-seasons-and-stars/commit/50b286ac41d4cb0531c01c24be678bb7b2291fa5))
+
+
+### Bug Fixes
+
+* **ui:** mini widget width flexes to match the contents ([#274](https://github.com/rayners/fvtt-seasons-and-stars/issues/274)) ([4d871f5](https://github.com/rayners/fvtt-seasons-and-stars/commit/4d871f5a1a78ddb1f9d9f2a546ec239049a22935))
+
 ## [0.16.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.15.0...seasons-and-stars-v0.16.0) (2025-09-20)
 
 

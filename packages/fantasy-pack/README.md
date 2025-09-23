@@ -58,3 +58,11 @@ This is a pure data module - no JavaScript required. Calendar definitions are JS
 ## License
 
 MIT License - see main repository for details.
+
+## 🤖 AI-Assisted Development
+
+These calendar definitions are curated with help from Claude (Anthropic's AI assistant) to speed up data entry, formatting, and validation while I focus on accuracy and integration details. Every calendar is reviewed manually before release. Curious about the full workflow? See [rayners/dev-context](https://github.com/rayners/dev-context) for documentation on how AI collaboration fits into development.
+
+## Support
+
+Questions or feedback? Connect with the community on [Discord](https://discord.gg/tqZnxAdEqE) or open an issue on [GitHub](https://github.com/rayners/fvtt-seasons-and-stars/issues).

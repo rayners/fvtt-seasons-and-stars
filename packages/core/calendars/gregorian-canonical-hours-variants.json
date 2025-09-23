@@ -11,6 +11,10 @@
       "description": "Gregorian calendar featuring traditional canonical hours and custom time periods"
     }
   },
+  "sources": [
+    "https://en.wikipedia.org/wiki/Canonical_hours",
+    "https://www.britannica.com/topic/canonical-hours"
+  ],
   "variants": {
     "medieval-monastery": {
       "name": "Medieval Monastery Schedule",

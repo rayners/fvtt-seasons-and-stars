@@ -12,8 +12,10 @@ export interface SeasonsStarsCalendar {
       label: string;
       description?: string;
       setting?: string;
+      yearName?: string;
     };
   };
+  sources?: CalendarSourceReference[];
 
   // NEW: WorldTime interpretation configuration
   worldTime?: {
@@ -65,6 +67,15 @@ export interface SeasonsStarsCalendar {
 
   // Source tracking for badge display and management
   sourceInfo?: CalendarSourceInfo;
+}
+
+export type CalendarSourceReference = string | CalendarCitationReference;
+
+export interface CalendarCitationReference {
+  /** User-supplied bibliographic reference text */
+  citation: string;
+  /** Optional context describing who provided the citation or when */
+  notes?: string;
 }
 
 // Date formatting system interfaces

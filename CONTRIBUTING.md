@@ -409,6 +409,23 @@ Releases follow semantic versioning:
 - Provide multiple date format options for user preference
 - Document sources and inspirations in calendar metadata
 
+**Calendar Source Validation**:
+
+Calendar definitions should include verifiable sources to ensure accuracy:
+
+- Add URLs to the `sources` array that document the calendar's structure
+- Sources are automatically validated in CI and when running `npm run validate:calendars`
+- URL validation checks:
+  - HTTP 200-399: Source is accessible (passes)
+  - HTTP 404: Source no longer exists (fails validation)
+  - HTTP 405/501: Method not allowed (warning only)
+  - Network errors/timeouts: Treated as warnings
+- Control validation behavior:
+  - Set `SEASONS_AND_STARS_VALIDATE_SOURCES="true"` to force validation
+  - Set `SEASONS_AND_STARS_VALIDATE_SOURCES="false"` to skip validation
+- Citation objects (bibliographic references) are not validated
+- See `CALENDAR-FORMAT.md` for complete source field documentation
+
 ### PF2e Pack (Coming Soon)
 
 The PF2e pack will focus on:
