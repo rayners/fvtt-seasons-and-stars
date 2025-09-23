@@ -262,6 +262,27 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       }
     }
 
+    if (sortedCalendars.length) {
+      const isFilePickerSelection = this.selectedCalendarId === '__FILE_PICKER__';
+      const hasValidSelection =
+        !!this.selectedCalendarId &&
+        sortedCalendars.some(calendar => calendar.id === this.selectedCalendarId);
+
+      if (!isFilePickerSelection && !hasValidSelection) {
+        const fallbackCalendar =
+          sortedCalendars.find(calendar => calendar.isCurrent) || sortedCalendars[0];
+
+        if (fallbackCalendar) {
+          this.selectedCalendarId = fallbackCalendar.id;
+        }
+      }
+
+      for (const calendar of sortedCalendars) {
+        calendar.isSelected = calendar.id === this.selectedCalendarId;
+        calendar.isCurrent = calendar.id === this.currentCalendarId;
+      }
+    }
+
     // Determine if file picker should be considered "selected"
     // Only show as selected if there's actually a file selected AND it's either the selected ID or is currently active
     const resultsCount = sortedCalendars.length;

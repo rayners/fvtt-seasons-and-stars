@@ -196,8 +196,7 @@ describe('Calendar Selection Dialog - Variants Support', () => {
   });
 
   it('should generate proper variant info from variant IDs', async () => {
-    const context = await dialog._prepareContext();
-    const calendarsData = context.calendars;
+    await dialog._prepareContext();
 
     const testCases = [
       { id: 'calendar(simple-name)', expected: 'Variant: Simple Name' },
@@ -247,5 +246,16 @@ describe('Calendar Selection Dialog - Variants Support', () => {
     expect(gregorianCalendar.isVariant).toBe(false);
     expect(gregorianCalendar.variantInfo).toBe('');
     expect(gregorianCalendar.baseCalendarId).toBe('gregorian');
+  });
+
+  it('should default to the first available calendar when no current selection exists', async () => {
+    dialog = new CalendarSelectionDialog(calendars, '');
+    const context = await dialog._prepareContext();
+
+    expect(context.selectedCalendar).toBe('gregorian');
+    expect(context.selectedCalendarDetails?.id).toBe('gregorian');
+
+    const gregorianCalendar = context.calendars.find((c: any) => c.id === 'gregorian');
+    expect(gregorianCalendar?.isSelected).toBe(true);
   });
 });
