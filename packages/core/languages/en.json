@@ -43,7 +43,26 @@
         "file_loaded": "Custom calendar file is loaded and ready to use",
         "file_path": "File Path",
         "status": "Status",
-        "click_to_select": "Click to select a calendar file"
+        "click_to_select": "Click to select a calendar file",
+        "search_placeholder": "Search calendars...",
+        "filter_source_label": "Source Module",
+        "filter_source_all": "All Sources",
+        "filter_tags_label": "Filter by Tags",
+        "filter_tags_placeholder": "e.g. Fantasy, Official, Lunar...",
+        "results_count": "{count} calendars found",
+        "clear_filters": "Clear Filters",
+        "add_custom_calendar": "Add Custom Calendar",
+        "description_header": "Description",
+        "tags_header": "Tags",
+        "preview_header": "Preview",
+        "preview_sample_label": "Sample Date",
+        "preview_mini_label": "Mini Widget",
+        "no_selection_message": "Select a calendar from the list to view details.",
+        "unknown_source": "Unknown Source",
+        "unknown_author": "Unknown Author",
+        "custom_group_label": "Custom Files",
+        "custom_group_description": "Calendars loaded from custom JSON files.",
+        "tag_custom": "Custom"
       },
       "calendar_preview": {
         "title": "Calendar Preview: {calendar}"

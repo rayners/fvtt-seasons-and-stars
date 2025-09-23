@@ -97,8 +97,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       resizable: true,
     },
     position: {
-      width: 600,
-      height: 750,
+      width: 960,
+      height: 720,
     },
     actions: {
       selectCalendar: CalendarSelectionDialog.prototype._onSelectCalendar,
@@ -114,7 +114,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     main: {
       id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-selection-dialog.hbs',
-      scrollable: ['.calendar-selection-grid'],
+      scrollable: ['.calendar-list', '.calendar-details'],
     },
   };
 
@@ -140,9 +140,14 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     }
     const showFilePicker = true;
 
+    const fallbackSourceLabel = this.localize(
+      'SEASONS_STARS.dialog.calendar_selection.unknown_source'
+    );
+    const fallbackAuthor = this.localize('SEASONS_STARS.dialog.calendar_selection.unknown_author');
+
     const calendarsData = Array.from(this.calendars.entries()).map(([id, calendar]) => {
       const label = CalendarLocalization.getCalendarLabel(calendar);
-      const description = CalendarLocalization.getCalendarDescription(calendar);
+      const localizedDescription = CalendarLocalization.getCalendarDescription(calendar);
       const setting = CalendarLocalization.getCalendarSetting(calendar);
 
       // Check if this is a calendar variant
@@ -170,13 +175,20 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       // Generate mini widget preview (use collection preview for consistency if available)
       const miniPreview = collectionEntry?.preview || this.generateMiniWidgetPreview(calendar);
 
+      const description = collectionEntry?.description || localizedDescription;
+      const tags = collectionEntry?.tags || [];
+      const author = collectionEntry?.author || calendar.sourceInfo?.sourceName || fallbackAuthor;
+
       return {
         id,
         label,
         description,
+        detailDescription: description,
         setting,
         sampleDate,
         miniPreview,
+        tags,
+        author,
         isCurrent: id === this.currentCalendarId,
         isSelected: id === this.selectedCalendarId,
         isVariant,
@@ -184,7 +196,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         baseCalendarId,
         sourceType: sourceInfo.type,
         sourceIcon: sourceInfo.icon,
-        sourceLabel: sourceInfo.label,
+        sourceLabel: sourceInfo.label || fallbackSourceLabel,
         sourceDescription: sourceInfo.description,
         isModuleSource: sourceInfo.type === 'module',
         isBuiltinSource: sourceInfo.type === 'builtin',
@@ -194,14 +206,14 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
 
     // Group calendars hierarchically by base calendar
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const calendarGroups = new Map<string, { base: any | null; variants: any[] }>();
+    const hierarchyGroups = new Map<string, { base: any | null; variants: any[] }>();
 
     for (const calendar of calendarsData) {
-      if (!calendarGroups.has(calendar.baseCalendarId)) {
-        calendarGroups.set(calendar.baseCalendarId, { base: null, variants: [] });
+      if (!hierarchyGroups.has(calendar.baseCalendarId)) {
+        hierarchyGroups.set(calendar.baseCalendarId, { base: null, variants: [] });
       }
 
-      const group = calendarGroups.get(calendar.baseCalendarId);
+      const group = hierarchyGroups.get(calendar.baseCalendarId);
       if (!group) continue;
       if (calendar.isVariant) {
         group.variants.push(calendar);
@@ -211,7 +223,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     }
 
     // Sort groups with Gregorian first, then alphabetically
-    const sortedGroups = Array.from(calendarGroups.entries()).sort(
+    const sortedGroups = Array.from(hierarchyGroups.entries()).sort(
       ([aId, aGroup], [bId, bGroup]) => {
         // Gregorian calendar always comes first
         if (aId === 'gregorian') return -1;
@@ -245,18 +257,174 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
 
     // Determine if file picker should be considered "selected"
     // Only show as selected if there's actually a file selected AND it's either the selected ID or is currently active
+    const resultsCount = sortedCalendars.length;
+
+    // Group calendars by source for master-detail layout
+    const groupMap = new Map<
+      string,
+      {
+        id: string;
+        label: string;
+        icon: string;
+        sourceType: string;
+        calendars: typeof sortedCalendars;
+      }
+    >();
+
+    for (const calendar of sortedCalendars) {
+      const groupId = calendar.sourceLabel || calendar.sourceType;
+      if (!groupMap.has(groupId)) {
+        groupMap.set(groupId, {
+          id: groupId,
+          label: calendar.sourceLabel || fallbackSourceLabel,
+          icon: calendar.sourceIcon || 'fa-solid fa-calendar-alt',
+          sourceType: calendar.sourceType,
+          calendars: [],
+        });
+      }
+
+      const group = groupMap.get(groupId);
+      group?.calendars.push(calendar);
+    }
+
+    const customGroupId = 'custom-files';
+    let filePickerCalendar: (typeof sortedCalendars)[number] | null = null;
+
+    if (showFilePicker) {
+      const customGroupLabel = this.localize(
+        'SEASONS_STARS.dialog.calendar_selection.custom_group_label'
+      );
+      const customGroupDescription = this.localize(
+        'SEASONS_STARS.dialog.calendar_selection.custom_group_description'
+      );
+
+      const filePickerLabel = selectedFilePath
+        ? selectedFilePath.split('/').pop() ||
+          this.localize('SEASONS_STARS.dialog.calendar_selection.custom_file')
+        : this.localize('SEASONS_STARS.dialog.calendar_selection.custom_file');
+      const filePickerDescription = selectedFilePath
+        ? this.localize('SEASONS_STARS.dialog.calendar_selection.file_loaded')
+        : this.localize('SEASONS_STARS.dialog.calendar_selection.custom_file_hint');
+
+      const customTag = this.localize('SEASONS_STARS.dialog.calendar_selection.tag_custom');
+
+      filePickerCalendar = {
+        id: '__FILE_PICKER__',
+        label: filePickerLabel,
+        description: filePickerDescription,
+        detailDescription: filePickerDescription,
+        setting: selectedFilePath,
+        sampleDate:
+          selectedFilePath ||
+          this.localize('SEASONS_STARS.dialog.calendar_selection.click_to_select'),
+        miniPreview: selectedFilePath || '',
+        tags: selectedFilePath ? [customTag] : [],
+        author: fallbackAuthor,
+        isCurrent: filePickerActive,
+        isSelected: this.selectedCalendarId === '__FILE_PICKER__',
+        isVariant: false,
+        variantInfo: '',
+        baseCalendarId: '__FILE_PICKER__',
+        sourceType: 'external',
+        sourceIcon: 'fa-solid fa-file-alt',
+        sourceLabel: customGroupLabel,
+        sourceDescription: customGroupDescription,
+        isModuleSource: false,
+        isBuiltinSource: false,
+        isExternalSource: true,
+        hasFile: selectedFilePath !== '',
+        isFilePicker: true,
+      } as (typeof sortedCalendars)[number] & { hasFile: boolean; isFilePicker: boolean };
+
+      if (!groupMap.has(customGroupId)) {
+        groupMap.set(customGroupId, {
+          id: customGroupId,
+          label: customGroupLabel,
+          icon: 'fa-solid fa-file-alt',
+          sourceType: 'external',
+          calendars: [],
+        });
+      }
+
+      const customGroup = groupMap.get(customGroupId);
+      customGroup?.calendars.push(filePickerCalendar);
+    }
+
+    const sourceGroups = Array.from(groupMap.values()).map(group => ({
+      id: group.id,
+      label: group.label,
+      icon: group.icon,
+      sourceType: group.sourceType,
+      calendars: group.calendars,
+      calendarCount: group.calendars.length,
+    }));
+
+    const allCalendarsForDetails = [...sortedCalendars];
+    if (filePickerCalendar) {
+      allCalendarsForDetails.push(filePickerCalendar);
+    }
+
+    const activeCalendarForDetails =
+      allCalendarsForDetails.find(calendar => calendar.id === this.selectedCalendarId) ||
+      allCalendarsForDetails.find(calendar => calendar.id === this.currentCalendarId) ||
+      null;
+
+    const selectedCalendarDetails = activeCalendarForDetails
+      ? activeCalendarForDetails.id === '__FILE_PICKER__'
+        ? {
+            id: activeCalendarForDetails.id,
+            label: activeCalendarForDetails.label,
+            description: activeCalendarForDetails.detailDescription,
+            sampleDate: activeCalendarForDetails.sampleDate,
+            miniPreview: activeCalendarForDetails.miniPreview,
+            sourceIcon: activeCalendarForDetails.sourceIcon,
+            sourceLabel: activeCalendarForDetails.sourceLabel,
+            tags: activeCalendarForDetails.tags,
+            isCurrent: activeCalendarForDetails.isCurrent,
+            isSelected: activeCalendarForDetails.isSelected,
+            isFilePicker: true,
+            hasFile: (activeCalendarForDetails as any).hasFile,
+            selectedFilePath,
+            canPreview: false,
+          }
+        : {
+            id: activeCalendarForDetails.id,
+            label: activeCalendarForDetails.label,
+            description: activeCalendarForDetails.detailDescription,
+            sampleDate: activeCalendarForDetails.sampleDate,
+            miniPreview: activeCalendarForDetails.miniPreview,
+            sourceIcon: activeCalendarForDetails.sourceIcon,
+            sourceLabel: activeCalendarForDetails.sourceLabel,
+            sourceDescription: activeCalendarForDetails.sourceDescription,
+            tags: activeCalendarForDetails.tags,
+            author: activeCalendarForDetails.author,
+            setting: activeCalendarForDetails.setting,
+            isCurrent: activeCalendarForDetails.isCurrent,
+            isSelected: activeCalendarForDetails.isSelected,
+            isVariant: activeCalendarForDetails.isVariant,
+            variantInfo: activeCalendarForDetails.variantInfo,
+            canPreview: true,
+          }
+      : null;
+
     const filePickerSelected =
       selectedFilePath !== '' &&
       (this.selectedCalendarId === '__FILE_PICKER__' || filePickerActive);
 
     return Object.assign(context, {
       calendars: sortedCalendars,
+      calendarGroups: sourceGroups,
       selectedCalendar: this.selectedCalendarId,
+      selectedCalendarDetails,
       currentCalendar: this.currentCalendarId,
       showFilePicker,
       selectedFilePath,
       filePickerActive,
       filePickerSelected,
+      resultsCount: resultsCount + (filePickerCalendar ? 1 : 0),
+      filtersActive: false,
+      searchQuery: '',
+      tagFilter: '',
     });
   }
 
@@ -266,20 +434,23 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     super._attachPartListeners(partId, htmlElement, options);
 
     Logger.debug('Attaching part listeners', { partId, element: htmlElement });
-    Logger.debug('Scrollable elements', htmlElement.querySelectorAll('.calendar-selection-grid'));
+    Logger.debug(
+      'Scrollable elements',
+      htmlElement.querySelectorAll('.calendar-list, .calendar-details')
+    );
 
     // Add action buttons to window and update button state after rendering
     this.addActionButtons($(htmlElement));
     this.updateSelectButton($(htmlElement));
 
     // Debug: Check if scrolling is working
-    const scrollableGrid = htmlElement.querySelector('.calendar-selection-grid');
-    if (scrollableGrid) {
-      const style = getComputedStyle(scrollableGrid);
-      Logger.debug('Found scrollable grid', {
-        overflow: style.overflow,
-        clientHeight: scrollableGrid.clientHeight,
-        scrollHeight: scrollableGrid.scrollHeight,
+    const scrollableList = htmlElement.querySelector('.calendar-list');
+    if (scrollableList) {
+      const style = getComputedStyle(scrollableList);
+      Logger.debug('Found scrollable list', {
+        overflowY: style.overflowY,
+        clientHeight: scrollableList.clientHeight,
+        scrollHeight: scrollableList.scrollHeight,
       });
     }
   }
@@ -288,15 +459,17 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
    * Add action buttons to the dialog
    */
   private addActionButtons(html: JQuery): void {
+    const cancelLabel = this.localize('SEASONS_STARS.dialog.calendar_selection.cancel');
+    const selectLabel = this.localize('SEASONS_STARS.dialog.calendar_selection.select');
     const footer = $(`
       <div class="dialog-buttons flexrow">
         <button data-action="cancel" type="button" class="button">
           <i class="fas fa-times"></i>
-          ${game.i18n.localize('SEASONS_STARS.dialog.calendar_selection.cancel')}
+          ${cancelLabel}
         </button>
         <button data-action="chooseCalendar" type="button" class="button ss-button primary" id="select-calendar">
           <i class="fas fa-check"></i>
-          ${game.i18n.localize('SEASONS_STARS.dialog.calendar_selection.select')}
+          ${selectLabel}
         </button>
       </div>
     `);
@@ -345,8 +518,9 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         const selectedFilePath =
           (game.settings?.get('seasons-and-stars', 'activeCalendarFile') as string) || '';
         const fileName = selectedFilePath
-          ? selectedFilePath.split('/').pop() || 'Custom File'
-          : 'Custom File';
+          ? selectedFilePath.split('/').pop() ||
+            this.localize('SEASONS_STARS.dialog.calendar_selection.custom_file')
+          : this.localize('SEASONS_STARS.dialog.calendar_selection.custom_file');
         label = fileName;
       } else {
         // Handle regular calendar case
@@ -356,10 +530,55 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
           : this.selectedCalendarId;
       }
 
-      selectButton.html(`<i class="fas fa-check"></i> Switch to ${label}`);
+      const escapedLabel = this.escapeHtml(label);
+      const switchLabel = this.format('SEASONS_STARS.dialog.calendar_selection.switch_to', {
+        calendar: escapedLabel,
+      });
+      selectButton.html(`<i class="fas fa-check"></i> ${this.escapeHtml(switchLabel)}`);
     } else {
-      selectButton.html(`<i class="fas fa-check"></i> Select Calendar`);
+      const selectLabel = this.localize('SEASONS_STARS.dialog.calendar_selection.select');
+      selectButton.html(`<i class="fas fa-check"></i> ${this.escapeHtml(selectLabel)}`);
     }
+  }
+
+  private escapeHtml(text: string): string {
+    const htmlEscapes: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    };
+
+    return text.replace(/[&<>"']/g, char => htmlEscapes[char] ?? char);
+  }
+
+  private static localizeKey(key: string): string {
+    const localizeFn = game.i18n?.localize;
+    if (typeof localizeFn === 'function') {
+      return localizeFn.call(game.i18n, key);
+    }
+    return key;
+  }
+
+  private static formatKey(key: string, data: Record<string, unknown>): string {
+    const formatFn = game.i18n?.format;
+    if (typeof formatFn === 'function') {
+      return formatFn.call(game.i18n, key, data);
+    }
+
+    return key.replace(/\{([^}]+)\}/g, (_, token: string) => {
+      const value = data[token as keyof typeof data];
+      return value !== undefined ? String(value) : '';
+    });
+  }
+
+  private localize(key: string): string {
+    return CalendarSelectionDialog.localizeKey(key);
+  }
+
+  private format(key: string, data: Record<string, unknown>): string {
+    return CalendarSelectionDialog.formatKey(key, data);
   }
 
   /**
@@ -388,15 +607,15 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         </div>
         <div class="preview-description">${description}</div>
         <div class="preview-samples">
-          <h4>${game.i18n.localize('SEASONS_STARS.dialog.calendar_selection.sample_dates')}</h4>
+          <h4>${this.localize('SEASONS_STARS.dialog.calendar_selection.sample_dates')}</h4>
           ${samples.map(sample => `<div class="sample-date">${sample}</div>`).join('')}
         </div>
         <div class="preview-structure">
-          <h4>${game.i18n.localize('SEASONS_STARS.dialog.calendar_selection.structure')}</h4>
+          <h4>${this.localize('SEASONS_STARS.dialog.calendar_selection.structure')}</h4>
           <div class="structure-info">
-            <div><strong>${game.i18n.localize('SEASONS_STARS.calendar.months')}:</strong> ${calendar.months.length}</div>
-            <div><strong>${game.i18n.localize('SEASONS_STARS.calendar.days_per_week')}:</strong> ${calendar.weekdays.length}</div>
-            ${calendar.leapYear ? `<div><strong>${game.i18n.localize('SEASONS_STARS.calendar.leap_year')}:</strong> ${game.i18n.localize('SEASONS_STARS.calendar.enabled')}</div>` : ''}
+            <div><strong>${this.localize('SEASONS_STARS.calendar.months')}:</strong> ${calendar.months.length}</div>
+            <div><strong>${this.localize('SEASONS_STARS.calendar.days_per_week')}:</strong> ${calendar.weekdays.length}</div>
+            ${calendar.leapYear ? `<div><strong>${this.localize('SEASONS_STARS.calendar.leap_year')}:</strong> ${this.localize('SEASONS_STARS.calendar.enabled')}</div>` : ''}
           </div>
         </div>
       </div>
@@ -404,14 +623,14 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
 
     new foundry.applications.api.DialogV2({
       window: {
-        title: game.i18n.format('SEASONS_STARS.dialog.calendar_preview.title', { calendar: label }),
+        title: this.format('SEASONS_STARS.dialog.calendar_preview.title', { calendar: label }),
       },
       content,
       buttons: [
         {
           action: 'close',
           icon: 'fas fa-times',
-          label: game.i18n.localize('SEASONS_STARS.dialog.close'),
+          label: this.localize('SEASONS_STARS.dialog.close'),
           callback: (): void => {},
         },
       ],
@@ -652,7 +871,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
 
             // Notify user
             ui.notifications?.info(
-              game.i18n.format('SEASONS_STARS.notifications.calendar_changed', {
+              this.format('SEASONS_STARS.notifications.calendar_changed', {
                 calendar: `Custom File: ${selectedFilePath.split('/').pop()}`,
               })
             );
@@ -662,7 +881,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
               new Error(`Validation failed for ${selectedFilePath}`)
             );
             ui.notifications?.error(
-              game.i18n.format('SEASONS_STARS.errors.calendar_file_load_failed', {
+              this.format('SEASONS_STARS.errors.calendar_file_load_failed', {
                 path: selectedFilePath,
                 error: 'Calendar validation failed',
               })
@@ -675,7 +894,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
             new Error(result.error || 'Unknown error')
           );
           ui.notifications?.error(
-            game.i18n.format('SEASONS_STARS.errors.calendar_file_load_failed', {
+            this.format('SEASONS_STARS.errors.calendar_file_load_failed', {
               path: selectedFilePath,
               error: result.error || 'Unknown error',
             })
@@ -696,7 +915,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
           : this.selectedCalendarId;
 
         ui.notifications?.info(
-          game.i18n.format('SEASONS_STARS.notifications.calendar_changed', { calendar: label })
+          this.format('SEASONS_STARS.notifications.calendar_changed', { calendar: label })
         );
       }
     }
@@ -803,7 +1022,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       await filePicker.render(true);
     } catch (error) {
       Logger.error('Failed to open file picker:', error as Error);
-      ui.notifications?.error(game.i18n.localize('SEASONS_STARS.errors.file_picker_failed'));
+      ui.notifications?.error(this.localize('SEASONS_STARS.errors.file_picker_failed'));
     }
   }
 
@@ -821,7 +1040,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       this.render(true);
     } catch (error) {
       Logger.error('Failed to clear file picker:', error as Error);
-      ui.notifications?.error(game.i18n.localize('SEASONS_STARS.errors.clear_file_failed'));
+      ui.notifications?.error(this.localize('SEASONS_STARS.errors.clear_file_failed'));
     }
   }
 
@@ -830,7 +1049,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
    */
   static async show(): Promise<void> {
     if (!game.seasonsStars?.manager) {
-      ui.notifications?.error(game.i18n.localize('SEASONS_STARS.errors.manager_not_ready'));
+      ui.notifications?.error(this.localizeKey('SEASONS_STARS.errors.manager_not_ready'));
       return;
     }
 
@@ -844,7 +1063,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     const currentCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
 
     if (calendars.size === 0) {
-      ui.notifications?.warn(game.i18n.localize('SEASONS_STARS.warnings.no_calendars_available'));
+      ui.notifications?.warn(this.localizeKey('SEASONS_STARS.warnings.no_calendars_available'));
       return;
     }
 

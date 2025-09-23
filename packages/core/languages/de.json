@@ -31,7 +31,26 @@
         "sample_dates": "Beispieldaten",
         "structure": "Kalenderstruktur",
         "no_calendars": "Keine Kalender verfügbar",
-        "no_calendars_hint": "Es wurden keine Kalenderdateien gefunden. Bitte stelle sicher, dass die Kalenderdaten ordnungsgemäß installiert sind."
+        "no_calendars_hint": "Es wurden keine Kalenderdateien gefunden. Bitte stelle sicher, dass die Kalenderdaten ordnungsgemäß installiert sind.",
+        "search_placeholder": "Kalender durchsuchen...",
+        "filter_source_label": "Quellmodul",
+        "filter_source_all": "Alle Quellen",
+        "filter_tags_label": "Nach Tags filtern",
+        "filter_tags_placeholder": "z. B. Fantasy, Offiziell, Lunar...",
+        "results_count": "{count} Kalender gefunden",
+        "clear_filters": "Filter zurücksetzen",
+        "add_custom_calendar": "Eigenen Kalender hinzufügen",
+        "description_header": "Beschreibung",
+        "tags_header": "Tags",
+        "preview_header": "Vorschau",
+        "preview_sample_label": "Beispieldatum",
+        "preview_mini_label": "Mini-Widget",
+        "no_selection_message": "Wählen Sie einen Kalender aus der Liste, um Details anzuzeigen.",
+        "unknown_source": "Unbekannte Quelle",
+        "unknown_author": "Unbekannter Autor",
+        "custom_group_label": "Eigene Dateien",
+        "custom_group_description": "Kalender, die aus eigenen JSON-Dateien geladen wurden.",
+        "tag_custom": "Eigen"
       },
       "calendar_preview": {
         "title": "Kalendervorschau: {calendar}"

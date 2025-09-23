@@ -43,7 +43,26 @@
         "file_loaded": "Plik kalendarza niestandardowego został załadowany i jest gotowy do użycia",
         "file_path": "Ścieżka pliku",
         "status": "Status",
-        "click_to_select": "Kliknij, aby wybrać plik kalendarza"
+        "click_to_select": "Kliknij, aby wybrać plik kalendarza",
+        "search_placeholder": "Szukaj kalendarzy...",
+        "filter_source_label": "Moduł źródłowy",
+        "filter_source_all": "Wszystkie źródła",
+        "filter_tags_label": "Filtruj według tagów",
+        "filter_tags_placeholder": "np. Fantasy, Oficjalny, Księżycowy...",
+        "results_count": "Znaleziono {count} kalendarzy",
+        "clear_filters": "Wyczyść filtry",
+        "add_custom_calendar": "Dodaj kalendarz niestandardowy",
+        "description_header": "Opis",
+        "tags_header": "Tagi",
+        "preview_header": "Podgląd",
+        "preview_sample_label": "Przykładowa data",
+        "preview_mini_label": "Mini widżet",
+        "no_selection_message": "Wybierz kalendarz z listy, aby zobaczyć szczegóły.",
+        "unknown_source": "Nieznane źródło",
+        "unknown_author": "Nieznany autor",
+        "custom_group_label": "Pliki niestandardowe",
+        "custom_group_description": "Kalendarze wczytane z własnych plików JSON.",
+        "tag_custom": "Niestandardowy"
       },
       "calendar_preview": {
         "title": "Podgląd kalendarza: {calendar}"
