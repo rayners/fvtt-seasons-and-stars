@@ -35,3 +35,11 @@ Designed to work with science fiction game systems including Starfinder, Travell
 Each calendar includes appropriate time structures and formatting for their respective sci-fi settings. Calendar data is optimized for practical gameplay use.
 
 _Note: This is a pure data module - no JavaScript included._
+
+## 🤖 AI-Assisted Development
+
+Calendar content in this pack is compiled with assistance from Claude (Anthropic's AI assistant) to keep formatting consistent and speed up verification work. Final data reviews still happen manually. For details about the AI collaboration workflow, see [rayners/dev-context](https://github.com/rayners/dev-context).
+
+## Community & Support
+
+Share feedback, request new calendars, or ask questions on [Discord](https://discord.gg/tqZnxAdEqE) or via [GitHub Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues).
