@@ -7,11 +7,7 @@
       "setting": "Critical Role"
     }
   },
-  "sources": [
-    "https://criticalrole.fandom.com/wiki/Exandrian_calendar",
-    "https://criticalrole.fandom.com/wiki/Catha",
-    "https://criticalrole.fandom.com/wiki/Ruidus"
-  ],
+  "sources": ["https://criticalrole.fandom.com/wiki/Calendar_of_Exandria"],
 
   "year": {
     "epoch": 0,

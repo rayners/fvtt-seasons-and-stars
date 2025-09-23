@@ -7,10 +7,7 @@
       "setting": "Starfinder"
     }
   },
-  "sources": [
-    "https://starfinderwiki.com/wiki/Calendar",
-    "https://starfinderwiki.com/wiki/Pact_Worlds"
-  ],
+  "sources": ["https://starfinderwiki.com/wiki/Pact_Standard_Time"],
 
   "worldTime": {
     "interpretation": "real-time-based",

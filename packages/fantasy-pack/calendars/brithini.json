@@ -7,7 +7,7 @@
       "setting": "Glorantha"
     }
   },
-  "sources": ["https://glorantha.fandom.com/wiki/Brithini_calendar"],
+  "sources": ["https://glorantha.fandom.com/wiki/Calendar"],
   "year": {
     "epoch": 0,
     "currentYear": 1625,

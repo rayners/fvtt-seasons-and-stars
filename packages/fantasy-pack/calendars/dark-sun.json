@@ -8,9 +8,8 @@
     }
   },
   "sources": [
-    "https://athas.fandom.com/wiki/Calendar_of_Athas",
-    "https://athas.fandom.com/wiki/Ral_(moon)",
-    "https://athas.fandom.com/wiki/Guthay"
+    "https://athas.org/articles/the-merchant-s-calendar",
+    "https://moonsofathas.blogspot.com/p/cycles-of-moons.html"
   ],
   "year": {
     "epoch": 0,

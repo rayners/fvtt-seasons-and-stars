@@ -7,11 +7,7 @@
       "setting": "Brandon Sanderson's Cosmere - Stormlight Archive"
     }
   },
-  "sources": [
-    "https://coppermind.net/wiki/Vorin_calendar",
-    "https://coppermind.net/wiki/Weeping",
-    "https://coppermind.net/wiki/Roshar#Astronomy"
-  ],
+  "sources": ["https://stormlightarchive.fandom.com/wiki/Calendar"],
 
   "year": {
     "epoch": 0,
