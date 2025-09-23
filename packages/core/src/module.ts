@@ -809,6 +809,20 @@ function registerSettings(): void {
     default: true,
   });
 
+  game.settings.register('seasons-and-stars', 'realTimeAdvancementInterval', {
+    name: 'Real-Time Advancement Interval',
+    hint: 'Minimum interval (in seconds) between real-time advancement updates. Lower values may affect application performance as updates run more frequently. Range: 1-300 seconds.',
+    scope: 'world',
+    config: true,
+    type: Number,
+    range: {
+      min: 1,
+      max: 300,
+      step: 1,
+    },
+    default: 10,
+  });
+
   // === NOTES SYSTEM SETTINGS ===
 
   game.settings.register('seasons-and-stars', 'allowPlayerNotes', {

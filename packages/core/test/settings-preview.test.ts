@@ -7,8 +7,9 @@ import * as settingsPreview from '../src/core/settings-preview';
 
 const { generateRatioExplanation, generateIntervalExplanation } = settingsPreview as any;
 
-function calculateOptimalInterval(ratio: number): number {
-  return Math.max(10000, Math.ceil(1000 / ratio));
+function calculateOptimalInterval(ratio: number, minIntervalSeconds: number = 10): number {
+  const minIntervalMs = minIntervalSeconds * 1000;
+  return Math.max(minIntervalMs, Math.ceil(1000 / ratio));
 }
 
 describe('Settings Preview', () => {
@@ -88,6 +89,20 @@ describe('Settings Preview', () => {
 
     it('calculates very slow interval', () => {
       expect(calculateOptimalInterval(0.1)).toBe(10000);
+    });
+
+    it('respects custom minimum intervals', () => {
+      // With 5 second minimum
+      expect(calculateOptimalInterval(100.0, 5)).toBe(5000);
+      expect(calculateOptimalInterval(1.0, 5)).toBe(5000);
+
+      // With 30 second minimum
+      expect(calculateOptimalInterval(100.0, 30)).toBe(30000);
+      expect(calculateOptimalInterval(1.0, 30)).toBe(30000);
+
+      // With 1 second minimum
+      expect(calculateOptimalInterval(100.0, 1)).toBe(1000);
+      expect(calculateOptimalInterval(1.0, 1)).toBe(1000);
     });
   });
 });

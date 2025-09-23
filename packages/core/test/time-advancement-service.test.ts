@@ -66,6 +66,7 @@ describe('TimeAdvancementService', () => {
         pauseOnCombat: true,
         resumeAfterCombat: false,
         syncWithGamePause: true,
+        realTimeAdvancementInterval: 10, // Default to 10 seconds
       };
       return defaults[key];
     });
@@ -134,9 +135,26 @@ describe('TimeAdvancementService', () => {
       expect(interval).toBe(10000); // Math.max(10000, 1000/0.1) = 10000
     });
 
-    it('should enforce minimum interval of 10000ms', () => {
+    it('should enforce minimum interval based on configuration', () => {
       const interval = (service as any).calculateOptimalInterval(100.0);
-      expect(interval).toBe(10000); // Never less than 10000ms
+      expect(interval).toBe(10000); // Never less than configured minimum (10s default = 10000ms)
+    });
+
+    it('should use configurable minimum interval', () => {
+      // Test with different configured values
+      mockGame.settings.get.mockImplementation((module: string, key: string) => {
+        if (key === 'realTimeAdvancementInterval') return 5; // 5 seconds
+        return 1.0;
+      });
+      let interval = (service as any).calculateOptimalInterval(100.0);
+      expect(interval).toBe(5000); // 5 seconds = 5000ms
+
+      mockGame.settings.get.mockImplementation((module: string, key: string) => {
+        if (key === 'realTimeAdvancementInterval') return 30; // 30 seconds
+        return 1.0;
+      });
+      interval = (service as any).calculateOptimalInterval(100.0);
+      expect(interval).toBe(30000); // 30 seconds = 30000ms
     });
   });
 
