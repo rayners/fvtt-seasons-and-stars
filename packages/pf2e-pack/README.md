@@ -24,4 +24,4 @@ Once installed, the Golarion calendar will be available in Seasons & Stars calen
 
 ## Support
 
-For issues, suggestions, or contributions, please visit the [GitHub repository](https://github.com/rayners/fvtt-seasons-and-stars).
+For issues, suggestions, or contributions, please visit the [GitHub repository](https://github.com/rayners/fvtt-seasons-and-stars) or join the community on [Discord](https://discord.gg/tqZnxAdEqE).

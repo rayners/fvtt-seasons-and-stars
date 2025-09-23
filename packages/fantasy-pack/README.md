@@ -58,3 +58,7 @@ This is a pure data module - no JavaScript required. Calendar definitions are JS
 ## License
 
 MIT License - see main repository for details.
+
+## Support
+
+Questions or feedback? Connect with the community on [Discord](https://discord.gg/tqZnxAdEqE) or open an issue on [GitHub](https://github.com/rayners/fvtt-seasons-and-stars/issues).

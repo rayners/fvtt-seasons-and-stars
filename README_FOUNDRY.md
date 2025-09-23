@@ -84,6 +84,11 @@ Provides API for other module developers to integrate calendar functionality.
 - **API Documentation**: Reference for module developers
 - **Support**: GitHub Discussions for questions and feedback
 
+## Community & Support
+
+- **Discord**: Chat with the development team and other GMs in the [Seasons & Stars server](https://discord.gg/tqZnxAdEqE).
+- **GitHub**: File bug reports or feature requests via [Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues) and [Discussions](https://github.com/rayners/fvtt-seasons-and-stars/discussions).
+
 ## Development Status
 
 **Alpha Release**: This module is in active development. Features and APIs may change. Please report issues and provide feedback through GitHub.

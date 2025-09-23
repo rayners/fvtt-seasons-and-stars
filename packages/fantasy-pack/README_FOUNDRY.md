@@ -57,3 +57,7 @@ Designed to work with fantasy game systems including D&D 5e, Pathfinder 2e, OSR 
 Each calendar includes authentic month names, festival days, and seasonal calculations based on their source materials. Calendar data is optimized for practical gameplay use.
 
 _Note: This is a pure data module - no JavaScript included._
+
+## Community & Support
+
+Join the discussion on [Discord](https://discord.gg/tqZnxAdEqE) or share feedback via [GitHub Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues).
