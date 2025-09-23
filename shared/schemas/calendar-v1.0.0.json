@@ -255,6 +255,12 @@
           "maximum": 1000,
           "description": "For custom rules: interval between leap years"
         },
+        "offset": {
+          "type": "integer",
+          "minimum": -1000,
+          "maximum": 1000,
+          "description": "Optional year offset applied before interval calculation"
+        },
         "month": {
           "type": "string",
           "minLength": 1,
@@ -294,6 +300,19 @@
                 "minimum": 1,
                 "maximum": 10,
                 "description": "How many extra days to add"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["offset"]
+          },
+          "then": {
+            "properties": {
+              "rule": {
+                "const": "custom",
+                "description": "Offsets are only meaningful for custom interval rules"
               }
             }
           }

@@ -84,6 +84,11 @@ Provides API for other module developers to integrate calendar functionality.
 - **API Documentation**: Reference for module developers
 - **Support**: GitHub Discussions for questions and feedback
 
+## Community & Support
+
+- **Discord**: Chat with the development team and other GMs in the [Seasons & Stars server](https://discord.gg/tqZnxAdEqE).
+- **GitHub**: File bug reports or feature requests via [Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues) and [Discussions](https://github.com/rayners/fvtt-seasons-and-stars/discussions).
+
 ## Development Status
 
 **Alpha Release**: This module is in active development. Features and APIs may change. Please report issues and provide feedback through GitHub.
@@ -95,6 +100,8 @@ This module is developed with AI assistance (Claude/Anthropic) to help with codi
 **Transparency**: You may see AI credited as co-author in development commits. This reflects the collaborative development process while maintaining human oversight and quality control.
 
 **Learn more**: [Development Process Details](https://www.patreon.com/posts/how-and-why-i-ai-132316710)
+
+Want a deeper look at the standards, prompts, and guardrails involved? Check out the companion documentation repository [rayners/dev-context](https://github.com/rayners/dev-context) for an overview of how AI collaboration fits into development.
 
 ## Support Development
 

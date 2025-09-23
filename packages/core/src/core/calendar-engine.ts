@@ -917,7 +917,7 @@ export class CalendarEngine {
     const leapYear = this.calendar.leapYear;
     if (!leapYear) return false;
 
-    const { rule, interval } = leapYear;
+    const { rule, interval, offset = 0 } = leapYear;
 
     switch (rule) {
       case 'none':
@@ -926,8 +926,14 @@ export class CalendarEngine {
       case 'gregorian':
         return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 
-      case 'custom':
-        return interval ? year % interval === 0 : false;
+      case 'custom': {
+        if (!interval) return false;
+        const normalizedYear = year - offset;
+        const remainder = normalizedYear % interval;
+        // Check if the year is divisible by the interval.
+        // For negative remainders, we need to normalize them to positive values.
+        return remainder === 0 || (remainder < 0 && remainder + interval === 0);
+      }
 
       default:
         return false;
@@ -1026,31 +1032,61 @@ export class CalendarEngine {
         : daysSinceReference +
           Math.ceil(Math.abs(daysSinceReference) / moon.cycleLength) * moon.cycleLength;
 
-    // Calculate position in current cycle
-    const dayInCycle = adjustedDays % moon.cycleLength;
+    // Calculate position in current cycle with tolerance for fractional lengths
+    const cyclePositionRaw =
+      ((adjustedDays % moon.cycleLength) + moon.cycleLength) % moon.cycleLength;
+    const phaseBoundaryTolerance = 1e-6;
 
-    // Find current phase
+    let phaseStart = 0;
     let currentPhaseIndex = 0;
-    let daysIntoPhase = dayInCycle;
 
     for (let i = 0; i < moon.phases.length; i++) {
-      if (daysIntoPhase < moon.phases[i].length) {
+      const phase = moon.phases[i];
+      const phaseEnd = phaseStart + phase.length;
+
+      if (cyclePositionRaw < phaseEnd - phaseBoundaryTolerance || i === moon.phases.length - 1) {
         currentPhaseIndex = i;
         break;
       }
-      daysIntoPhase -= moon.phases[i].length;
+
+      phaseStart = phaseEnd;
     }
 
     const currentPhase = moon.phases[currentPhaseIndex];
-    const daysUntilNext = currentPhase.length - daysIntoPhase;
+    const rawDayInPhase = cyclePositionRaw - phaseStart;
+    const normalizedDayInPhase = Math.max(this.normalizeFractionalValue(rawDayInPhase), 0);
+    const phaseLength = currentPhase.length;
+    const dayInPhaseExact = Math.min(normalizedDayInPhase, phaseLength);
+    const rawDaysUntilNext = phaseLength - dayInPhaseExact;
+    const daysUntilNextExact = Math.max(this.normalizeFractionalValue(rawDaysUntilNext), 0);
+    const phaseProgress =
+      phaseLength > 0 ? Math.min(Math.max(dayInPhaseExact / phaseLength, 0), 1) : 0;
 
     return {
       moon,
       phase: currentPhase,
       phaseIndex: currentPhaseIndex,
-      dayInPhase: Math.floor(daysIntoPhase),
-      daysUntilNext: Math.ceil(daysUntilNext),
+      dayInPhase: Math.floor(dayInPhaseExact),
+      dayInPhaseExact,
+      daysUntilNext: Math.max(Math.ceil(daysUntilNextExact), 0),
+      daysUntilNextExact,
+      phaseProgress,
     };
+  }
+
+  private normalizeFractionalValue(value: number): number {
+    const precision = 1_000_000;
+    const rounded = Math.round(value * precision) / precision;
+
+    if (rounded === 0) {
+      return 0;
+    }
+
+    if (!Number.isFinite(rounded)) {
+      return 0;
+    }
+
+    return rounded;
   }
 
   /**
