@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.5.0...seasons-and-stars-fantasy-v0.6.0) (2025-09-23)
+
+
+### Features
+
+* verify calendar source availability ([#270](https://github.com/rayners/fvtt-seasons-and-stars/issues/270)) ([50b286a](https://github.com/rayners/fvtt-seasons-and-stars/commit/50b286ac41d4cb0531c01c24be678bb7b2291fa5))
+
 ## [0.5.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.4.0...seasons-and-stars-fantasy-v0.5.0) (2025-09-20)
 
 

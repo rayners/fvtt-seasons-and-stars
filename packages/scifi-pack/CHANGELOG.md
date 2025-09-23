@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-scifi-v0.2.3...seasons-and-stars-scifi-v0.3.0) (2025-09-23)
+
+
+### Features
+
+* **scifi-pack:** add Coriolis calendars for Third Horizon and The Great Dark ([#286](https://github.com/rayners/fvtt-seasons-and-stars/issues/286)) ([2057ead](https://github.com/rayners/fvtt-seasons-and-stars/commit/2057ead6de86d268f68e9d5b2a252741a34fe6f1))
+* verify calendar source availability ([#270](https://github.com/rayners/fvtt-seasons-and-stars/issues/270)) ([50b286a](https://github.com/rayners/fvtt-seasons-and-stars/commit/50b286ac41d4cb0531c01c24be678bb7b2291fa5))
+
 ## [0.2.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-scifi-v0.2.2...seasons-and-stars-scifi-v0.2.3) (2025-09-15)
 
 
