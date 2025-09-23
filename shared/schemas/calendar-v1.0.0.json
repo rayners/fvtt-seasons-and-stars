@@ -45,6 +45,40 @@
       "additionalProperties": false,
       "description": "Localization data with language codes (e.g., 'en', 'en-US')"
     },
+    "sources": {
+      "type": "array",
+      "description": "Public URLs or user-supplied bibliographic citations verifying the calendar data",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "format": "uri",
+            "description": "Publicly accessible URL that verifies calendar information"
+          },
+          {
+            "type": "object",
+            "required": ["citation"],
+            "additionalProperties": false,
+            "properties": {
+              "citation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500,
+                "description": "User-supplied bibliographic reference text"
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "Optional context about how the citation was provided"
+              }
+            },
+            "description": "User-supplied bibliographic citation"
+          }
+        ]
+      }
+    },
     "year": {
       "type": "object",
       "required": ["epoch", "currentYear", "prefix", "suffix", "startDay"],

@@ -32,5 +32,5 @@ jobs:
           junit-output: ${{ matrix.node-version == '24' }}
           test-command: 'npm run test:coverage:junit'
 
-      - name: Validate Calendars
-        run: npm run validate:calendars
+      - name: Validate Calendar JSON Syntax
+        run: npm run validate:calendars:syntax

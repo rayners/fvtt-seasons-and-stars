@@ -7,6 +7,7 @@
       "setting": "Traveller RPG"
     }
   },
+  "sources": ["https://wiki.travellerrpg.com/Imperial_Calendar"],
 
   "year": {
     "epoch": 0,
