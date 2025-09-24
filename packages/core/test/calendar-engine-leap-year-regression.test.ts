@@ -37,7 +37,7 @@ describe('Leap Year Calculation Regression', () => {
     const baseMonthDays = golarionCalendar.months.reduce((sum, m) => sum + m.days, 0);
 
     // Check leap year calculation
-    const leapYearExtra = isLeapYear ? golarionCalendar.leapYear.extraDays || 1 : 0;
+    const leapYearExtra = isLeapYear ? (golarionCalendar.leapYear.extraDays ?? 1) : 0;
 
     const expectedYearLength = baseMonthDays + leapYearExtra;
 

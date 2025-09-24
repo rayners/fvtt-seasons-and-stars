@@ -41,6 +41,10 @@ export interface SeasonsStarsCalendar {
      */
     offset?: number;
     month?: string;
+    /**
+     * Number of days to add (positive) or remove (negative) during leap years.
+     * For example, +1 adds an extra day, -1 removes a day.
+     */
     extraDays?: number;
   };
 
