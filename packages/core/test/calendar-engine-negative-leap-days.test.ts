@@ -57,26 +57,20 @@ describe('Negative Leap Days', () => {
     const engine = new CalendarEngine(calendar);
 
     // 2024 is a leap year (divisible by 4)
-    // @ts-ignore - accessing private method
     expect(engine.isLeapYear(2024)).toBe(true);
 
-    // @ts-ignore - accessing private method
     const monthLengths2024 = engine.getMonthLengths(2024);
     expect(monthLengths2024[1]).toBe(28); // February has 1 day removed
 
-    // @ts-ignore - accessing private method
     const yearLength2024 = engine.getYearLength(2024);
     expect(yearLength2024).toBe(31 + 28 + 31); // 90 days total
 
     // 2025 is not a leap year
-    // @ts-ignore - accessing private method
     expect(engine.isLeapYear(2025)).toBe(false);
 
-    // @ts-ignore - accessing private method
     const monthLengths2025 = engine.getMonthLengths(2025);
     expect(monthLengths2025[1]).toBe(29); // February has normal length
 
-    // @ts-ignore - accessing private method
     const yearLength2025 = engine.getYearLength(2025);
     expect(yearLength2025).toBe(31 + 29 + 31); // 91 days total
   });
@@ -120,14 +114,11 @@ describe('Negative Leap Days', () => {
     const engine = new CalendarEngine(calendar);
 
     // 2030 is a leap year (divisible by 10)
-    // @ts-ignore - accessing private method
     expect(engine.isLeapYear(2030)).toBe(true);
 
-    // @ts-ignore - accessing private method
     const monthLengths2030 = engine.getMonthLengths(2030);
     expect(monthLengths2030[1]).toBe(27); // December loses 3 days
 
-    // @ts-ignore - accessing private method
     const yearLength2030 = engine.getYearLength(2030);
     expect(yearLength2030).toBe(30 + 27); // 57 days total
   });
@@ -168,14 +159,11 @@ describe('Negative Leap Days', () => {
     const engine = new CalendarEngine(calendar);
 
     // 2024 is a leap year
-    // @ts-ignore - accessing private method
     expect(engine.isLeapYear(2024)).toBe(true);
 
-    // @ts-ignore - accessing private method
     const monthLengths = engine.getMonthLengths(2024);
     expect(monthLengths[1]).toBe(1); // Should be clamped to 1, not negative
 
-    // @ts-ignore - accessing private method
     const yearLength = engine.getYearLength(2024);
     expect(yearLength).toBe(30 + 1); // 31 days total
   });
@@ -221,23 +209,17 @@ describe('Negative Leap Days', () => {
     const engine = new CalendarEngine(calendar);
 
     // 2000 is a leap year (divisible by 400)
-    // @ts-ignore - accessing private method
     expect(engine.isLeapYear(2000)).toBe(true);
-    // @ts-ignore - accessing private method
     const monthLengths2000 = engine.getMonthLengths(2000);
     expect(monthLengths2000[1]).toBe(28); // February loses 2 days
 
     // 1900 is NOT a leap year (divisible by 100 but not 400)
-    // @ts-ignore - accessing private method
     expect(engine.isLeapYear(1900)).toBe(false);
-    // @ts-ignore - accessing private method
     const monthLengths1900 = engine.getMonthLengths(1900);
     expect(monthLengths1900[1]).toBe(30); // February keeps normal length
 
     // 2004 is a leap year (divisible by 4, not by 100)
-    // @ts-ignore - accessing private method
     expect(engine.isLeapYear(2004)).toBe(true);
-    // @ts-ignore - accessing private method
     const monthLengths2004 = engine.getMonthLengths(2004);
     expect(monthLengths2004[1]).toBe(28); // February loses 2 days
   });

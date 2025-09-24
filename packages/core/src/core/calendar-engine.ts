@@ -849,7 +849,7 @@ export class CalendarEngine {
   /**
    * Get month lengths for a specific year (accounting for leap years)
    */
-  private getMonthLengths(year: number): number[] {
+  getMonthLengths(year: number): number[] {
     const monthLengths = this.calendar.months.map(month => month.days);
 
     // Add or remove leap year days if applicable
@@ -925,7 +925,7 @@ export class CalendarEngine {
   /**
    * Check if a year is a leap year
    */
-  private isLeapYear(year: number): boolean {
+  isLeapYear(year: number): boolean {
     const leapYear = this.calendar.leapYear;
     if (!leapYear) return false;
 
