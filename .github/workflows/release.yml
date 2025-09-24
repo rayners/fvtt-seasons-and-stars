@@ -85,7 +85,7 @@ jobs:
         uses: rayners/foundry-module-actions/release@v4
         with:
           node-version: '20'
-          build-command: 'npm run build --workspace=packages/core'
+          build-command: 'npm run build'
           working-directory: 'dist/core'
           module-files: 'module.js module.json templates/ calendars/ styles/ languages/ schemas/ README.md CHANGELOG.md LICENSE'
         env:
@@ -108,7 +108,7 @@ jobs:
         uses: rayners/foundry-module-actions/release@v4
         with:
           node-version: '20'
-          build-command: 'npm run build --workspace=packages/fantasy-pack'
+          build-command: 'npm run build'
           working-directory: 'dist/fantasy-pack'
           module-files: 'module.json calendars/'
 
@@ -129,7 +129,7 @@ jobs:
         uses: rayners/foundry-module-actions/release@v4
         with:
           node-version: '20'
-          build-command: 'npm run build --workspace=packages/scifi-pack'
+          build-command: 'npm run build'
           working-directory: 'dist/scifi-pack'
           module-files: 'module.json calendars/'
 
@@ -150,6 +150,6 @@ jobs:
         uses: rayners/foundry-module-actions/release@v4
         with:
           node-version: '20'
-          build-command: 'npm run build --workspace=packages/pf2e-pack'
+          build-command: 'npm run build'
           working-directory: 'dist/pf2e-pack'
           module-files: 'pf2e-pack.js module.json calendars/ README.md CHANGELOG.md LICENSE'
