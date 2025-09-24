@@ -38,14 +38,13 @@ jobs:
           echo "Checking core module build artifacts..."
           test -f "dist/core/module.js" || (echo "❌ Missing dist/core/module.js" && exit 1)
           test -f "dist/core/module.json" || (echo "❌ Missing dist/core/module.json" && exit 1)
-          test -f "dist/core/quench-tests.js" || (echo "❌ Missing dist/core/quench-tests.js" && exit 1)
+          test -f "dist/core/calendars/index.json" || (echo "❌ Missing dist/core/calendars/index.json" && exit 1)
           echo "✅ Core module build artifacts verified"
 
       - name: Verify fantasy pack files
         run: |
           echo "Checking fantasy pack build artifacts..."
           test -f "dist/fantasy-pack/module.json" || (echo "❌ Missing dist/fantasy-pack/module.json" && exit 1)
-          test -d "dist/fantasy-pack/calendars" || (echo "❌ Missing dist/fantasy-pack/calendars directory" && exit 1)
           test -f "dist/fantasy-pack/calendars/index.json" || (echo "❌ Missing dist/fantasy-pack/calendars/index.json" && exit 1)
           echo "✅ Fantasy pack build artifacts verified"
 
@@ -53,7 +52,6 @@ jobs:
         run: |
           echo "Checking sci-fi pack build artifacts..."
           test -f "dist/scifi-pack/module.json" || (echo "❌ Missing dist/scifi-pack/module.json" && exit 1)
-          test -d "dist/scifi-pack/calendars" || (echo "❌ Missing dist/scifi-pack/calendars directory" && exit 1)
           test -f "dist/scifi-pack/calendars/index.json" || (echo "❌ Missing dist/scifi-pack/calendars/index.json" && exit 1)
           echo "✅ Sci-fi pack build artifacts verified"
 
@@ -66,21 +64,11 @@ jobs:
           test -f "dist/pf2e-pack/calendars/index.json" || (echo "❌ Missing dist/pf2e-pack/calendars/index.json" && exit 1)
           echo "✅ PF2e pack build artifacts verified"
 
-      - name: Verify test module files
-        run: |
-          echo "Checking test module build artifacts..."
-          test -f "dist/test-module/module.js" || (echo "❌ Missing dist/test-module/module.js" && exit 1)
-          test -f "dist/test-module/module.json" || (echo "❌ Missing dist/test-module/module.json" && exit 1)
-          echo "✅ Test module build artifacts verified"
-
       - name: Verify calendar index files exist
         run: |
           echo "Checking calendar index files..."
-          for pack in core fantasy-pack scifi-pack pf2e-pack test-module; do
+          for pack in core fantasy-pack scifi-pack pf2e-pack; do
             calendar_index="packages/$pack/calendars/index.json"
-            if [ "$pack" = "test-module" ]; then
-              calendar_index="packages/test-module/calendars/index.json"
-            fi
             test -f "$calendar_index" || (echo "❌ Missing calendar index: $calendar_index" && exit 1)
             echo "✅ $calendar_index exists"
           done
