@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run CI Pipeline
-        uses: rayners/foundry-module-actions/ci@v5
+        uses: rayners/foundry-module-actions/ci@v6.0.0
         with:
           node-version: ${{ matrix.node-version }}
           github-packages: true

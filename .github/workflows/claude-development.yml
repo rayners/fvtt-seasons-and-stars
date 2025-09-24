@@ -1,0 +1,60 @@
+name: Claude Development
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  development:
+    # Only run for issues by rayners that contain @claude
+    if: contains(github.event.issue.body, '@claude') && github.event.issue.user.login == 'rayners'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+      packages: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout dev-context repository
+        uses: actions/checkout@v4
+        with:
+          repository: rayners/dev-context
+          path: dev-context
+          fetch-depth: 1
+
+      - name: Load shared prompt
+        id: load-prompt
+        run: |
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          cat dev-context/claude-prompts/development-task.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Development Task
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            ${{ steps.load-prompt.outputs.content }}
+
+            DEVELOPMENT REQUEST from issue #${{ github.event.issue.number }}:
+
+            TITLE: "${{ github.event.issue.title }}"
+
+            BODY:
+            ${{ github.event.issue.body }}
+
+            You have access to the development environment including dev-context.
+            Follow the project's CLAUDE.md guidelines and use proper TDD workflow.
+
+            Work on the feature/fix, then provide a summary comment with a link to create a PR.
+            Do NOT create the PR directly - provide the user with a creation link instead.
+          claude_args: |
+            --model claude-sonnet-4-0
+            --allowed-tools "Bash(npm:*),Bash(git:*),Read,Write,Edit,MultiEdit,Glob,Grep,Bash(gh issue comment:*)"
