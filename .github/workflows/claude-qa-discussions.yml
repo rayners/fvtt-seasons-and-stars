@@ -32,10 +32,10 @@ jobs:
         id: load-prompt
         run: |
           {
-            echo 'content<<PROMPT_END'
+            echo 'content<<EOF'
             cat dev-context/claude-prompts/qa-discussion.md
-            echo 'PROMPT_END'
-          } >> $GITHUB_OUTPUT
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Answer Q&A Discussions
         uses: anthropics/claude-code-action@v1

@@ -43,10 +43,10 @@ jobs:
         id: load-prompt
         run: |
           {
-            echo 'content<<PROMPT_END'
+            echo 'content<<EOF'
             cat dev-context/claude-prompts/pr-review.md
-            echo 'PROMPT_END'
-          } >> $GITHUB_OUTPUT
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Run Claude Code Review
         id: claude-review
