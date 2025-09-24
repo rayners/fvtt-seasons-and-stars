@@ -82,7 +82,7 @@ jobs:
           fetch-depth: 0
 
       - name: Release Core Module
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v5
         with:
           node-version: '20'
           build-command: 'npm run build'
@@ -105,7 +105,7 @@ jobs:
           fetch-depth: 0
 
       - name: Release Fantasy Pack
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v5
         with:
           node-version: '20'
           build-command: 'npm run build'
@@ -126,7 +126,7 @@ jobs:
           fetch-depth: 0
 
       - name: Release Sci-Fi Pack
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v5
         with:
           node-version: '20'
           build-command: 'npm run build'
