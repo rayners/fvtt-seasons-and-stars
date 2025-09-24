@@ -1,0 +1,64 @@
+name: Claude Q&A Support
+
+on:
+  schedule:
+    # Run once daily at 9 AM UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  answer-questions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      discussions: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Checkout dev-context repository
+        uses: actions/checkout@v4
+        with:
+          repository: rayners/dev-context
+          path: dev-context
+          fetch-depth: 1
+
+      - name: Load shared prompt
+        id: load-prompt
+        run: |
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          cat dev-context/claude-prompts/qa-discussion.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Answer Q&A Discussions
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            ${{ steps.load-prompt.outputs.content }}
+
+            Check the Q&A discussions category for unanswered questions:
+            https://github.com/rayners/fvtt-seasons-and-stars/discussions/categories/q-a
+
+            IMPORTANT LIMITS:
+            - Only address the 3 OLDEST unanswered discussions (no responses at all)
+            - "Unanswered" means zero responses/comments from anyone
+            - Any response (human or bot) means the question is considered answered
+            - If fewer than 3 unanswered questions exist, handle what's available
+
+            For each qualifying question:
+            1. Provide helpful, accurate responses based on the codebase
+            2. Reference specific files/functions when relevant
+            3. Keep answers concise but thorough
+            4. Use examples from the calendar systems when appropriate
+            5. Be helpful but acknowledge limitations when appropriate
+
+            Skip questions that already have any responses.
+          claude_args: |
+            --model claude-sonnet-4-0
+            --allowed-tools "Bash(gh api:*),Bash(gh search:*),Read,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"
