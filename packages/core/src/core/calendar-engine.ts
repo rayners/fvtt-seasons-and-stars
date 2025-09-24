@@ -866,10 +866,7 @@ export class CalendarEngine {
 
         // Ensure month length doesn't go below 1
         if (monthLengths[leapMonthIndex] < 1) {
-          console.warn(`Calendar ${this.calendar.id}: Month "${this.calendar.leapYear!.month}" clamped to 1 day (was ${monthLengths[leapMonthIndex] + dayAdjustment})`);
-          monthLengths[leapMonthIndex] = 1;
-        }
-        if (monthLengths[leapMonthIndex] < 1) {
+          Logger.warn(`Calendar ${this.calendar.id}: Month "${this.calendar.leapYear!.month}" clamped to 1 day (was ${monthLengths[leapMonthIndex]})`);
           monthLengths[leapMonthIndex] = 1;
         }
       }

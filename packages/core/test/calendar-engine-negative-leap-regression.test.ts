@@ -27,28 +27,22 @@ describe('Negative Leap Days with Existing Calendars', () => {
     const engine = new CalendarEngine(modifiedGregorian);
 
     // 2024 is a leap year
-    // @ts-ignore - accessing private method
     expect(engine.isLeapYear(2024)).toBe(true);
 
-    // @ts-ignore - accessing private method
     const monthLengths2024 = engine.getMonthLengths(2024);
     // February normally has 28 days, minus 1 for negative leap = 27
     expect(monthLengths2024[1]).toBe(27);
 
-    // @ts-ignore - accessing private method
     const yearLength2024 = engine.getYearLength(2024);
     // Normal year is 365, removing 1 day = 364
     expect(yearLength2024).toBe(364);
 
     // 2023 is not a leap year
-    // @ts-ignore - accessing private method
     expect(engine.isLeapYear(2023)).toBe(false);
 
-    // @ts-ignore - accessing private method
     const monthLengths2023 = engine.getMonthLengths(2023);
     expect(monthLengths2023[1]).toBe(28); // February has normal 28 days
 
-    // @ts-ignore - accessing private method
     const yearLength2023 = engine.getYearLength(2023);
     expect(yearLength2023).toBe(365); // Normal year length
   });
@@ -90,15 +84,12 @@ describe('Negative Leap Days with Existing Calendars', () => {
     const engine = new CalendarEngine(extremeCalendar);
 
     // 2000 is a leap year (divisible by 5)
-    // @ts-ignore - accessing private method
     expect(engine.isLeapYear(2000)).toBe(true);
 
-    // @ts-ignore - accessing private method
     const monthLengths = engine.getMonthLengths(2000);
     // Should be clamped to minimum of 1 day
     expect(monthLengths[1]).toBe(1);
 
-    // @ts-ignore - accessing private method
     const yearLength = engine.getYearLength(2000);
     expect(yearLength).toBe(31); // 30 + 1 (clamped)
   });

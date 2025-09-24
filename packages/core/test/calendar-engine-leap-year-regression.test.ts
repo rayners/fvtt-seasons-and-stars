@@ -22,15 +22,12 @@ describe('Leap Year Calculation Regression', () => {
   test('Check year 2700 length calculations', () => {
     const engine = new CalendarEngine(golarionCalendar);
 
-    // @ts-ignore - accessing private method
     const yearLength = engine.getYearLength(2700);
 
-    // @ts-ignore - accessing private method
     const monthLengths = engine.getMonthLengths(2700);
 
     const totalMonthDays = monthLengths.reduce((sum, days) => sum + days, 0);
 
-    // @ts-ignore - accessing private method
     const isLeapYear = engine.isLeapYear(2700);
 
     // Manual calculation
@@ -52,7 +49,6 @@ describe('Leap Year Calculation Regression', () => {
     let year = 2700;
     let remainingDays = 365;
 
-    // @ts-ignore
     const yearLength = engine.getYearLength(year);
 
     if (remainingDays >= yearLength) {
@@ -61,7 +57,6 @@ describe('Leap Year Calculation Regression', () => {
     }
 
     // Now check month calculation
-    // @ts-ignore
     const monthLengths = engine.getMonthLengths(year);
 
     let month = 1;
@@ -80,7 +75,6 @@ describe('Leap Year Calculation Regression', () => {
     const day = tempRemainingDays + 1;
 
     // Test actual method
-    // @ts-ignore
     const actualResult = engine.daysToDate(365);
     expect(actualResult.year).toBe(year);
     expect(actualResult.month).toBe(month);
