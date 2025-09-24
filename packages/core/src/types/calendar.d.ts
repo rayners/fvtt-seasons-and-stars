@@ -50,6 +50,7 @@ export interface SeasonsStarsCalendar {
   seasons?: CalendarSeason[];
   moons?: CalendarMoon[];
   canonicalHours?: CalendarCanonicalHour[];
+  events?: CalendarEvent[];
 
   time: {
     hoursInDay: number;
@@ -264,6 +265,110 @@ export interface CalendarVariant {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
+}
+
+/**
+ * Calendar event definition for holidays and recurring events
+ */
+export interface CalendarEvent {
+  /** Unique identifier for the event */
+  id: string;
+
+  /** Display name of the event */
+  name: string;
+
+  /** Optional description of the event */
+  description?: string;
+
+  /** Recurrence pattern for the event */
+  recurrence: CalendarEventRecurrence;
+
+  /** Optional icon for display */
+  icon?: string;
+
+  /** Optional color for display */
+  color?: string;
+
+  /** Optional translations for the event */
+  translations?: {
+    [languageCode: string]: {
+      name?: string;
+      description?: string;
+    };
+  };
+}
+
+/**
+ * Defines the recurrence pattern for a calendar event
+ */
+export type CalendarEventRecurrence =
+  | CalendarEventFixedRecurrence
+  | CalendarEventOrdinalRecurrence
+  | CalendarEventMonthlyRecurrence
+  | CalendarEventIntervalRecurrence;
+
+/**
+ * Fixed date recurrence (e.g., "February 2nd every year")
+ */
+export interface CalendarEventFixedRecurrence {
+  type: 'fixed';
+  /** Month number (1-12 or based on calendar) */
+  month: number;
+  /** Day of month */
+  day: number;
+  /** Only occurs in leap years */
+  leapYearOnly?: boolean;
+}
+
+/**
+ * Ordinal weekday recurrence (e.g., "First Monday of September")
+ */
+export interface CalendarEventOrdinalRecurrence {
+  type: 'ordinal';
+  /** Month number (1-12 or based on calendar) */
+  month: number;
+  /** Weekday index (0-6 or based on calendar weekdays) */
+  weekday: number;
+  /** Ordinal position (1 = first, 2 = second, -1 = last, etc.) */
+  ordinal: number;
+}
+
+/**
+ * Monthly recurrence (e.g., "15th of every month")
+ */
+export interface CalendarEventMonthlyRecurrence {
+  type: 'monthly';
+  /** Day of month */
+  day: number;
+}
+
+/**
+ * Interval-based recurrence (e.g., "Every 100 years starting from 2000")
+ */
+export interface CalendarEventIntervalRecurrence {
+  type: 'interval';
+  /** Starting year for the interval */
+  startYear: number;
+  /** Years between occurrences */
+  interval: number;
+  /** Month number for the event */
+  month: number;
+  /** Day of month for the event */
+  day: number;
+}
+
+/**
+ * Event occurrence with date information
+ */
+export interface CalendarEventOccurrence {
+  /** The event that occurs */
+  event: CalendarEvent;
+  /** Year of occurrence */
+  year: number;
+  /** Month of occurrence */
+  month: number;
+  /** Day of occurrence */
+  day: number;
 }
 
 /**
