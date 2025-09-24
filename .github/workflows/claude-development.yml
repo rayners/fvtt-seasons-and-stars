@@ -35,6 +35,7 @@ jobs:
           {
             echo 'content<<EOF'
             cat dev-context/claude-prompts/development-task.md
+            echo ""
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
