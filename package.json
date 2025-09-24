@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "prebuild": "npm run prebuild --workspaces",
-    "build": "npm run build --workspaces",
+    "build": "rm -rf ./dist && npm run build --workspaces",
     "watch": "npm run watch --workspace=packages/core",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint packages/core/src",

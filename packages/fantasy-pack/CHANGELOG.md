@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.6.0...seasons-and-stars-fantasy-v0.6.1) (2025-09-24)
+
+
+### Bug Fixes
+
+* add missing repository metadata to all packages ([#300](https://github.com/rayners/fvtt-seasons-and-stars/issues/300)) ([d7499ef](https://github.com/rayners/fvtt-seasons-and-stars/commit/d7499ef4a6ec5f232118469a56acf8238542b38a))
+
 ## [0.6.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.5.0...seasons-and-stars-fantasy-v0.6.0) (2025-09-23)
 
 

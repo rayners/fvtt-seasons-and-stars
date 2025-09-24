@@ -82,10 +82,10 @@ jobs:
           fetch-depth: 0
 
       - name: Release Core Module
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v6.0.0
         with:
-          node-version: '20'
-          build-command: 'npm run build --workspace=packages/core'
+          node-version: '24'
+          build-command: 'npm run build'
           working-directory: 'dist/core'
           module-files: 'module.js module.json templates/ calendars/ styles/ languages/ schemas/ README.md CHANGELOG.md LICENSE'
         env:
@@ -105,10 +105,10 @@ jobs:
           fetch-depth: 0
 
       - name: Release Fantasy Pack
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v6.0.0
         with:
-          node-version: '20'
-          build-command: 'npm run build --workspace=packages/fantasy-pack'
+          node-version: '24'
+          build-command: 'npm run build'
           working-directory: 'dist/fantasy-pack'
           module-files: 'module.json calendars/'
 
@@ -126,10 +126,10 @@ jobs:
           fetch-depth: 0
 
       - name: Release Sci-Fi Pack
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v6.0.0
         with:
-          node-version: '20'
-          build-command: 'npm run build --workspace=packages/scifi-pack'
+          node-version: '24'
+          build-command: 'npm run build'
           working-directory: 'dist/scifi-pack'
           module-files: 'module.json calendars/'
 
@@ -147,9 +147,9 @@ jobs:
           fetch-depth: 0
 
       - name: Release PF2e Pack
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v6.0.0
         with:
-          node-version: '20'
-          build-command: 'npm run build --workspace=packages/pf2e-pack'
+          node-version: '24'
+          build-command: 'npm run build'
           working-directory: 'dist/pf2e-pack'
           module-files: 'pf2e-pack.js module.json calendars/ README.md CHANGELOG.md LICENSE'
