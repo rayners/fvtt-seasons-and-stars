@@ -33,10 +33,10 @@ jobs:
         id: load-prompt
         run: |
           {
-            echo 'content<<PROMPT_END'
+            echo 'content<<EOF'
             cat dev-context/claude-prompts/development-task.md
-            echo 'PROMPT_END'
-          } >> $GITHUB_OUTPUT
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Development Task
         uses: anthropics/claude-code-action@v1
