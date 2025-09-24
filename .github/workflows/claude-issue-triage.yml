@@ -55,4 +55,4 @@ jobs:
             Respond directly to the issue with your assessment. Use @-username (with dash) to avoid notifications during testing.
           claude_args: |
             --model claude-sonnet-4-0
-            --allowed-tools "Bash(gh issue comment:*),Read"
+            --allowedTools "Bash(gh issue comment:*),Read"

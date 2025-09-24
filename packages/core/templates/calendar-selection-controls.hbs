@@ -1,0 +1,56 @@
+<div class="calendar-controls flexcol">
+  <div class="search-section">
+    <input
+      type="text"
+      class="calendar-search"
+      placeholder="{{localize 'SEASONS_STARS.dialog.calendar_selection.search_placeholder'}}"
+      value="{{searchQuery}}"
+    />
+  </div>
+
+  <div class="filter-section flexrow">
+    <div class="filter-group">
+      <label>{{localize 'SEASONS_STARS.dialog.calendar_selection.filter_source_label'}}</label>
+      <div class="multi-select-dropdown disabled">
+        <button type="button" class="multi-select-trigger" disabled>
+          <span class="selected-text">{{localize 'SEASONS_STARS.dialog.calendar_selection.filter_source_all'}}</span>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="multi-select-options">
+          {{#each calendarGroups}}
+          <label class="multi-select-option">
+            <input type="checkbox" value="{{id}}" disabled />
+            <span>{{label}}</span>
+          </label>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>{{localize 'SEASONS_STARS.dialog.calendar_selection.filter_tags_label'}}</label>
+      <input
+        type="text"
+        class="tag-filter-input"
+        placeholder="{{localize 'SEASONS_STARS.dialog.calendar_selection.filter_tags_placeholder'}}"
+        value="{{tagFilter}}"
+        disabled
+      />
+    </div>
+  </div>
+
+  <div class="filter-status">
+    <span class="results-count">
+      {{localize 'SEASONS_STARS.dialog.calendar_selection.results_count' count=resultsCount}}
+    </span>
+    <button
+      type="button"
+      class="clear-filters {{#unless filtersActive}}hidden{{/unless}}"
+      data-action="clearFilters"
+      disabled
+    >
+      <i class="fas fa-times"></i>
+      {{localize 'SEASONS_STARS.dialog.calendar_selection.clear_filters'}}
+    </button>
+  </div>
+</div>

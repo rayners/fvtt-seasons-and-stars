@@ -64,4 +64,4 @@ jobs:
             Skip questions that already have any responses.
           claude_args: |
             --model claude-sonnet-4-0
-            --allowed-tools "Bash(gh api:*),Bash(gh search:*),Read,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"
+            --allowedTools "Bash(gh api:*),Bash(gh search:*),Read,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"

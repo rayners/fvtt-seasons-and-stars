@@ -1,0 +1,99 @@
+<div class="calendar-details scrollable">
+  {{#if selectedCalendarDetails}}
+  <div class="details-header flexcol">
+    <h3 class="calendar-title">{{selectedCalendarDetails.label}}</h3>
+    {{#if selectedCalendarDetails.author}}
+    <div class="calendar-author">
+      <i class="fas fa-user"></i>
+      <span>{{selectedCalendarDetails.author}}</span>
+    </div>
+    {{/if}}
+    <div class="calendar-source">
+      <i class="{{selectedCalendarDetails.sourceIcon}} source-icon"></i>
+      <span>{{selectedCalendarDetails.sourceLabel}}</span>
+    </div>
+  </div>
+
+  <div class="details-section">
+    <h4>{{localize 'SEASONS_STARS.dialog.calendar_selection.description_header'}}</h4>
+    <p class="calendar-description">{{selectedCalendarDetails.description}}</p>
+  </div>
+
+  {{#if selectedCalendarDetails.tags.length}}
+  <div class="details-section">
+    <h4>{{localize 'SEASONS_STARS.dialog.calendar_selection.tags_header'}}</h4>
+    <div class="calendar-tags-display">
+      {{#each selectedCalendarDetails.tags}}
+      <span class="tag">{{this}}</span>
+      {{/each}}
+    </div>
+  </div>
+  {{/if}}
+
+  <div class="details-section">
+    <h4>{{localize 'SEASONS_STARS.dialog.calendar_selection.preview_header'}}</h4>
+    <div class="calendar-preview">
+      <div class="sample-preview">
+        <label>{{localize 'SEASONS_STARS.dialog.calendar_selection.preview_sample_label'}}</label>
+        <div class="sample-date">{{selectedCalendarDetails.sampleDate}}</div>
+      </div>
+
+      {{#if selectedCalendarDetails.miniPreview}}
+      <div class="mini-preview">
+        <label>{{localize 'SEASONS_STARS.dialog.calendar_selection.preview_mini_label'}}</label>
+        <div class="mini-format">{{selectedCalendarDetails.miniPreview}}</div>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+
+  {{else}}
+  <div class="details-empty flexcol">
+    <i class="fas fa-calendar-plus"></i>
+    <p>{{localize 'SEASONS_STARS.dialog.calendar_selection.no_selection_message'}}</p>
+  </div>
+  {{/if}}
+
+  {{#if selectedCalendarDetails}}
+  <div class="details-actions">
+    {{#if selectedCalendarDetails.canPreview}}
+    <button
+      type="button"
+      class="button"
+      data-action="previewCalendar"
+      data-calendar-id="{{selectedCalendarDetails.id}}"
+    >
+      <i class="fas fa-eye"></i>
+      {{localize 'SEASONS_STARS.dialog.calendar_selection.preview'}}
+    </button>
+    {{/if}}
+
+    {{#if selectedCalendarDetails.isFilePicker}}
+      {{#if selectedCalendarDetails.hasFile}}
+      <button type="button" class="button" data-action="clearFilePicker">
+        <i class="fas fa-times"></i>
+        {{localize 'SEASONS_STARS.dialog.calendar_selection.clear'}}
+      </button>
+      {{else}}
+      <button type="button" class="button" data-action="openFilePicker">
+        <i class="fas fa-folder-open"></i>
+        {{localize 'SEASONS_STARS.dialog.calendar_selection.browse'}}
+      </button>
+      {{/if}}
+    {{/if}}
+  </div>
+
+  {{#if selectedCalendarDetails.isFilePicker}}
+  <div class="details-section file-picker-status">
+    <h4>{{localize 'SEASONS_STARS.dialog.calendar_selection.file_path'}}</h4>
+    <div class="file-path">
+      {{#if selectedCalendarDetails.selectedFilePath}}
+      {{selectedCalendarDetails.selectedFilePath}}
+      {{else}}
+      {{localize 'SEASONS_STARS.dialog.calendar_selection.no_file_selected'}}
+      {{/if}}
+    </div>
+  </div>
+  {{/if}}
+  {{/if}}
+</div>
