@@ -42,9 +42,9 @@ jobs:
       - name: Load shared prompt
         id: load-prompt
         run: |
-          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "content<<PROMPT_END" >> $GITHUB_OUTPUT
           cat dev-context/claude-prompts/pr-review.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          echo "PROMPT_END" >> $GITHUB_OUTPUT
 
       - name: Run Claude Code Review
         id: claude-review
