@@ -21,10 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: read
-      issues: write
+      contents: write # Allow creating branches and pushing code
+      issues: write # Allow issue commenting
+      pull-requests: read # Allow reading PRs
       packages: read
       id-token: write
+      actions: read
 
     steps:
       - name: Checkout repository
@@ -72,4 +74,4 @@ jobs:
             Do NOT create the PR directly - provide the user with a creation link instead.
           claude_args: |
             --model claude-sonnet-4-0
-            --allowedTools "Bash(mkdir:*),Bash(npm:*),Bash(git:*),Bash(mkdir:*),Read,Write,Edit,MultiEdit,Glob,Grep,Bash(gh issue comment:*)"
+            --allowedTools "Bash(mkdir:*),Bash(npm:*),Bash(git:*),Bash(gh:*),Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite,Task"
