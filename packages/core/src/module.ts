@@ -534,6 +534,55 @@ Hooks.once('ready', async () => {
   await CalendarDeprecationDialog.showWarningIfNeeded();
 
   Logger.info('UI setup complete - module fully ready');
+
+  // Signal that core module is ready for integrations
+  Hooks.callAll('seasons-and-stars.ready');
+
+  // Listen for calendar builder integration
+  Hooks.on('seasons-and-stars.calendarBuilderReady', (integration: any) => {
+    Logger.info('Calendar Builder integration registered');
+
+    // Register integration with Calendar Builder
+    if (integration?.app) {
+      Hooks.callAll('seasons-and-stars.registerCalendarBuilderIntegration', {
+        CalendarValidator: () => import('./core/calendar-validator').then(m => m.CalendarValidator),
+        CalendarManager: calendarManager,
+        openBuilder: integration.openBuilder,
+      });
+
+      // Add sidebar button to calendar widgets
+      const addBuilderButton = (widget: any) => {
+        if (widget && typeof widget.addSidebarButton === 'function') {
+          widget.addSidebarButton(
+            'calendar-builder',
+            'fa-solid fa-edit',
+            'Open Calendar Builder',
+            () => {
+              if (typeof integration.openBuilder === 'function') {
+                integration.openBuilder();
+              }
+            }
+          );
+        }
+      };
+
+      // Add button to existing widgets
+      try {
+        const GlobalCalendarWidget = (globalThis as any).CalendarWidget || CalendarWidget;
+        if (GlobalCalendarWidget?.getActiveInstance) {
+          const activeWidget = GlobalCalendarWidget.getActiveInstance();
+          if (activeWidget) {
+            addBuilderButton(activeWidget);
+          }
+        }
+      } catch (error) {
+        Logger.debug('Could not add button to existing widget:', error);
+      }
+
+      // Add button to future widgets
+      Hooks.on('seasons-stars:widgetCreated', addBuilderButton);
+    }
+  });
 });
 
 /**

@@ -9,7 +9,8 @@
     "packages/fantasy-pack",
     "packages/scifi-pack",
     "packages/pf2e-pack",
-    "packages/test-module"
+    "packages/test-module",
+    "packages/custom-calendar-builder"
   ],
   "scripts": {
     "prebuild": "npm run prebuild --workspaces",
