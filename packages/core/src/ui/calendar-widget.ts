@@ -301,7 +301,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         return;
       }
 
-      if (service.shouldShowPauseButton) {
+      // Fix for issue #312: Use isActive instead of shouldShowPauseButton for toggle logic
+      // shouldShowPauseButton is for UI display, not toggle decisions
+      if (service.isActive) {
         service.pause();
         Logger.info('Main widget: Paused time advancement');
       } else {
