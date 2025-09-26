@@ -1,0 +1,58 @@
+{
+  "CALENDAR_BUILDER": {
+    "title": "Calendar Builder",
+    "description": "Create and edit custom calendars for Seasons & Stars",
+    "menu": {
+      "button": "Calendar Builder"
+    },
+    "app": {
+      "title": "Calendar Builder",
+      "menu": {
+        "new": "New Calendar",
+        "open": "Open Calendar",
+        "save": "Save Calendar",
+        "export": "Export JSON",
+        "validate": "Validate",
+        "import": "Import JSON"
+      },
+      "editor": {
+        "placeholder": "Paste or type your calendar JSON here...",
+        "validation": {
+          "title": "Validation Results",
+          "valid": "Calendar is valid!",
+          "invalid": "Calendar has validation errors:",
+          "warnings": "Warnings:",
+          "no_errors": "No validation errors found.",
+          "no_warnings": "No warnings."
+        }
+      },
+      "buttons": {
+        "new": "New",
+        "open": "Open",
+        "save": "Save",
+        "export": "Export",
+        "validate": "Validate",
+        "import": "Import",
+        "close": "Close",
+        "clear": "Clear"
+      },
+      "dialogs": {
+        "import_title": "Import Calendar JSON",
+        "export_title": "Export Calendar JSON",
+        "save_title": "Save Calendar",
+        "confirm_clear": "Are you sure you want to clear the editor? This will lose any unsaved changes."
+      },
+      "notifications": {
+        "imported": "Calendar JSON imported successfully",
+        "exported": "Calendar JSON exported to file",
+        "saved": "Calendar saved successfully",
+        "cleared": "Editor cleared",
+        "validation_complete": "Validation complete",
+        "no_content": "No content to validate",
+        "invalid_json": "Invalid JSON format",
+        "export_failed": "Failed to export calendar",
+        "import_failed": "Failed to import calendar"
+      }
+    }
+  }
+}

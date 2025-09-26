@@ -21,7 +21,9 @@
     "packages/core/src/types/**/*.d.ts",
     "packages/core/scripts/**/*.ts",
     "packages/pf2e-pack/src/**/*",
-    "packages/pf2e-pack/test/**/*"
+    "packages/pf2e-pack/test/**/*",
+    "packages/custom-calendar-builder/src/**/*",
+    "packages/custom-calendar-builder/test/**/*"
   ],
   "exclude": ["node_modules"]
 }
