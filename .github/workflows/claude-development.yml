@@ -60,4 +60,4 @@ jobs:
             Do NOT create the PR directly - provide the user with a creation link instead.
           claude_args: |
             --model claude-sonnet-4-0
-            --allowedTools "Bash(npm:*),Bash(git:*),Read,Write,Edit,MultiEdit,Glob,Grep,Bash(gh issue comment:*)"
+            --allowedTools "Bash(npm:*),Bash(git:*),Bash(mkdir:*),Read,Write,Edit,MultiEdit,Glob,Grep,Bash(gh issue comment:*)"
