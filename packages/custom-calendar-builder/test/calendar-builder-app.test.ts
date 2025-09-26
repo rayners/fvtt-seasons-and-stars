@@ -14,9 +14,10 @@ const mockFoundry = {
         render = vi.fn();
         close = vi.fn();
       },
-      DialogV2: {
-        confirm: vi.fn().mockResolvedValue(true),
-      },
+      DialogV2: vi.fn().mockImplementation(function (this: any, _options: any) {
+        this.wait = vi.fn().mockResolvedValue(true);
+        return this;
+      }),
     },
     apps: {
       FilePicker: vi.fn().mockImplementation(function (this: any, _options: any) {
@@ -75,13 +76,40 @@ const mockElement = {
   removeChild: vi.fn(),
   href: '',
   download: '',
-  textContent: '',
-  innerHTML: '',
+  set textContent(text: string): void {
+    // Escape HTML characters like a real div would
+    this._innerHTML = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  },
+  get innerHTML(): string {
+    return this._innerHTML || '';
+  },
+  _innerHTML: '',
 };
 
 Object.defineProperty(globalThis, 'document', {
   value: {
-    createElement: vi.fn().mockReturnValue(mockElement),
+    createElement: vi.fn().mockImplementation((tagName: string) => ({
+      ...mockElement,
+      tagName: tagName.toUpperCase(),
+      set textContent(text: string): void {
+        // Escape HTML characters like a real div would
+        this._innerHTML = text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      },
+      get innerHTML(): string {
+        return this._innerHTML || '';
+      },
+      _innerHTML: '',
+    })),
     body: {
       appendChild: vi.fn(),
       removeChild: vi.fn(),
@@ -165,15 +193,27 @@ describe('CalendarBuilderApp', () => {
     });
 
     it('should use core validator when available', async () => {
-      const mockValidator = {
-        validate: vi.fn().mockResolvedValue({ isValid: true, errors: [], warnings: [] }),
+      const mockValidator = vi.fn().mockResolvedValue({
+        isValid: true,
+        errors: [],
+        warnings: [],
+      });
+
+      // Mock the actual API path
+      const mockGame = {
+        ...(globalThis as any).game,
+        seasonsStars: {
+          api: {
+            validateCalendar: mockValidator,
+          },
+        },
       };
-      app['coreIntegration'] = { CalendarValidator: mockValidator };
+      Object.defineProperty(globalThis, 'game', { value: mockGame });
 
       app['currentJson'] = '{"id": "test"}';
       await app['_validateCurrentJson']();
 
-      expect(mockValidator.validate).toHaveBeenCalledWith({ id: 'test' });
+      expect(mockValidator).toHaveBeenCalledWith({ id: 'test' });
     });
   });
 
@@ -195,7 +235,10 @@ describe('CalendarBuilderApp', () => {
 
     it('should handle clear editor with confirmation', async () => {
       app['currentJson'] = '{"id": "test"}';
-      mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
+      const mockDialog = {
+        wait: vi.fn().mockResolvedValue(true),
+      };
+      mockFoundry.applications.api.DialogV2 = vi.fn().mockReturnValue(mockDialog);
 
       await app._onClearEditor(new Event('click'), mockElement as any);
 
@@ -206,7 +249,10 @@ describe('CalendarBuilderApp', () => {
 
     it('should not clear editor without confirmation', async () => {
       app['currentJson'] = '{"id": "test"}';
-      mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(false);
+      const mockDialog = {
+        wait: vi.fn().mockResolvedValue(false),
+      };
+      mockFoundry.applications.api.DialogV2 = vi.fn().mockReturnValue(mockDialog);
 
       await app._onClearEditor(new Event('click'), mockElement as any);
 
@@ -227,7 +273,7 @@ describe('CalendarBuilderApp', () => {
   describe('utility methods', () => {
     it('should escape HTML correctly', () => {
       const result = app['_escapeHtml']('<script>alert("xss")</script>');
-      expect(result).toBe('&lt;script&gt;alert("xss")&lt;/script&gt;');
+      expect(result).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
     });
 
     it('should perform basic validation', () => {

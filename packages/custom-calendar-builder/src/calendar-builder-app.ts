@@ -7,9 +7,21 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 ) {
   private currentJson: string = '';
   private lastValidationResult: any = null;
+  private validationTimeout: NodeJS.Timeout | null = null;
+  private validationSequence: number = 0;
 
   constructor() {
     super();
+  }
+
+  /** @override */
+  async close(options?: any): Promise<void> {
+    // Clean up validation timeout
+    if (this.validationTimeout) {
+      clearTimeout(this.validationTimeout);
+      this.validationTimeout = null;
+    }
+    return super.close(options);
   }
 
   static DEFAULT_OPTIONS = {
@@ -71,18 +83,17 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       this._setupTextareaAutoResize(textarea);
 
       // Auto-validate on input (debounced)
-      let validationTimeout: NodeJS.Timeout;
       textarea.addEventListener('input', (event) => {
         const target = event.target as HTMLTextAreaElement;
         this.currentJson = target.value;
 
         // Clear previous timeout
-        if (validationTimeout) {
-          clearTimeout(validationTimeout);
+        if (this.validationTimeout) {
+          clearTimeout(this.validationTimeout);
         }
 
         // Set new timeout for validation
-        validationTimeout = setTimeout(() => {
+        this.validationTimeout = setTimeout(() => {
           this._validateCurrentJson();
         }, 2000); // 2 second delay after stopping typing
       });
@@ -111,6 +122,8 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    * Validate current JSON content
    */
   private async _validateCurrentJson(): Promise<void> {
+    const currentSequence = ++this.validationSequence;
+
     if (!this.currentJson.trim()) {
       this.lastValidationResult = null;
       // Update only the validation container instead of full re-render
@@ -125,21 +138,31 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       // Use the public API for validation
       const seasonsStarsApi = (game as any)?.seasonsStars?.api;
       if (seasonsStarsApi?.validateCalendar) {
-        this.lastValidationResult = await seasonsStarsApi.validateCalendar(calendarData);
+        const result = await seasonsStarsApi.validateCalendar(calendarData);
+
+        // Only update if this is still the latest validation
+        if (currentSequence === this.validationSequence) {
+          this.lastValidationResult = result;
+        }
       } else {
         // Fallback validation
         this.lastValidationResult = this._basicValidation(calendarData);
       }
     } catch (error) {
-      this.lastValidationResult = {
-        isValid: false,
-        errors: [`Invalid JSON: ${(error as Error).message}`],
-        warnings: [],
-      };
+      // Only update if this is still the latest validation
+      if (currentSequence === this.validationSequence) {
+        this.lastValidationResult = {
+          isValid: false,
+          errors: [`Invalid JSON: ${(error as Error).message}`],
+          warnings: [],
+        };
+      }
     }
 
-    // Update only the validation container instead of full re-render
-    this._updateValidationDisplay();
+    // Only update display if this is still the latest validation
+    if (currentSequence === this.validationSequence) {
+      this._updateValidationDisplay();
+    }
   }
 
   /**
@@ -274,20 +297,39 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    */
   async _onOpenCalendar(event: Event, target: HTMLElement): Promise<void> {
     try {
-      // @ts-expect-error - FilePicker is available at runtime
-      const filePicker = new foundry.applications.apps.FilePicker({
+      // Check if FilePicker is available
+      const FoundryFilePicker = (foundry as any)?.applications?.apps?.FilePicker;
+      if (!FoundryFilePicker) {
+        this._notify('File picker not available in this Foundry version', 'error');
+        return;
+      }
+
+      const filePicker = new FoundryFilePicker({
         type: 'data',
         extensions: ['.json'],
         callback: async (path: string): Promise<void> => {
           try {
-            const response = await fetch(path);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+            const response = await fetch(path, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
             const calendarData = await response.text();
             this.currentJson = calendarData;
             this.render(true);
             this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
           } catch (error) {
             console.error('Failed to load calendar file:', error);
-            this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.import_failed'), 'error');
+            if ((error as Error).name === 'AbortError') {
+              this._notify('Request timeout - file too large or server unavailable', 'error');
+            } else {
+              this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.import_failed'), 'error');
+            }
           }
         },
       });
@@ -383,16 +425,36 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    * Clear editor action
    */
   async _onClearEditor(event: Event, target: HTMLElement): Promise<void> {
-    const confirmed = await (foundry.applications.api.DialogV2 as any).confirm({
-      window: { title: 'Confirm Clear' },
-      content: game.i18n.localize('CALENDAR_BUILDER.app.dialogs.confirm_clear'),
-    });
+    try {
+      const dialog = new foundry.applications.api.DialogV2({
+        window: { title: 'Confirm Clear' },
+        content: game.i18n.localize('CALENDAR_BUILDER.app.dialogs.confirm_clear'),
+        buttons: [
+          {
+            action: 'yes',
+            icon: 'fas fa-check',
+            label: 'Yes',
+            callback: () => true
+          },
+          {
+            action: 'no',
+            icon: 'fas fa-times',
+            label: 'No',
+            callback: () => false
+          }
+        ]
+      });
+      const confirmed = await (dialog as any).wait();
 
-    if (confirmed) {
-      this.currentJson = '';
-      this.lastValidationResult = null;
-      this.render(true);
-      this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.cleared'));
+      if (confirmed) {
+        this.currentJson = '';
+        this.lastValidationResult = null;
+        this.render(true);
+        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.cleared'));
+      }
+    } catch (error) {
+      console.error('Failed to show confirmation dialog:', error);
+      this._notify('Failed to show confirmation dialog', 'error');
     }
   }
 }
