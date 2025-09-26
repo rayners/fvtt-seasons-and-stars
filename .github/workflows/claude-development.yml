@@ -49,4 +49,4 @@ jobs:
             actions: read
           claude_args: |
             --model claude-sonnet-4-0
-            --allowedTools "Bash(mkdir:*),Bash(npm:*),Bash(git:*),Bash(gh:*),Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite,Task"
+            --allowedTools "Bash(mkdir:*),Bash(npm:*),Bash(git:*),Bash(gh:*),Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite,Task,WebFetch"
