@@ -56,22 +56,9 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       currentJson: this.currentJson,
       hasContent: this.currentJson.length > 0,
       validationResult: this.lastValidationResult,
-      supportsTheming: this.supportsFoundryTheming(),
     });
   }
 
-  /**
-   * Check if Foundry theming is supported - only available in V13+
-   */
-  private supportsFoundryTheming(): boolean {
-    if (typeof document === 'undefined') return false;
-
-    // Check for V13+ ApplicationV2 theming support
-    return !!foundry.applications?.api?.ApplicationV2 &&
-           typeof document.body.classList !== 'undefined' &&
-           (document.body.classList.contains('theme-dark') ||
-            document.body.classList.contains('theme-light'));
-  }
 
   /** @override */
   _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
@@ -396,25 +383,10 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    * Clear editor action
    */
   async _onClearEditor(event: Event, target: HTMLElement): Promise<void> {
-    const dialog = new foundry.applications.api.DialogV2({
+    const confirmed = await (foundry.applications.api.DialogV2 as any).confirm({
       window: { title: 'Confirm Clear' },
       content: game.i18n.localize('CALENDAR_BUILDER.app.dialogs.confirm_clear'),
-      buttons: [
-        {
-          action: 'yes',
-          icon: 'fas fa-check',
-          label: 'Yes',
-          callback: () => true
-        },
-        {
-          action: 'no',
-          icon: 'fas fa-times',
-          label: 'No',
-          callback: () => false
-        }
-      ]
     });
-    const confirmed = await dialog.wait();
 
     if (confirmed) {
       this.currentJson = '';

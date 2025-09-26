@@ -138,27 +138,6 @@ describe('CalendarBuilderApp', () => {
     });
   });
 
-  describe('theming support', () => {
-    it('should detect Foundry theming support', () => {
-      const result = app['supportsFoundryTheming']();
-      expect(result).toBe(false); // No theming classes in mock
-    });
-
-    it('should detect light theme', () => {
-      const mockDocument = {
-        body: {
-          classList: {
-            contains: vi.fn((className: string) => className === 'theme-light'),
-          },
-        },
-      };
-      Object.defineProperty(globalThis, 'document', { value: mockDocument, writable: true });
-
-      const result = app['supportsFoundryTheming']();
-      expect(result).toBe(true);
-    });
-  });
-
   describe('validation', () => {
     it('should handle empty JSON', async () => {
       app['currentJson'] = '';
