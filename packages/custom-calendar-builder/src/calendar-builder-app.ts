@@ -7,7 +7,6 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 ) {
   private currentJson: string = '';
   private lastValidationResult: any = null;
-  private coreIntegration: any = null;
 
   constructor() {
     super();
@@ -48,25 +47,6 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     },
   };
 
-  /**
-   * Register integration from core module
-   */
-  async registerIntegration(integration: any): Promise<void> {
-    this.coreIntegration = integration;
-
-    // Load CalendarValidator if available
-    if (integration.CalendarValidator && typeof integration.CalendarValidator === 'function') {
-      try {
-        const CalendarValidator = await integration.CalendarValidator();
-        this.coreIntegration.CalendarValidator = CalendarValidator;
-        console.log('Calendar Builder | CalendarValidator loaded successfully');
-      } catch (error) {
-        console.warn('Calendar Builder | Failed to load CalendarValidator:', error);
-      }
-    }
-
-    console.log('Calendar Builder | Integration registered', integration);
-  }
 
   /** @override */
   async _prepareContext(options = {}): Promise<any> {
@@ -81,13 +61,16 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
-   * Check if Foundry theming is supported
+   * Check if Foundry theming is supported - only available in V13+
    */
   private supportsFoundryTheming(): boolean {
     if (typeof document === 'undefined') return false;
 
-    const body = document.body;
-    return body.classList.contains('theme-dark') || body.classList.contains('theme-light');
+    // Check for V13+ ApplicationV2 theming support
+    return !!foundry.applications?.api?.ApplicationV2 &&
+           typeof document.body.classList !== 'undefined' &&
+           (document.body.classList.contains('theme-dark') ||
+            document.body.classList.contains('theme-light'));
   }
 
   /** @override */
@@ -119,7 +102,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     }
 
     // Update validation results display
-    this._updateValidationDisplay(htmlElement);
+    this._updateValidationDisplay();
   }
 
   /**
@@ -136,11 +119,47 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     setTimeout(resize, 0);
   }
 
+
   /**
-   * Update validation display
+   * Validate current JSON content
    */
-  private _updateValidationDisplay(htmlElement: HTMLElement): void {
-    const validationContainer = htmlElement.querySelector('.validation-results');
+  private async _validateCurrentJson(): Promise<void> {
+    if (!this.currentJson.trim()) {
+      this.lastValidationResult = null;
+      // Update only the validation container instead of full re-render
+      this._updateValidationDisplay();
+      return;
+    }
+
+    try {
+      // Parse JSON first
+      const calendarData = JSON.parse(this.currentJson);
+
+      // Use the public API for validation
+      const seasonsStarsApi = (game as any)?.seasonsStars?.api;
+      if (seasonsStarsApi?.validateCalendar) {
+        this.lastValidationResult = await seasonsStarsApi.validateCalendar(calendarData);
+      } else {
+        // Fallback validation
+        this.lastValidationResult = this._basicValidation(calendarData);
+      }
+    } catch (error) {
+      this.lastValidationResult = {
+        isValid: false,
+        errors: [`Invalid JSON: ${(error as Error).message}`],
+        warnings: [],
+      };
+    }
+
+    // Update only the validation container instead of full re-render
+    this._updateValidationDisplay();
+  }
+
+  /**
+   * Update validation display without full re-render to preserve textarea focus
+   */
+  private _updateValidationDisplay(): void {
+    const validationContainer = this.element?.querySelector('.validation-results');
     if (!validationContainer) return;
 
     if (!this.lastValidationResult) {
@@ -148,27 +167,31 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       return;
     }
 
+    const result = this.lastValidationResult;
     let html = '';
 
-    if (this.lastValidationResult.isValid) {
-      html += '<div class="validation-status valid"><i class="fas fa-check-circle"></i> Calendar is valid!</div>';
+    // Status indicator
+    if (result.isValid) {
+      html += '<div class="validation-status valid"><i class="fas fa-check-circle"></i> Calendar is valid</div>';
     } else {
-      html += '<div class="validation-status invalid"><i class="fas fa-times-circle"></i> Calendar has validation errors</div>';
+      html += '<div class="validation-status invalid"><i class="fas fa-times-circle"></i> Calendar contains errors</div>';
     }
 
-    if (this.lastValidationResult.errors && this.lastValidationResult.errors.length > 0) {
+    // Errors
+    if (result.errors && result.errors.length > 0) {
       html += '<div class="validation-errors"><h4>Errors:</h4><ul>';
-      for (const error of this.lastValidationResult.errors) {
+      result.errors.forEach((error: string) => {
         html += `<li class="error">${this._escapeHtml(error)}</li>`;
-      }
+      });
       html += '</ul></div>';
     }
 
-    if (this.lastValidationResult.warnings && this.lastValidationResult.warnings.length > 0) {
+    // Warnings
+    if (result.warnings && result.warnings.length > 0) {
       html += '<div class="validation-warnings"><h4>Warnings:</h4><ul>';
-      for (const warning of this.lastValidationResult.warnings) {
+      result.warnings.forEach((warning: string) => {
         html += `<li class="warning">${this._escapeHtml(warning)}</li>`;
-      }
+      });
       html += '</ul></div>';
     }
 
@@ -185,35 +208,12 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
-   * Validate current JSON content
+   * Show notification within the application window
    */
-  private async _validateCurrentJson(): Promise<void> {
-    if (!this.currentJson.trim()) {
-      this.lastValidationResult = null;
-      this.render(false); // Re-render to update validation display
-      return;
-    }
-
-    try {
-      // Parse JSON first
-      const calendarData = JSON.parse(this.currentJson);
-
-      // Use core module's validator if available
-      if (this.coreIntegration && this.coreIntegration.CalendarValidator) {
-        this.lastValidationResult = await this.coreIntegration.CalendarValidator.validate(calendarData);
-      } else {
-        // Fallback validation
-        this.lastValidationResult = this._basicValidation(calendarData);
-      }
-    } catch (error) {
-      this.lastValidationResult = {
-        isValid: false,
-        errors: [`Invalid JSON: ${(error as Error).message}`],
-        warnings: [],
-      };
-    }
-
-    this.render(false); // Re-render to update validation display
+  private _notify(message: string, type: 'info' | 'warn' | 'error' = 'info'): void {
+    // For now, use ui.notifications as ApplicationV2 doesn't have built-in notifications
+    // In future versions we could create a custom notification area within the app
+    ui.notifications?.[type](message);
   }
 
   /**
@@ -279,7 +279,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
     this.currentJson = JSON.stringify(template, null, 2);
     this.render(true);
-    ui.notifications?.info(game.i18n.localize('CALENDAR_BUILDER.app.notifications.new_template'));
+    this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.new_template'));
   }
 
   /**
@@ -297,10 +297,10 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
             const calendarData = await response.text();
             this.currentJson = calendarData;
             this.render(true);
-            ui.notifications?.info(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
+            this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
           } catch (error) {
             console.error('Failed to load calendar file:', error);
-            ui.notifications?.error(game.i18n.localize('CALENDAR_BUILDER.app.notifications.import_failed'));
+            this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.import_failed'), 'error');
           }
         },
       });
@@ -308,7 +308,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       await filePicker.render(true);
     } catch (error) {
       console.error('Failed to open file picker:', error);
-      ui.notifications?.error('Failed to open file picker');
+      this._notify('Failed to open file picker', 'error');
     }
   }
 
@@ -317,7 +317,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    */
   async _onSaveCalendar(event: Event, target: HTMLElement): Promise<void> {
     if (!this.currentJson.trim()) {
-      ui.notifications?.warn(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_content'));
+      this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_content'), 'warn');
       return;
     }
 
@@ -330,7 +330,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    */
   async _onExportJson(event: Event, target: HTMLElement): Promise<void> {
     if (!this.currentJson.trim()) {
-      ui.notifications?.warn(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_content'));
+      this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_content'), 'warn');
       return;
     }
 
@@ -347,10 +347,10 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      ui.notifications?.info(game.i18n.localize('CALENDAR_BUILDER.app.notifications.exported'));
+      this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.exported'));
     } catch (error) {
       console.error('Export failed:', error);
-      ui.notifications?.error(game.i18n.localize('CALENDAR_BUILDER.app.notifications.export_failed'));
+      this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.export_failed'), 'error');
     }
   }
 
@@ -374,10 +374,10 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
         this.currentJson = text;
         this.render(true);
-        ui.notifications?.info(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
+        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
       } catch (error) {
         console.error('Import failed:', error);
-        ui.notifications?.error(game.i18n.localize('CALENDAR_BUILDER.app.notifications.invalid_json'));
+        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.invalid_json'), 'error');
       }
     });
 
@@ -389,23 +389,38 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    */
   async _onValidateJson(event: Event, target: HTMLElement): Promise<void> {
     await this._validateCurrentJson();
-    ui.notifications?.info(game.i18n.localize('CALENDAR_BUILDER.app.notifications.validation_complete'));
+    this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.validation_complete'));
   }
 
   /**
    * Clear editor action
    */
   async _onClearEditor(event: Event, target: HTMLElement): Promise<void> {
-    const confirmed = await foundry.applications.api.DialogV2.confirm({
+    const dialog = new foundry.applications.api.DialogV2({
       window: { title: 'Confirm Clear' },
       content: game.i18n.localize('CALENDAR_BUILDER.app.dialogs.confirm_clear'),
+      buttons: [
+        {
+          action: 'yes',
+          icon: 'fas fa-check',
+          label: 'Yes',
+          callback: () => true
+        },
+        {
+          action: 'no',
+          icon: 'fas fa-times',
+          label: 'No',
+          callback: () => false
+        }
+      ]
     });
+    const confirmed = await dialog.wait();
 
     if (confirmed) {
       this.currentJson = '';
       this.lastValidationResult = null;
       this.render(true);
-      ui.notifications?.info(game.i18n.localize('CALENDAR_BUILDER.app.notifications.cleared'));
+      this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.cleared'));
     }
   }
 }

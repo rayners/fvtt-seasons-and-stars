@@ -16,30 +16,51 @@ Hooks.once('init', () => {
   // Register the calendar builder application
   calendarBuilderApp = new CalendarBuilderApp();
 
-  // Add hook for core module to provide integration points
-  Hooks.on('seasons-and-stars.registerCalendarBuilderIntegration', (integration: any) => {
-    console.log('Calendar Builder | Registering integration from core module', integration);
-    if (calendarBuilderApp) {
-      calendarBuilderApp.registerIntegration(integration);
-    }
-  });
 });
 
 /**
- * Hook into core module ready state to register our integration
+ * Hook into core module ready state to initialize builder integration
  */
 Hooks.once('seasons-and-stars.ready', () => {
-  console.log('Calendar Builder | Core module ready, registering calendar builder integration');
+  console.log('Calendar Builder | Core module ready, setting up calendar builder');
 
-  // Call hook to register calendar builder with core module
-  Hooks.callAll('seasons-and-stars.calendarBuilderReady', {
-    app: calendarBuilderApp,
-    openBuilder: () => {
-      if (calendarBuilderApp) {
-        calendarBuilderApp.render(true);
-      }
+  // Add builder button to calendar widgets via core widget hook
+  Hooks.on('seasons-stars:widgetCreated', (widget: any) => {
+    if (widget && typeof widget.addSidebarButton === 'function') {
+      widget.addSidebarButton(
+        'calendar-builder',
+        'fa-solid fa-edit',
+        'Open Calendar Builder',
+        () => {
+          if (calendarBuilderApp) {
+            calendarBuilderApp.render(true);
+          }
+        }
+      );
     }
   });
+
+  // Add to existing widgets if they exist
+  try {
+    const GlobalCalendarWidget = (globalThis as any).CalendarWidget;
+    if (GlobalCalendarWidget?.getActiveInstance) {
+      const activeWidget = GlobalCalendarWidget.getActiveInstance();
+      if (activeWidget && typeof activeWidget.addSidebarButton === 'function') {
+        activeWidget.addSidebarButton(
+          'calendar-builder',
+          'fa-solid fa-edit',
+          'Open Calendar Builder',
+          () => {
+            if (calendarBuilderApp) {
+              calendarBuilderApp.render(true);
+            }
+          }
+        );
+      }
+    }
+  } catch (error) {
+    console.debug('Calendar Builder | Could not add button to existing widget:', error);
+  }
 });
 
 /**

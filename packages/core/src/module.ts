@@ -26,6 +26,7 @@ import { CalendarWidgetManager, WidgetWrapper } from './ui/widget-manager';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
+import type { ValidationResult } from './core/calendar-validator';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import { TimeAdvancementService } from './core/time-advancement-service';
 import type { MemoryMageAPI } from './types/external-integrations';
@@ -537,52 +538,6 @@ Hooks.once('ready', async () => {
 
   // Signal that core module is ready for integrations
   Hooks.callAll('seasons-and-stars.ready');
-
-  // Listen for calendar builder integration
-  Hooks.on('seasons-and-stars.calendarBuilderReady', (integration: any) => {
-    Logger.info('Calendar Builder integration registered');
-
-    // Register integration with Calendar Builder
-    if (integration?.app) {
-      Hooks.callAll('seasons-and-stars.registerCalendarBuilderIntegration', {
-        CalendarValidator: () => import('./core/calendar-validator').then(m => m.CalendarValidator),
-        CalendarManager: calendarManager,
-        openBuilder: integration.openBuilder,
-      });
-
-      // Add sidebar button to calendar widgets
-      const addBuilderButton = (widget: any) => {
-        if (widget && typeof widget.addSidebarButton === 'function') {
-          widget.addSidebarButton(
-            'calendar-builder',
-            'fa-solid fa-edit',
-            'Open Calendar Builder',
-            () => {
-              if (typeof integration.openBuilder === 'function') {
-                integration.openBuilder();
-              }
-            }
-          );
-        }
-      };
-
-      // Add button to existing widgets
-      try {
-        const GlobalCalendarWidget = (globalThis as any).CalendarWidget || CalendarWidget;
-        if (GlobalCalendarWidget?.getActiveInstance) {
-          const activeWidget = GlobalCalendarWidget.getActiveInstance();
-          if (activeWidget) {
-            addBuilderButton(activeWidget);
-          }
-        }
-      } catch (error) {
-        Logger.debug('Could not add button to existing widget:', error);
-      }
-
-      // Add button to future widgets
-      Hooks.on('seasons-stars:widgetCreated', addBuilderButton);
-    }
-  });
 });
 
 /**
@@ -1820,6 +1775,39 @@ export function setupAPI(): void {
           APIWrapper.validateString(params.moduleId, 'Module ID');
         },
         () => calendarManager.loadModuleCalendars(moduleId)
+      );
+    },
+
+    /**
+     * Validate calendar JSON data using the schema validator
+     *
+     * @param calendarData The calendar data to validate
+     * @returns Promise<ValidationResult> with validation results
+     * @throws {Error} If validation setup fails
+     *
+     * @example
+     * ```javascript
+     * const result = await game.seasonsStars.api.validateCalendar(calendarData);
+     * if (result.isValid) {
+     *   console.log('Calendar is valid');
+     * } else {
+     *   console.log('Validation errors:', result.errors);
+     * }
+     * ```
+     */
+    async validateCalendar(calendarData: any): Promise<ValidationResult> {
+      return APIWrapper.wrapAPIMethod(
+        'validateCalendar',
+        { hasData: !!calendarData },
+        _params => {
+          if (!calendarData) {
+            throw new Error('Calendar data is required');
+          }
+        },
+        async () => {
+          const { CalendarValidator } = await import('./core/calendar-validator');
+          return CalendarValidator.validate(calendarData);
+        }
       );
     },
   };

@@ -9,7 +9,7 @@ import { CalendarBuilderApp } from '../src/calendar-builder-app';
 const mockFoundry = {
   applications: {
     api: {
-      HandlebarsApplicationMixin: vi.fn((base) => base),
+      HandlebarsApplicationMixin: vi.fn(base => base),
       ApplicationV2: class ApplicationV2 {
         render = vi.fn();
         close = vi.fn();
@@ -19,7 +19,7 @@ const mockFoundry = {
       },
     },
     apps: {
-      FilePicker: vi.fn().mockImplementation(function(this: any, _options: any) {
+      FilePicker: vi.fn().mockImplementation(function (this: any, _options: any) {
         this.render = vi.fn();
         return this;
       }),
@@ -117,33 +117,6 @@ describe('CalendarBuilderApp', () => {
       expect(CalendarBuilderApp.PARTS.main.template).toBe(
         'modules/seasons-and-stars-calendar-builder/templates/calendar-builder.hbs'
       );
-    });
-  });
-
-  describe('integration', () => {
-    it('should register core integration', async () => {
-      const mockIntegration = {
-        CalendarValidator: vi.fn().mockResolvedValue({ validate: vi.fn() }),
-        CalendarManager: {},
-      };
-
-      await app.registerIntegration(mockIntegration);
-
-      expect(app['coreIntegration']).toBe(mockIntegration);
-    });
-
-    it('should load CalendarValidator when provided', async () => {
-      const mockValidator = { validate: vi.fn() };
-      const mockValidatorLoader = vi.fn().mockResolvedValue(mockValidator);
-      const mockIntegration = {
-        CalendarValidator: mockValidatorLoader,
-        CalendarManager: {},
-      };
-
-      await app.registerIntegration(mockIntegration);
-
-      expect(mockValidatorLoader).toHaveBeenCalled();
-      expect(app['coreIntegration'].CalendarValidator).toBe(mockValidator);
     });
   });
 
