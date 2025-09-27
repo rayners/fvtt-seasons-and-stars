@@ -5,6 +5,13 @@ All notable changes to the Seasons & Stars Pathfinder 2e Pack will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-pf2e-v0.5.1...seasons-and-stars-pf2e-v0.5.2) (2025-09-27)
+
+
+### Bug Fixes
+
+* **pf2e-pack:** update Golarion leap years to every 4 years per remaster ([#297](https://github.com/rayners/fvtt-seasons-and-stars/issues/297)) ([c6bd372](https://github.com/rayners/fvtt-seasons-and-stars/commit/c6bd372b6a6361662281cb69836bfbb394f0e0be))
+
 ## [0.5.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-pf2e-v0.5.0...seasons-and-stars-pf2e-v0.5.1) (2025-09-24)
 
 
