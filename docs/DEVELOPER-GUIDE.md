@@ -1162,7 +1162,7 @@ interface SeasonsStarsCalendar {
     rule: 'none' | 'gregorian' | 'custom';
     interval?: number; // For custom rules
     month?: string; // Which month gets extra days
-    extraDays?: number; // How many extra days
+    extraDays?: number; // How many days to add (positive) or remove (negative)
   }; // Defaults to Gregorian; use { rule: 'none' } to disable
 
   time?: {
@@ -1175,6 +1175,69 @@ interface SeasonsStarsCalendar {
   canonicalHours?: CalendarCanonicalHour[];
 }
 ```
+
+### Leap Year Configuration
+
+Seasons & Stars supports flexible leap year rules including negative adjustments (removing days rather than adding them).
+
+#### Basic Leap Year Rules
+
+```json
+{
+  "leapYear": {
+    "rule": "gregorian",
+    "month": "February",
+    "extraDays": 1
+  }
+}
+```
+
+#### Negative Leap Days
+
+Added in v0.14.0, calendars can now remove days during leap years:
+
+```json
+{
+  "leapYear": {
+    "rule": "custom",
+    "interval": 4,
+    "month": "Winter Month",
+    "extraDays": -1
+  }
+}
+```
+
+**Negative Leap Day Examples:**
+
+- `extraDays: -1` removes one day from the specified month during leap years
+- `extraDays: -2` removes two days during leap years
+- Range: -10 to +10 days (values beyond this range will show validation warnings)
+
+**Safety Features:**
+
+- Months cannot be reduced below 1 day (automatic clamping)
+- Validation warnings for extreme negative adjustments
+- Engine automatically handles month length calculations with negative adjustments
+
+#### Custom Leap Year Rules
+
+```json
+{
+  "leapYear": {
+    "rule": "custom",
+    "interval": 8,
+    "offset": 4,
+    "month": "Midyear",
+    "extraDays": 2
+  }
+}
+```
+
+**Use Cases for Negative Leap Days:**
+
+- Fantasy calendars where certain years are "shortened" for mystical reasons
+- Historical calendars that occasionally dropped days for astronomical alignment
+- Custom world lore where leap years involve removing unlucky days
 
 ## 🔧 Integration Examples
 
