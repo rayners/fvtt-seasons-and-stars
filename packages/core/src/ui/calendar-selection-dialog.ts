@@ -843,7 +843,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     });
     const currentCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
 
-    if (calendars.size === 0) {
+    const calendarCount = Array.isArray(calendars) ? calendars.length : calendars.size;
+    if (calendarCount === 0) {
       ui.notifications?.warn(game.i18n.localize('SEASONS_STARS.warnings.no_calendars_available'));
       return;
     }
