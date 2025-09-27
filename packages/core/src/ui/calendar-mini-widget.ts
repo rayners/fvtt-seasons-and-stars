@@ -151,7 +151,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (game.user?.isGM) {
       try {
         const timeService = TimeAdvancementService.getInstance();
-        timeAdvancementActive = timeService?.shouldShowPauseButton || false;
+        timeAdvancementActive = timeService?.isActive || false;
 
         const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
         advancementRatioDisplay = `${ratio}x speed`;
@@ -581,6 +581,19 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Update widget when calendar changes
     Hooks.on('seasons-stars:calendarChanged', () => {
+      if (CalendarMiniWidget.activeInstance?.rendered) {
+        CalendarMiniWidget.activeInstance.render();
+      }
+    });
+
+    // Update widget when combat state changes (affects time advancement button state)
+    Hooks.on('combatStart', () => {
+      if (CalendarMiniWidget.activeInstance?.rendered) {
+        CalendarMiniWidget.activeInstance.render();
+      }
+    });
+
+    Hooks.on('deleteCombat', () => {
       if (CalendarMiniWidget.activeInstance?.rendered) {
         CalendarMiniWidget.activeInstance.render();
       }
