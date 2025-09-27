@@ -279,6 +279,11 @@ export function init(): void {
             error instanceof Error ? error : new Error(String(error))
           );
         }
+
+        // After all calendars are loaded, update the settings with the full list
+        // This ensures the calendar dropdown shows all available calendars
+        registerCalendarSettings();
+        Logger.debug('Calendar settings updated with full calendar list after loading');
       })
       .catch(error => {
         Logger.error(
@@ -306,12 +311,14 @@ Hooks.once('init', init);
  */
 export function setup(): void {
   try {
-    Logger.debug('Core setup during setup - calendars already loaded, setting up API (BLOCKING)');
+    Logger.debug(
+      'Core setup during setup - calendars loading asynchronously, setting up API (BLOCKING)'
+    );
 
-    // Register calendar-specific settings now that calendars are loaded (from init hook)
-    registerCalendarSettings();
+    // Calendar-specific settings will be registered asynchronously after calendars are loaded
+    // (see init hook calendar loading promise)
 
-    // Set active calendar from settings (synchronous since calendars are already loaded)
+    // Set active calendar from settings (may use cached data or fall back to gregorian)
     // This creates the time converter needed for getCurrentDate() API calls
     try {
       // Get the active calendar setting and set it directly

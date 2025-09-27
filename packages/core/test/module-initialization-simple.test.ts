@@ -111,7 +111,10 @@ describe('Module Initialization Hooks - Simple Tests', () => {
 
       expect(() => moduleSetup()).not.toThrow();
 
-      expect(TestLogger.getLogsContaining('Module setup failed').length).toBeGreaterThan(0);
+      // With resilient error handling, setup should log specific calendar error, not general setup failure
+      expect(
+        TestLogger.getLogsContaining('Failed to set active calendar during setup').length
+      ).toBeGreaterThan(0);
     });
   });
 
