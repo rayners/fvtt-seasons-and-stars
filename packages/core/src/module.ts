@@ -762,7 +762,7 @@ function registerSettings(): void {
 
   game.settings.register('seasons-and-stars', 'timeAdvancementRatio', {
     name: 'Time Advancement Ratio',
-    hint: 'Game time advancement ratio. 1.0 = real time (10s real = 10s game), 2.0 = 2x speed (10s real = 20s game), 0.5 = half speed (10s real = 5s game). Range: 0.1 to 100.',
+    hint: 'Controls how fast game time progresses relative to real time. Examples: 1.0 = real time (1 real second = 1 game second), 2.0 = accelerated (1 real second = 2 game seconds), 0.5 = slow motion (2 real seconds = 1 game second). Higher values make time pass faster in-game.',
     scope: 'world',
     config: true,
     type: Number,
@@ -780,6 +780,20 @@ function registerSettings(): void {
         Logger.warn('Failed to update time advancement ratio:', error);
       }
     },
+  });
+
+  game.settings.register('seasons-and-stars', 'realTimeAdvancementInterval', {
+    name: 'Real-Time Advancement Interval',
+    hint: 'How often (in seconds) the game time is updated when real-time advancement is active. Lower values = smoother time progression but higher CPU usage. Higher values = less frequent updates but better performance. Recommended: 10 seconds for most games, 5 seconds for precision timing, 30+ seconds for slow computers.',
+    scope: 'world',
+    config: true,
+    type: Number,
+    range: {
+      min: 1,
+      max: 300,
+      step: 1,
+    },
+    default: 10,
   });
 
   game.settings.register('seasons-and-stars', 'pauseOnCombat', {

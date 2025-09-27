@@ -8,13 +8,8 @@ import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 // Module-level state (replaces static class properties)
 let previewContainer: HTMLElement | null = null;
-let timeAdvancementPreviewContainer: HTMLElement | null = null;
 
 // Debounced functions using Foundry's utility (with type assertion)
-
-const debouncedTimeAdvancementUpdate = (foundry.utils as any).debounce((ratio: number) => {
-  updateTimeAdvancementExplanation(ratio);
-}, 150);
 
 /**
  * Register hooks for settings preview functionality
@@ -24,7 +19,6 @@ export function registerSettingsPreviewHooks(): void {
   Hooks.on('renderSettingsConfig', (app: any, html: HTMLElement) => {
     Logger.debug('Settings config rendered, attempting to enhance settings');
     enhanceButtonSettingsWithUnifiedPreview(html);
-    enhanceTimeAdvancementRatioSetting(html);
   });
 
   Logger.debug('Settings preview hooks registered');
@@ -337,187 +331,9 @@ function showErrorPreview(message: string): void {
 }
 
 /**
- * Enhance the time advancement ratio setting with live explanation
- */
-function enhanceTimeAdvancementRatioSetting(html: HTMLElement): void {
-  try {
-    // Find the time advancement ratio range-picker element
-    const rangePicker = html.querySelector(
-      'range-picker[name="seasons-and-stars.timeAdvancementRatio"]'
-    ) as HTMLElement;
-
-    if (!rangePicker) {
-      Logger.debug('Time advancement ratio range-picker not found in settings form');
-      return;
-    }
-
-    // Get the input elements inside the range-picker (we'll listen to both number and range)
-    const rangeInput = rangePicker.querySelector('input[type="range"]') as HTMLInputElement;
-    const numberInput = rangePicker.querySelector('input[type="number"]') as HTMLInputElement;
-
-    if (!rangeInput && !numberInput) {
-      Logger.debug('Time advancement ratio inputs not found inside range-picker');
-      return;
-    }
-
-    // Create explanation container (use the range-picker as the reference element)
-    createTimeAdvancementExplanationContainer(rangePicker);
-
-    // Add input event listeners for live updates to both inputs
-    const updateHandler = (event: Event) => {
-      const target = event.target as HTMLInputElement;
-      debouncedTimeAdvancementUpdate(parseFloat(target.value) || 1.0);
-    };
-
-    if (rangeInput) {
-      rangeInput.addEventListener('input', updateHandler);
-    }
-    if (numberInput) {
-      numberInput.addEventListener('input', updateHandler);
-    }
-
-    // Initial explanation (get current value from range-picker attribute or first available input)
-    const currentValue = parseFloat(
-      rangePicker.getAttribute('value') || rangeInput?.value || numberInput?.value || '1.0'
-    );
-    updateTimeAdvancementExplanation(currentValue);
-
-    Logger.debug('Added live explanation to time advancement ratio setting');
-  } catch (error) {
-    Logger.error('Failed to enhance time advancement ratio setting', error as Error);
-  }
-}
-
-/**
- * Create the time advancement explanation container HTML
- */
-function createTimeAdvancementExplanationContainer(referenceElement: HTMLElement): void {
-  const explanationHtml = `
-    <div class="time-advancement-explanation" style="margin-top: 0.75rem; padding: 0.75rem; background: var(--color-bg-option); border: 1px solid var(--color-border-light-primary); border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-      <div class="explanation-content">
-        <div class="explanation-header" style="margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border-light-tertiary);">
-          <h4 style="margin: 0; font-size: 0.9rem; color: var(--color-text-dark-primary);">Time Advancement Preview</h4>
-          <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: var(--color-text-dark-secondary); font-style: italic;">Live explanation of how this ratio affects game time flow</p>
-        </div>
-        <div class="ratio-explanation" style="margin-bottom: 0.75rem; padding: 0.5rem; background: var(--color-bg); border-radius: 3px; border-left: 3px solid var(--color-border-light-highlight);"></div>
-        <div class="interval-explanation" style="font-size: 0.8rem; color: var(--color-text-dark-secondary); padding: 0.25rem; background: var(--color-bg); border-radius: 3px;"></div>
-      </div>
-    </div>
-  `;
-
-  // Insert explanation container after the reference element's parent form group
-  const formGroup = referenceElement.closest('.form-group');
-  if (formGroup) {
-    formGroup.insertAdjacentHTML('afterend', explanationHtml);
-    timeAdvancementPreviewContainer = formGroup.nextElementSibling as HTMLElement;
-  }
-}
-
-/**
- * Update the time advancement explanation based on current ratio
- */
-function updateTimeAdvancementExplanation(ratio: number): void {
-  if (!timeAdvancementPreviewContainer) {
-    Logger.warn('Time advancement explanation container not available for update');
-    return;
-  }
-
-  try {
-    // Validate ratio
-    if (isNaN(ratio) || ratio <= 0) {
-      showTimeAdvancementError('Invalid ratio value');
-      return;
-    }
-
-    // Calculate interval using the same formula as TimeAdvancementService
-    const interval = Math.max(10000, Math.ceil(1000 / ratio));
-
-    // Generate explanations
-    const ratioExplanation = generateRatioExplanation(ratio);
-    const intervalExplanation = generateIntervalExplanation(ratio, interval);
-
-    // Update explanation content
-    const ratioContainer = timeAdvancementPreviewContainer.querySelector(
-      '.ratio-explanation'
-    ) as HTMLElement;
-    const intervalContainer = timeAdvancementPreviewContainer.querySelector(
-      '.interval-explanation'
-    ) as HTMLElement;
-
-    if (ratioContainer) {
-      ratioContainer.innerHTML = ratioExplanation;
-    }
-    if (intervalContainer) {
-      intervalContainer.innerHTML = intervalExplanation;
-    }
-  } catch (error) {
-    Logger.error('Error updating time advancement explanation', error as Error);
-    showTimeAdvancementError('Error calculating explanation');
-  }
-}
-
-/**
- * Generate human-readable ratio explanation
- */
-export function generateRatioExplanation(ratio: number): string {
-  if (ratio === 1.0) {
-    return `<strong>Real Time:</strong> 1 second of real time = 1 second of game time`;
-  } else if (ratio > 1.0) {
-    if (ratio === Math.floor(ratio)) {
-      return `<strong>Accelerated Time:</strong> 1 second of real time = ${ratio} seconds of game time (${ratio}x speed)`;
-    } else {
-      return `<strong>Accelerated Time:</strong> 1 second of real time = ${ratio} seconds of game time (${ratio}x speed)`;
-    }
-  } else {
-    const realSecondsPerGameSecond = Math.round(1 / ratio);
-    if (realSecondsPerGameSecond <= 60) {
-      return `<strong>Slow Time:</strong> ${realSecondsPerGameSecond} seconds of real time = 1 second of game time`;
-    } else {
-      const realMinutesPerGameSecond = Math.round(realSecondsPerGameSecond / 60);
-      return `<strong>Very Slow Time:</strong> ${realMinutesPerGameSecond} minutes of real time = 1 second of game time`;
-    }
-  }
-}
-
-/**
- * Generate technical interval explanation
- */
-export function generateIntervalExplanation(ratio: number, interval: number): string {
-  const intervalSeconds = interval / 1000;
-  const gameSecondsAdvanced = ratio * intervalSeconds;
-
-  return `Technical: Every ${intervalSeconds} seconds, game time advances by ${gameSecondsAdvanced} seconds`;
-}
-
-/**
- * Show error state in time advancement explanation
- */
-function showTimeAdvancementError(message: string): void {
-  if (!timeAdvancementPreviewContainer) return;
-
-  const ratioContainer = timeAdvancementPreviewContainer.querySelector(
-    '.ratio-explanation'
-  ) as HTMLElement;
-  const intervalContainer = timeAdvancementPreviewContainer.querySelector(
-    '.interval-explanation'
-  ) as HTMLElement;
-
-  const errorHtml = `
-    <div style="display: flex; align-items: center; color: #dc2626;">
-      <i class="fas fa-exclamation-triangle" style="margin-right: 0.5rem;"></i>
-      ${message}
-    </div>
-  `;
-
-  if (ratioContainer) ratioContainer.innerHTML = errorHtml;
-  if (intervalContainer) intervalContainer.innerHTML = '';
-}
-
-/**
  * Clean up preview when settings form is closed
  */
 export function cleanupSettingsPreview(): void {
   // No manual timer cleanup needed with foundry.utils.debounce
   previewContainer = null;
-  timeAdvancementPreviewContainer = null;
 }
