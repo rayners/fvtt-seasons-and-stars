@@ -10,8 +10,6 @@ on:
       - 'shared/**'
       - 'package.json'
       - 'rollup.config.*.js'
-      - 'tsconfig.json'
-      - 'vitest.config.ts'
 
 jobs:
   analyze:

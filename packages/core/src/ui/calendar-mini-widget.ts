@@ -151,7 +151,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (game.user?.isGM) {
       try {
         const timeService = TimeAdvancementService.getInstance();
-        timeAdvancementActive = timeService?.shouldShowPauseButton || false;
+        timeAdvancementActive = timeService?.isActive || false;
 
         const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
         advancementRatioDisplay = `${ratio}x speed`;
@@ -586,6 +586,19 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     });
 
+    // Update widget when combat state changes (affects time advancement button state)
+    Hooks.on('combatStart', () => {
+      if (CalendarMiniWidget.activeInstance?.rendered) {
+        CalendarMiniWidget.activeInstance.render();
+      }
+    });
+
+    Hooks.on('deleteCombat', () => {
+      if (CalendarMiniWidget.activeInstance?.rendered) {
+        CalendarMiniWidget.activeInstance.render();
+      }
+    });
+
     // Update widget when settings change (especially quick time buttons and time display)
     Hooks.on('seasons-stars:settingsChanged', (settingName: string) => {
       if (
@@ -853,7 +866,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         return;
       }
 
-      if (service.shouldShowPauseButton) {
+      // Fix for issue #312: Use isActive instead of shouldShowPauseButton for toggle logic
+      // shouldShowPauseButton is for UI display, not toggle decisions
+      if (service.isActive) {
         service.pause();
         Logger.info('Mini widget: Paused time advancement');
       } else {

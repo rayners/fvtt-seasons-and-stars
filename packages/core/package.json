@@ -1,6 +1,6 @@
 {
   "name": "seasons-and-stars",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "description": "A clean calendar and timekeeping module for Foundry VTT v13+",
   "type": "module",
   "calendar-pack": {
@@ -55,6 +55,15 @@
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rayners/fvtt-seasons-and-stars.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/rayners/fvtt-seasons-and-stars/issues"
+  },
+  "homepage": "https://github.com/rayners/fvtt-seasons-and-stars#readme",
   "author": "David Raynes",
   "license": "MIT"
 }

@@ -39,6 +39,15 @@
     "typescript": "^5.0.4",
     "vitest": "^3.2.2"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rayners/fvtt-seasons-and-stars.git",
+    "directory": "packages/pf2e-pack"
+  },
+  "bugs": {
+    "url": "https://github.com/rayners/fvtt-seasons-and-stars/issues"
+  },
+  "homepage": "https://github.com/rayners/fvtt-seasons-and-stars#readme",
   "author": "David Raynes",
   "license": "MIT"
 }
