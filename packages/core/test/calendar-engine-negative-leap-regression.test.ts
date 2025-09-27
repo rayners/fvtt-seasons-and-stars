@@ -69,10 +69,7 @@ describe('Negative Leap Days with Existing Calendars', () => {
         { name: 'Normal', days: 30 },
         { name: 'Tiny', days: 2 }, // Only 2 days!
       ],
-      weekdays: [
-        { name: 'Day1' },
-        { name: 'Day2' },
-      ],
+      weekdays: [{ name: 'Day1' }, { name: 'Day2' }],
       intercalary: [],
       time: {
         hoursInDay: 24,

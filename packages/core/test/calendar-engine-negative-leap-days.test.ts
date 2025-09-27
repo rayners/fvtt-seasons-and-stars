@@ -144,10 +144,7 @@ describe('Negative Leap Days', () => {
         { name: 'Normal', days: 30 },
         { name: 'Short', days: 5 }, // Only 5 days
       ],
-      weekdays: [
-        { name: 'Day1' },
-        { name: 'Day2' },
-      ],
+      weekdays: [{ name: 'Day1' }, { name: 'Day2' }],
       intercalary: [],
       time: {
         hoursInDay: 24,
