@@ -27,6 +27,22 @@ const mockCalendar: SeasonsStarsCalendar = {
   },
 } as SeasonsStarsCalendar;
 
+/**
+ * Helper function to test the calendar count logic.
+ * This represents the core logic that was fixed.
+ */
+function getCalendarCount(calendars: any[] | Map<string, any>): number {
+  return Array.isArray(calendars) ? calendars.length : calendars.size;
+}
+
+/**
+ * Helper function to simulate the original buggy logic.
+ * This shows what the code was doing before the fix.
+ */
+function getBuggyCalendarCount(calendars: any): number {
+  return (calendars as any).size; // Always tries .size, even on arrays
+}
+
 describe('CalendarSelectionDialog array vs Map bug', () => {
   let mockGame: any;
   let mockUI: any;
@@ -68,41 +84,30 @@ describe('CalendarSelectionDialog array vs Map bug', () => {
     vi.restoreAllMocks();
   });
 
-  it('should fail with the original bug - checking .size on an array', async () => {
-    // Save the original code behavior by temporarily modifying the method
-    // to simulate the buggy behavior
-    const originalShow = CalendarSelectionDialog.show;
+  it('should fail with the original bug - checking .size on an array', () => {
+    // Test the buggy logic directly using helper functions
+    const calendarsArray = [mockCalendar]; // What getAllCalendars() returns
+    const emptyArray: any[] = [];
 
-    // Mock the buggy version that checks .size on an array
-    CalendarSelectionDialog.show = async function () {
-      if (!game.seasonsStars?.manager) {
-        ui.notifications?.error('manager_not_ready');
-        return;
-      }
+    // Test buggy logic with populated array
+    const buggyCount = getBuggyCalendarCount(calendarsArray);
+    expect(buggyCount).toBeUndefined(); // arrays don't have .size property
+    expect(buggyCount === 0).toBe(false); // undefined === 0 is false
 
-      const calendars = game.seasonsStars.manager.getAllCalendars();
+    // Test buggy logic with empty array
+    const buggyEmptyCount = getBuggyCalendarCount(emptyArray);
+    expect(buggyEmptyCount).toBeUndefined(); // still undefined
+    expect(buggyEmptyCount === 0).toBe(false); // Bug: empty arrays incorrectly fail the check
 
-      // THE BUG: checking .size on an array (arrays don't have .size property)
-      if (calendars.size === 0) {
-        ui.notifications?.warn('no_calendars_available');
-        return;
-      }
+    // Compare with fixed logic
+    const fixedCount = getCalendarCount(calendarsArray);
+    const fixedEmptyCount = getCalendarCount(emptyArray);
 
-      // If we get here, the bug didn't trigger the early return
-      ui.notifications?.info('calendars_found');
-    };
+    expect(fixedCount).toBe(1); // correctly gets array length
+    expect(fixedEmptyCount).toBe(0); // correctly detects empty array
+    expect(fixedEmptyCount === 0).toBe(true); // fixed logic works correctly
 
-    // Run the buggy version
-    await CalendarSelectionDialog.show();
-
-    // The bug: calendars.size is undefined, undefined === 0 is false
-    // So the warning should NOT have been called (the bug lets it through)
-    // But since calendars.size is undefined, the condition fails and no warning is shown
-    expect(mockNotificationsSpy.warn).not.toHaveBeenCalled();
-    expect(mockNotificationsSpy.info).toHaveBeenCalledWith('calendars_found');
-
-    // Restore original method
-    CalendarSelectionDialog.show = originalShow;
+    // This demonstrates the exact bug: arrays would never trigger the empty calendar warning
   });
 
   it('should pass with the fixed version - proper array/Map detection', async () => {
@@ -152,22 +157,49 @@ describe('CalendarSelectionDialog array vs Map bug', () => {
     expect(mockNotificationsSpy.error).not.toHaveBeenCalled();
   });
 
+  it('validates the calendar count logic for both arrays and Maps', () => {
+    // Test arrays
+    const emptyArray: any[] = [];
+    const populatedArray = [mockCalendar];
+
+    expect(getCalendarCount(emptyArray)).toBe(0);
+    expect(getCalendarCount(populatedArray)).toBe(1);
+
+    // Test Maps
+    const emptyMap = new Map();
+    const populatedMap = new Map();
+    populatedMap.set('test', mockCalendar);
+
+    expect(getCalendarCount(emptyMap)).toBe(0);
+    expect(getCalendarCount(populatedMap)).toBe(1);
+
+    // Demonstrate the bug would have broken array handling
+    expect(getBuggyCalendarCount(emptyArray)).toBeUndefined();
+    expect(getBuggyCalendarCount(populatedArray)).toBeUndefined();
+
+    // But Maps would have worked with the buggy code (by accident)
+    expect(getBuggyCalendarCount(emptyMap)).toBe(0);
+    expect(getBuggyCalendarCount(populatedMap)).toBe(1);
+
+    // This explains why the bug only affected array returns, not Map returns
+  });
+
   it('demonstrates the exact bug condition that caused issue #314', () => {
     // This test demonstrates the exact problem that users experienced
     const calendarsArray = [mockCalendar]; // getAllCalendars() returns this
 
     // The buggy check that was causing the problem:
-    const buggyCheck = calendarsArray.size === 0;
+    const buggyCheck = (calendarsArray as any).size === 0;
 
     // calendarsArray.size is undefined, so undefined === 0 is false
-    expect(calendarsArray.size).toBeUndefined();
+    expect((calendarsArray as any).size).toBeUndefined();
     expect(buggyCheck).toBe(false);
 
     // The correct checks that the fix implements:
-    const arrayLength = Array.isArray(calendarsArray) ? calendarsArray.length : calendarsArray.size;
-    const fixedCheck = arrayLength === 0;
+    const fixedCount = getCalendarCount(calendarsArray);
+    const fixedCheck = fixedCount === 0;
 
-    expect(arrayLength).toBe(1); // We have 1 calendar
+    expect(fixedCount).toBe(1); // We have 1 calendar
     expect(fixedCheck).toBe(false); // So it's not empty
 
     // This shows why the bug let calendars through but broke the logic flow
