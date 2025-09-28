@@ -62,6 +62,7 @@ jobs:
             5. Be helpful but acknowledge limitations when appropriate
 
             Skip questions that already have any responses.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_args: |
             --model claude-sonnet-4-0
             --allowedTools "Bash(gh api:*),Bash(gh search:*),Read,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"
