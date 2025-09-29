@@ -27,6 +27,11 @@ jobs:
           repository: rayners/dev-context
           path: dev-context
           fetch-depth: 1
+      - name: Import GH aliases
+        id: import-aliases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh import dev-context/.gh-aliases.yml --clobber
 
       - name: Load shared prompt
         id: load-prompt
@@ -65,4 +70,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_args: |
             --model claude-sonnet-4-0
-            --allowedTools "Bash(gh api:*),Bash(gh search:*),Read,Write,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"
+            --allowedTools "Bash(gh:*),Read,Write,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"
