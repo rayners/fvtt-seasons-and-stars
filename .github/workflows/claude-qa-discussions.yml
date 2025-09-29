@@ -31,7 +31,7 @@ jobs:
         id: import-aliases
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh import dev-context/.gh-aliases.yml --clobber
+        run: gh alias import dev-context/.gh-aliases.yml --clobber
 
       - name: Load shared prompt
         id: load-prompt
