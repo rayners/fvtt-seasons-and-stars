@@ -71,6 +71,18 @@ export interface SeasonsStarsCalendar {
 
   // Source tracking for badge display and management
   sourceInfo?: CalendarSourceInfo;
+
+  // System compatibility adjustments (for internal use)
+  compatibility?: {
+    [systemId: string]: {
+      weekdayOffset?: number;
+      dateFormatting?: {
+        monthOffset?: number;
+        dayOffset?: number;
+      };
+      description?: string;
+    };
+  };
 }
 
 export type CalendarSourceReference = string | CalendarCitationReference;

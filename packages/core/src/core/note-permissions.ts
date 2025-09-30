@@ -83,7 +83,7 @@ export class NotePermissions {
   /**
    * Set note ownership permissions
    */
-  async setNoteOwnership(note: JournalEntry, ownership: any): Promise<void> {
+  async setNoteOwnership(note: JournalEntry, ownership: Record<string, number>): Promise<void> {
     await note.update({ ownership });
   }
 
@@ -265,7 +265,7 @@ export class NotePermissions {
   /**
    * Create ownership object for new notes based on settings
    */
-  getDefaultOwnership(creatorId: string): any {
+  getDefaultOwnership(creatorId: string): Record<string, number> {
     const playerVisible = game.settings?.get(
       'seasons-and-stars',
       'defaultPlayerVisible'
@@ -292,7 +292,7 @@ export class NotePermissions {
   /**
    * Validate ownership data
    */
-  validateOwnership(ownership: any): { isValid: boolean; errors: string[] } {
+  validateOwnership(ownership: unknown): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     if (!ownership || typeof ownership !== 'object') {
@@ -300,11 +300,12 @@ export class NotePermissions {
       return { isValid: false, errors };
     }
 
+    const ownershipObj = ownership as Record<string, unknown>;
     // Check default level
-    if (ownership.default !== undefined) {
-      const validLevels = Object.values(CONST.DOCUMENT_OWNERSHIP_LEVELS);
-      if (!validLevels.includes(ownership.default)) {
-        errors.push(`Invalid default ownership level: ${ownership.default}`);
+    if (ownershipObj.default !== undefined) {
+      const validLevels = Object.values(CONST.DOCUMENT_OWNERSHIP_LEVELS) as number[];
+      if (!validLevels.includes(ownershipObj.default as number)) {
+        errors.push(`Invalid default ownership level: ${ownershipObj.default}`);
       }
     }
 
@@ -324,7 +325,7 @@ export class NotePermissions {
   /**
    * Get permission summary for debugging
    */
-  getPermissionSummary(note: JournalEntry, user?: User): any {
+  getPermissionSummary(note: JournalEntry, user?: User): Record<string, unknown> | null {
     const currentUser = user || game.user;
     if (!currentUser) return null;
 
