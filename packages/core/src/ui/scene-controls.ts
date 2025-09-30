@@ -28,11 +28,6 @@ export class SeasonsStarsSceneControls {
         notesToolsKeys: controls.notes?.tools ? Object.keys(controls.notes.tools) : null,
       });
 
-      if (!game.user?.isGM) {
-        Logger.debug('User is not GM, skipping scene control registration');
-        return;
-      }
-
       // Access notes controls directly (controls is an object, not array)
       if (controls.notes?.tools) {
         Logger.debug('Adding S&S scene control to notes.tools');
