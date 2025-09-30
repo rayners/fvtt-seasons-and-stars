@@ -3,6 +3,15 @@
  */
 
 /**
+ * Type guard to check if a value is a valid ownership level
+ */
+function isValidOwnershipLevel(level: unknown): level is OwnershipLevel {
+  if (typeof level !== 'number') return false;
+  const validLevels = Object.values(CONST.DOCUMENT_OWNERSHIP_LEVELS) as number[];
+  return validLevels.includes(level);
+}
+
+/**
  * Manages permissions and access control for calendar notes
  */
 export class NotePermissions {
@@ -303,8 +312,7 @@ export class NotePermissions {
     const ownershipObj = ownership as Record<string, unknown>;
     // Check default level
     if (ownershipObj.default !== undefined) {
-      const validLevels = Object.values(CONST.DOCUMENT_OWNERSHIP_LEVELS) as number[];
-      if (!validLevels.includes(ownershipObj.default as number)) {
+      if (!isValidOwnershipLevel(ownershipObj.default)) {
         errors.push(`Invalid default ownership level: ${ownershipObj.default}`);
       }
     }
@@ -313,8 +321,7 @@ export class NotePermissions {
     for (const [userId, level] of Object.entries(ownership)) {
       if (userId === 'default') continue;
 
-      const validLevels = Object.values(CONST.DOCUMENT_OWNERSHIP_LEVELS) as OwnershipLevel[];
-      if (!validLevels.includes(level as OwnershipLevel)) {
+      if (!isValidOwnershipLevel(level)) {
         errors.push(`Invalid ownership level for user ${userId}: ${level}`);
       }
     }

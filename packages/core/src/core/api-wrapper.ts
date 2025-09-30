@@ -3,6 +3,7 @@
  * Reduces boilerplate in module.ts API methods
  */
 
+import type { CalendarDateData } from '../types/calendar';
 import { Logger } from './logger';
 
 export type APIValidator = (params: unknown) => void;
@@ -81,7 +82,10 @@ export class APIWrapper {
   /**
    * Validate calendar date object
    */
-  static validateCalendarDate(date: unknown, name: string = 'Date'): void {
+  static validateCalendarDate(
+    date: unknown,
+    name: string = 'Date'
+  ): asserts date is CalendarDateData {
     if (!date || typeof date !== 'object') {
       throw new Error(`${name} must be a valid calendar date object`);
     }
@@ -94,5 +98,13 @@ export class APIWrapper {
     ) {
       throw new Error(`${name} must have valid year, month, and day numbers`);
     }
+  }
+
+  /**
+   * Extract params as a typed record for validation
+   * Reduces duplication in API method validators
+   */
+  static extractParams(params: unknown): Record<string, unknown> {
+    return params as Record<string, unknown>;
   }
 }

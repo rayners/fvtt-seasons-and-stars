@@ -72,7 +72,17 @@ export interface SeasonsStarsCalendar {
   // Source tracking for badge display and management
   sourceInfo?: CalendarSourceInfo;
 
-  // System compatibility adjustments (for internal use)
+  /**
+   * System-specific compatibility adjustments applied by CompatibilityManager.
+   * This field is managed internally and should not be modified by external modules.
+   *
+   * The compatibility manager uses this field to store system-specific date formatting
+   * adjustments (e.g., weekday offsets for WFRP, month offsets for different systems)
+   * that are applied automatically when converting between calendar dates and world time.
+   *
+   * @internal
+   * @see CompatibilityManager
+   */
   compatibility?: {
     [systemId: string]: {
       weekdayOffset?: number;
