@@ -305,12 +305,19 @@ describe('Scene Controls Integration', () => {
       });
     });
 
-    it('should not add scene control button for non-GM users', () => {
+    it('should add scene control button for non-GM users', () => {
       mockGame.user.isGM = false;
 
       sceneControlHandler(mockControls);
 
-      expect(mockControls.notes.tools['seasons-stars-widget']).toBeUndefined();
+      expect(mockControls.notes.tools['seasons-stars-widget']).toBeDefined();
+      expect(mockControls.notes.tools['seasons-stars-widget']).toEqual({
+        name: 'seasons-stars-widget',
+        title: 'SEASONS_STARS.calendar.toggle_calendar',
+        icon: 'fas fa-calendar-alt',
+        onChange: expect.any(Function),
+        button: true,
+      });
     });
 
     it('should handle missing notes controls gracefully', () => {

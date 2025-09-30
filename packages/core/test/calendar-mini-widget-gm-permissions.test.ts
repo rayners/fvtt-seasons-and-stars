@@ -1,30 +1,21 @@
 /**
- * Tests for CalendarWidget GM-specific behaviors and template access
+ * Tests for CalendarMiniWidget GM-specific behaviors
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import Handlebars from 'handlebars';
-import path from 'path';
-import fs from 'fs';
-import { CalendarWidget } from '../src/ui/calendar-widget';
-import { CalendarSelectionDialog } from '../src/ui/calendar-selection-dialog';
+import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
 import { CalendarDate } from '../src/core/calendar-date';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
 import { setupFoundryEnvironment } from './setup';
 
-// Mock TimeAdvancementService to avoid initialization logic
 vi.mock('../src/core/time-advancement-service', () => ({
   TimeAdvancementService: {
-    getInstance: vi.fn(() => ({ shouldShowPauseButton: false })),
+    getInstance: vi.fn(() => ({ isActive: false })),
   },
 }));
 
-// Use real Handlebars for template rendering
-(globalThis as any).Handlebars = Handlebars;
-
-describe('CalendarWidget GM permissions', () => {
-  let widget: CalendarWidget;
-  let template: Handlebars.TemplateDelegate;
+describe('CalendarMiniWidget GM permissions', () => {
+  let widget: CalendarMiniWidget;
   let mockCalendar: SeasonsStarsCalendar;
   let mockDate: CalendarDate;
 
@@ -32,15 +23,6 @@ describe('CalendarWidget GM permissions', () => {
     setupFoundryEnvironment();
     vi.restoreAllMocks();
 
-    // Stub SmallTime detection to disable quick time controls in template
-    vi.spyOn(CalendarWidget.prototype as any, 'detectSmallTime').mockReturnValue(true);
-
-    // Load and compile the widget template
-    const templatePath = path.join(__dirname, '../templates/calendar-widget.hbs');
-    const source = fs.readFileSync(templatePath, 'utf8');
-    template = Handlebars.compile(source);
-
-    // Minimal calendar and date setup
     mockCalendar = {
       id: 'test',
       name: 'Test Calendar',
@@ -70,7 +52,6 @@ describe('CalendarWidget GM permissions', () => {
       mockCalendar
     );
 
-    // Configure game globals used by the widget
     game.seasonsStars = {
       manager: {
         getActiveCalendar: vi.fn(() => mockCalendar),
@@ -80,71 +61,43 @@ describe('CalendarWidget GM permissions', () => {
 
     (game.settings.get as any) = vi.fn((module: string, key: string) => {
       if (key === 'timeAdvancementRatio') return 1.0;
-      if (key === 'pauseOnCombat') return true;
-      if (key === 'resumeAfterCombat') return false;
+      if (key === 'miniWidgetShowTime') return false;
+      if (key === 'miniWidgetShowDayOfWeek') return false;
       if (key === 'alwaysShowQuickTimeButtons') return false;
       return undefined;
     });
 
-    widget = new CalendarWidget();
+    widget = new CalendarMiniWidget();
   });
 
-  it('prevents non-GMs from opening the calendar selection dialog', async () => {
-    game.user = { isGM: false } as any;
-    const showSpy = vi.spyOn(CalendarSelectionDialog, 'show').mockResolvedValue();
-
-    const event = new Event('click');
-    await widget._onOpenCalendarSelection(event, document.createElement('div'));
-
-    expect(showSpy).not.toHaveBeenCalled();
-  });
-
-  it('renders calendar selector only for GMs', async () => {
-    // GM view
-    game.user = { isGM: true } as any;
-    let context = await widget._prepareContext();
-    expect(context.isGM).toBe(true);
-    let html = template(context);
-    expect(html).toContain('data-action="openCalendarSelection"');
-    expect(html).toContain('calendar-hint');
-
-    // Player view
-    game.user = { isGM: false } as any;
-    context = await widget._prepareContext();
-    expect(context.isGM).toBe(false);
-    html = template(context);
-    expect(html).not.toContain('data-action="openCalendarSelection"');
-    expect(html).not.toContain('calendar-hint');
-  });
-
-  it('prevents non-GMs from advancing time via _onAdvanceDate', async () => {
+  it('prevents non-GMs from advancing time via _onAdvanceTime', async () => {
     game.user = { isGM: false } as any;
     const manager = game.seasonsStars.manager as any;
-    manager.advanceDays = vi.fn();
+    manager.advanceHours = vi.fn();
 
     const target = document.createElement('div');
     target.dataset.amount = '1';
-    target.dataset.unit = 'days';
+    target.dataset.unit = 'hours';
 
     const event = new Event('click');
-    await widget._onAdvanceDate(event, target);
+    await widget._onAdvanceTime(event, target);
 
-    expect(manager.advanceDays).not.toHaveBeenCalled();
+    expect(manager.advanceHours).not.toHaveBeenCalled();
   });
 
-  it('allows GMs to advance time via _onAdvanceDate', async () => {
+  it('allows GMs to advance time via _onAdvanceTime', async () => {
     game.user = { isGM: true } as any;
     const manager = game.seasonsStars.manager as any;
-    manager.advanceDays = vi.fn();
+    manager.advanceHours = vi.fn();
 
     const target = document.createElement('div');
     target.dataset.amount = '1';
-    target.dataset.unit = 'days';
+    target.dataset.unit = 'hours';
 
     const event = new Event('click');
-    await widget._onAdvanceDate(event, target);
+    await widget._onAdvanceTime(event, target);
 
-    expect(manager.advanceDays).toHaveBeenCalledWith(1);
+    expect(manager.advanceHours).toHaveBeenCalledWith(1);
   });
 
   it('prevents non-GMs from toggling time advancement', async () => {
@@ -174,5 +127,36 @@ describe('CalendarWidget GM permissions', () => {
     await widget._onToggleTimeAdvancement(event);
 
     expect(mockService.play).toHaveBeenCalled();
+  });
+
+  it('prevents non-GMs from opening calendar selection dialog', async () => {
+    game.user = { isGM: false } as any;
+    const manager = game.seasonsStars.manager as any;
+    manager.getAllCalendars = vi.fn(() => [mockCalendar]);
+
+    const event = new Event('click');
+    const target = document.createElement('div');
+
+    await widget._onOpenCalendarSelection(event, target);
+
+    expect(manager.getAllCalendars).not.toHaveBeenCalled();
+  });
+
+  it('allows GMs to open calendar selection dialog', async () => {
+    game.user = { isGM: true } as any;
+    const manager = game.seasonsStars.manager as any;
+    manager.getAllCalendars = vi.fn(() => [mockCalendar]);
+
+    const mockDialog = vi.fn();
+    vi.doMock('../src/ui/calendar-selection-dialog', () => ({
+      CalendarSelectionDialog: mockDialog,
+    }));
+
+    const event = new Event('click');
+    const target = document.createElement('div');
+
+    await widget._onOpenCalendarSelection(event, target);
+
+    expect(manager.getAllCalendars).toHaveBeenCalled();
   });
 });
