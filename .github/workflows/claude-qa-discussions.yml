@@ -64,5 +64,5 @@ jobs:
             Skip questions that already have any responses.
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_args: |
-            --model claude-sonnet-4-0
+            --model claude-sonnet-4-5
             --allowedTools "Bash(gh api:*),Bash(gh search:*),Read,Write,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"

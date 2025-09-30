@@ -52,8 +52,8 @@ jobs:
             ${{ github.event.issue.body }}
 
             Respond directly to the issue with your assessment. Use @-username (with dash) to avoid notifications during testing.
-          allowed_non_write_users: "*"
+          allowed_non_write_users: '*'
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_args: |
-            --model claude-sonnet-4-0
+            --model claude-sonnet-4-5
             --allowedTools "Bash(gh issue comment:*),Bash(gh issue view:*),Read,WebFetch,Glob,Grep"
