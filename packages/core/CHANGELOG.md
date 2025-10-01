@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.18.0...seasons-and-stars-v0.19.0) (2025-10-01)
+
+
+### Features
+
+* allow non-GM users to open calendar widgets ([#328](https://github.com/rayners/fvtt-seasons-and-stars/issues/328)) ([4254f39](https://github.com/rayners/fvtt-seasons-and-stars/commit/4254f39f0ce0868af915bbec03aed470238443af))
+
 ## [0.18.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.17.1...seasons-and-stars-v0.18.0) (2025-09-27)
 
 
