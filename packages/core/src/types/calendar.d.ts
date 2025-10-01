@@ -82,6 +82,21 @@ export interface SeasonsStarsCalendar {
    *
    * @internal
    * @see CompatibilityManager
+   *
+   * @example
+   * // Example of how CompatibilityManager uses this field internally
+   * calendar.compatibility = {
+   *   wfrp4e: {
+   *     weekdayOffset: 1,
+   *     description: 'WFRP4e uses Monday as first day of week'
+   *   },
+   *   pf2e: {
+   *     dateFormatting: {
+   *       monthOffset: 1
+   *     },
+   *     description: 'PF2e uses 1-indexed months'
+   *   }
+   * };
    */
   compatibility?: {
     [systemId: string]: {
