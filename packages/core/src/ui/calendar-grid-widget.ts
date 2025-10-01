@@ -410,7 +410,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         hasMultipleMoons: hasMultipleMoons,
         // Additional properties for template
         isSelected: isViewDate,
-        isClickable: true, // Always clickable - behavior depends on permissions
+        isClickable: true, // Click handler manages GM-only actions vs player info view
         weekday: dayDate.weekday,
         fullDate: `${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
         noteCount: noteCount,
@@ -481,7 +481,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           date: intercalaryDate,
           isToday: isToday,
           isSelected: isViewDate,
-          isClickable: true, // Always clickable - behavior depends on permissions
+          isClickable: true, // Click handler manages GM-only actions vs player info view
           isCurrentMonth: true, // Intercalary days are always part of the current month
           isIntercalary: true,
           intercalaryName: intercalary.name,
