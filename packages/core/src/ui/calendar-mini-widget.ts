@@ -736,17 +736,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       return;
     }
 
-    // Find or create header area for buttons
-    let headerArea = this.element.querySelector('.mini-widget-header') as HTMLElement;
-    if (!headerArea) {
-      // Create header if it doesn't exist
-      headerArea = document.createElement('div');
-      headerArea.className = 'mini-widget-header';
-      headerArea.style.cssText =
-        'display: flex; justify-content: flex-end; align-items: center; padding: 2px 4px; background: rgba(0,0,0,0.1); border-bottom: 1px solid var(--color-border-light-tertiary);';
-
-      // Insert at the beginning of the widget
-      this.element.insertBefore(headerArea, this.element.firstChild);
+    // Find the sidebar buttons container within mini-time-controls
+    const sidebarContainer = this.element.querySelector('.mini-sidebar-buttons') as HTMLElement;
+    if (!sidebarContainer) {
+      Logger.warn('Sidebar buttons container not found, widget may need re-render');
+      return;
     }
 
     // Create button element
@@ -754,18 +748,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     button.id = buttonId;
     button.className = 'mini-sidebar-button';
     button.title = tooltip;
-    button.innerHTML = `<i class="fas ${icon}"></i>`;
-    button.style.cssText = `
-      background: var(--color-bg-btn, #f0f0f0);
-      border: 1px solid var(--color-border-dark, #999);
-      border-radius: 2px;
-      padding: 2px 4px;
-      margin-left: 2px;
-      cursor: pointer;
-      font-size: 10px;
-      color: var(--color-text-primary, #000);
-      transition: background-color 0.15s ease;
-    `;
+    button.innerHTML = `<i class="${icon}"></i>`;
 
     // Add click handler
     button.addEventListener('click', event => {
@@ -778,15 +761,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     });
 
-    // Add hover effects
-    button.addEventListener('mouseenter', () => {
-      button.style.background = 'var(--color-bg-btn-hover, #e0e0e0)';
-    });
-    button.addEventListener('mouseleave', () => {
-      button.style.background = 'var(--color-bg-btn, #f0f0f0)';
-    });
-
-    headerArea.appendChild(button);
+    sidebarContainer.appendChild(button);
     Logger.debug(`Rendered sidebar button "${name}" in mini widget DOM`);
   }
 

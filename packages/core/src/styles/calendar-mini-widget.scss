@@ -203,44 +203,85 @@
 
     .mini-time-controls {
       display: flex;
-      gap: 0.15rem; // Reduced from 0.25rem for tighter button spacing
-      margin-top: 0.2rem; // Reduced from 0.25rem
-      justify-content: center;
-      flex-wrap: wrap; // Allow buttons to wrap if needed
+      gap: 0.3rem;
+      margin-top: 0.2rem;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
 
-      button {
-        background: linear-gradient(135deg, #10b981, #14b8a6);
-        border: 1px solid #10b981;
-        border-radius: 2px; // Slightly smaller radius
-        padding: 0.15rem 0.3rem; // Reduced padding for more compact buttons
-        color: white;
-        font-size: 0.65rem; // Slightly smaller text
-        cursor: pointer;
-        transition: all 0.2s ease;
-        white-space: nowrap; // Prevent text wrapping within buttons
+      .mini-quick-time-buttons {
+        display: flex;
+        gap: 0.15rem;
+        flex-wrap: wrap;
+        justify-content: flex-start;
 
-        &:hover {
-          background: linear-gradient(135deg, #059669, #0d9488);
-          border-color: #059669;
+        button {
+          background: linear-gradient(135deg, #10b981, #14b8a6);
+          border: 1px solid #10b981;
+          border-radius: 2px;
+          padding: 0.15rem 0.3rem;
           color: white;
-        }
-        
-        // Rewind button styling for mini widget
-        &.rewind {
-          background: linear-gradient(135deg, #dc2626, #ef4444);
-          border-color: #dc2626;
-          color: white;
-          
+          font-size: 0.65rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+
           &:hover {
-            background: linear-gradient(135deg, #b91c1c, #dc2626);
-            border-color: #b91c1c;
+            background: linear-gradient(135deg, #059669, #0d9488);
+            border-color: #059669;
             color: white;
           }
+
+          &.rewind {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            border-color: #dc2626;
+            color: white;
+
+            &:hover {
+              background: linear-gradient(135deg, #b91c1c, #dc2626);
+              border-color: #b91c1c;
+              color: white;
+            }
+          }
+
+          i {
+            font-size: 0.6rem;
+            margin-right: 0.2rem;
+          }
+        }
+      }
+
+      .mini-sidebar-buttons {
+        display: flex;
+        gap: 0.15rem;
+        justify-content: flex-end;
+        padding-left: 0.3rem;
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+
+        &:empty {
+          display: none;
         }
 
-        i {
-          font-size: 0.6rem;
-          margin-right: 0.2rem;
+        .mini-sidebar-button {
+          background: rgba(255, 255, 255, 0.15);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 2px;
+          padding: 0.15rem 0.3rem;
+          color: white;
+          font-size: 0.65rem;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+            color: white;
+          }
+
+          i {
+            font-size: 0.6rem;
+          }
         }
       }
     }
@@ -300,17 +341,34 @@
       }
       
       .mini-time-controls {
-        margin-top: 0.15rem; // Reduced top margin
-        gap: 0.1rem; // Minimal button spacing
-        
-        button {
-          padding: 0.1rem 0.25rem; // More compact buttons
-          font-size: 0.6rem;
-          border-radius: 2px;
-          
-          i {
-            font-size: 0.55rem; // Smaller icons
-            margin-right: 0.1rem; // Reduced icon margin
+        margin-top: 0.15rem;
+        gap: 0.2rem;
+
+        .mini-quick-time-buttons {
+          gap: 0.1rem;
+
+          button {
+            padding: 0.1rem 0.25rem;
+            font-size: 0.6rem;
+            border-radius: 2px;
+
+            i {
+              font-size: 0.55rem;
+              margin-right: 0.1rem;
+            }
+          }
+        }
+
+        .mini-sidebar-buttons {
+          padding-left: 0.2rem;
+
+          .mini-sidebar-button {
+            padding: 0.1rem 0.25rem;
+            font-size: 0.6rem;
+
+            i {
+              font-size: 0.55rem;
+            }
           }
         }
       }
@@ -356,14 +414,13 @@
       background: linear-gradient(135deg, #4a4a4a 0%, #2a2a2a 100%);
       
       .mini-time-controls {
-        // More prominent time controls in standalone mode
         margin-top: 0.5rem;
-        
-        button {
+
+        .mini-quick-time-buttons button {
           background: linear-gradient(135deg, #10b981, #14b8a6);
           border-color: #10b981;
           color: white;
-          
+
           &:hover {
             background: linear-gradient(135deg, #059669, #0d9488);
             border-color: #059669;
@@ -371,12 +428,12 @@
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
           }
-          
+
           &.rewind {
             background: linear-gradient(135deg, #dc2626, #ef4444);
             border-color: #dc2626;
             color: white;
-            
+
             &:hover {
               background: linear-gradient(135deg, #b91c1c, #dc2626);
               border-color: #b91c1c;
@@ -384,6 +441,13 @@
               transform: translateY(-1px);
               box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             }
+          }
+        }
+
+        .mini-sidebar-buttons .mini-sidebar-button {
+          &:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
           }
         }
       }
@@ -406,23 +470,23 @@
       
       .mini-time-controls {
         margin-top: 0.25rem;
-        
-        button {
+
+        .mini-quick-time-buttons button {
           background: linear-gradient(135deg, #10b981, #14b8a6);
           border-color: #10b981;
           color: white;
-          
+
           &:hover {
             background: linear-gradient(135deg, #059669, #0d9488);
             border-color: #059669;
             color: white;
           }
-          
+
           &.rewind {
             background: linear-gradient(135deg, #dc2626, #ef4444);
             border-color: #dc2626;
             color: white;
-            
+
             &:hover {
               background: linear-gradient(135deg, #b91c1c, #dc2626);
               border-color: #b91c1c;
