@@ -70,5 +70,5 @@ jobs:
             Skip discussions that already have any responses/comments.
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_args: |
-            --model claude-sonnet-4-0
-            --allowedTools "Bash(gh:*),Read,Write,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"
+            --model claude-sonnet-4-5
+            --allowedTools "Bash(gh api:*),Bash(gh search:*),Read,Write,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"

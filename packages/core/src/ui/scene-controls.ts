@@ -28,10 +28,8 @@ export class SeasonsStarsSceneControls {
         notesToolsKeys: controls.notes?.tools ? Object.keys(controls.notes.tools) : null,
       });
 
-      if (!game.user?.isGM) {
-        Logger.debug('User is not GM, skipping scene control registration');
-        return;
-      }
+      // Calendar button is now available to all users (GMs and players)
+      // Individual widget functions will handle permission checks
 
       // Access notes controls directly (controls is an object, not array)
       if (controls.notes?.tools) {

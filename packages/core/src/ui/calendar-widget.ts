@@ -206,6 +206,11 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   async _onAdvanceDate(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
 
+    if (!game.user?.isGM) {
+      ui.notifications?.warn('Only GMs can advance time');
+      return;
+    }
+
     const amount = parseInt(target.dataset.amount || '0');
     const unit = target.dataset.unit || 'days';
 
@@ -293,6 +298,11 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    */
   async _onToggleTimeAdvancement(event: Event, _target?: HTMLElement): Promise<void> {
     event.preventDefault();
+
+    if (!game.user?.isGM) {
+      ui.notifications?.warn('Only GMs can control time advancement');
+      return;
+    }
 
     try {
       const service = TimeAdvancementService.getInstance();
