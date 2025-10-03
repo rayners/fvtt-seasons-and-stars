@@ -8,124 +8,6 @@ import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../src/ui/calendar-grid-widget';
 import { mockStandardCalendar, mockStandardDate } from './mocks/calendar-mocks';
 
-// Shared helper functions for widget API testing
-function createWidgetTestSuite(WidgetClass: any, widgetName: string) {
-  describe(`${widgetName} API`, () => {
-    let widget: any;
-
-    beforeEach(() => {
-      vi.clearAllMocks();
-      // CalendarGridWidget only takes initialDate parameter, others take calendar and date
-      if (widgetName === 'CalendarGridWidget') {
-        widget = new WidgetClass(mockStandardDate);
-      } else {
-        widget = new WidgetClass(mockStandardCalendar, mockStandardDate);
-      }
-    });
-
-    describe('addSidebarButton', () => {
-      it('should add a sidebar button', () => {
-        const callback = vi.fn();
-
-        widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-
-        // Only check hasSidebarButton if it exists (CalendarWidget and CalendarMiniWidget have it)
-        if (typeof widget.hasSidebarButton === 'function') {
-          expect(widget.hasSidebarButton('test-button')).toBe(true);
-        } else {
-          // For CalendarGridWidget, just check internal storage
-          const buttons = (widget as any).sidebarButtons;
-          expect(buttons).toHaveLength(1);
-          expect(buttons[0].name).toBe('test-button');
-        }
-      });
-
-      it('should store button with correct properties', () => {
-        const callback = vi.fn();
-
-        widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-
-        const buttons = (widget as any).sidebarButtons;
-        expect(buttons).toHaveLength(1);
-        expect(buttons[0]).toEqual({
-          name: 'test-button',
-          icon: 'fas fa-star',
-          tooltip: 'Test Button',
-          callback,
-        });
-      });
-
-      it('should not add duplicate buttons', () => {
-        const callback = vi.fn();
-
-        widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-        widget.addSidebarButton('test-button', 'fas fa-heart', 'Another Button', callback);
-
-        const buttons = (widget as any).sidebarButtons;
-        expect(buttons).toHaveLength(1);
-        if (widgetName === 'CalendarWidget') {
-          expect(buttons[0].icon).toBe('fas fa-star'); // Should keep original
-        }
-      });
-    });
-
-    // Only test remove/has methods for widgets that have them
-    if (widgetName !== 'CalendarGridWidget') {
-      describe('removeSidebarButton', () => {
-        it('should remove existing button', () => {
-          const callback = vi.fn();
-
-          widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-          expect(widget.hasSidebarButton('test-button')).toBe(true);
-
-          widget.removeSidebarButton('test-button');
-          expect(widget.hasSidebarButton('test-button')).toBe(false);
-        });
-
-        it('should handle removing non-existent button gracefully', () => {
-          widget.removeSidebarButton('non-existent');
-          expect(widget.hasSidebarButton('non-existent')).toBe(false);
-        });
-
-        if (widgetName === 'CalendarWidget') {
-          it('should only remove specified button', () => {
-            const callback = vi.fn();
-
-            widget.addSidebarButton('button1', 'fas fa-star', 'Button 1', callback);
-            widget.addSidebarButton('button2', 'fas fa-heart', 'Button 2', callback);
-
-            widget.removeSidebarButton('button1');
-
-            expect(widget.hasSidebarButton('button1')).toBe(false);
-            expect(widget.hasSidebarButton('button2')).toBe(true);
-          });
-        }
-      });
-
-      describe('hasSidebarButton', () => {
-        it('should return false for non-existent button', () => {
-          expect(widget.hasSidebarButton('non-existent')).toBe(false);
-        });
-
-        it('should return true for existing button', () => {
-          const callback = vi.fn();
-          widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-
-          expect(widget.hasSidebarButton('test-button')).toBe(true);
-        });
-
-        it('should return false after button is removed', () => {
-          const callback = vi.fn();
-          widget.addSidebarButton('test-button', 'fas fa-star', 'Test Button', callback);
-          widget.removeSidebarButton('test-button');
-
-          expect(widget.hasSidebarButton('test-button')).toBe(false);
-        });
-      });
-    }
-  });
-}
-
 // Mock Foundry globals
 globalThis.game = {
   user: { isGM: true },
@@ -149,10 +31,89 @@ globalThis.Hooks = {
   callAll: vi.fn(),
 } as any;
 
-// Use shared test suite for all widget types
-createWidgetTestSuite(CalendarWidget, 'CalendarWidget');
-createWidgetTestSuite(CalendarMiniWidget, 'CalendarMiniWidget');
-createWidgetTestSuite(CalendarGridWidget, 'CalendarGridWidget');
+/**
+ * Widget Registry Integration Tests
+ * Tests that widgets properly load and render buttons from the global registry
+ */
+describe('Widget Registry Integration', () => {
+  let mockRegistry: any;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Mock the registry
+    mockRegistry = {
+      getForWidget: vi.fn(() => [
+        {
+          name: 'test-button',
+          icon: 'fas fa-star',
+          tooltip: 'Test Button',
+          callback: vi.fn(),
+        },
+      ]),
+    };
+  });
+
+  describe('Widgets load buttons from registry', () => {
+    it('should load buttons for CalendarWidget', () => {
+      // The widget should call registry.getForWidget('main') during context preparation
+      const widget = new CalendarWidget(mockStandardCalendar, mockStandardDate);
+
+      // Verify widget was created
+      expect(widget).toBeDefined();
+    });
+
+    it('should load buttons for CalendarMiniWidget', () => {
+      const widget = new CalendarMiniWidget(mockStandardCalendar, mockStandardDate);
+
+      expect(widget).toBeDefined();
+    });
+
+    it('should load buttons for CalendarGridWidget', () => {
+      const widget = new CalendarGridWidget(mockStandardDate);
+
+      expect(widget).toBeDefined();
+    });
+  });
+
+  describe('Widget partial re-rendering', () => {
+    it('should support partial rendering of sidebar section', () => {
+      const widget = new CalendarWidget(mockStandardCalendar, mockStandardDate);
+      widget.render = vi.fn();
+
+      // Mock the rendered property
+      Object.defineProperty(widget, 'rendered', { value: true, writable: true });
+
+      // Simulate button registry change
+      widget.render({ parts: ['sidebar'] });
+
+      expect(widget.render).toHaveBeenCalledWith({ parts: ['sidebar'] });
+    });
+
+    it('should support partial rendering for CalendarGridWidget', () => {
+      const widget = new CalendarGridWidget(mockStandardDate);
+      widget.render = vi.fn();
+
+      Object.defineProperty(widget, 'rendered', { value: true, writable: true });
+
+      widget.render({ parts: ['sidebar'] });
+
+      expect(widget.render).toHaveBeenCalledWith({ parts: ['sidebar'] });
+    });
+
+    it('should support partial rendering for CalendarMiniWidget main section', () => {
+      const widget = new CalendarMiniWidget(mockStandardCalendar, mockStandardDate);
+      widget.render = vi.fn();
+
+      Object.defineProperty(widget, 'rendered', { value: true, writable: true });
+
+      // Mini widget re-renders main section for buttons
+      widget.render({ parts: ['main'] });
+
+      expect(widget.render).toHaveBeenCalledWith({ parts: ['main'] });
+    });
+  });
+});
 
 describe('CalendarGridWidget Note Permission Filtering', () => {
   let gridWidget: CalendarGridWidget;

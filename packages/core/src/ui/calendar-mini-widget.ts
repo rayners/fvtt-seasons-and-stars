@@ -8,7 +8,9 @@ import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
 import { TimeAdvancementService } from '../core/time-advancement-service';
 import { DateFormatter } from '../core/date-formatter';
-import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
+import { SidebarButtonRegistry } from './sidebar-button-registry';
+import { loadButtonsFromRegistry } from './sidebar-button-mixin';
+import type { MiniWidgetContext, WidgetRenderOptions } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -16,7 +18,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 ) {
   private static activeInstance: CalendarMiniWidget | null = null;
   private isClosing: boolean = false;
-  private sidebarButtons: SidebarButton[] = [];
   private hasBeenPositioned: boolean = false;
 
   constructor(options: any = {}) {
@@ -187,6 +188,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       },
       currentDate: currentDate.toObject(),
       formattedDate: currentDate.toLongString(),
+      sidebarButtons: loadButtonsFromRegistry(this, 'mini'),
     }) as MiniWidgetContext;
   }
 
