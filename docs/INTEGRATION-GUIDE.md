@@ -303,7 +303,10 @@ class WidgetAPI {
     return only.includes(this.widgetType) && !except.includes(this.widgetType);
   }
 
-  static getInstance(widgetCtor: any, widgetType: 'main' | 'mini' | 'grid'): WidgetAPI | null {
+  static getInstance(
+    widgetCtor: { getInstance?: () => unknown } | null,
+    widgetType: 'main' | 'mini' | 'grid'
+  ): WidgetAPI | null {
     return widgetCtor?.getInstance?.() ? new WidgetAPI(widgetType) : null;
   }
 }

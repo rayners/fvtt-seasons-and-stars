@@ -36,22 +36,8 @@ globalThis.Hooks = {
  * Tests that widgets properly load and render buttons from the global registry
  */
 describe('Widget Registry Integration', () => {
-  let mockRegistry: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Mock the registry
-    mockRegistry = {
-      getForWidget: vi.fn(() => [
-        {
-          name: 'test-button',
-          icon: 'fas fa-star',
-          tooltip: 'Test Button',
-          callback: vi.fn(),
-        },
-      ]),
-    };
   });
 
   describe('Widgets load buttons from registry', () => {

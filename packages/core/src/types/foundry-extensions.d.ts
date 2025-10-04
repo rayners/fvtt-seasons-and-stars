@@ -39,7 +39,10 @@ declare global {
           // Protected lifecycle hooks
           protected _onRender(context: any, options: any): void;
           protected _prepareContext(options: any): any;
-          protected _preparePartContext?(partId: string, context: any): Promise<any>;
+          protected _preparePartContext?(
+            partId: string,
+            context: Record<string, unknown>
+          ): Promise<Record<string, unknown>>;
           protected _attachPartListeners(
             partId: string,
             htmlElement: HTMLElement,
