@@ -1,0 +1,42 @@
+/**
+ * Calendar Mini Widget - Sidebar Buttons Component
+ * Action buttons displayed in sidebar area
+ */
+
+.calendar-mini-widget {
+  .calendar-mini-content {
+    .mini-sidebar-buttons {
+      display: flex;
+      gap: 0.15rem;
+      margin-left: 0.15rem;
+      margin-top: 0.5rem;
+      align-items: center;
+      flex: 0 0 auto;
+
+      .mini-sidebar-button {
+        background: linear-gradient(135deg, #10b981, #14b8a6);
+        border: 1px solid #10b981;
+        border-radius: 2px;
+        padding: 0.15rem 0.3rem;
+        color: white;
+        font-size: 0.65rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background: linear-gradient(135deg, #059669, #0d9488);
+          border-color: #059669;
+          color: white;
+        }
+
+        i {
+          font-size: 0.6rem;
+        }
+      }
+    }
+  }
+}

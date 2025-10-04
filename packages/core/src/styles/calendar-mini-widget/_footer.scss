@@ -1,0 +1,25 @@
+/**
+ * Calendar Mini Widget - Footer Component
+ * Footer row container for time controls
+ */
+
+.calendar-mini-widget {
+  .calendar-mini-content {
+    .mini-footer-row {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 0.15rem;
+      margin-top: 0.25rem;
+      flex-wrap: nowrap;
+    }
+
+    .mini-footer-row--no-quick {
+      justify-content: flex-end;
+
+      .mini-time-controls--empty {
+        display: none;
+      }
+    }
+  }
+}
