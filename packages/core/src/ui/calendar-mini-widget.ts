@@ -503,6 +503,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       case 'openLargerView':
         this._onOpenLargerView(event, actionElement);
         break;
+      case 'clickSidebarButton':
+        this._onClickSidebarButton(event, actionElement);
+        break;
       default:
         Logger.warn(`Unknown action: ${action}`);
         break;

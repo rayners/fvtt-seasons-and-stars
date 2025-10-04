@@ -173,6 +173,34 @@ export class SeasonsStarsIntegration {
   }
 
   /**
+   * Register a sidebar button across all widgets
+   */
+  addSidebarButton(config: {
+    name: string;
+    icon: string;
+    tooltip: string;
+    callback: () => void;
+    only?: ('main' | 'mini' | 'grid')[];
+    except?: ('main' | 'mini' | 'grid')[];
+  }): void {
+    SidebarButtonRegistry.getInstance().register(config);
+  }
+
+  /**
+   * Remove a sidebar button from all widgets
+   */
+  removeSidebarButton(name: string): void {
+    SidebarButtonRegistry.getInstance().unregister(name);
+  }
+
+  /**
+   * Check if a sidebar button is registered
+   */
+  hasSidebarButton(name: string): boolean {
+    return SidebarButtonRegistry.getInstance().has(name);
+  }
+
+  /**
    * Check if specific feature is available
    */
   hasFeature(feature: string): boolean {
