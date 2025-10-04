@@ -3,7 +3,7 @@
  * Mixin functions integrate widgets with the global button registry
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SidebarButtonRegistry } from '../src/ui/sidebar-button-registry';
 import {
   addSidebarButton,
@@ -11,12 +11,13 @@ import {
   hasSidebarButton,
   loadButtonsFromRegistry,
 } from '../src/ui/sidebar-button-mixin';
-import type { SidebarButtonConfig } from '../src/ui/sidebar-button-registry';
+import type { SidebarButtonConfig } from '../src/types/widget-types';
 
 describe('sidebar-button-mixin', () => {
   let mockWidget: any;
   let registry: SidebarButtonRegistry;
   let renderCallback: ReturnType<typeof vi.fn>;
+  let callAllMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     // Clear singleton for clean tests
@@ -27,10 +28,19 @@ describe('sidebar-button-mixin', () => {
     mockWidget = {
       element: document.createElement('div'),
       rendered: true,
+      sidebarButtons: [],
     };
 
     // Create render callback spy
     renderCallback = vi.fn();
+
+    callAllMock = vi.fn();
+    (globalThis as any).Hooks = { callAll: callAllMock };
+  });
+
+  afterEach(() => {
+    callAllMock.mockReset();
+    delete (globalThis as any).Hooks;
   });
 
   describe('addSidebarButton', () => {
@@ -45,6 +55,10 @@ describe('sidebar-button-mixin', () => {
       addSidebarButton(mockWidget, 'main', config);
 
       expect(registry.has('test-button')).toBe(true);
+      expect(callAllMock).toHaveBeenCalledWith(
+        'seasons-stars:widgetButtonRegistered',
+        expect.objectContaining({ config: expect.objectContaining({ name: 'test-button' }) })
+      );
     });
 
     it('should trigger widget render callback', () => {

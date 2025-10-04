@@ -3,17 +3,26 @@
  * Registry manages global sidebar button configuration for all widgets
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SidebarButtonRegistry } from '../src/ui/sidebar-button-registry';
-import type { SidebarButtonConfig } from '../src/ui/sidebar-button-registry';
+import type { SidebarButtonConfig } from '../src/types/widget-types';
 
 describe('SidebarButtonRegistry', () => {
   let registry: SidebarButtonRegistry;
+  let callAllMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     // Clear singleton instance for clean tests
     (SidebarButtonRegistry as any).instance = null;
     registry = SidebarButtonRegistry.getInstance();
+
+    callAllMock = vi.fn();
+    (globalThis as any).Hooks = { callAll: callAllMock };
+  });
+
+  afterEach(() => {
+    callAllMock.mockReset();
+    delete (globalThis as any).Hooks;
   });
 
   describe('singleton initialization', () => {
@@ -42,6 +51,14 @@ describe('SidebarButtonRegistry', () => {
       registry.register(config);
 
       expect(registry.has('test-button')).toBe(true);
+      expect(callAllMock).toHaveBeenCalledWith(
+        'seasons-stars:widgetButtonRegistered',
+        expect.objectContaining({ config, registry })
+      );
+      expect(callAllMock).toHaveBeenCalledWith(
+        'seasons-stars:widgetButtonsChanged',
+        expect.objectContaining({ action: 'registered', buttonName: 'test-button' })
+      );
     });
 
     it('should prevent duplicate button names', () => {
@@ -65,6 +82,7 @@ describe('SidebarButtonRegistry', () => {
       const buttons = registry.getForWidget('main');
       expect(buttons).toHaveLength(1);
       expect(buttons[0].icon).toBe('fas fa-star'); // Should keep first registration
+      expect(callAllMock).toHaveBeenCalledTimes(2); // registered + changed hooks from first call
     });
 
     it('should store button with all properties', () => {
@@ -260,9 +278,18 @@ describe('SidebarButtonRegistry', () => {
 
       registry.register(config);
       expect(registry.has('remove-me')).toBe(true);
+      callAllMock.mockClear();
 
       registry.unregister('remove-me');
       expect(registry.has('remove-me')).toBe(false);
+      expect(callAllMock).toHaveBeenCalledWith(
+        'seasons-stars:widgetButtonUnregistered',
+        expect.objectContaining({ buttonName: 'remove-me', registry })
+      );
+      expect(callAllMock).toHaveBeenCalledWith(
+        'seasons-stars:widgetButtonsChanged',
+        expect.objectContaining({ action: 'unregistered', buttonName: 'remove-me' })
+      );
     });
 
     it('should handle removing non-existent button gracefully', () => {
@@ -318,6 +345,10 @@ describe('SidebarButtonRegistry', () => {
       expect(registry.getForWidget('main')).toEqual([]);
       expect(registry.has('button1')).toBe(false);
       expect(registry.has('button2')).toBe(false);
+      expect(callAllMock).toHaveBeenCalledWith(
+        'seasons-stars:widgetButtonsChanged',
+        expect.objectContaining({ action: 'cleared' })
+      );
     });
 
     it('should allow registration after clear', () => {

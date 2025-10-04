@@ -1,0 +1,16 @@
+{{!-- Calendar Widget Sidebar Buttons --}}
+{{#if sidebarButtons.length}}
+  <div class="sidebar-buttons">
+    {{#each sidebarButtons}}
+      <button
+        type="button"
+        class="sidebar-button"
+        title="{{this.tooltip}}"
+        data-action="clickSidebarButton"
+        data-button-name="{{this.name}}"
+      >
+        <i class="{{this.icon}}"></i> {{this.name}}
+      </button>
+    {{/each}}
+  </div>
+{{/if}}

@@ -162,11 +162,14 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Prepare context for specific parts (sidebar loads buttons from registry)
    */
-  async _preparePartContext(partId: string, context: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const baseContext = await super._preparePartContext(partId, context);
+  async _preparePartContext(
+    partId: string,
+    context: Record<string, unknown>
+  ): Promise<Record<string, unknown>> {
+    const baseContext = await super._preparePartContext!(partId, context);
 
     if (partId === 'sidebar') {
-      const buttons = loadButtonsFromRegistry(this, 'main');
+      const buttons = loadButtonsFromRegistry(null, 'main');
       return { ...baseContext, sidebarButtons: buttons };
     }
 
@@ -520,7 +523,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Update sidebar when registry buttons change (partial render for performance)
     Hooks.on('seasons-stars:widgetButtonsChanged', () => {
       if (CalendarWidget.activeInstance?.rendered) {
-        CalendarWidget.activeInstance.render({ parts: ['sidebar'] });
+        (CalendarWidget.activeInstance as any).render({ parts: ['sidebar'] });
       }
     });
   }

@@ -162,6 +162,7 @@ interface Game {
     resetSeasonsWarningState?: () => void;
     getSeasonsWarningState?: () => boolean;
     setSeasonsWarningState?: (warned: boolean) => void;
+    buttonRegistry?: unknown;
   };
 }
 

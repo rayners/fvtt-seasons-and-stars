@@ -8,10 +8,10 @@
     .mini-sidebar-buttons {
       display: flex;
       gap: 0.15rem;
-      margin-left: 0.15rem;
       margin-top: 0.5rem;
       align-items: center;
       flex: 0 0 auto;
+      flex-shrink: 0;
 
       .mini-sidebar-button {
         background: linear-gradient(135deg, #10b981, #14b8a6);

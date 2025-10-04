@@ -6,6 +6,7 @@
 
 import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
 import type { CreateNoteData } from './external-integrations';
+import type { SidebarButtonConfig, WidgetType } from './widget-types';
 
 // Forward declaration to avoid circular dependency
 export interface SeasonsStarsIntegration {
@@ -16,7 +17,19 @@ export interface SeasonsStarsIntegration {
   readonly hooks: SeasonsStarsHooks;
   readonly version: string;
   readonly isAvailable: boolean;
+  readonly buttonRegistry: SidebarButtonRegistryAPI;
   cleanup(): void;
+}
+
+export interface SidebarButtonRegistryAPI {
+  register(config: SidebarButtonConfig): void;
+  unregister(name: string): void;
+  has(name: string): boolean;
+  get(name: string): SidebarButtonConfig | undefined;
+  getForWidget(widgetType: WidgetType): SidebarButtonConfig[];
+  getAll(): SidebarButtonConfig[];
+  clear(): void;
+  readonly count: number;
 }
 
 // Core integration interface types
@@ -69,6 +82,25 @@ export interface SeasonsStarsWidgets {
   addSidebarButton(widget: 'main' | 'mini' | 'grid', config: any): void;
   removeSidebarButton(widget: 'main' | 'mini' | 'grid', buttonId: string): void;
   hasSidebarButton(widget: 'main' | 'mini' | 'grid', buttonId: string): boolean;
+
+  // Preferred widget helpers (new registry-aware API)
+  readonly main?: BridgeCalendarWidget | null;
+  readonly mini?: BridgeCalendarWidget | null;
+  readonly grid?: BridgeCalendarWidget | null;
+  getPreferredWidget?(preference?: WidgetPreference): BridgeCalendarWidget | null;
+  onWidgetChange?(callback: (widgets: SeasonsStarsWidgets) => void): void;
+  offWidgetChange?(callback: (widgets: SeasonsStarsWidgets) => void): void;
+}
+
+export type WidgetPreference = WidgetType | 'any';
+
+export interface BridgeCalendarWidget {
+  id: string;
+  isVisible: boolean;
+  addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void;
+  removeSidebarButton(name: string): void;
+  hasSidebarButton(name: string): boolean;
+  getInstance<T = unknown>(): T | null;
 }
 
 export interface SeasonsStarsHooks {

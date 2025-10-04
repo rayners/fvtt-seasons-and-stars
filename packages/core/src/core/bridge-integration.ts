@@ -25,6 +25,9 @@ import { isCalendarManager } from '../types/type-guards';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
+import { CalendarWidgetManager } from '../ui/widget-manager';
+import { SidebarButtonRegistry } from '../ui/sidebar-button-registry';
+import type { WidgetType } from '../types/widget-types';
 import { Logger } from './logger';
 
 // Additional bridge-specific interfaces not in the main bridge-interfaces file
@@ -163,6 +166,10 @@ export class SeasonsStarsIntegration {
    */
   get hooks(): SeasonsStarsHooks {
     return this.hookManager as any; // TODO: Fix interface mismatches
+  }
+
+  get buttonRegistry() {
+    return SidebarButtonRegistry.getInstance();
   }
 
   /**
@@ -420,6 +427,21 @@ class IntegrationAPI {
 class IntegrationWidgetManager {
   private changeCallbacks: ((widgets: SeasonsStarsWidgets) => void)[] = [];
 
+  private async show(type: WidgetType): Promise<void> {
+    await CalendarWidgetManager.showWidget(type);
+    this.notifyWidgetChange();
+  }
+
+  private async hide(type: WidgetType): Promise<void> {
+    await CalendarWidgetManager.hideWidget(type);
+    this.notifyWidgetChange();
+  }
+
+  private async toggle(type: WidgetType): Promise<void> {
+    await CalendarWidgetManager.toggleWidget(type);
+    this.notifyWidgetChange();
+  }
+
   get main(): BridgeCalendarWidget | null {
     const widget = CalendarWidget.getInstance();
     return widget ? new BridgeWidgetWrapper(widget, 'main') : null;
@@ -478,6 +500,54 @@ class IntegrationWidgetManager {
   cleanup(): void {
     this.changeCallbacks.length = 0;
   }
+
+  async showMainWidget(): Promise<void> {
+    await this.show('main');
+  }
+
+  async hideMainWidget(): Promise<void> {
+    await this.hide('main');
+  }
+
+  async toggleMainWidget(): Promise<void> {
+    await this.toggle('main');
+  }
+
+  isMainWidgetVisible(): boolean {
+    return CalendarWidget.getInstance()?.rendered ?? false;
+  }
+
+  async showMiniWidget(): Promise<void> {
+    await this.show('mini');
+  }
+
+  async hideMiniWidget(): Promise<void> {
+    await this.hide('mini');
+  }
+
+  async toggleMiniWidget(): Promise<void> {
+    await this.toggle('mini');
+  }
+
+  isMiniWidgetVisible(): boolean {
+    return CalendarMiniWidget.getInstance()?.rendered ?? false;
+  }
+
+  async showGridWidget(): Promise<void> {
+    await this.show('grid');
+  }
+
+  async hideGridWidget(): Promise<void> {
+    await this.hide('grid');
+  }
+
+  async toggleGridWidget(): Promise<void> {
+    await this.toggle('grid');
+  }
+
+  isGridWidgetVisible(): boolean {
+    return CalendarGridWidget.getInstance()?.rendered ?? false;
+  }
 }
 
 /**
@@ -486,7 +556,7 @@ class IntegrationWidgetManager {
 class BridgeWidgetWrapper implements BridgeCalendarWidget {
   constructor(
     private widget: any,
-    private widgetType: string
+    private widgetType: WidgetType
   ) {}
 
   get id(): string {
@@ -498,24 +568,53 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
   }
 
   addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void {
-    if (typeof this.widget.addSidebarButton === 'function') {
-      this.widget.addSidebarButton(name, icon, tooltip, callback);
-    } else {
-      throw new Error(`Widget ${this.widgetType} does not support sidebar buttons`);
+    const registry = SidebarButtonRegistry.getInstance();
+    const existing = registry.get(name);
+
+    if (existing) {
+      const updated = { ...existing };
+
+      if (updated.only) {
+        if (!updated.only.includes(this.widgetType)) {
+          updated.only = [...updated.only, this.widgetType];
+        }
+      } else if (updated.except) {
+        updated.except = updated.except.filter(type => type !== this.widgetType);
+      } else {
+        updated.only = [this.widgetType];
+      }
+
+      // Preserve original callback to avoid unexpected overrides
+      registry.unregister(name);
+      registry.register(updated);
+      return;
     }
+
+    registry.register({
+      name,
+      icon,
+      tooltip,
+      callback,
+      only: [this.widgetType],
+    });
   }
 
   removeSidebarButton(name: string): void {
-    if (typeof this.widget.removeSidebarButton === 'function') {
-      this.widget.removeSidebarButton(name);
-    }
+    SidebarButtonRegistry.getInstance().unregister(name);
   }
 
   hasSidebarButton(name: string): boolean {
-    if (typeof this.widget.hasSidebarButton === 'function') {
-      return this.widget.hasSidebarButton(name);
+    const registry = SidebarButtonRegistry.getInstance();
+    const config = registry.get(name);
+    if (!config) {
+      return false;
     }
-    return false;
+
+    const appliesToWidget =
+      (!config.only || config.only.includes(this.widgetType)) &&
+      (!config.except || !config.except.includes(this.widgetType));
+
+    return appliesToWidget;
   }
 
   getInstance(): any {

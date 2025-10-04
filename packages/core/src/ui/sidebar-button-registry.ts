@@ -6,17 +6,7 @@
  */
 
 import { Logger } from '../core/logger';
-
-export type WidgetType = 'main' | 'mini' | 'grid';
-
-export interface SidebarButtonConfig {
-  name: string;
-  icon: string;
-  tooltip: string;
-  callback: () => void;
-  only?: WidgetType[];
-  except?: WidgetType[];
-}
+import type { SidebarButtonConfig, WidgetType } from '../types/widget-types';
 
 export class SidebarButtonRegistry {
   private static instance: SidebarButtonRegistry | null = null;
@@ -36,11 +26,18 @@ export class SidebarButtonRegistry {
    */
   register(config: SidebarButtonConfig): void {
     if (this.buttons.has(config.name)) {
-      Logger.debug(`Sidebar button "${config.name}" already registered, updating`);
+      Logger.debug(`Sidebar button "${config.name}" already registered, ignoring duplicate`);
+      return;
     }
 
     this.buttons.set(config.name, config);
     Logger.debug(`Registered sidebar button "${config.name}" in global registry`);
+
+    this.callHook('seasons-stars:widgetButtonRegistered', { config, registry: this });
+    this.callHook('seasons-stars:widgetButtonsChanged', {
+      action: 'registered',
+      buttonName: config.name,
+    });
   }
 
   /**
@@ -49,6 +46,11 @@ export class SidebarButtonRegistry {
   unregister(name: string): void {
     if (this.buttons.delete(name)) {
       Logger.debug(`Unregistered sidebar button "${name}" from global registry`);
+      this.callHook('seasons-stars:widgetButtonUnregistered', { buttonName: name, registry: this });
+      this.callHook('seasons-stars:widgetButtonsChanged', {
+        action: 'unregistered',
+        buttonName: name,
+      });
     }
   }
 
@@ -98,6 +100,10 @@ export class SidebarButtonRegistry {
   clear(): void {
     this.buttons.clear();
     Logger.debug('Cleared all sidebar buttons from global registry');
+
+    this.callHook('seasons-stars:widgetButtonsChanged', {
+      action: 'cleared',
+    });
   }
 
   /**
@@ -105,5 +111,18 @@ export class SidebarButtonRegistry {
    */
   get count(): number {
     return this.buttons.size;
+  }
+
+  private callHook(event: string, payload: Record<string, unknown>): void {
+    const hooks = (globalThis as any).Hooks;
+    if (!hooks || typeof hooks.callAll !== 'function') {
+      return;
+    }
+
+    try {
+      hooks.callAll(event, payload);
+    } catch (error) {
+      Logger.warn(`Failed to emit hook "${event}"`, error as Error);
+    }
   }
 }

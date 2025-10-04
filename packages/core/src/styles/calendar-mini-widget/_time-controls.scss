@@ -8,10 +8,10 @@
     .mini-time-controls {
       display: flex;
       gap: 0.15rem;
-      justify-content: center;
+      justify-content: flex-start;
       flex-wrap: nowrap;
-      flex: 1 1 auto;
-      min-width: 0;
+      flex: 0 1 auto;
+      flex-shrink: 0;
 
       button {
         background: linear-gradient(135deg, #10b981, #14b8a6);

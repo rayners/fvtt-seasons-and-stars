@@ -37,7 +37,7 @@ graph TD
     B --> C[Simple Calendar Bridge]
     B --> D[About Time Bridge]
     B --> E[Custom Bridge]
-    
+
     C --> F[Simple Calendar API]
     D --> G[About Time API]
     E --> H[Custom API]
@@ -50,12 +50,12 @@ interface CalendarModuleIntegration {
   // Module identification
   isAvailable: boolean;
   version: string;
-  
+
   // Core functionality
   api: CalendarAPI;
   widgets: CalendarWidgets;
   hooks: CalendarHooks;
-  
+
   // Feature detection
   hasFeature(feature: string): boolean;
   getFeatureVersion(feature: string): string | null;
@@ -106,7 +106,7 @@ export class YourCalendarIntegration {
       'time-advancement': true,
       'widget-buttons': true,
       'calendar-switching': true,
-      'notes-system': false // Example: not implemented yet
+      'notes-system': false, // Example: not implemented yet
     };
     return features[feature] ?? false;
   }
@@ -129,16 +129,16 @@ Hooks.once('ready', () => {
   const manager = new CalendarManager();
   const mainWidget = new CalendarWidget();
   const miniWidget = new CalendarMiniWidget();
-  
+
   // Expose integration interface
   (game as any).yourCalendar = {
     manager: manager,
     api: {}, // Your existing direct API (optional)
-    
+
     // Integration interface for bridges
-    integration: new YourCalendarIntegration(manager, mainWidget, miniWidget)
+    integration: new YourCalendarIntegration(manager, mainWidget, miniWidget),
   };
-  
+
   console.log('Your Calendar integration interface available');
 });
 ```
@@ -151,7 +151,7 @@ The Simple Calendar Compatibility Bridge will automatically detect your module i
 // Optional: Explicit registration with the bridge
 Hooks.callAll('calendar-module-ready', {
   moduleId: 'your-calendar-module',
-  integration: (game as any).yourCalendar.integration
+  integration: (game as any).yourCalendar.integration,
 });
 ```
 
@@ -264,124 +264,138 @@ export class YourCalendarWidgets {
 }
 
 class WidgetAPI {
-  constructor(private widget: any) {}
+  constructor(private readonly widgetType: 'main' | 'mini' | 'grid') {}
 
-  addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
-    // Implementation depends on your widget architecture
-    this.widget.addSidebarButton(name, icon, tooltip, callback);
+  addSidebarButton(config: SidebarButtonConfig): void {
+    const registry = game.seasonsStars?.buttonRegistry;
+    if (!registry) {
+      console.warn('Seasons & Stars button registry is unavailable');
+      return;
+    }
+
+    const existing = registry.get(config.name);
+    if (existing) {
+      registry.unregister(config.name);
+    }
+
+    registry.register({
+      ...config,
+      only: config.only ?? [this.widgetType],
+    });
   }
 
   removeSidebarButton(name: string): void {
-    this.widget.removeSidebarButton(name);
+    game.seasonsStars?.buttonRegistry?.unregister(name);
   }
 
   hasSidebarButton(name: string): boolean {
-    return this.widget.hasSidebarButton(name);
+    const registry = game.seasonsStars?.buttonRegistry;
+    if (!registry) {
+      return false;
+    }
+
+    const config = registry.get(name);
+    if (!config) {
+      return false;
+    }
+    const only = config.only ?? ['main', 'mini', 'grid'];
+    const except = config.except ?? [];
+    return only.includes(this.widgetType) && !except.includes(this.widgetType);
   }
 
-  static getInstance(): WidgetAPI | null {
-    // Return the active instance of this widget type
-    return this.widget?.getInstance() ? new WidgetAPI(this.widget.getInstance()) : null;
+  static getInstance(widgetCtor: any, widgetType: 'main' | 'mini' | 'grid'): WidgetAPI | null {
+    return widgetCtor?.getInstance?.() ? new WidgetAPI(widgetType) : null;
   }
 }
 ```
 
 ### Widget Button Implementation
 
-Your widgets should implement sidebar button functionality:
+Widgets consume the registry instead of storing local button arrays. A
+minimal pattern looks like this:
 
 ```typescript
 export class CalendarWidget extends ApplicationV2 {
-  private sidebarButtons: Array<{
-    name: string;
-    icon: string;
-    tooltip: string;
-    callback: Function;
-  }> = [];
+  private static activeInstance: CalendarWidget | null = null;
 
-  addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
-    // Prevent duplicates
-    if (this.hasSidebarButton(name)) {
-      console.warn(`Sidebar button '${name}' already exists`);
-      return;
+  static PARTS = {
+    main: { id: 'main', template: '...' },
+    sidebar: { id: 'sidebar', template: '...' },
+  };
+
+  async _preparePartContext(partId: string, context: Record<string, unknown>): Promise<any> {
+    const base = await super._preparePartContext?.(partId, context);
+
+    if (partId === 'sidebar') {
+      return { ...base, sidebarButtons: loadButtonsFromRegistry(null, 'main') };
     }
 
-    this.sidebarButtons.push({ name, icon, tooltip, callback });
-    
-    // Re-render if widget is already rendered
-    if (this.rendered) {
-      this.render();
-    }
+    return base;
   }
 
-  removeSidebarButton(name: string): void {
-    const index = this.sidebarButtons.findIndex(btn => btn.name === name);
-    if (index !== -1) {
-      this.sidebarButtons.splice(index, 1);
-      if (this.rendered) {
-        this.render();
-      }
-    }
-  }
-
-  hasSidebarButton(name: string): boolean {
-    return this.sidebarButtons.some(btn => btn.name === name);
-  }
-
-  // In your template context preparation
-  async _prepareContext(options: any) {
-    const context = await super._prepareContext(options);
-    context.sidebarButtons = this.sidebarButtons;
-    return context;
-  }
-
-  // In your event handlers
-  _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
-    super._attachPartListeners(partId, htmlElement, options);
-
-    // Handle sidebar button clicks
-    htmlElement.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-action="sidebar-button"]');
-      if (button) {
-        const buttonName = button.dataset.buttonName;
-        const sidebarButton = this.sidebarButtons.find(btn => btn.name === buttonName);
-        if (sidebarButton) {
-          try {
-            sidebarButton.callback();
-          } catch (error) {
-            console.error(`Error in sidebar button callback for '${buttonName}':`, error);
-          }
-        }
+  static registerHooks(): void {
+    Hooks.on('seasons-stars:widgetButtonsChanged', () => {
+      if (CalendarWidget.activeInstance?.rendered) {
+        (CalendarWidget.activeInstance as ApplicationV2).render({ parts: ['sidebar'] });
       }
     });
   }
 }
 ```
 
-### Widget Template Updates
-
-Add sidebar button support to your templates:
+The corresponding Handlebars partial iterates the generated buttons:
 
 ```handlebars
-<!-- In your widget template (e.g., calendar-widget.hbs) -->
-<div class="calendar-widget">
-  <!-- Your existing widget content -->
-  
-  {{#if sidebarButtons}}
-  <div class="sidebar-buttons">
+{{#if sidebarButtons.length}}
+  <div class='sidebar-buttons'>
     {{#each sidebarButtons}}
-    <button type="button" 
-            class="sidebar-button" 
-            data-action="sidebar-button" 
-            data-button-name="{{name}}"
-            title="{{tooltip}}">
-      <i class="{{icon}}"></i>
-    </button>
+      <button
+        type='button'
+        class='sidebar-button'
+        data-action='clickSidebarButton'
+        data-button-name='{{this.name}}'
+        title='{{this.tooltip}}'
+      >
+        <i class='{{this.icon}}'></i>
+        {{this.name}}
+      </button>
     {{/each}}
   </div>
-  {{/if}}
-</div>
+{{/if}}
 ```
+
+### Registry Operations
+
+Register buttons through the global API:
+
+```typescript
+game.seasonsStars.buttonRegistry.register({
+  name: 'weather',
+  icon: 'fas fa-cloud',
+  tooltip: 'Open Weather Panel',
+  callback: () => openWeatherPanel(),
+  except: ['mini'],
+});
+```
+
+The registry offers three visibility controls:
+
+1. **Default:** omit `only` and `except` to show the button everywhere.
+2. **`only`:** restrict the button to specific widgets, e.g.
+   `only: ['main', 'grid']`.
+3. **`except`:** hide the button on selected widgets, e.g.
+   `except: ['mini']`.
+
+Buttons emit hook notifications:
+
+```typescript
+Hooks.on('seasons-stars:widgetButtonsChanged', ({ action, buttonName }) => {
+  console.debug('Button registry change:', action, buttonName);
+});
+```
+
+Use `game.seasonsStars.buttonRegistry.getForWidget('mini')` to query the
+currently active configuration when needed.
 
 ## 🪝 Hook System
 
@@ -462,24 +476,24 @@ export class CalendarManager {
       newDate,
       oldTime,
       newTime,
-      delta: seconds
+      delta: seconds,
     });
   }
 
   async setActiveCalendar(calendarId: string): Promise<boolean> {
     const oldCalendarId = this.activeCalendarId;
-    
+
     // Perform calendar change
     const success = await this.doSetActiveCalendar(calendarId);
-    
+
     if (success) {
       this.hooks.emitCalendarChanged({
         newCalendarId: calendarId,
         oldCalendarId,
-        calendar: this.getActiveCalendar()
+        calendar: this.getActiveCalendar(),
       });
     }
-    
+
     return success;
   }
 }
@@ -666,14 +680,14 @@ hasFeature(feature: string): boolean {
     'date-conversion': true,
     'time-advancement': true,
     'calendar-switching': this.manager.hasMultipleCalendars(),
-    
+
     // Advanced features (version-dependent)
     'widget-buttons': this.version >= '2.0.0',
     'notes-system': this.manager.hasNotesSupport(),
     'weather-integration': this.hasWeatherSupport(),
     'time-zones': false // Not implemented yet
   };
-  
+
   return features[feature] ?? false;
 }
 ```
@@ -684,13 +698,13 @@ hasFeature(feature: string): boolean {
 // Handle version differences gracefully
 getFeatureVersion(feature: string): string | null {
   if (!this.hasFeature(feature)) return null;
-  
+
   const featureVersions = {
     'date-conversion': '1.0.0',
     'widget-buttons': '2.0.0',
     'notes-system': '2.1.0'
   };
-  
+
   return featureVersions[feature] || this.version;
 }
 ```
@@ -738,11 +752,11 @@ class YourCalendarModule {
     await this.manager.initialize();
 
     this.integration = new YourCalendarIntegration(this.manager);
-    
+
     // Expose integration interface
     (game as any).yourCalendar = {
       manager: this.manager,
-      integration: this.integration
+      integration: this.integration,
     };
 
     console.log('Your Calendar integration interface ready');
@@ -752,8 +766,12 @@ class YourCalendarModule {
 class YourCalendarIntegration {
   constructor(private manager: CalendarManager) {}
 
-  get isAvailable(): boolean { return true; }
-  get version(): string { return '1.0.0'; }
+  get isAvailable(): boolean {
+    return true;
+  }
+  get version(): string {
+    return '1.0.0';
+  }
 
   get api(): YourCalendarAPI {
     return new YourCalendarAPI(this.manager);
