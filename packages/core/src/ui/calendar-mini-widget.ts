@@ -280,6 +280,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Register this as the active instance
     CalendarMiniWidget.activeInstance = this;
 
+    // Fire hook for external integrations (e.g., Simple Calendar Compatibility Bridge)
+    if (this.element) {
+      Hooks.callAll('seasons-stars:renderCalendarWidget', this, this.element, 'mini');
+    }
+
     // Add click handlers for mini-date element
     const miniDateElement = this.element?.querySelector('.mini-date');
     if (miniDateElement) {
@@ -809,21 +814,33 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     event.preventDefault();
 
     const buttonName = target.dataset.buttonName;
+    console.log('🌟 Sidebar button clicked:', buttonName);
+
     if (!buttonName) {
       Logger.warn('Mini widget sidebar button clicked without button name');
       return;
     }
 
     const registry = SidebarButtonRegistry.getInstance();
-    const button = registry.getForWidget('mini').find(config => config.name === buttonName);
+    const allButtons = registry.getForWidget('mini');
+    console.log('🌟 All buttons for mini widget:', allButtons);
+
+    const button = allButtons.find(config => config.name === buttonName);
+    console.log('🌟 Found button config:', button);
 
     if (button && typeof button.callback === 'function') {
+      console.log('🌟 Executing callback for button:', buttonName);
       try {
         button.callback();
+        console.log('🌟 Callback executed successfully');
       } catch (error) {
         Logger.error(`Error executing mini widget sidebar button "${buttonName}"`, error as Error);
       }
     } else {
+      console.log('🌟 Button not found or invalid callback:', {
+        found: !!button,
+        callbackType: typeof button?.callback,
+      });
       Logger.warn(`Mini widget sidebar button "${buttonName}" not found or has invalid callback`);
     }
   }

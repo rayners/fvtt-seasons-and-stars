@@ -103,6 +103,11 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
     // Register as active instance
     CalendarGridWidget.activeInstance = this;
+
+    // Fire hook for external integrations (e.g., Simple Calendar Compatibility Bridge)
+    if (this.element) {
+      Hooks.callAll('seasons-stars:renderCalendarWidget', this, this.element, 'grid');
+    }
   }
 
   /**
