@@ -2,31 +2,14 @@
  * Sidebar Button Mixin
  *
  * Provides common sidebar button management functionality for all widget types.
- * Handles both local button storage and global registry synchronization.
+ * All button state is managed through the global registry - widgets query it fresh each render.
  */
 
 import { Logger } from '../core/logger';
 import { SidebarButtonRegistry } from './sidebar-button-registry';
 import type { SidebarButton, SidebarButtonConfig, WidgetType } from '../types/widget-types';
 
-export interface SidebarButtonCapable {
-  sidebarButtons?: SidebarButton[];
-  readonly rendered?: boolean;
-}
-
 export type AddSidebarButtonOptions = SidebarButtonConfig;
-
-function ensureSidebarButtonArray(widget?: SidebarButtonCapable | null): SidebarButton[] | null {
-  if (!widget) {
-    return null;
-  }
-
-  if (!Array.isArray(widget.sidebarButtons)) {
-    widget.sidebarButtons = [];
-  }
-
-  return widget.sidebarButtons ?? null;
-}
 
 function isApplicableToWidget(config: SidebarButtonConfig, widgetType: WidgetType): boolean {
   if (config.only && !config.only.includes(widgetType)) {
@@ -50,16 +33,15 @@ function toSidebarButton(config: SidebarButtonConfig): SidebarButton {
 }
 
 /**
- * Add a sidebar button to a widget
- * Registers the button globally and stores it locally
+ * Add a sidebar button via the global registry
+ * The button will appear on all applicable widgets automatically
  */
 export function addSidebarButton(
-  widget: SidebarButtonCapable | null,
   widgetType: WidgetType,
   options: AddSidebarButtonOptions,
   onButtonAdded?: () => void
 ): void {
-  // Register in global registry so all widgets get this button
+  // Register in global registry - widgets will query it on next render
   const registry = SidebarButtonRegistry.getInstance();
   registry.register(options);
 
@@ -72,16 +54,7 @@ export function addSidebarButton(
     return;
   }
 
-  const sidebarButtons = ensureSidebarButtonArray(widget);
-  if (sidebarButtons) {
-    const existingButton = sidebarButtons.find(btn => btn.name === options.name);
-    if (existingButton) {
-      Logger.debug(`Button "${options.name}" already exists in ${widgetType} widget`);
-    } else {
-      sidebarButtons.push(toSidebarButton(options));
-      Logger.debug(`Added sidebar button "${options.name}" to ${widgetType} widget`);
-    }
-  }
+  Logger.debug(`Registered sidebar button "${options.name}" for ${widgetType} widget`);
 
   if (onButtonAdded) {
     onButtonAdded();
@@ -89,34 +62,19 @@ export function addSidebarButton(
 }
 
 /**
- * Remove a sidebar button from a widget
- * Unregisters from global registry and removes locally
+ * Remove a sidebar button from the global registry
+ * The button will disappear from all widgets automatically
  */
 export function removeSidebarButton(
-  widget: SidebarButtonCapable | null,
   widgetType: WidgetType,
   name: string,
   onButtonRemoved?: () => void
 ): void {
-  // Remove from global registry
+  // Remove from global registry - widgets will update on next render
   const registry = SidebarButtonRegistry.getInstance();
   registry.unregister(name);
 
-  const sidebarButtons = ensureSidebarButtonArray(widget);
-  if (!sidebarButtons) {
-    return;
-  }
-
-  const index = sidebarButtons.findIndex(btn => btn.name === name);
-  if (index === -1) {
-    if (onButtonRemoved) {
-      onButtonRemoved();
-    }
-    return;
-  }
-
-  sidebarButtons.splice(index, 1);
-  Logger.debug(`Removed sidebar button "${name}" from ${widgetType} widget`);
+  Logger.debug(`Unregistered sidebar button "${name}"`);
 
   if (onButtonRemoved) {
     onButtonRemoved();
@@ -124,41 +82,27 @@ export function removeSidebarButton(
 }
 
 /**
- * Check if a widget has a specific sidebar button
+ * Check if a button is registered and applicable to a widget type
  */
-export function hasSidebarButton(
-  widget: SidebarButtonCapable | null,
-  widgetType: WidgetType,
-  name: string
-): boolean {
+export function hasSidebarButton(widgetType: WidgetType, name: string): boolean {
   const registry = SidebarButtonRegistry.getInstance();
   const config = registry.get(name);
 
-  if (config) {
-    return isApplicableToWidget(config, widgetType);
+  if (!config) {
+    return false;
   }
 
-  const sidebarButtons = ensureSidebarButtonArray(widget);
-  return sidebarButtons ? sidebarButtons.some(btn => btn.name === name) : false;
+  return isApplicableToWidget(config, widgetType);
 }
 
 /**
- * Load buttons from global registry into a widget
- * Called during widget initialization to sync with globally registered buttons
+ * Get buttons from global registry for a specific widget type
+ * This is the single source of truth - called during each render
  */
-export function loadButtonsFromRegistry(
-  widget: SidebarButtonCapable | null,
-  widgetType: WidgetType
-): SidebarButton[] {
+export function loadButtonsFromRegistry(widgetType: WidgetType): SidebarButton[] {
   const registry = SidebarButtonRegistry.getInstance();
   const applicableButtons = registry.getForWidget(widgetType);
-  const sidebarButtons = ensureSidebarButtonArray(widget);
   const normalizedButtons = applicableButtons.map(toSidebarButton);
-
-  if (sidebarButtons) {
-    sidebarButtons.length = 0;
-    sidebarButtons.push(...normalizedButtons);
-  }
 
   if (normalizedButtons.length > 0) {
     Logger.debug(

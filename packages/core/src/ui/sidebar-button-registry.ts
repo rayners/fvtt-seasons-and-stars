@@ -107,7 +107,10 @@ export class SidebarButtonRegistry {
    */
   register(config: SidebarButtonConfig): void {
     if (this.buttons.has(config.name)) {
-      Logger.debug(`Sidebar button "${config.name}" already registered, ignoring duplicate`);
+      Logger.warn(
+        `Sidebar button "${config.name}" is already registered. ` +
+          `Duplicate registration ignored. To update a button, unregister it first.`
+      );
       return;
     }
 

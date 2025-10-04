@@ -600,17 +600,23 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
     const existing = registry.get(name);
 
     if (existing) {
+      // Button already exists - merge widget type targeting
       const updated = { ...existing };
 
       if (updated.only) {
+        // Add this widget type to the existing 'only' list if not already present
         if (!updated.only.includes(this.widgetType)) {
           updated.only = [...updated.only, this.widgetType];
         }
       } else if (updated.except) {
+        // Remove this widget type from the 'except' list so button shows here
         updated.except = updated.except.filter(type => type !== this.widgetType);
-      } else {
-        updated.only = [this.widgetType];
+        // If except list becomes empty, remove the property
+        if (updated.except.length === 0) {
+          delete updated.except;
+        }
       }
+      // If neither only nor except, button already shows everywhere - no change needed
 
       // Preserve original callback to avoid unexpected overrides
       registry.unregister(name);
@@ -618,6 +624,7 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
       return;
     }
 
+    // New button - register for this widget type only
     registry.register({
       name,
       icon,

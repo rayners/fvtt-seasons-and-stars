@@ -169,7 +169,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     const baseContext = await super._preparePartContext!(partId, context);
 
     if (partId === 'sidebar') {
-      const buttons = loadButtonsFromRegistry(null, 'main');
+      const buttons = loadButtonsFromRegistry('main');
       return { ...baseContext, sidebarButtons: buttons };
     }
 

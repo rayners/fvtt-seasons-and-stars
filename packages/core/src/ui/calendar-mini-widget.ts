@@ -194,7 +194,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       },
       currentDate: currentDate.toObject(),
       formattedDate: currentDate.toLongString(),
-      sidebarButtons: loadButtonsFromRegistry(null, 'mini'),
+      sidebarButtons: loadButtonsFromRegistry('mini'),
     }) as MiniWidgetContext;
   }
 

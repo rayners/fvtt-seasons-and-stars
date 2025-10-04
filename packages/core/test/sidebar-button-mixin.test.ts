@@ -14,7 +14,6 @@ import {
 import type { SidebarButtonConfig } from '../src/types/widget-types';
 
 describe('sidebar-button-mixin', () => {
-  let mockWidget: any;
   let registry: SidebarButtonRegistry;
   let renderCallback: ReturnType<typeof vi.fn>;
   let callAllMock: ReturnType<typeof vi.fn>;
@@ -23,13 +22,6 @@ describe('sidebar-button-mixin', () => {
     // Clear singleton for clean tests
     (SidebarButtonRegistry as any).instance = null;
     registry = SidebarButtonRegistry.getInstance();
-
-    // Create mock widget
-    mockWidget = {
-      element: document.createElement('div'),
-      rendered: true,
-      sidebarButtons: [],
-    };
 
     // Create render callback spy
     renderCallback = vi.fn();
@@ -52,7 +44,7 @@ describe('sidebar-button-mixin', () => {
         callback: vi.fn(),
       };
 
-      addSidebarButton(mockWidget, 'main', config);
+      addSidebarButton('main', config);
 
       expect(registry.has('test-button')).toBe(true);
       expect(callAllMock).toHaveBeenCalledWith(
@@ -69,7 +61,7 @@ describe('sidebar-button-mixin', () => {
         callback: vi.fn(),
       };
 
-      addSidebarButton(mockWidget, 'main', config, renderCallback);
+      addSidebarButton('main', config, renderCallback);
 
       expect(renderCallback).toHaveBeenCalledTimes(1);
     });
@@ -83,7 +75,7 @@ describe('sidebar-button-mixin', () => {
       };
 
       expect(() => {
-        addSidebarButton(mockWidget, 'main', config);
+        addSidebarButton('main', config);
       }).not.toThrow();
     });
 
@@ -102,8 +94,8 @@ describe('sidebar-button-mixin', () => {
         callback: vi.fn(),
       };
 
-      addSidebarButton(mockWidget, 'main', mainConfig);
-      addSidebarButton(mockWidget, 'mini', miniConfig);
+      addSidebarButton('main', mainConfig);
+      addSidebarButton('mini', miniConfig);
 
       expect(registry.has('main-button')).toBe(true);
       expect(registry.has('mini-button')).toBe(true);
@@ -118,7 +110,7 @@ describe('sidebar-button-mixin', () => {
         only: ['main', 'grid'],
       };
 
-      addSidebarButton(mockWidget, 'main', config, renderCallback);
+      addSidebarButton('main', config, renderCallback);
 
       const buttons = registry.getForWidget('main');
       expect(buttons).toHaveLength(1);
@@ -134,7 +126,7 @@ describe('sidebar-button-mixin', () => {
         except: ['mini'],
       };
 
-      addSidebarButton(mockWidget, 'main', config, renderCallback);
+      addSidebarButton('main', config, renderCallback);
 
       const buttons = registry.getForWidget('main');
       expect(buttons).toHaveLength(1);
@@ -156,33 +148,33 @@ describe('sidebar-button-mixin', () => {
     it('should unregister button from global registry', () => {
       expect(registry.has('removable')).toBe(true);
 
-      removeSidebarButton(mockWidget, 'main', 'removable');
+      removeSidebarButton('main', 'removable');
 
       expect(registry.has('removable')).toBe(false);
     });
 
     it('should trigger widget render callback', () => {
-      removeSidebarButton(mockWidget, 'main', 'removable', renderCallback);
+      removeSidebarButton('main', 'removable', renderCallback);
 
       expect(renderCallback).toHaveBeenCalledTimes(1);
     });
 
     it('should not trigger callback when not provided', () => {
       expect(() => {
-        removeSidebarButton(mockWidget, 'main', 'removable');
+        removeSidebarButton('main', 'removable');
       }).not.toThrow();
     });
 
     it('should handle removing non-existent button', () => {
       expect(() => {
-        removeSidebarButton(mockWidget, 'main', 'non-existent', renderCallback);
+        removeSidebarButton('main', 'non-existent', renderCallback);
       }).not.toThrow();
 
       expect(renderCallback).toHaveBeenCalledTimes(1);
     });
 
     it('should work for different widget types', () => {
-      removeSidebarButton(mockWidget, 'mini', 'removable', renderCallback);
+      removeSidebarButton('mini', 'removable', renderCallback);
 
       expect(registry.has('removable')).toBe(false);
       expect(renderCallback).toHaveBeenCalledTimes(1);
@@ -200,19 +192,19 @@ describe('sidebar-button-mixin', () => {
     });
 
     it('should check registry for button existence', () => {
-      const exists = hasSidebarButton(mockWidget, 'main', 'exists');
+      const exists = hasSidebarButton('main', 'exists');
       expect(exists).toBe(true);
     });
 
     it('should return false for non-existent button', () => {
-      const exists = hasSidebarButton(mockWidget, 'main', 'does-not-exist');
+      const exists = hasSidebarButton('main', 'does-not-exist');
       expect(exists).toBe(false);
     });
 
     it('should work for all widget types', () => {
-      expect(hasSidebarButton(mockWidget, 'main', 'exists')).toBe(true);
-      expect(hasSidebarButton(mockWidget, 'mini', 'exists')).toBe(true);
-      expect(hasSidebarButton(mockWidget, 'grid', 'exists')).toBe(true);
+      expect(hasSidebarButton('main', 'exists')).toBe(true);
+      expect(hasSidebarButton('mini', 'exists')).toBe(true);
+      expect(hasSidebarButton('grid', 'exists')).toBe(true);
     });
   });
 
@@ -252,7 +244,7 @@ describe('sidebar-button-mixin', () => {
     });
 
     it('should load all applicable buttons for widget type', () => {
-      const mainButtons = loadButtonsFromRegistry(mockWidget, 'main');
+      const mainButtons = loadButtonsFromRegistry('main');
 
       expect(mainButtons).toHaveLength(3);
       const names = mainButtons.map(b => b.name);
@@ -262,14 +254,14 @@ describe('sidebar-button-mixin', () => {
     });
 
     it('should skip buttons with except filter', () => {
-      const miniButtons = loadButtonsFromRegistry(mockWidget, 'mini');
+      const miniButtons = loadButtonsFromRegistry('mini');
 
       expect(miniButtons).toHaveLength(1);
       expect(miniButtons[0].name).toBe('global');
     });
 
     it('should include buttons with only filter', () => {
-      const gridButtons = loadButtonsFromRegistry(mockWidget, 'grid');
+      const gridButtons = loadButtonsFromRegistry('grid');
 
       expect(gridButtons).toHaveLength(3);
       const names = gridButtons.map(b => b.name);
@@ -279,7 +271,7 @@ describe('sidebar-button-mixin', () => {
     });
 
     it('should return filtered button list', () => {
-      const mainButtons = loadButtonsFromRegistry(mockWidget, 'main');
+      const mainButtons = loadButtonsFromRegistry('main');
 
       mainButtons.forEach(button => {
         expect(button).toHaveProperty('name');
@@ -301,12 +293,12 @@ describe('sidebar-button-mixin', () => {
         only: ['main'],
       });
 
-      const miniButtons = loadButtonsFromRegistry(mockWidget, 'mini');
+      const miniButtons = loadButtonsFromRegistry('mini');
       expect(miniButtons).toEqual([]);
     });
 
     it('should load buttons for grid widget correctly', () => {
-      const gridButtons = loadButtonsFromRegistry(mockWidget, 'grid');
+      const gridButtons = loadButtonsFromRegistry('grid');
       const names = gridButtons.map(b => b.name);
 
       expect(names).toContain('global');
@@ -327,7 +319,7 @@ describe('sidebar-button-mixin', () => {
         callback,
       });
 
-      const buttons = loadButtonsFromRegistry(mockWidget, 'main');
+      const buttons = loadButtonsFromRegistry('main');
       expect(buttons[0].callback).toBe(callback);
     });
 
@@ -358,9 +350,9 @@ describe('sidebar-button-mixin', () => {
         callback: vi.fn(),
       });
 
-      const mainButtons = loadButtonsFromRegistry(mockWidget, 'main');
-      const miniButtons = loadButtonsFromRegistry(mockWidget, 'mini');
-      const gridButtons = loadButtonsFromRegistry(mockWidget, 'grid');
+      const mainButtons = loadButtonsFromRegistry('main');
+      const miniButtons = loadButtonsFromRegistry('mini');
+      const gridButtons = loadButtonsFromRegistry('grid');
 
       expect(mainButtons.map(b => b.name)).toEqual(['btn1', 'btn3']);
       expect(miniButtons.map(b => b.name)).toEqual(['btn2', 'btn3']);

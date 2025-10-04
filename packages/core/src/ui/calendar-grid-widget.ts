@@ -167,7 +167,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         abbreviation: wd.abbreviation,
         description: wd.description,
       })),
-      sidebarButtons: loadButtonsFromRegistry(null, 'grid'),
+      sidebarButtons: loadButtonsFromRegistry('grid'),
     });
   }
 
