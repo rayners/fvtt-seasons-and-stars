@@ -81,7 +81,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
   /** @override */
   _onChangeForm(formConfig: any, event: Event): void {
-    super._onChangeForm(formConfig, event);
+    super._onChangeForm?.(formConfig, event);
 
     // Update current JSON from the CodeMirror element
     const codeMirror = this.element?.querySelector('#calendar-json-editor') as any;

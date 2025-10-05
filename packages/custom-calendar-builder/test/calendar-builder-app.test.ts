@@ -14,10 +14,9 @@ const mockFoundry = {
         render = vi.fn();
         close = vi.fn();
       },
-      DialogV2: vi.fn().mockImplementation(function (this: any, _options: any) {
-        this.wait = vi.fn().mockResolvedValue(true);
-        return this;
-      }),
+      DialogV2: class DialogV2 {
+        static confirm = vi.fn().mockResolvedValue(true);
+      },
     },
     apps: {
       FilePicker: vi.fn().mockImplementation(function (this: any, _options: any) {
@@ -235,10 +234,7 @@ describe('CalendarBuilderApp', () => {
 
     it('should handle clear editor with confirmation', async () => {
       app['currentJson'] = '{"id": "test"}';
-      const mockDialog = {
-        wait: vi.fn().mockResolvedValue(true),
-      };
-      mockFoundry.applications.api.DialogV2 = vi.fn().mockReturnValue(mockDialog);
+      mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
 
       await app._onClearEditor(new Event('click'), mockElement as any);
 
@@ -249,10 +245,7 @@ describe('CalendarBuilderApp', () => {
 
     it('should not clear editor without confirmation', async () => {
       app['currentJson'] = '{"id": "test"}';
-      const mockDialog = {
-        wait: vi.fn().mockResolvedValue(false),
-      };
-      mockFoundry.applications.api.DialogV2 = vi.fn().mockReturnValue(mockDialog);
+      mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(false);
 
       await app._onClearEditor(new Event('click'), mockElement as any);
 

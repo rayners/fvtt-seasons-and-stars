@@ -49,6 +49,7 @@ declare global {
             htmlElement: HTMLElement,
             options: any
           ): void;
+          protected _onChangeForm?(formConfig: any, event: Event): void;
 
           // Static properties
           static DEFAULT_OPTIONS: any;
@@ -58,7 +59,12 @@ declare global {
         function HandlebarsApplicationMixin<T extends typeof ApplicationV2>(BaseApplication: T): T;
 
         class DialogV2 extends ApplicationV2 {
-          // DialogV2 specific properties if needed
+          static confirm(config: {
+            window?: { title?: string };
+            content: string;
+            rejectClose?: boolean;
+            modal?: boolean;
+          }): Promise<boolean>;
         }
       }
       namespace ux {
