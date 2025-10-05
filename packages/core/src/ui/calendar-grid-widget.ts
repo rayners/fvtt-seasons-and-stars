@@ -1791,7 +1791,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Provides generic API for integration with other modules
    */
   addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
-    registerSidebarButton(null, 'grid', {
+    registerSidebarButton('grid', {
       name,
       icon,
       tooltip,
@@ -1804,7 +1804,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Remove a sidebar button from the grid widget
    */
   removeSidebarButton(name: string): void {
-    unregisterSidebarButton(null, 'grid', name);
+    unregisterSidebarButton('grid', name);
     Logger.debug(`Requested sidebar button "${name}" removal for grid widget`);
   }
 
@@ -1812,7 +1812,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Check if sidebar button is registered for grid widget
    */
   hasSidebarButton(name: string): boolean {
-    return registryHasSidebarButton(null, 'grid', name);
+    return registryHasSidebarButton('grid', name);
   }
 
   /**

@@ -693,7 +693,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Provides generic API for integration with other modules via compatibility bridges
    */
   addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void {
-    registerSidebarButton(null, 'mini', { name, icon, tooltip, callback });
+    registerSidebarButton('mini', { name, icon, tooltip, callback });
     Logger.debug(`Requested sidebar button "${name}" registration for mini widget`);
   }
 
@@ -701,7 +701,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Remove a sidebar button by name
    */
   removeSidebarButton(name: string): void {
-    unregisterSidebarButton(null, 'mini', name);
+    unregisterSidebarButton('mini', name);
     Logger.debug(`Requested sidebar button "${name}" removal for mini widget`);
   }
 
@@ -709,7 +709,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Check if a sidebar button exists
    */
   hasSidebarButton(name: string): boolean {
-    return registryHasSidebarButton(null, 'mini', name);
+    return registryHasSidebarButton('mini', name);
   }
 
   /**
