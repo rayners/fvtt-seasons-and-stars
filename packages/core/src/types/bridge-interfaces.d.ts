@@ -80,7 +80,7 @@ export interface SeasonsStarsWidgets {
   isGridWidgetVisible(): boolean;
 
   // Widget button management (for Simple Calendar compatibility)
-  addSidebarButton(widget: 'main' | 'mini' | 'grid', config: any): void;
+  addSidebarButton(widget: 'main' | 'mini' | 'grid', config: SidebarButtonConfig): void;
   removeSidebarButton(widget: 'main' | 'mini' | 'grid', buttonId: string): void;
   hasSidebarButton(widget: 'main' | 'mini' | 'grid', buttonId: string): boolean;
 

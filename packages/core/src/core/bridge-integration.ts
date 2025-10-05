@@ -605,11 +605,12 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
    * - **New button**: Registers with `only: [widgetType]` to show on this widget only
    * - **Existing with `only` filter**: Adds this widget type to the list if not present
    * - **Existing with `except` filter**: Removes this widget type from exclusion list
-   * - **Existing with no filters**: Converts to `only: [widgetType]` to restrict targeting
+   * - **Existing with no filters (global)**: Preserves global scope, no modifications
    * - **Callback preservation**: Always preserves the original callback, ignoring new callback
    *
    * This merge behavior allows compatibility layers (like Simple Calendar Bridge) to
    * build up widget targeting across multiple registration calls without callback conflicts.
+   * Global buttons (registered without filters) remain global to preserve their intended scope.
    *
    * @param name - Unique button identifier
    * @param icon - Font Awesome icon class (e.g., 'fas fa-star')
@@ -637,9 +638,13 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
           delete updated.except;
         }
       } else {
-        // No filters means shows everywhere - convert to explicit targeting
-        // to avoid unintended global scope when bridge registers per-widget
-        updated.only = [this.widgetType];
+        // No filters means shows everywhere - do not modify
+        // Bridge attempting to add a global button should not restrict its scope
+        Logger.debug(
+          `Bridge widget "${this.widgetType}" attempted to add global button "${name}". ` +
+            `Button remains global and will show on all widgets.`
+        );
+        // No changes to updated - button stays global
       }
 
       // Preserve original callback to avoid unexpected overrides

@@ -40,9 +40,9 @@ class TestBridgeWidgetWrapper {
           delete updated.except;
         }
       } else {
-        // No filters means shows everywhere - convert to explicit targeting
-        // to avoid unintended global scope when bridge registers per-widget
-        updated.only = [this.widgetType];
+        // No filters means shows everywhere - do not modify
+        // Bridge attempting to add a global button should not restrict its scope
+        // No changes to updated - button stays global
       }
 
       // Preserve original callback to avoid unexpected overrides
@@ -173,8 +173,8 @@ describe('BridgeWidgetWrapper - Widget Targeting Merge Behavior', () => {
     gridWrapper = new TestBridgeWidgetWrapper(mockWidget, 'grid');
   });
 
-  describe('Global Button Conversion', () => {
-    it('should convert global button (no filters) to widget-specific on first bridge add', () => {
+  describe('Global Button Preservation', () => {
+    it('should preserve global button scope when bridge adds it', () => {
       const callback = vi.fn();
 
       // Register a global button (no filters)
@@ -189,36 +189,34 @@ describe('BridgeWidgetWrapper - Widget Targeting Merge Behavior', () => {
       expect(initial?.only).toBeUndefined();
       expect(initial?.except).toBeUndefined();
 
-      // Add via bridge for main widget
+      // Bridge attempts to add - should remain global
       mainWrapper.addSidebarButton('global-btn', 'fas fa-globe', 'Global', callback);
 
       const updated = registry.get('global-btn');
-      expect(updated?.only).toEqual(['main']);
+      expect(updated?.only).toBeUndefined();
       expect(updated?.except).toBeUndefined();
     });
 
-    it('should build up widget targeting list from global button', () => {
+    it('should keep button global across multiple bridge add attempts', () => {
       const callback = vi.fn();
 
       // Register global button
       registry.register({
-        name: 'convert-btn',
+        name: 'stay-global',
         icon: 'fas fa-star',
-        tooltip: 'Convert',
+        tooltip: 'Global',
         callback,
       });
 
-      // Add to main - converts to only: ['main']
-      mainWrapper.addSidebarButton('convert-btn', 'fas fa-star', 'Convert', callback);
-      expect(registry.get('convert-btn')?.only).toEqual(['main']);
+      // Multiple bridge widgets try to add - should stay global
+      mainWrapper.addSidebarButton('stay-global', 'fas fa-star', 'Global', callback);
+      expect(registry.get('stay-global')?.only).toBeUndefined();
 
-      // Add to grid - adds to list: only: ['main', 'grid']
-      gridWrapper.addSidebarButton('convert-btn', 'fas fa-star', 'Convert', callback);
-      expect(registry.get('convert-btn')?.only).toEqual(['main', 'grid']);
+      gridWrapper.addSidebarButton('stay-global', 'fas fa-star', 'Global', callback);
+      expect(registry.get('stay-global')?.only).toBeUndefined();
 
-      // Add to mini - adds to list: only: ['main', 'grid', 'mini']
-      miniWrapper.addSidebarButton('convert-btn', 'fas fa-star', 'Convert', callback);
-      expect(registry.get('convert-btn')?.only).toEqual(['main', 'grid', 'mini']);
+      miniWrapper.addSidebarButton('stay-global', 'fas fa-star', 'Global', callback);
+      expect(registry.get('stay-global')?.only).toBeUndefined();
     });
   });
 

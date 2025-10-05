@@ -276,8 +276,10 @@ class WidgetAPI {
     // Check if button already exists
     const existing = registry.get(config.name);
     if (existing) {
-      // Button already registered - log warning rather than overwriting
-      // This prevents accidentally removing buttons from other modules
+      // Button already registered - skip to preserve existing configuration
+      // Note: The Simple Calendar Compatibility Bridge uses a different strategy
+      // where it merges widget targeting filters instead of skipping. This
+      // check-and-skip pattern is recommended for direct module integrations.
       console.warn(
         `Sidebar button "${config.name}" is already registered. ` +
           `Skipping duplicate registration to preserve existing button.`

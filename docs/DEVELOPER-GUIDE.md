@@ -988,7 +988,7 @@ interface WidgetButtonUnregisteredData {
 
 #### `seasons-stars:widgetButtonsChanged`
 
-Fired when any change occurs in the button registry (register, unregister, or clear operations). Widgets listen to this hook to re-render their sidebar sections.
+Fired when any change occurs in the button registry (register, update, unregister, or clear operations). Widgets listen to this hook to re-render their sidebar sections.
 
 ```javascript
 Hooks.on('seasons-stars:widgetButtonsChanged', data => {
@@ -996,6 +996,8 @@ Hooks.on('seasons-stars:widgetButtonsChanged', data => {
 
   if (data.action === 'registered') {
     console.log('Button added:', data.buttonName);
+  } else if (data.action === 'updated') {
+    console.log('Button updated:', data.buttonName);
   } else if (data.action === 'unregistered') {
     console.log('Button removed:', data.buttonName);
   } else if (data.action === 'cleared') {
@@ -1011,8 +1013,8 @@ Hooks.on('seasons-stars:widgetButtonsChanged', data => {
 
 ```typescript
 interface WidgetButtonsChangedData {
-  action: 'registered' | 'unregistered' | 'cleared';
-  buttonName?: string; // Present for 'registered' and 'unregistered' actions
+  action: 'registered' | 'updated' | 'unregistered' | 'cleared';
+  buttonName?: string; // Present for 'registered', 'updated', and 'unregistered' actions
 }
 ```
 
