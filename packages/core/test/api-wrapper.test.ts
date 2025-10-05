@@ -281,6 +281,47 @@ describe('APIWrapper', () => {
     });
   });
 
+  describe('extractParams', () => {
+    it('should extract params as Record<string, unknown>', () => {
+      const params = { days: 5, calendarId: 'gregorian' };
+      const extracted = APIWrapper.extractParams(params);
+
+      expect(extracted).toEqual(params);
+      expect(extracted.days).toBe(5);
+      expect(extracted.calendarId).toBe('gregorian');
+    });
+
+    it('should handle empty objects', () => {
+      const params = {};
+      const extracted = APIWrapper.extractParams(params);
+
+      expect(extracted).toEqual({});
+    });
+
+    it('should handle objects with various property types', () => {
+      const params = {
+        number: 42,
+        string: 'test',
+        boolean: true,
+        nested: { key: 'value' },
+        array: [1, 2, 3],
+      };
+      const extracted = APIWrapper.extractParams(params);
+
+      expect(extracted).toEqual(params);
+      expect(extracted.number).toBe(42);
+      expect(extracted.nested).toEqual({ key: 'value' });
+    });
+
+    it('should be used in real API validator pattern', () => {
+      const params = { days: 10, calendarId: undefined };
+      const p = APIWrapper.extractParams(params);
+
+      expect(() => APIWrapper.validateNumber(p.days, 'Days')).not.toThrow();
+      expect(() => APIWrapper.validateCalendarId(p.calendarId as string | undefined)).not.toThrow();
+    });
+  });
+
   describe('validation integration', () => {
     it('should work together in a complex validation scenario', async () => {
       const mockValidator = (params: any) => {

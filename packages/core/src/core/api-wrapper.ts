@@ -3,9 +3,10 @@
  * Reduces boilerplate in module.ts API methods
  */
 
+import type { CalendarDateData } from '../types/calendar';
 import { Logger } from './logger';
 
-export type APIValidator = (params: any) => void;
+export type APIValidator = (params: unknown) => void;
 export type APIImplementation<T> = () => Promise<T> | T;
 
 /**
@@ -17,7 +18,7 @@ export class APIWrapper {
    */
   static async wrapAPIMethod<T>(
     methodName: string,
-    params: any,
+    params: unknown,
     validator: APIValidator,
     implementation: APIImplementation<T>
   ): Promise<T> {
@@ -44,13 +45,13 @@ export class APIWrapper {
   /**
    * Common validation helpers
    */
-  static validateNumber(value: any, name: string): asserts value is number {
+  static validateNumber(value: unknown, name: string): asserts value is number {
     if (typeof value !== 'number' || !isFinite(value)) {
       throw new Error(`${name} must be a finite number`);
     }
   }
 
-  static validateString(value: any, name: string, allowEmpty = false): asserts value is string {
+  static validateString(value: unknown, name: string, allowEmpty = false): asserts value is string {
     if (typeof value !== 'string') {
       throw new Error(`${name} must be a string`);
     }
@@ -59,7 +60,7 @@ export class APIWrapper {
     }
   }
 
-  static validateOptionalString(value: any, name: string): asserts value is string | undefined {
+  static validateOptionalString(value: unknown, name: string): asserts value is string | undefined {
     if (value !== undefined && typeof value !== 'string') {
       throw new Error(`${name} must be a string if provided`);
     }
@@ -81,17 +82,29 @@ export class APIWrapper {
   /**
    * Validate calendar date object
    */
-  static validateCalendarDate(date: any, name: string = 'Date'): void {
+  static validateCalendarDate(
+    date: unknown,
+    name: string = 'Date'
+  ): asserts date is CalendarDateData {
     if (!date || typeof date !== 'object') {
       throw new Error(`${name} must be a valid calendar date object`);
     }
 
+    const dateObj = date as Record<string, unknown>;
     if (
-      typeof date.year !== 'number' ||
-      typeof date.month !== 'number' ||
-      typeof date.day !== 'number'
+      typeof dateObj.year !== 'number' ||
+      typeof dateObj.month !== 'number' ||
+      typeof dateObj.day !== 'number'
     ) {
       throw new Error(`${name} must have valid year, month, and day numbers`);
     }
+  }
+
+  /**
+   * Extract params as a typed record for validation
+   * Reduces duplication in API method validators
+   */
+  static extractParams(params: unknown): Record<string, unknown> {
+    return params as Record<string, unknown>;
   }
 }

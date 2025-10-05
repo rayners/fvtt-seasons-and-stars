@@ -60,9 +60,16 @@ mkdir calendars
   },
   "url": "https://github.com/yourname/seasons-and-stars-mypack",
   "manifest": "https://github.com/yourname/seasons-and-stars-mypack/releases/latest/download/module.json",
-  "download": "https://github.com/yourname/seasons-and-stars-mypack/releases/latest/download/module.zip"
+  "download": "https://github.com/yourname/seasons-and-stars-mypack/releases/latest/download/module.zip",
+  "flags": {
+    "seasons-and-stars": {
+      "providesCalendars": true
+    }
+  }
 }
 ```
+
+> **Note:** The `flags.seasons-and-stars.providesCalendars` property is optional and defaults to attempting calendar loading. Set it to `false` only if your module uses the `seasons-and-stars-*` naming pattern but does NOT provide calendars (e.g., tools or integrations).
 
 ### 3. Collection Index (`calendars/index.json`)
 
@@ -265,6 +272,48 @@ Use the JSON schema for real-time validation:
 2. Add schema to `index.json`
 3. Get real-time validation and autocomplete
 
+### Module Flags
+
+_Added in v0.20.0_
+
+Calendar pack modules can use the `flags.seasons-and-stars.providesCalendars` property in `module.json` to control calendar loading behavior:
+
+**Explicit Calendar Provider (default behavior):**
+
+```json
+{
+  "flags": {
+    "seasons-and-stars": {
+      "providesCalendars": true
+    }
+  }
+}
+```
+
+**Non-Calendar Module (prevents 404 errors):**
+
+```json
+{
+  "flags": {
+    "seasons-and-stars": {
+      "providesCalendars": false
+    }
+  }
+}
+```
+
+**When to Use `providesCalendars: false`:**
+
+- Your module uses the `seasons-and-stars-*` naming pattern
+- Your module does NOT provide calendars (e.g., it's a tool, integration, or utility)
+- You want to prevent the core module from attempting to load `calendars/index.json`
+
+**Default Behavior:**
+
+- If `providesCalendars` is not specified, the core module attempts to load calendars
+- If `providesCalendars` is explicitly `false`, calendar loading is skipped
+- No error messages appear when skipping a module with `providesCalendars: false`
+
 ### Error Debugging
 
 **Check Browser Console:**
@@ -283,6 +332,7 @@ await game.seasonsStars.api.loadModuleCalendars('seasons-and-stars-mypack');
 - `Calendar entry missing URL or file` - Add `file` property to collection entry
 - `Invalid URL format` - Check JSON syntax and file paths
 - `Schema validation failed` - Validate JSON against schema
+- `Module ${moduleId} explicitly does not provide calendars, skipping` - Debug message when `providesCalendars: false` (not an error)
 
 ### 🗓️ Intercalary Day Formatting
 

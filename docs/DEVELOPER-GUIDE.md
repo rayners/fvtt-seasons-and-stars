@@ -368,6 +368,72 @@ console.log('Available calendars:', calendars);
 // Returns: ['gregorian', 'vale-reckoning', 'custom-calendar']
 ```
 
+### Widget Sidebar Buttons
+
+#### `game.seasonsStars.buttonRegistry`
+
+Centralized registry for managing sidebar buttons across all calendar widgets (main, mini, and grid). Buttons registered through this API appear automatically in widget sidebars based on their targeting configuration.
+
+**Register a Button:**
+
+```javascript
+game.seasonsStars.buttonRegistry.register({
+  name: 'weather',
+  icon: 'fas fa-cloud',
+  tooltip: 'Open Weather Panel',
+  callback: () => {
+    // Your button action
+    weatherPanel.render(true);
+  },
+  // Optional: Target specific widgets
+  only: ['main', 'grid'], // Only show on main and grid widgets
+  // Or exclude specific widgets
+  except: ['mini'], // Show everywhere except mini widget
+});
+```
+
+**Remove a Button:**
+
+```javascript
+game.seasonsStars.buttonRegistry.unregister('weather');
+```
+
+**Check Button Registration:**
+
+```javascript
+const isRegistered = game.seasonsStars.buttonRegistry.has('weather');
+const config = game.seasonsStars.buttonRegistry.get('weather');
+```
+
+**Query Buttons:**
+
+```javascript
+// Get all buttons for a specific widget type
+const miniButtons = game.seasonsStars.buttonRegistry.getForWidget('mini');
+
+// Get all registered buttons
+const allButtons = game.seasonsStars.buttonRegistry.getAll();
+
+// Check count
+const count = game.seasonsStars.buttonRegistry.count;
+```
+
+**Button Configuration:**
+
+- `name` (string): Unique identifier for the button
+- `icon` (string): CSS class for button icon (e.g., `'fas fa-cloud'`)
+- `tooltip` (string): Tooltip text shown on hover
+- `callback` (function): Function to execute when button is clicked
+- `only` (array, optional): Array of widget types where button should appear (`['main', 'mini', 'grid']`)
+- `except` (array, optional): Array of widget types where button should NOT appear
+
+**Widget Targeting:**
+
+- Omit both `only` and `except` to show button on all widgets
+- Use `only` to restrict button to specific widgets
+- Use `except` to hide button on specific widgets
+- If both are provided, `only` takes precedence
+
 ## 📦 Calendar Pack Modules
 
 Calendar pack modules are **pure data modules** that provide additional calendars for Seasons & Stars through an **auto-detection system**. No JavaScript required - just properly structured JSON files.
@@ -533,6 +599,36 @@ if (result.collectionEntry) {
   console.log('Tags:', result.collectionEntry.tags);
 }
 ```
+
+#### Module Flags (_Added in v0.20.0_)
+
+Modules using the `seasons-and-stars-*` naming pattern can control calendar loading behavior via `module.json` flags:
+
+```json
+{
+  "id": "seasons-and-stars-mymodule",
+  "flags": {
+    "seasons-and-stars": {
+      "providesCalendars": false
+    }
+  }
+}
+```
+
+**Flag Behavior:**
+
+- `providesCalendars: true` (or undefined) - Module is expected to provide calendars (default)
+- `providesCalendars: false` - Module does NOT provide calendars; skip loading attempt
+
+**Use Case:**
+
+Set `providesCalendars: false` when creating a `seasons-and-stars-*` module that is NOT a calendar pack (e.g., integration modules, tools, utilities). This prevents 404 errors from the core module attempting to load `calendars/index.json`.
+
+**Example Modules:**
+
+- Calendar Builder: `"providesCalendars": false` (provides UI tools, not calendars)
+- Fantasy Pack: `"providesCalendars": true` (provides multiple calendars)
+- Simple Calendar Compat: `"providesCalendars": false` (provides integration layer, not calendars)
 
 ### 🔧 External Calendar Loading (Advanced Users Only)
 
@@ -872,6 +968,84 @@ Hooks.on('seasons-stars:settingsChanged', settingName => {
       break;
   }
 });
+```
+
+#### `seasons-stars:widgetButtonRegistered`
+
+Fired when a sidebar button is registered in the button registry.
+
+```javascript
+Hooks.on('seasons-stars:widgetButtonRegistered', data => {
+  console.log('Button registered:', data.config.name);
+  console.log('Button config:', data.config);
+  console.log('Registry:', data.registry);
+
+  // Track button registration for debugging
+  trackButtonRegistration(data.config);
+});
+```
+
+**Data Structure:**
+
+```typescript
+interface WidgetButtonRegisteredData {
+  config: SidebarButtonConfig;
+  registry: SidebarButtonRegistry;
+}
+```
+
+#### `seasons-stars:widgetButtonUnregistered`
+
+Fired when a sidebar button is removed from the button registry.
+
+```javascript
+Hooks.on('seasons-stars:widgetButtonUnregistered', data => {
+  console.log('Button unregistered:', data.buttonName);
+
+  // Clean up any references to removed button
+  cleanupButtonReferences(data.buttonName);
+});
+```
+
+**Data Structure:**
+
+```typescript
+interface WidgetButtonUnregisteredData {
+  buttonName: string;
+  registry: SidebarButtonRegistry;
+}
+```
+
+#### `seasons-stars:widgetButtonsChanged`
+
+Fired when any change occurs in the button registry (register, update, unregister, or clear operations). Widgets listen to this hook to re-render their sidebar sections.
+
+```javascript
+Hooks.on('seasons-stars:widgetButtonsChanged', data => {
+  console.log('Button registry changed:', data.action);
+
+  if (data.action === 'registered') {
+    console.log('Button added:', data.buttonName);
+  } else if (data.action === 'updated') {
+    console.log('Button updated:', data.buttonName);
+  } else if (data.action === 'unregistered') {
+    console.log('Button removed:', data.buttonName);
+  } else if (data.action === 'cleared') {
+    console.log('All buttons cleared');
+  }
+
+  // Refresh widget displays
+  this.refreshWidgetSidebars();
+});
+```
+
+**Data Structure:**
+
+```typescript
+interface WidgetButtonsChangedData {
+  action: 'registered' | 'updated' | 'unregistered' | 'cleared';
+  buttonName?: string; // Present for 'registered', 'updated', and 'unregistered' actions
+}
 ```
 
 #### `seasons-stars:noteCreated`

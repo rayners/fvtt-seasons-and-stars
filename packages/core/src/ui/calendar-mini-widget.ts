@@ -8,7 +8,14 @@ import { SmallTimeUtils } from './base-widget-manager';
 import { WIDGET_POSITIONING } from '../core/constants';
 import { TimeAdvancementService } from '../core/time-advancement-service';
 import { DateFormatter } from '../core/date-formatter';
-import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
+import { SidebarButtonRegistry } from './sidebar-button-registry';
+import {
+  addSidebarButton as registerSidebarButton,
+  removeSidebarButton as unregisterSidebarButton,
+  hasSidebarButton as registryHasSidebarButton,
+  loadButtonsFromRegistry,
+} from './sidebar-button-mixin';
+import type { MiniWidgetContext, WidgetRenderOptions } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -16,7 +23,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 ) {
   private static activeInstance: CalendarMiniWidget | null = null;
   private isClosing: boolean = false;
-  private sidebarButtons: SidebarButton[] = [];
   private hasBeenPositioned: boolean = false;
 
   constructor(options: any = {}) {
@@ -67,6 +73,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       openCalendarSelection: CalendarMiniWidget.prototype._onOpenCalendarSelection,
       openLargerView: CalendarMiniWidget.prototype._onOpenLargerView,
       toggleTimeAdvancement: CalendarMiniWidget.prototype._onToggleTimeAdvancement,
+      clickSidebarButton: CalendarMiniWidget.prototype._onClickSidebarButton,
     },
   };
 
@@ -187,6 +194,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       },
       currentDate: currentDate.toObject(),
       formattedDate: currentDate.toLongString(),
+      sidebarButtons: loadButtonsFromRegistry('mini'),
     }) as MiniWidgetContext;
   }
 
@@ -272,6 +280,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Register this as the active instance
     CalendarMiniWidget.activeInstance = this;
 
+    // Fire hook for external integrations (e.g., Simple Calendar Compatibility Bridge)
+    if (this.element) {
+      Hooks.callAll('seasons-stars:renderCalendarWidget', this, this.element, 'mini');
+    }
+
     // Add click handlers for mini-date element
     const miniDateElement = this.element?.querySelector('.mini-date');
     if (miniDateElement) {
@@ -293,9 +306,6 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         this._onOpenCalendarSelection(event, miniDateElement as HTMLElement);
       });
     }
-
-    // Render any existing sidebar buttons
-    this.renderExistingSidebarButtons();
 
     this.element?.addEventListener('contextmenu', event => {
       event.preventDefault();
@@ -498,6 +508,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       case 'openLargerView':
         this._onOpenLargerView(event, actionElement);
         break;
+      case 'clickSidebarButton':
+        this._onClickSidebarButton(event, actionElement);
+        break;
       default:
         Logger.warn(`Unknown action: ${action}`);
         break;
@@ -613,6 +626,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         CalendarMiniWidget.activeInstance.render();
       }
     });
+
+    Hooks.on('seasons-stars:widgetButtonsChanged', () => {
+      if (CalendarMiniWidget.activeInstance?.rendered) {
+        (CalendarMiniWidget.activeInstance as any).render({ parts: ['main'] });
+      }
+    });
   }
 
   /**
@@ -674,129 +693,23 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Provides generic API for integration with other modules via compatibility bridges
    */
   addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void {
-    // Check if button already exists
-    const existingButton = this.sidebarButtons.find(btn => btn.name === name);
-    if (existingButton) {
-      Logger.debug(`Button "${name}" already exists in mini widget`);
-      return;
-    }
-
-    // Add to buttons array
-    this.sidebarButtons.push({ name, icon, tooltip, callback });
-    Logger.debug(`Added sidebar button "${name}" to mini widget`);
-
-    // If widget is rendered, add button to DOM immediately
-    if (this.rendered && this.element) {
-      this.renderSidebarButton(name, icon, tooltip, callback);
-    }
+    registerSidebarButton('mini', { name, icon, tooltip, callback });
+    Logger.debug(`Requested sidebar button "${name}" registration for mini widget`);
   }
 
   /**
    * Remove a sidebar button by name
    */
   removeSidebarButton(name: string): void {
-    const index = this.sidebarButtons.findIndex(btn => btn.name === name);
-    if (index !== -1) {
-      this.sidebarButtons.splice(index, 1);
-      Logger.debug(`Removed sidebar button "${name}" from mini widget`);
-
-      // Remove from DOM if rendered
-      if (this.rendered && this.element) {
-        const buttonId = `mini-sidebar-btn-${name.toLowerCase().replace(/\s+/g, '-')}`;
-        const buttonElement = this.element.querySelector(`#${buttonId}`);
-        if (buttonElement) {
-          buttonElement.remove();
-        }
-      }
-    }
+    unregisterSidebarButton('mini', name);
+    Logger.debug(`Requested sidebar button "${name}" removal for mini widget`);
   }
 
   /**
    * Check if a sidebar button exists
    */
   hasSidebarButton(name: string): boolean {
-    return this.sidebarButtons.some(btn => btn.name === name);
-  }
-
-  /**
-   * Render a sidebar button in the mini widget DOM
-   */
-  private renderSidebarButton(
-    name: string,
-    icon: string,
-    tooltip: string,
-    callback: Function
-  ): void {
-    if (!this.element) return;
-
-    const buttonId = `mini-sidebar-btn-${name.toLowerCase().replace(/\s+/g, '-')}`;
-
-    // Don't add if already exists in DOM
-    if (this.element.querySelector(`#${buttonId}`)) {
-      return;
-    }
-
-    // Find or create header area for buttons
-    let headerArea = this.element.querySelector('.mini-widget-header') as HTMLElement;
-    if (!headerArea) {
-      // Create header if it doesn't exist
-      headerArea = document.createElement('div');
-      headerArea.className = 'mini-widget-header';
-      headerArea.style.cssText =
-        'display: flex; justify-content: flex-end; align-items: center; padding: 2px 4px; background: rgba(0,0,0,0.1); border-bottom: 1px solid var(--color-border-light-tertiary);';
-
-      // Insert at the beginning of the widget
-      this.element.insertBefore(headerArea, this.element.firstChild);
-    }
-
-    // Create button element
-    const button = document.createElement('button');
-    button.id = buttonId;
-    button.className = 'mini-sidebar-button';
-    button.title = tooltip;
-    button.innerHTML = `<i class="fas ${icon}"></i>`;
-    button.style.cssText = `
-      background: var(--color-bg-btn, #f0f0f0);
-      border: 1px solid var(--color-border-dark, #999);
-      border-radius: 2px;
-      padding: 2px 4px;
-      margin-left: 2px;
-      cursor: pointer;
-      font-size: 10px;
-      color: var(--color-text-primary, #000);
-      transition: background-color 0.15s ease;
-    `;
-
-    // Add click handler
-    button.addEventListener('click', event => {
-      event.preventDefault();
-      event.stopPropagation();
-      try {
-        callback();
-      } catch (error) {
-        Logger.error(`Error in mini widget sidebar button "${name}"`, error as Error);
-      }
-    });
-
-    // Add hover effects
-    button.addEventListener('mouseenter', () => {
-      button.style.background = 'var(--color-bg-btn-hover, #e0e0e0)';
-    });
-    button.addEventListener('mouseleave', () => {
-      button.style.background = 'var(--color-bg-btn, #f0f0f0)';
-    });
-
-    headerArea.appendChild(button);
-    Logger.debug(`Rendered sidebar button "${name}" in mini widget DOM`);
-  }
-
-  /**
-   * Render all existing sidebar buttons (called after widget render)
-   */
-  private renderExistingSidebarButtons(): void {
-    this.sidebarButtons.forEach(button => {
-      this.renderSidebarButton(button.name, button.icon, button.tooltip, button.callback);
-    });
+    return registryHasSidebarButton('mini', name);
   }
 
   /**
@@ -891,6 +804,44 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     } catch (error) {
       ui.notifications?.error('Failed to toggle time advancement');
       Logger.error('Mini widget time advancement toggle failed', error as Error);
+    }
+  }
+
+  /**
+   * Handle sidebar button clicks dispatched from template actions
+   */
+  async _onClickSidebarButton(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    const buttonName = target.dataset.buttonName;
+    console.log('🌟 Sidebar button clicked:', buttonName);
+
+    if (!buttonName) {
+      Logger.warn('Mini widget sidebar button clicked without button name');
+      return;
+    }
+
+    const registry = SidebarButtonRegistry.getInstance();
+    const allButtons = registry.getForWidget('mini');
+    console.log('🌟 All buttons for mini widget:', allButtons);
+
+    const button = allButtons.find(config => config.name === buttonName);
+    console.log('🌟 Found button config:', button);
+
+    if (button && typeof button.callback === 'function') {
+      console.log('🌟 Executing callback for button:', buttonName);
+      try {
+        button.callback();
+        console.log('🌟 Callback executed successfully');
+      } catch (error) {
+        Logger.error(`Error executing mini widget sidebar button "${buttonName}"`, error as Error);
+      }
+    } else {
+      console.log('🌟 Button not found or invalid callback:', {
+        found: !!button,
+        callbackType: typeof button?.callback,
+      });
+      Logger.warn(`Mini widget sidebar button "${buttonName}" not found or has invalid callback`);
     }
   }
 

@@ -21,6 +21,7 @@ on:
           - fantasy-pack
           - scifi-pack
           - pf2e-pack
+          - custom-calendar-builder
           - all
       release_type:
         description: 'Type of release'
@@ -57,6 +58,8 @@ jobs:
               echo "module=scifi-pack" >> "$GITHUB_OUTPUT"
             elif [[ "$TAG" == seasons-and-stars-pf2e-v* ]]; then
               echo "module=pf2e-pack" >> "$GITHUB_OUTPUT"
+            elif [[ "$TAG" == seasons-and-stars-calendar-builder-v* ]]; then
+              echo "module=custom-calendar-builder" >> "$GITHUB_OUTPUT"
             elif [[ "$TAG" == seasons-and-stars-v* ]]; then
               echo "module=core" >> "$GITHUB_OUTPUT"
             # Legacy/manual tagging support
@@ -153,3 +156,24 @@ jobs:
           build-command: 'npm run build'
           working-directory: 'dist/pf2e-pack'
           module-files: 'pf2e-pack.js module.json calendars/ README.md CHANGELOG.md LICENSE'
+
+  release-calendar-builder:
+    needs: detect-module
+    if: needs.detect-module.outputs.module == 'custom-calendar-builder' || needs.detect-module.outputs.module == 'all'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Release Calendar Builder
+        uses: rayners/foundry-module-actions/release@v6.0.0
+        with:
+          node-version: '24'
+          build-command: 'npm run build'
+          working-directory: 'dist/custom-calendar-builder'
+          module-files: 'module.js module.json styles/ templates/ languages/ README_FOUNDRY.md'

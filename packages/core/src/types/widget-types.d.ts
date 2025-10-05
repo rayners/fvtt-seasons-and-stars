@@ -5,6 +5,8 @@
 
 import type { CalendarDate as ICalendarDate } from './calendar';
 
+export type WidgetType = 'main' | 'mini' | 'grid';
+
 // Base widget context shared by all widgets
 export interface BaseWidgetContext extends Record<string, unknown> {
   calendar: CalendarInfo | null;
@@ -26,6 +28,7 @@ export interface MiniWidgetContext extends BaseWidgetContext {
   timeAdvancementActive?: boolean;
   advancementRatioDisplay?: string;
   compactMode: boolean;
+  sidebarButtons: SidebarButton[];
 }
 
 // Main widget specific context
@@ -49,6 +52,7 @@ export interface GridWidgetContext extends BaseWidgetContext {
   yearDisplay: string;
   weekdays: WeekdayInfo[];
   notesForDays: Record<string, unknown[]>; // Date string -> notes array
+  sidebarButtons: SidebarButton[];
 }
 
 // Widget render options
@@ -103,6 +107,11 @@ export interface SidebarButton {
   icon: string;
   tooltip: string;
   callback: () => void;
+}
+
+export interface SidebarButtonConfig extends SidebarButton {
+  only?: WidgetType[];
+  except?: WidgetType[];
 }
 
 // Scene control types

@@ -46,6 +46,21 @@
             <i class="fas fa-compress-alt"></i>
           </button>
         </div>
+        {{#if sidebarButtons.length}}
+          <div class="grid-sidebar-buttons">
+            {{#each sidebarButtons}}
+              <button
+                type="button"
+                class="grid-sidebar-button"
+                title="{{this.tooltip}}"
+                data-action="clickSidebarButton"
+                data-button-name="{{this.name}}"
+              >
+                <i class="{{this.icon}}"></i>
+              </button>
+            {{/each}}
+          </div>
+        {{/if}}
         <button type="button" class="today-button" data-action="goToToday" title="Go to current date">
           <i class="fas fa-crosshairs"></i> Today
         </button>

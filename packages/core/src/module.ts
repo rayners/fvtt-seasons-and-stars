@@ -26,6 +26,7 @@ import { CalendarWidgetManager, WidgetWrapper } from './ui/widget-manager';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
+import type { ValidationResult } from './core/calendar-validator';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import { TimeAdvancementService } from './core/time-advancement-service';
 import type { MemoryMageAPI } from './types/external-integrations';
@@ -41,6 +42,7 @@ import type {
   DateFormatOptions,
   SeasonsStarsCalendar,
 } from './types/calendar';
+import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
 
 // Import integrations (they register their own hooks independently)
 // PF2e integration moved to separate pf2e-pack module
@@ -541,6 +543,9 @@ Hooks.once('ready', async () => {
   await CalendarDeprecationDialog.showWarningIfNeeded();
 
   Logger.info('UI setup complete - module fully ready');
+
+  // Signal that core module is ready for integrations
+  Hooks.callAll('seasons-and-stars.ready');
 });
 
 /**
@@ -1218,8 +1223,9 @@ export function setupAPI(): void {
         'advanceDays',
         { days, calendarId },
         params => {
-          APIWrapper.validateNumber(params.days, 'Days');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.days, 'Days');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceDays(days)
       );
@@ -1230,8 +1236,9 @@ export function setupAPI(): void {
         'advanceHours',
         { hours, calendarId },
         params => {
-          APIWrapper.validateNumber(params.hours, 'Hours');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.hours, 'Hours');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceHours(hours)
       );
@@ -1242,8 +1249,9 @@ export function setupAPI(): void {
         'advanceMinutes',
         { minutes, calendarId },
         params => {
-          APIWrapper.validateNumber(params.minutes, 'Minutes');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.minutes, 'Minutes');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceMinutes(minutes)
       );
@@ -1254,8 +1262,9 @@ export function setupAPI(): void {
         'advanceWeeks',
         { weeks, calendarId },
         params => {
-          APIWrapper.validateNumber(params.weeks, 'Weeks');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.weeks, 'Weeks');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceWeeks(weeks)
       );
@@ -1266,8 +1275,9 @@ export function setupAPI(): void {
         'advanceMonths',
         { months, calendarId },
         params => {
-          APIWrapper.validateNumber(params.months, 'Months');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.months, 'Months');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceMonths(months)
       );
@@ -1278,8 +1288,9 @@ export function setupAPI(): void {
         'advanceYears',
         { years, calendarId },
         params => {
-          APIWrapper.validateNumber(params.years, 'Years');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.years, 'Years');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceYears(years)
       );
@@ -1647,7 +1658,8 @@ export function setupAPI(): void {
         'loadCalendarFromUrl',
         { url, options },
         params => {
-          APIWrapper.validateString(params.url, 'URL');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.url, 'URL');
         },
         () => calendarManager.loadCalendarFromUrl(url, options)
       );
@@ -1661,7 +1673,8 @@ export function setupAPI(): void {
         'loadCalendarCollection',
         { url, options },
         params => {
-          APIWrapper.validateString(params.url, 'URL');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.url, 'URL');
         },
         () => calendarManager.loadCalendarCollection(url, options)
       );
@@ -1754,7 +1767,8 @@ export function setupAPI(): void {
         'refreshExternalCalendar',
         { sourceId },
         params => {
-          APIWrapper.validateString(params.sourceId, 'Source ID');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.sourceId, 'Source ID');
         },
         () => calendarManager.refreshExternalCalendar(sourceId)
       );
@@ -1789,30 +1803,67 @@ export function setupAPI(): void {
         'loadModuleCalendars',
         { moduleId },
         params => {
-          APIWrapper.validateString(params.moduleId, 'Module ID');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.moduleId, 'Module ID');
         },
         () => calendarManager.loadModuleCalendars(moduleId)
+      );
+    },
+
+    /**
+     * Validate calendar JSON data using the schema validator
+     *
+     * @param calendarData The calendar data to validate
+     * @returns Promise<ValidationResult> with validation results
+     * @throws {Error} If validation setup fails
+     *
+     * @example
+     * ```javascript
+     * const result = await game.seasonsStars.api.validateCalendar(calendarData);
+     * if (result.isValid) {
+     *   console.log('Calendar is valid');
+     * } else {
+     *   console.log('Validation errors:', result.errors);
+     * }
+     * ```
+     */
+    async validateCalendar(calendarData: unknown): Promise<ValidationResult> {
+      return APIWrapper.wrapAPIMethod(
+        'validateCalendar',
+        { hasData: !!calendarData },
+        _params => {
+          if (!calendarData) {
+            throw new Error('Calendar data is required');
+          }
+        },
+        async () => {
+          const { CalendarValidator } = await import('./core/calendar-validator');
+          return CalendarValidator.validate(calendarData);
+        }
       );
     },
   };
 
   // Expose API to global game object
   if (game) {
-    game.seasonsStars = {
+    const seasonsStarsNamespace: typeof game.seasonsStars = {
       api,
       manager: calendarManager,
       notes: notesManager,
       categories: noteCategories, // Will be available by this point since ready runs after init
-      integration: null, // Will be set after the object is fully created
+      integration: null as SeasonsStarsIntegration | null,
       compatibilityManager, // Expose for debugging and external access
       // Expose warning state functions for debugging and external access
       resetSeasonsWarningState,
       getSeasonsWarningState,
       setSeasonsWarningState,
+      buttonRegistry: SidebarButtonRegistry.getInstance(),
     };
 
+    game.seasonsStars = seasonsStarsNamespace;
+
     // Set integration after game.seasonsStars is fully assigned
-    game.seasonsStars.integration = SeasonsStarsIntegration.detect();
+    seasonsStarsNamespace.integration = SeasonsStarsIntegration.detect();
   }
 
   // Expose API to window for debugging
@@ -1821,6 +1872,7 @@ export function setupAPI(): void {
     manager: calendarManager,
     notes: notesManager,
     integration: SeasonsStarsIntegration.detect() || null,
+    buttonRegistry: SidebarButtonRegistry.getInstance(),
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,
