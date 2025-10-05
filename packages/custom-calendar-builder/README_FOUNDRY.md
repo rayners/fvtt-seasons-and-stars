@@ -8,11 +8,11 @@ The Calendar Builder is a standalone FoundryVTT module that provides a graphical
 
 ## Features
 
-- **Visual Calendar Editor**: Create and modify calendar definitions through an intuitive interface
+- **JSON Editor**: Create and modify calendar definitions with syntax highlighting
 - **JSON Import/Export**: Import existing calendar definitions and export your creations
 - **Real-time Validation**: Automatic validation against the Seasons & Stars calendar schema
 - **Schema Compliance**: Ensures all created calendars are compatible with Seasons & Stars
-- **Edit Existing Calendars**: Load and modify existing calendar definitions from your world
+- **Edit Existing Calendars**: Load and modify existing calendar JSON files
 
 ## Installation
 
@@ -31,21 +31,22 @@ The Calendar Builder is a standalone FoundryVTT module that provides a graphical
 
 ### Opening the Calendar Builder
 
-Access the Calendar Builder through the Seasons & Stars settings or module controls.
+Look for the Calendar Builder button (hammer icon) in the Seasons & Stars widget toolbar. Click the button to open the Calendar Builder interface.
 
 ### Creating a New Calendar
 
 1. Click "New Calendar" to start with a blank calendar template
-2. Fill in the calendar details using the form interface
-3. Use "Validate JSON" to check your calendar definition
+2. Edit the calendar JSON directly in the editor with syntax highlighting
+3. Use "Validate JSON" to check your calendar definition as you work
 4. Export the validated JSON for use with Seasons & Stars
 
 ### Editing Existing Calendars
 
-1. Click "Open Calendar" to load an existing calendar definition
-2. Select the calendar from your available calendars
-3. Make your modifications
-4. Validate and export the updated definition
+1. Click "Open Calendar" to browse for a calendar JSON file
+2. Navigate to your calendar file location (e.g., `modules/seasons-and-stars/calendars/`)
+3. Select the calendar JSON file to load it into the editor
+4. Make your modifications in the JSON editor
+5. Validate and export the updated definition
 
 ### Importing Calendar Definitions
 
