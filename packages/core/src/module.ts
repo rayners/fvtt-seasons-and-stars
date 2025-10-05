@@ -1219,8 +1219,9 @@ export function setupAPI(): void {
         'advanceDays',
         { days, calendarId },
         params => {
-          APIWrapper.validateNumber(params.days, 'Days');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.days, 'Days');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceDays(days)
       );
@@ -1231,8 +1232,9 @@ export function setupAPI(): void {
         'advanceHours',
         { hours, calendarId },
         params => {
-          APIWrapper.validateNumber(params.hours, 'Hours');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.hours, 'Hours');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceHours(hours)
       );
@@ -1243,8 +1245,9 @@ export function setupAPI(): void {
         'advanceMinutes',
         { minutes, calendarId },
         params => {
-          APIWrapper.validateNumber(params.minutes, 'Minutes');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.minutes, 'Minutes');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceMinutes(minutes)
       );
@@ -1255,8 +1258,9 @@ export function setupAPI(): void {
         'advanceWeeks',
         { weeks, calendarId },
         params => {
-          APIWrapper.validateNumber(params.weeks, 'Weeks');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.weeks, 'Weeks');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceWeeks(weeks)
       );
@@ -1267,8 +1271,9 @@ export function setupAPI(): void {
         'advanceMonths',
         { months, calendarId },
         params => {
-          APIWrapper.validateNumber(params.months, 'Months');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.months, 'Months');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceMonths(months)
       );
@@ -1279,8 +1284,9 @@ export function setupAPI(): void {
         'advanceYears',
         { years, calendarId },
         params => {
-          APIWrapper.validateNumber(params.years, 'Years');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.years, 'Years');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceYears(years)
       );
@@ -1648,7 +1654,8 @@ export function setupAPI(): void {
         'loadCalendarFromUrl',
         { url, options },
         params => {
-          APIWrapper.validateString(params.url, 'URL');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.url, 'URL');
         },
         () => calendarManager.loadCalendarFromUrl(url, options)
       );
@@ -1662,7 +1669,8 @@ export function setupAPI(): void {
         'loadCalendarCollection',
         { url, options },
         params => {
-          APIWrapper.validateString(params.url, 'URL');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.url, 'URL');
         },
         () => calendarManager.loadCalendarCollection(url, options)
       );
@@ -1755,7 +1763,8 @@ export function setupAPI(): void {
         'refreshExternalCalendar',
         { sourceId },
         params => {
-          APIWrapper.validateString(params.sourceId, 'Source ID');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.sourceId, 'Source ID');
         },
         () => calendarManager.refreshExternalCalendar(sourceId)
       );
@@ -1790,7 +1799,8 @@ export function setupAPI(): void {
         'loadModuleCalendars',
         { moduleId },
         params => {
-          APIWrapper.validateString(params.moduleId, 'Module ID');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.moduleId, 'Module ID');
         },
         () => calendarManager.loadModuleCalendars(moduleId)
       );
