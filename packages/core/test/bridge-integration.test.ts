@@ -46,8 +46,8 @@ class TestBridgeWidgetWrapper {
       }
 
       // Preserve original callback to avoid unexpected overrides
-      registry.unregister(name);
-      registry.register(updated);
+      // Use update() instead of unregister/register to reduce hook emissions
+      registry.update(updated);
       return;
     }
 

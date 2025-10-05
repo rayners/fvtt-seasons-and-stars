@@ -23,6 +23,7 @@ export interface SeasonsStarsIntegration {
 
 export interface SidebarButtonRegistryAPI {
   register(config: SidebarButtonConfig): void;
+  update(config: SidebarButtonConfig): boolean;
   unregister(name: string): void;
   has(name: string): boolean;
   get(name: string): SidebarButtonConfig | undefined;

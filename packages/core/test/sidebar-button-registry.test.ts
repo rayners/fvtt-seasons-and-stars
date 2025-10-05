@@ -267,6 +267,73 @@ describe('SidebarButtonRegistry', () => {
     });
   });
 
+  describe('update', () => {
+    it('should update existing button configuration', () => {
+      const callback = vi.fn();
+      registry.register({
+        name: 'update-me',
+        icon: 'fas fa-star',
+        tooltip: 'Original',
+        callback,
+      });
+
+      callAllMock.mockClear();
+
+      const updated = registry.update({
+        name: 'update-me',
+        icon: 'fas fa-circle',
+        tooltip: 'Updated',
+        callback,
+        only: ['main'],
+      });
+
+      expect(updated).toBe(true);
+      const button = registry.get('update-me');
+      expect(button?.icon).toBe('fas fa-circle');
+      expect(button?.tooltip).toBe('Updated');
+      expect(button?.only).toEqual(['main']);
+
+      // Should emit only one hook (not unregister + register)
+      expect(callAllMock).toHaveBeenCalledTimes(1);
+      expect(callAllMock).toHaveBeenCalledWith(
+        'seasons-stars:widgetButtonsChanged',
+        expect.objectContaining({ action: 'updated', buttonName: 'update-me' })
+      );
+    });
+
+    it('should return false for non-existent button', () => {
+      const result = registry.update({
+        name: 'does-not-exist',
+        icon: 'fas fa-ghost',
+        tooltip: 'Ghost',
+        callback: vi.fn(),
+      });
+
+      expect(result).toBe(false);
+      expect(registry.has('does-not-exist')).toBe(false);
+    });
+
+    it('should preserve button name during update', () => {
+      const callback = vi.fn();
+      registry.register({
+        name: 'preserve-name',
+        icon: 'fas fa-tag',
+        tooltip: 'Original',
+        callback,
+      });
+
+      registry.update({
+        name: 'preserve-name',
+        icon: 'fas fa-bookmark',
+        tooltip: 'Updated',
+        callback,
+      });
+
+      expect(registry.has('preserve-name')).toBe(true);
+      expect(registry.get('preserve-name')?.icon).toBe('fas fa-bookmark');
+    });
+  });
+
   describe('unregister', () => {
     it('should remove existing button', () => {
       const config: SidebarButtonConfig = {

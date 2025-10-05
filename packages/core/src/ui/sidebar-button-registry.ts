@@ -134,6 +134,32 @@ export class SidebarButtonRegistry {
   }
 
   /**
+   * Update an existing sidebar button configuration
+   *
+   * This method allows updating a button's configuration without triggering
+   * unregister/register hook pairs. Use this when merging or modifying button
+   * properties to reduce hook emission overhead.
+   *
+   * @param config - Updated button configuration (must have matching name)
+   * @returns true if button was updated, false if button doesn't exist
+   */
+  update(config: SidebarButtonConfig): boolean {
+    if (!this.buttons.has(config.name)) {
+      return false;
+    }
+
+    this.buttons.set(config.name, config);
+    Logger.debug(`Updated sidebar button "${config.name}" in global registry`);
+
+    this.callHook('seasons-stars:widgetButtonsChanged', {
+      action: 'updated',
+      buttonName: config.name,
+    });
+
+    return true;
+  }
+
+  /**
    * Unregister a sidebar button
    */
   unregister(name: string): void {
