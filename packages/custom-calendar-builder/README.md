@@ -4,10 +4,9 @@ The Calendar Builder is a separate Foundry VTT module that provides a user-frien
 
 ## Features
 
-- **Visual Editor**: Easy-to-use interface for creating custom calendars
+- **JSON Editor**: Direct JSON editing with validation
 - **Real-time Validation**: Instant feedback on calendar structure and syntax
 - **Import/Export**: Load existing calendars or export your creations
-- **JSON Editor**: Direct JSON editing with syntax highlighting and validation
 - **Foundry Integration**: Seamless integration with the main Seasons & Stars module
 
 ## Requirements
@@ -22,9 +21,9 @@ This module is designed to be installed alongside the main Seasons & Stars modul
 ## Usage
 
 1. Install both Seasons & Stars and Calendar Builder modules
-2. Look for the Calendar Builder button (pencil icon) in calendar widgets
+2. Look for the Calendar Builder button (hammer icon) in the Seasons & Stars widget toolbar
 3. Click to open the Calendar Builder interface
-4. Create or edit calendars using the visual editor
+4. Create or edit calendars using the JSON editor
 5. Export your completed calendars for use with Seasons & Stars
 
 ## Development
@@ -34,15 +33,16 @@ This module is built using:
 - TypeScript for type safety
 - ApplicationV2 for modern Foundry integration
 - Rollup for bundling
-- Comprehensive test coverage
+- Test coverage for core functionality
 
 ## Support
 
 For issues, feature requests, or questions:
 
-- Visit the [GitHub Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues) page
-- Check the main Seasons & Stars documentation
+- **Discord**: Join the Seasons & Stars community on [discord.gg/tqZnxAdEqE](https://discord.gg/tqZnxAdEqE)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/rayners/fvtt-seasons-and-stars/issues)
+- **Documentation**: Check the main Seasons & Stars documentation
 
 ## License
 
-This project is licensed under the same terms as the main Seasons & Stars module.
+This project is licensed under the [MIT License](https://github.com/rayners/fvtt-seasons-and-stars/blob/main/LICENSE).
