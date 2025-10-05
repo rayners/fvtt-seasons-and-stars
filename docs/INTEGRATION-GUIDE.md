@@ -330,7 +330,7 @@ export class CalendarWidget extends ApplicationV2 {
     const base = await super._preparePartContext?.(partId, context);
 
     if (partId === 'sidebar') {
-      return { ...base, sidebarButtons: loadButtonsFromRegistry(null, 'main') };
+      return { ...base, sidebarButtons: loadButtonsFromRegistry('main') };
     }
 
     return base;
