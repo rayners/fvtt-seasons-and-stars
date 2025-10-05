@@ -41,6 +41,7 @@ import type {
   DateFormatOptions,
   SeasonsStarsCalendar,
 } from './types/calendar';
+import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
 
 // Import integrations (they register their own hooks independently)
 // PF2e integration moved to separate pf2e-pack module
@@ -1798,21 +1799,24 @@ export function setupAPI(): void {
 
   // Expose API to global game object
   if (game) {
-    game.seasonsStars = {
+    const seasonsStarsNamespace: typeof game.seasonsStars = {
       api,
       manager: calendarManager,
       notes: notesManager,
       categories: noteCategories, // Will be available by this point since ready runs after init
-      integration: null, // Will be set after the object is fully created
+      integration: null as SeasonsStarsIntegration | null,
       compatibilityManager, // Expose for debugging and external access
       // Expose warning state functions for debugging and external access
       resetSeasonsWarningState,
       getSeasonsWarningState,
       setSeasonsWarningState,
+      buttonRegistry: SidebarButtonRegistry.getInstance(),
     };
 
+    game.seasonsStars = seasonsStarsNamespace;
+
     // Set integration after game.seasonsStars is fully assigned
-    game.seasonsStars.integration = SeasonsStarsIntegration.detect();
+    seasonsStarsNamespace.integration = SeasonsStarsIntegration.detect();
   }
 
   // Expose API to window for debugging
@@ -1821,6 +1825,7 @@ export function setupAPI(): void {
     manager: calendarManager,
     notes: notesManager,
     integration: SeasonsStarsIntegration.detect() || null,
+    buttonRegistry: SidebarButtonRegistry.getInstance(),
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,

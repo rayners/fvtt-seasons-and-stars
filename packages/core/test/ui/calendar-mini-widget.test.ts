@@ -10,6 +10,11 @@ import { CalendarWidgetManager } from '../../src/ui/widget-manager';
 import { CalendarDate } from '../../src/core/calendar-date';
 import { mockStandardCalendar } from '../mocks/calendar-mocks';
 import type { SeasonsStarsCalendar } from '../../src/types/calendar';
+import {
+  addSidebarButton,
+  removeSidebarButton,
+  hasSidebarButton,
+} from '../../src/ui/sidebar-button-mixin';
 
 // Mock TimeAdvancementService
 let mockServiceInstance: any = {
@@ -542,28 +547,48 @@ describe('CalendarMiniWidget', () => {
 
     it('should add sidebar button', () => {
       const callback = vi.fn();
-      widget.addSidebarButton('test-button', 'fas fa-cog', 'Test Button', callback);
+      addSidebarButton('mini', {
+        name: 'test-button',
+        icon: 'fas fa-cog',
+        tooltip: 'Test Button',
+        callback,
+      });
 
-      expect(widget.hasSidebarButton('test-button')).toBe(true);
+      expect(hasSidebarButton('mini', 'test-button')).toBe(true);
     });
 
     it('should remove sidebar button', () => {
       const callback = vi.fn();
-      widget.addSidebarButton('test-button', 'fas fa-cog', 'Test Button', callback);
+      addSidebarButton('mini', {
+        name: 'test-button',
+        icon: 'fas fa-cog',
+        tooltip: 'Test Button',
+        callback,
+      });
 
-      expect(widget.hasSidebarButton('test-button')).toBe(true);
+      expect(hasSidebarButton('mini', 'test-button')).toBe(true);
 
-      widget.removeSidebarButton('test-button');
-      expect(widget.hasSidebarButton('test-button')).toBe(false);
+      removeSidebarButton('mini', 'test-button');
+      expect(hasSidebarButton('mini', 'test-button')).toBe(false);
     });
 
     it('should not add duplicate sidebar buttons', () => {
       const callback = vi.fn();
-      widget.addSidebarButton('test-button', 'fas fa-cog', 'Test Button', callback);
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Different Button', callback);
+      addSidebarButton('mini', {
+        name: 'test-button',
+        icon: 'fas fa-cog',
+        tooltip: 'Test Button',
+        callback,
+      });
+      addSidebarButton('mini', {
+        name: 'test-button',
+        icon: 'fas fa-star',
+        tooltip: 'Different Button',
+        callback,
+      });
 
       // Should still only have one button with original settings
-      expect(widget.hasSidebarButton('test-button')).toBe(true);
+      expect(hasSidebarButton('mini', 'test-button')).toBe(true);
     });
   });
 
