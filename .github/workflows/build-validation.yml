@@ -64,6 +64,15 @@ jobs:
           test -f "dist/pf2e-pack/calendars/index.json" || (echo "❌ Missing dist/pf2e-pack/calendars/index.json" && exit 1)
           echo "✅ PF2e pack build artifacts verified"
 
+      - name: Verify calendar builder files
+        run: |
+          echo "Checking calendar builder build artifacts..."
+          test -f "dist/custom-calendar-builder/module.json" || (echo "❌ Missing dist/custom-calendar-builder/module.json" && exit 1)
+          test -f "dist/custom-calendar-builder/module.js" || (echo "❌ Missing dist/custom-calendar-builder/module.js" && exit 1)
+          test -d "dist/custom-calendar-builder/styles" || (echo "❌ Missing dist/custom-calendar-builder/styles directory" && exit 1)
+          test -d "dist/custom-calendar-builder/templates" || (echo "❌ Missing dist/custom-calendar-builder/templates directory" && exit 1)
+          echo "✅ Calendar builder build artifacts verified"
+
       - name: Verify calendar index files exist
         run: |
           echo "Checking calendar index files..."
