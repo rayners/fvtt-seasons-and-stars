@@ -118,7 +118,8 @@ export class SidebarButtonRegistry {
     if (config.only && config.except) {
       Logger.warn(
         `Sidebar button "${config.name}" specifies both "only" and "except" filters. ` +
-          `This is likely a configuration error. The button will be registered but may not appear where expected.`
+          `This is likely a configuration error. When both filters are present, "only" ` +
+          `takes precedence and "except" is ignored.`
       );
     }
 
@@ -162,6 +163,13 @@ export class SidebarButtonRegistry {
 
   /**
    * Get all registered buttons for a specific widget type
+   *
+   * **Filter Precedence**: When a button specifies both `only` and `except` filters
+   * (which is a configuration error), the `only` filter takes precedence and `except`
+   * is ignored.
+   *
+   * @param widgetType - The widget type to filter for ('main', 'mini', or 'grid')
+   * @returns Array of button configs that should appear on this widget type
    */
   getForWidget(widgetType: WidgetType): SidebarButtonConfig[] {
     return Array.from(this.buttons.values()).filter(button => {

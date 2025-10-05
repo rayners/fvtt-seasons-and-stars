@@ -273,11 +273,19 @@ class WidgetAPI {
       return;
     }
 
+    // Check if button already exists
     const existing = registry.get(config.name);
     if (existing) {
-      registry.unregister(config.name);
+      // Button already registered - log warning rather than overwriting
+      // This prevents accidentally removing buttons from other modules
+      console.warn(
+        `Sidebar button "${config.name}" is already registered. ` +
+          `Skipping duplicate registration to preserve existing button.`
+      );
+      return;
     }
 
+    // Register new button with widget-specific targeting
     registry.register({
       ...config,
       only: config.only ?? [this.widgetType],
