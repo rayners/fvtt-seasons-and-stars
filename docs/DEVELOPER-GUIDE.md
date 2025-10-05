@@ -600,6 +600,36 @@ if (result.collectionEntry) {
 }
 ```
 
+#### Module Flags (_Added in v0.20.0_)
+
+Modules using the `seasons-and-stars-*` naming pattern can control calendar loading behavior via `module.json` flags:
+
+```json
+{
+  "id": "seasons-and-stars-mymodule",
+  "flags": {
+    "seasons-and-stars": {
+      "providesCalendars": false
+    }
+  }
+}
+```
+
+**Flag Behavior:**
+
+- `providesCalendars: true` (or undefined) - Module is expected to provide calendars (default)
+- `providesCalendars: false` - Module does NOT provide calendars; skip loading attempt
+
+**Use Case:**
+
+Set `providesCalendars: false` when creating a `seasons-and-stars-*` module that is NOT a calendar pack (e.g., integration modules, tools, utilities). This prevents 404 errors from the core module attempting to load `calendars/index.json`.
+
+**Example Modules:**
+
+- Calendar Builder: `"providesCalendars": false` (provides UI tools, not calendars)
+- Fantasy Pack: `"providesCalendars": true` (provides multiple calendars)
+- Simple Calendar Compat: `"providesCalendars": false` (provides integration layer, not calendars)
+
 ### 🔧 External Calendar Loading (Advanced Users Only)
 
 > **⚠️ Developer/Power-User Feature**: The external calendar loading APIs are intended for advanced users, developers, and those comfortable with console-based operations. These features are not documented for general users as they require technical knowledge and may encounter CORS restrictions or other technical issues.

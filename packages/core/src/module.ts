@@ -26,6 +26,7 @@ import { CalendarWidgetManager, WidgetWrapper } from './ui/widget-manager';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
+import type { ValidationResult } from './core/calendar-validator';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import { TimeAdvancementService } from './core/time-advancement-service';
 import type { MemoryMageAPI } from './types/external-integrations';
@@ -542,6 +543,9 @@ Hooks.once('ready', async () => {
   await CalendarDeprecationDialog.showWarningIfNeeded();
 
   Logger.info('UI setup complete - module fully ready');
+
+  // Signal that core module is ready for integrations
+  Hooks.callAll('seasons-and-stars.ready');
 });
 
 /**
@@ -1803,6 +1807,39 @@ export function setupAPI(): void {
           APIWrapper.validateString(p.moduleId, 'Module ID');
         },
         () => calendarManager.loadModuleCalendars(moduleId)
+      );
+    },
+
+    /**
+     * Validate calendar JSON data using the schema validator
+     *
+     * @param calendarData The calendar data to validate
+     * @returns Promise<ValidationResult> with validation results
+     * @throws {Error} If validation setup fails
+     *
+     * @example
+     * ```javascript
+     * const result = await game.seasonsStars.api.validateCalendar(calendarData);
+     * if (result.isValid) {
+     *   console.log('Calendar is valid');
+     * } else {
+     *   console.log('Validation errors:', result.errors);
+     * }
+     * ```
+     */
+    async validateCalendar(calendarData: unknown): Promise<ValidationResult> {
+      return APIWrapper.wrapAPIMethod(
+        'validateCalendar',
+        { hasData: !!calendarData },
+        _params => {
+          if (!calendarData) {
+            throw new Error('Calendar data is required');
+          }
+        },
+        async () => {
+          const { CalendarValidator } = await import('./core/calendar-validator');
+          return CalendarValidator.validate(calendarData);
+        }
       );
     },
   };

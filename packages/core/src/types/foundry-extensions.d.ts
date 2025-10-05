@@ -13,6 +13,7 @@ import type {
 } from './calendar';
 import type { SeasonsStarsIntegration, SidebarButtonRegistryAPI } from './bridge-interfaces';
 import type { LoadResult, ExternalCalendarSource } from '../core/calendar-loader';
+// ValidationResult imported in bridge-interfaces.d.ts to avoid circular dependencies
 
 // Extend the Game interface to include S&S specific properties
 declare global {
@@ -48,6 +49,7 @@ declare global {
             htmlElement: HTMLElement,
             options: any
           ): void;
+          protected _onChangeForm?(formConfig: any, event: Event): void;
 
           // Static properties
           static DEFAULT_OPTIONS: any;
@@ -57,7 +59,12 @@ declare global {
         function HandlebarsApplicationMixin<T extends typeof ApplicationV2>(BaseApplication: T): T;
 
         class DialogV2 extends ApplicationV2 {
-          // DialogV2 specific properties if needed
+          static confirm(config: {
+            window?: { title?: string };
+            content: string;
+            rejectClose?: boolean;
+            modal?: boolean;
+          }): Promise<boolean>;
         }
       }
       namespace ux {
@@ -168,6 +175,7 @@ export interface SeasonsStarsAPI {
   clearExternalCalendarCache(): void;
   // Module Calendar Loading Methods
   loadModuleCalendars(moduleId: string): Promise<LoadResult[]>;
+  validateCalendar(calendarData: unknown): Promise<import('./bridge-interfaces').ValidationResult>;
 }
 
 // Type guard functions (implementations in type-guards.ts)

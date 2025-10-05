@@ -6,7 +6,9 @@
 
 import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
 import type { CreateNoteData } from './external-integrations';
+import type { ValidationResult } from '../core/calendar-validator';
 import type { SidebarButtonConfig, WidgetType } from './widget-types';
+export type { ValidationResult };
 
 // Forward declaration to avoid circular dependency
 export interface SeasonsStarsIntegration {
@@ -60,6 +62,7 @@ export interface SeasonsStarsAPI {
   advanceWeeks(weeks: number): Promise<void>;
   advanceMonths(months: number): Promise<void>;
   advanceYears(years: number): Promise<void>;
+  validateCalendar(calendarData: unknown): Promise<ValidationResult>;
 }
 
 export interface SeasonsStarsWidgets {
