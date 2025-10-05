@@ -11,7 +11,7 @@ import type {
   DateFormatOptions,
   CalendarIntercalary,
 } from './calendar';
-import type { SeasonsStarsIntegration } from './bridge-interfaces';
+import type { SeasonsStarsIntegration, SidebarButtonRegistryAPI } from './bridge-interfaces';
 import type { LoadResult, ExternalCalendarSource } from '../core/calendar-loader';
 // ValidationResult imported in bridge-interfaces.d.ts to avoid circular dependencies
 
@@ -40,6 +40,10 @@ declare global {
           // Protected lifecycle hooks
           protected _onRender(context: any, options: any): void;
           protected _prepareContext(options: any): any;
+          protected _preparePartContext?(
+            partId: string,
+            context: Record<string, unknown>
+          ): Promise<Record<string, unknown>>;
           protected _attachPartListeners(
             partId: string,
             htmlElement: HTMLElement,
@@ -94,6 +98,7 @@ declare global {
       resetSeasonsWarningState?: () => void;
       getSeasonsWarningState?: () => boolean;
       setSeasonsWarningState?: (warned: boolean) => void;
+      buttonRegistry?: SidebarButtonRegistryAPI;
     };
   }
 
@@ -103,6 +108,7 @@ declare global {
       manager?: CalendarManagerInterface;
       notes?: NotesManagerInterface;
       integration?: SeasonsStarsIntegration | null;
+      buttonRegistry?: SidebarButtonRegistryAPI;
       CalendarWidget?: unknown;
       CalendarMiniWidget?: unknown;
       CalendarGridWidget?: unknown;

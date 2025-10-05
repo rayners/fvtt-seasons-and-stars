@@ -42,6 +42,7 @@ import type {
   DateFormatOptions,
   SeasonsStarsCalendar,
 } from './types/calendar';
+import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
 
 // Import integrations (they register their own hooks independently)
 // PF2e integration moved to separate pf2e-pack module
@@ -280,6 +281,11 @@ export function init(): void {
             error instanceof Error ? error : new Error(String(error))
           );
         }
+
+        // After all calendars are loaded, update the settings with the full list
+        // This ensures the calendar dropdown shows all available calendars
+        registerCalendarSettings();
+        Logger.debug('Calendar settings updated with full calendar list after loading');
       })
       .catch(error => {
         Logger.error(
@@ -307,12 +313,14 @@ Hooks.once('init', init);
  */
 export function setup(): void {
   try {
-    Logger.debug('Core setup during setup - calendars already loaded, setting up API (BLOCKING)');
+    Logger.debug(
+      'Core setup during setup - calendars loading asynchronously, setting up API (BLOCKING)'
+    );
 
-    // Register calendar-specific settings now that calendars are loaded (from init hook)
-    registerCalendarSettings();
+    // Calendar-specific settings will be registered asynchronously after calendars are loaded
+    // (see init hook calendar loading promise)
 
-    // Set active calendar from settings (synchronous since calendars are already loaded)
+    // Set active calendar from settings (may use cached data or fall back to gregorian)
     // This creates the time converter needed for getCurrentDate() API calls
     try {
       // Get the active calendar setting and set it directly
@@ -766,7 +774,7 @@ function registerSettings(): void {
 
   game.settings.register('seasons-and-stars', 'timeAdvancementRatio', {
     name: 'Time Advancement Ratio',
-    hint: 'Game time advancement ratio. 1.0 = real time (10s real = 10s game), 2.0 = 2x speed (10s real = 20s game), 0.5 = half speed (10s real = 5s game). Range: 0.1 to 100.',
+    hint: 'Controls how fast game time progresses relative to real time. Examples: 1.0 = real time (1 real second = 1 game second), 2.0 = accelerated (1 real second = 2 game seconds), 0.5 = slow motion (2 real seconds = 1 game second). Higher values make time pass faster in-game.',
     scope: 'world',
     config: true,
     type: Number,
@@ -784,6 +792,20 @@ function registerSettings(): void {
         Logger.warn('Failed to update time advancement ratio:', error);
       }
     },
+  });
+
+  game.settings.register('seasons-and-stars', 'realTimeAdvancementInterval', {
+    name: 'Real-Time Advancement Interval',
+    hint: 'How often (in seconds) the game time is updated when real-time advancement is active. Lower values = smoother time progression but higher CPU usage. Higher values = less frequent updates but better performance. Recommended: 10 seconds for most games, 5 seconds for precision timing, 30+ seconds for slow computers.',
+    scope: 'world',
+    config: true,
+    type: Number,
+    range: {
+      min: 1,
+      max: 300,
+      step: 1,
+    },
+    default: 10,
   });
 
   game.settings.register('seasons-and-stars', 'pauseOnCombat', {
@@ -1201,8 +1223,9 @@ export function setupAPI(): void {
         'advanceDays',
         { days, calendarId },
         params => {
-          APIWrapper.validateNumber(params.days, 'Days');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.days, 'Days');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceDays(days)
       );
@@ -1213,8 +1236,9 @@ export function setupAPI(): void {
         'advanceHours',
         { hours, calendarId },
         params => {
-          APIWrapper.validateNumber(params.hours, 'Hours');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.hours, 'Hours');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceHours(hours)
       );
@@ -1225,8 +1249,9 @@ export function setupAPI(): void {
         'advanceMinutes',
         { minutes, calendarId },
         params => {
-          APIWrapper.validateNumber(params.minutes, 'Minutes');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.minutes, 'Minutes');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceMinutes(minutes)
       );
@@ -1237,8 +1262,9 @@ export function setupAPI(): void {
         'advanceWeeks',
         { weeks, calendarId },
         params => {
-          APIWrapper.validateNumber(params.weeks, 'Weeks');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.weeks, 'Weeks');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceWeeks(weeks)
       );
@@ -1249,8 +1275,9 @@ export function setupAPI(): void {
         'advanceMonths',
         { months, calendarId },
         params => {
-          APIWrapper.validateNumber(params.months, 'Months');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.months, 'Months');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceMonths(months)
       );
@@ -1261,8 +1288,9 @@ export function setupAPI(): void {
         'advanceYears',
         { years, calendarId },
         params => {
-          APIWrapper.validateNumber(params.years, 'Years');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.years, 'Years');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceYears(years)
       );
@@ -1630,7 +1658,8 @@ export function setupAPI(): void {
         'loadCalendarFromUrl',
         { url, options },
         params => {
-          APIWrapper.validateString(params.url, 'URL');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.url, 'URL');
         },
         () => calendarManager.loadCalendarFromUrl(url, options)
       );
@@ -1644,7 +1673,8 @@ export function setupAPI(): void {
         'loadCalendarCollection',
         { url, options },
         params => {
-          APIWrapper.validateString(params.url, 'URL');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.url, 'URL');
         },
         () => calendarManager.loadCalendarCollection(url, options)
       );
@@ -1737,7 +1767,8 @@ export function setupAPI(): void {
         'refreshExternalCalendar',
         { sourceId },
         params => {
-          APIWrapper.validateString(params.sourceId, 'Source ID');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.sourceId, 'Source ID');
         },
         () => calendarManager.refreshExternalCalendar(sourceId)
       );
@@ -1772,7 +1803,8 @@ export function setupAPI(): void {
         'loadModuleCalendars',
         { moduleId },
         params => {
-          APIWrapper.validateString(params.moduleId, 'Module ID');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.moduleId, 'Module ID');
         },
         () => calendarManager.loadModuleCalendars(moduleId)
       );
@@ -1814,21 +1846,24 @@ export function setupAPI(): void {
 
   // Expose API to global game object
   if (game) {
-    game.seasonsStars = {
+    const seasonsStarsNamespace: typeof game.seasonsStars = {
       api,
       manager: calendarManager,
       notes: notesManager,
       categories: noteCategories, // Will be available by this point since ready runs after init
-      integration: null, // Will be set after the object is fully created
+      integration: null as SeasonsStarsIntegration | null,
       compatibilityManager, // Expose for debugging and external access
       // Expose warning state functions for debugging and external access
       resetSeasonsWarningState,
       getSeasonsWarningState,
       setSeasonsWarningState,
+      buttonRegistry: SidebarButtonRegistry.getInstance(),
     };
 
+    game.seasonsStars = seasonsStarsNamespace;
+
     // Set integration after game.seasonsStars is fully assigned
-    game.seasonsStars.integration = SeasonsStarsIntegration.detect();
+    seasonsStarsNamespace.integration = SeasonsStarsIntegration.detect();
   }
 
   // Expose API to window for debugging
@@ -1837,6 +1872,7 @@ export function setupAPI(): void {
     manager: calendarManager,
     notes: notesManager,
     integration: SeasonsStarsIntegration.detect() || null,
+    buttonRegistry: SidebarButtonRegistry.getInstance(),
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,

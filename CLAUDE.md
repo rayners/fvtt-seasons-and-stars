@@ -93,6 +93,33 @@
 - Cross-system date format consistency requires adaptation
 - Bridge integration patterns for complex system interactions
 
+## API Access Patterns
+
+### Global API Access
+
+**Primary API**: `game.seasonsStars.api` - Main calendar and date manipulation API
+**Manager Access**: `game.seasonsStars.manager` - Direct calendar manager access
+**Notes API**: `game.seasonsStars.notes` - Notes management API
+**Debug API**: `window.SeasonsStars` - Development and debugging access
+
+### TimeAdvancementService Access
+
+**Service Instance**: Available for debugging via:
+
+```javascript
+// Access through debug API
+const service = window.SeasonsStars.TimeAdvancementService.getInstance();
+```
+
+**Service State Debugging**:
+
+```javascript
+const service = window.SeasonsStars.TimeAdvancementService.getInstance();
+console.log('isActive:', service.isActive);
+console.log('shouldShowPauseButton:', service.shouldShowPauseButton);
+console.log('wasActiveBeforePause:', service.wasActiveBeforePause);
+```
+
 ## Development Session Patterns
 
 ### Debugging Workflows

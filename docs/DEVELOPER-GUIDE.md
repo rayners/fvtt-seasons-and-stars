@@ -368,6 +368,72 @@ console.log('Available calendars:', calendars);
 // Returns: ['gregorian', 'vale-reckoning', 'custom-calendar']
 ```
 
+### Widget Sidebar Buttons
+
+#### `game.seasonsStars.buttonRegistry`
+
+Centralized registry for managing sidebar buttons across all calendar widgets (main, mini, and grid). Buttons registered through this API appear automatically in widget sidebars based on their targeting configuration.
+
+**Register a Button:**
+
+```javascript
+game.seasonsStars.buttonRegistry.register({
+  name: 'weather',
+  icon: 'fas fa-cloud',
+  tooltip: 'Open Weather Panel',
+  callback: () => {
+    // Your button action
+    weatherPanel.render(true);
+  },
+  // Optional: Target specific widgets
+  only: ['main', 'grid'], // Only show on main and grid widgets
+  // Or exclude specific widgets
+  except: ['mini'], // Show everywhere except mini widget
+});
+```
+
+**Remove a Button:**
+
+```javascript
+game.seasonsStars.buttonRegistry.unregister('weather');
+```
+
+**Check Button Registration:**
+
+```javascript
+const isRegistered = game.seasonsStars.buttonRegistry.has('weather');
+const config = game.seasonsStars.buttonRegistry.get('weather');
+```
+
+**Query Buttons:**
+
+```javascript
+// Get all buttons for a specific widget type
+const miniButtons = game.seasonsStars.buttonRegistry.getForWidget('mini');
+
+// Get all registered buttons
+const allButtons = game.seasonsStars.buttonRegistry.getAll();
+
+// Check count
+const count = game.seasonsStars.buttonRegistry.count;
+```
+
+**Button Configuration:**
+
+- `name` (string): Unique identifier for the button
+- `icon` (string): CSS class for button icon (e.g., `'fas fa-cloud'`)
+- `tooltip` (string): Tooltip text shown on hover
+- `callback` (function): Function to execute when button is clicked
+- `only` (array, optional): Array of widget types where button should appear (`['main', 'mini', 'grid']`)
+- `except` (array, optional): Array of widget types where button should NOT appear
+
+**Widget Targeting:**
+
+- Omit both `only` and `except` to show button on all widgets
+- Use `only` to restrict button to specific widgets
+- Use `except` to hide button on specific widgets
+- If both are provided, `only` takes precedence
+
 ## 📦 Calendar Pack Modules
 
 Calendar pack modules are **pure data modules** that provide additional calendars for Seasons & Stars through an **auto-detection system**. No JavaScript required - just properly structured JSON files.
@@ -874,6 +940,84 @@ Hooks.on('seasons-stars:settingsChanged', settingName => {
 });
 ```
 
+#### `seasons-stars:widgetButtonRegistered`
+
+Fired when a sidebar button is registered in the button registry.
+
+```javascript
+Hooks.on('seasons-stars:widgetButtonRegistered', data => {
+  console.log('Button registered:', data.config.name);
+  console.log('Button config:', data.config);
+  console.log('Registry:', data.registry);
+
+  // Track button registration for debugging
+  trackButtonRegistration(data.config);
+});
+```
+
+**Data Structure:**
+
+```typescript
+interface WidgetButtonRegisteredData {
+  config: SidebarButtonConfig;
+  registry: SidebarButtonRegistry;
+}
+```
+
+#### `seasons-stars:widgetButtonUnregistered`
+
+Fired when a sidebar button is removed from the button registry.
+
+```javascript
+Hooks.on('seasons-stars:widgetButtonUnregistered', data => {
+  console.log('Button unregistered:', data.buttonName);
+
+  // Clean up any references to removed button
+  cleanupButtonReferences(data.buttonName);
+});
+```
+
+**Data Structure:**
+
+```typescript
+interface WidgetButtonUnregisteredData {
+  buttonName: string;
+  registry: SidebarButtonRegistry;
+}
+```
+
+#### `seasons-stars:widgetButtonsChanged`
+
+Fired when any change occurs in the button registry (register, update, unregister, or clear operations). Widgets listen to this hook to re-render their sidebar sections.
+
+```javascript
+Hooks.on('seasons-stars:widgetButtonsChanged', data => {
+  console.log('Button registry changed:', data.action);
+
+  if (data.action === 'registered') {
+    console.log('Button added:', data.buttonName);
+  } else if (data.action === 'updated') {
+    console.log('Button updated:', data.buttonName);
+  } else if (data.action === 'unregistered') {
+    console.log('Button removed:', data.buttonName);
+  } else if (data.action === 'cleared') {
+    console.log('All buttons cleared');
+  }
+
+  // Refresh widget displays
+  this.refreshWidgetSidebars();
+});
+```
+
+**Data Structure:**
+
+```typescript
+interface WidgetButtonsChangedData {
+  action: 'registered' | 'updated' | 'unregistered' | 'cleared';
+  buttonName?: string; // Present for 'registered', 'updated', and 'unregistered' actions
+}
+```
+
 #### `seasons-stars:noteCreated`
 
 Fired when a calendar note is created.
@@ -1162,7 +1306,7 @@ interface SeasonsStarsCalendar {
     rule: 'none' | 'gregorian' | 'custom';
     interval?: number; // For custom rules
     month?: string; // Which month gets extra days
-    extraDays?: number; // How many extra days
+    extraDays?: number; // How many days to add (positive) or remove (negative)
   }; // Defaults to Gregorian; use { rule: 'none' } to disable
 
   time?: {
@@ -1175,6 +1319,69 @@ interface SeasonsStarsCalendar {
   canonicalHours?: CalendarCanonicalHour[];
 }
 ```
+
+### Leap Year Configuration
+
+Seasons & Stars supports flexible leap year rules including negative adjustments (removing days rather than adding them).
+
+#### Basic Leap Year Rules
+
+```json
+{
+  "leapYear": {
+    "rule": "gregorian",
+    "month": "February",
+    "extraDays": 1
+  }
+}
+```
+
+#### Negative Leap Days
+
+Added in v0.14.0, calendars can now remove days during leap years:
+
+```json
+{
+  "leapYear": {
+    "rule": "custom",
+    "interval": 4,
+    "month": "Winter Month",
+    "extraDays": -1
+  }
+}
+```
+
+**Negative Leap Day Examples:**
+
+- `extraDays: -1` removes one day from the specified month during leap years
+- `extraDays: -2` removes two days during leap years
+- Range: -10 to +10 days (values beyond this range will show validation warnings)
+
+**Safety Features:**
+
+- Months cannot be reduced below 1 day (automatic clamping)
+- Validation warnings for extreme negative adjustments
+- Engine automatically handles month length calculations with negative adjustments
+
+#### Custom Leap Year Rules
+
+```json
+{
+  "leapYear": {
+    "rule": "custom",
+    "interval": 8,
+    "offset": 4,
+    "month": "Midyear",
+    "extraDays": 2
+  }
+}
+```
+
+**Use Cases for Negative Leap Days:**
+
+- Fantasy calendars where certain years are "shortened" for mystical reasons
+- Historical calendars that occasionally dropped days for astronomical alignment
+- Custom world lore where leap years involve removing unlucky days
 
 ## 🔧 Integration Examples
 

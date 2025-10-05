@@ -65,7 +65,7 @@ The main calendar interface with complete controls.
 
 **How to Access:**
 
-- Click the **calendar icon** in Scene Controls (left sidebar)
+- Click the **calendar icon** in the journal notes controls (left sidebar)
 - Or use the macro: `SeasonsStars.CalendarWidget.show()`
 
 ### 2. Mini Widget (SmallTime Integration)
@@ -391,6 +391,7 @@ Access via **Game Settings → Module Settings → Seasons & Stars**:
 - **Quick Time Buttons**: Configure main widget time advancement buttons (see [Quick Time Button Configuration](#quick-time-button-configuration))
 - **Mini Widget Quick Time Buttons**: Specific buttons for mini widget (leave empty for auto-selection)
 - **Time Advancement Ratio**: Speed of automatic time progression (0.1 to 100.0x)
+- **Real-Time Advancement Interval**: How often (in seconds) the game time updates when real-time advancement is active (1-300 seconds, default: 10)
 - **Pause Time on Combat**: Automatically pause time advancement during combat
 - **Resume Time After Combat**: Automatically resume time advancement when combat ends
 - **Sync with Game Pause**: Automatically pause time advancement when Foundry's game is paused (see [Game Pause Integration](#game-pause-integration))

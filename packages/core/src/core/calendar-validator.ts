@@ -337,6 +337,19 @@ export class CalendarValidator {
         result.errors.push(
           `Leap year month '${calendar.leapYear.month}' does not exist in months list`
         );
+      } else if (calendar.leapYear.extraDays !== undefined) {
+        // Validate that negative leap days don't reduce month below 1 day
+        const targetMonth = calendar.months.find((m: any) => m.name === calendar.leapYear.month);
+        if (targetMonth && calendar.leapYear.extraDays < 0) {
+          const adjustedDays = targetMonth.days + calendar.leapYear.extraDays;
+          if (adjustedDays < 1) {
+            result.warnings.push(
+              `Leap year adjustment of ${calendar.leapYear.extraDays} days would reduce '${
+                calendar.leapYear.month
+              }' to ${adjustedDays} days (will be clamped to 1 day minimum)`
+            );
+          }
+        }
       }
     }
 
