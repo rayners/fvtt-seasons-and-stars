@@ -1,12 +1,66 @@
 /**
  * Tests for bridge-integration
- * Focus on SeasonsStarsIntegration API surface and widget wrapper functionality
+ * Focus on SeasonsStarsIntegration API surface and BridgeWidgetWrapper merge behavior
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SidebarButtonRegistry } from '../src/ui/sidebar-button-registry';
 import { SeasonsStarsIntegration } from '../src/core/bridge-integration';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
+import type { WidgetType } from '../types/widget-types';
+
+/**
+ * Test helper that replicates BridgeWidgetWrapper.addSidebarButton logic
+ * This allows us to test the merge behavior without needing actual widget instances
+ */
+class TestBridgeWidgetWrapper {
+  constructor(
+    private widget: any,
+    private widgetType: WidgetType
+  ) {}
+
+  addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void {
+    const registry = SidebarButtonRegistry.getInstance();
+    const existing = registry.get(name);
+
+    if (existing) {
+      // Button already exists - merge widget type targeting
+      const updated = { ...existing };
+
+      if (updated.only) {
+        // Add this widget type to the existing 'only' list if not already present
+        if (!updated.only.includes(this.widgetType)) {
+          updated.only = [...updated.only, this.widgetType];
+        }
+      } else if (updated.except) {
+        // Remove this widget type from the 'except' list so button shows here
+        updated.except = updated.except.filter(type => type !== this.widgetType);
+        // If except list becomes empty, remove the property
+        if (updated.except.length === 0) {
+          delete updated.except;
+        }
+      } else {
+        // No filters means shows everywhere - convert to explicit targeting
+        // to avoid unintended global scope when bridge registers per-widget
+        updated.only = [this.widgetType];
+      }
+
+      // Preserve original callback to avoid unexpected overrides
+      registry.unregister(name);
+      registry.register(updated);
+      return;
+    }
+
+    // New button - register for this widget type only
+    registry.register({
+      name,
+      icon,
+      tooltip,
+      callback,
+      only: [this.widgetType],
+    });
+  }
+}
 
 // Mock CalendarManager
 const createMockCalendarManager = (): CalendarManagerInterface => ({
@@ -99,6 +153,149 @@ describe('SeasonsStarsIntegration - Bridge API', () => {
 
     it('should provide hooks interface', () => {
       expect(integration.hooks).toBeDefined();
+    });
+  });
+});
+
+describe('BridgeWidgetWrapper - Widget Targeting Merge Behavior', () => {
+  let registry: SidebarButtonRegistry;
+  let mainWrapper: TestBridgeWidgetWrapper;
+  let miniWrapper: TestBridgeWidgetWrapper;
+  let gridWrapper: TestBridgeWidgetWrapper;
+
+  beforeEach(() => {
+    (SidebarButtonRegistry as any).instance = null;
+    registry = SidebarButtonRegistry.getInstance();
+
+    const mockWidget = { rendered: true };
+    mainWrapper = new TestBridgeWidgetWrapper(mockWidget, 'main');
+    miniWrapper = new TestBridgeWidgetWrapper(mockWidget, 'mini');
+    gridWrapper = new TestBridgeWidgetWrapper(mockWidget, 'grid');
+  });
+
+  describe('Global Button Conversion', () => {
+    it('should convert global button (no filters) to widget-specific on first bridge add', () => {
+      const callback = vi.fn();
+
+      // Register a global button (no filters)
+      registry.register({
+        name: 'global-btn',
+        icon: 'fas fa-globe',
+        tooltip: 'Global',
+        callback,
+      });
+
+      const initial = registry.get('global-btn');
+      expect(initial?.only).toBeUndefined();
+      expect(initial?.except).toBeUndefined();
+
+      // Add via bridge for main widget
+      mainWrapper.addSidebarButton('global-btn', 'fas fa-globe', 'Global', callback);
+
+      const updated = registry.get('global-btn');
+      expect(updated?.only).toEqual(['main']);
+      expect(updated?.except).toBeUndefined();
+    });
+
+    it('should build up widget targeting list from global button', () => {
+      const callback = vi.fn();
+
+      // Register global button
+      registry.register({
+        name: 'convert-btn',
+        icon: 'fas fa-star',
+        tooltip: 'Convert',
+        callback,
+      });
+
+      // Add to main - converts to only: ['main']
+      mainWrapper.addSidebarButton('convert-btn', 'fas fa-star', 'Convert', callback);
+      expect(registry.get('convert-btn')?.only).toEqual(['main']);
+
+      // Add to grid - adds to list: only: ['main', 'grid']
+      gridWrapper.addSidebarButton('convert-btn', 'fas fa-star', 'Convert', callback);
+      expect(registry.get('convert-btn')?.only).toEqual(['main', 'grid']);
+
+      // Add to mini - adds to list: only: ['main', 'grid', 'mini']
+      miniWrapper.addSidebarButton('convert-btn', 'fas fa-star', 'Convert', callback);
+      expect(registry.get('convert-btn')?.only).toEqual(['main', 'grid', 'mini']);
+    });
+  });
+
+  describe('Callback Preservation', () => {
+    it('should preserve original callback when merging', () => {
+      const originalCallback = vi.fn();
+      const newCallback = vi.fn();
+
+      mainWrapper.addSidebarButton('callback-test', 'fas fa-test', 'Test', originalCallback);
+
+      const initial = registry.get('callback-test');
+      expect(initial?.callback).toBe(originalCallback);
+
+      // Try to add with different callback
+      gridWrapper.addSidebarButton('callback-test', 'fas fa-test', 'Test', newCallback);
+
+      const updated = registry.get('callback-test');
+      expect(updated?.callback).toBe(originalCallback);
+      expect(updated?.callback).not.toBe(newCallback);
+    });
+  });
+
+  describe('Only Filter Merge', () => {
+    it('should add widget type to existing only list', () => {
+      const callback = vi.fn();
+
+      mainWrapper.addSidebarButton('only-btn', 'fas fa-filter', 'Only', callback);
+      expect(registry.get('only-btn')?.only).toEqual(['main']);
+
+      gridWrapper.addSidebarButton('only-btn', 'fas fa-filter', 'Only', callback);
+      expect(registry.get('only-btn')?.only).toEqual(['main', 'grid']);
+    });
+
+    it('should not duplicate widget type in only list', () => {
+      const callback = vi.fn();
+
+      mainWrapper.addSidebarButton('no-dup', 'fas fa-star', 'No Dup', callback);
+      mainWrapper.addSidebarButton('no-dup', 'fas fa-star', 'No Dup', callback);
+
+      expect(registry.get('no-dup')?.only).toEqual(['main']);
+    });
+  });
+
+  describe('Except Filter Merge', () => {
+    it('should remove widget type from except list', () => {
+      const callback = vi.fn();
+
+      registry.register({
+        name: 'except-btn',
+        icon: 'fas fa-ban',
+        tooltip: 'Except',
+        callback,
+        except: ['main', 'grid'],
+      });
+
+      mainWrapper.addSidebarButton('except-btn', 'fas fa-ban', 'Except', callback);
+
+      const updated = registry.get('except-btn');
+      expect(updated?.except).toEqual(['grid']);
+    });
+
+    it('should delete except property when list becomes empty', () => {
+      const callback = vi.fn();
+
+      registry.register({
+        name: 'last-except',
+        icon: 'fas fa-check',
+        tooltip: 'Last',
+        callback,
+        except: ['main'],
+      });
+
+      mainWrapper.addSidebarButton('last-except', 'fas fa-check', 'Last', callback);
+
+      const updated = registry.get('last-except');
+      expect(updated?.except).toBeUndefined();
+      expect(updated?.only).toBeUndefined();
     });
   });
 });

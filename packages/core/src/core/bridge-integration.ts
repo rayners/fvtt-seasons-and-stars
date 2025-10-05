@@ -595,6 +595,27 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
     return this.widget.rendered || false;
   }
 
+  /**
+   * Add a sidebar button to this widget via the compatibility bridge
+   *
+   * **Merge Behavior**: This method uses a widget-targeting merge strategy designed for
+   * compatibility bridges that may register the same button multiple times across different
+   * widget instances. Unlike the global registry which rejects duplicates, this method:
+   *
+   * - **New button**: Registers with `only: [widgetType]` to show on this widget only
+   * - **Existing with `only` filter**: Adds this widget type to the list if not present
+   * - **Existing with `except` filter**: Removes this widget type from exclusion list
+   * - **Existing with no filters**: Converts to `only: [widgetType]` to restrict targeting
+   * - **Callback preservation**: Always preserves the original callback, ignoring new callback
+   *
+   * This merge behavior allows compatibility layers (like Simple Calendar Bridge) to
+   * build up widget targeting across multiple registration calls without callback conflicts.
+   *
+   * @param name - Unique button identifier
+   * @param icon - Font Awesome icon class (e.g., 'fas fa-star')
+   * @param tooltip - Button tooltip text
+   * @param callback - Click handler (ignored if button already exists)
+   */
   addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void {
     const registry = SidebarButtonRegistry.getInstance();
     const existing = registry.get(name);
@@ -615,8 +636,11 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
         if (updated.except.length === 0) {
           delete updated.except;
         }
+      } else {
+        // No filters means shows everywhere - convert to explicit targeting
+        // to avoid unintended global scope when bridge registers per-widget
+        updated.only = [this.widgetType];
       }
-      // If neither only nor except, button already shows everywhere - no change needed
 
       // Preserve original callback to avoid unexpected overrides
       registry.unregister(name);
