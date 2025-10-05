@@ -7,7 +7,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 ) {
   private currentJson: string = '';
   private lastValidationResult: any = null;
-  private validationTimeout: NodeJS.Timeout | null = null;
+  private validationTimeout: number | null = null;
   private validationSequence: number = 0;
 
   constructor() {

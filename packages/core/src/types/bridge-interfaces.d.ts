@@ -62,7 +62,7 @@ export interface SeasonsStarsAPI {
   advanceWeeks(weeks: number): Promise<void>;
   advanceMonths(months: number): Promise<void>;
   advanceYears(years: number): Promise<void>;
-  validateCalendar(calendarData: any): Promise<ValidationResult>;
+  validateCalendar(calendarData: unknown): Promise<ValidationResult>;
 }
 
 export interface SeasonsStarsWidgets {

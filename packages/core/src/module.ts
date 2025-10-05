@@ -1827,7 +1827,7 @@ export function setupAPI(): void {
      * }
      * ```
      */
-    async validateCalendar(calendarData: any): Promise<ValidationResult> {
+    async validateCalendar(calendarData: unknown): Promise<ValidationResult> {
       return APIWrapper.wrapAPIMethod(
         'validateCalendar',
         { hasData: !!calendarData },

@@ -175,7 +175,7 @@ export interface SeasonsStarsAPI {
   clearExternalCalendarCache(): void;
   // Module Calendar Loading Methods
   loadModuleCalendars(moduleId: string): Promise<LoadResult[]>;
-  validateCalendar(calendarData: any): Promise<import('./bridge-interfaces').ValidationResult>;
+  validateCalendar(calendarData: unknown): Promise<import('./bridge-interfaces').ValidationResult>;
 }
 
 // Type guard functions (implementations in type-guards.ts)
