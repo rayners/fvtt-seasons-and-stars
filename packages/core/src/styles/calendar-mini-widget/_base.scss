@@ -1,0 +1,63 @@
+/**
+ * Calendar Mini Widget - Base Container Styles
+ */
+
+// Smooth fade-out animation for widget hide (SmallTime approach)
+@keyframes seasons-stars-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.calendar-mini-widget {
+  // Ensure widget is clickable and visible
+  pointer-events: all !important;
+  visibility: visible !important;
+  display: block !important;
+
+  // Remove all window chrome
+  .window-header {
+    display: none;
+  }
+
+  .window-content {
+    padding: 0;
+  }
+
+  // Base content container
+  .calendar-mini-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.3rem 0.4rem;
+    background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    font-family: 'Signika', sans-serif;
+    font-size: 0.8rem;
+    color: #e0e0e0;
+    line-height: 1.2;
+    width: fit-content;
+    min-width: 140px;
+    max-width: 400px;
+    margin: 0;
+  }
+
+  // Subtle hover effect to match SmallTime
+  .calendar-mini-content:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+
+  // Error state
+  .mini-error {
+    color: #ff6b6b;
+    font-size: 0.7rem;
+    text-align: center;
+    padding: 0.2rem;
+  }
+}

@@ -142,7 +142,7 @@ describe('Calendar Click Behavior Feature', () => {
       expect(mockNotifications.info).toHaveBeenCalledWith('Date set to 20th of January, 2024');
     });
 
-    it('should prevent non-GM from setting dates', async () => {
+    it('should show date info for non-GM clicks instead of setting date', async () => {
       global.game.user = { isGM: false };
 
       const mockTarget = document.createElement('div');
@@ -154,10 +154,10 @@ describe('Calendar Click Behavior Feature', () => {
       await widget._onSelectDate(mockEvent, mockTarget);
 
       expect(setCurrentDateSpy).not.toHaveBeenCalled();
-      expect(mockNotifications.warn).toHaveBeenCalledWith('Only GMs can change the current date');
+      expect(mockNotifications.info).toHaveBeenCalledWith('15th of January, 2024');
     });
 
-    it('should prevent non-GM Ctrl+Click from setting dates', async () => {
+    it('should show date info for non-GM Ctrl+Click (not set date)', async () => {
       global.game.user = { isGM: false };
 
       const mockTarget = document.createElement('div');
@@ -169,7 +169,7 @@ describe('Calendar Click Behavior Feature', () => {
       await widget._onSelectDate(mockEvent, mockTarget);
 
       expect(setCurrentDateSpy).not.toHaveBeenCalled();
-      expect(mockNotifications.warn).toHaveBeenCalledWith('Only GMs can change the current date');
+      expect(mockNotifications.info).toHaveBeenCalledWith('15th of January, 2024');
     });
   });
 
