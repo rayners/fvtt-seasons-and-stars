@@ -162,6 +162,7 @@ interface Game {
     resetSeasonsWarningState?: () => void;
     getSeasonsWarningState?: () => boolean;
     setSeasonsWarningState?: (warned: boolean) => void;
+    buttonRegistry?: unknown;
   };
 }
 
@@ -267,6 +268,7 @@ interface Module {
   active: boolean;
   version?: string;
   api?: unknown; // For modules that expose APIs
+  flags?: Record<string, unknown>; // Module flags from module.json
 }
 
 interface UI {

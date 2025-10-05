@@ -9,11 +9,12 @@
     "packages/fantasy-pack",
     "packages/scifi-pack",
     "packages/pf2e-pack",
-    "packages/test-module"
+    "packages/test-module",
+    "packages/custom-calendar-builder"
   ],
   "scripts": {
     "prebuild": "npm run prebuild --workspaces",
-    "build": "npm run build --workspaces",
+    "build": "rm -rf ./dist && npm run build --workspaces",
     "watch": "npm run watch --workspace=packages/core",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint packages/core/src",
@@ -72,7 +73,7 @@
     "@playwright/test": "^1.55.0",
     "eslint": "^9.35.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.6",
+    "lint-staged": "^16.2.3",
     "prettier": "^3.5.3"
   }
 }

@@ -1,0 +1,92 @@
+<div class="calendar-builder-content">
+  <!-- Toolbar -->
+  <div class="calendar-builder-toolbar">
+    <button type="button" data-action="newCalendar" class="button" title="{{localize 'CALENDAR_BUILDER.app.buttons.new'}}">
+      <i class="fas fa-file"></i> {{localize 'CALENDAR_BUILDER.app.buttons.new'}}
+    </button>
+    <button type="button" data-action="openCalendar" class="button" title="{{localize 'CALENDAR_BUILDER.app.buttons.open'}}">
+      <i class="fas fa-folder-open"></i> {{localize 'CALENDAR_BUILDER.app.buttons.open'}}
+    </button>
+    <button type="button" data-action="importJson" class="button" title="{{localize 'CALENDAR_BUILDER.app.buttons.import'}}">
+      <i class="fas fa-upload"></i> {{localize 'CALENDAR_BUILDER.app.buttons.import'}}
+    </button>
+    <div class="separator"></div>
+    <button type="button" data-action="exportJson" class="button" title="{{localize 'CALENDAR_BUILDER.app.buttons.export'}}" {{#unless hasContent}}disabled{{/unless}}>
+      <i class="fas fa-download"></i> {{localize 'CALENDAR_BUILDER.app.buttons.export'}}
+    </button>
+    <div class="separator"></div>
+    <button type="button" data-action="validateJson" class="button" title="{{localize 'CALENDAR_BUILDER.app.buttons.validate'}}" {{#unless hasContent}}disabled{{/unless}}>
+      <i class="fas fa-check"></i> {{localize 'CALENDAR_BUILDER.app.buttons.validate'}}
+    </button>
+    <button type="button" data-action="clearEditor" class="button danger" title="{{localize 'CALENDAR_BUILDER.app.buttons.clear'}}" {{#unless hasContent}}disabled{{/unless}}>
+      <i class="fas fa-trash"></i> {{localize 'CALENDAR_BUILDER.app.buttons.clear'}}
+    </button>
+  </div>
+
+  <!-- Main editor area -->
+  <div class="calendar-builder-main">
+    <!-- JSON Editor -->
+    <div class="editor-container">
+      <h3>{{localize 'CALENDAR_BUILDER.app.editor.title'}}</h3>
+      <code-mirror
+        id="calendar-json-editor"
+        class="json-editor"
+        language="json"
+        indent="2"
+        name="calendarJson"
+        aria-label="Calendar JSON Editor"
+      >{{currentJson}}</code-mirror>
+    </div>
+
+    <!-- Validation Results -->
+    <div class="validation-container">
+      <h3>{{localize 'CALENDAR_BUILDER.app.editor.validation.title'}}</h3>
+      <div class="validation-results">
+        {{#if validationResult}}
+          {{#if validationResult.isValid}}
+            <div class="validation-status valid">
+              <i class="fas fa-check-circle"></i> {{localize 'CALENDAR_BUILDER.app.editor.validation.valid'}}
+            </div>
+          {{else}}
+            <div class="validation-status invalid">
+              <i class="fas fa-times-circle"></i> {{localize 'CALENDAR_BUILDER.app.editor.validation.invalid'}}
+            </div>
+          {{/if}}
+
+          {{#if validationResult.errors}}
+            {{#if (gt validationResult.errors.length 0)}}
+              <div class="validation-errors">
+                <h4>Errors:</h4>
+                <ul>
+                  {{#each validationResult.errors}}
+                    <li class="error">{{this}}</li>
+                  {{/each}}
+                </ul>
+              </div>
+            {{/if}}
+          {{/if}}
+
+          {{#if validationResult.warnings}}
+            {{#if (gt validationResult.warnings.length 0)}}
+              <div class="validation-warnings">
+                <h4>{{localize 'CALENDAR_BUILDER.app.editor.validation.warnings'}}</h4>
+                <ul>
+                  {{#each validationResult.warnings}}
+                    <li class="warning">{{this}}</li>
+                  {{/each}}
+                </ul>
+              </div>
+            {{/if}}
+          {{/if}}
+        {{else}}
+          <p class="no-validation">Enter calendar JSON to see validation results</p>
+        {{/if}}
+      </div>
+      <div class="docs-link">
+        <a href="https://github.com/rayners/fvtt-seasons-and-stars/blob/main/CALENDAR-FORMAT.md" target="_blank" rel="noopener noreferrer">
+          <i class="fas fa-book"></i> Calendar Format Documentation <i class="fas fa-external-link-alt"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

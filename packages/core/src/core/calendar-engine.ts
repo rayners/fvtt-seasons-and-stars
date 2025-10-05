@@ -854,17 +854,28 @@ export class CalendarEngine {
   /**
    * Get month lengths for a specific year (accounting for leap years)
    */
-  private getMonthLengths(year: number): number[] {
+  getMonthLengths(year: number): number[] {
     const monthLengths = this.calendar.months.map(month => month.days);
 
-    // Add leap year days if applicable
+    // Add or remove leap year days if applicable
     if (this.isLeapYear(year) && this.calendar.leapYear?.month) {
       const leapMonthIndex = this.calendar.months.findIndex(
         month => month.name === this.calendar.leapYear!.month
       );
 
       if (leapMonthIndex >= 0) {
-        monthLengths[leapMonthIndex] += this.calendar.leapYear!.extraDays || 1;
+        // extraDays can be positive (add days) or negative (remove days)
+        // Default to +1 for backward compatibility
+        const dayAdjustment = this.calendar.leapYear!.extraDays ?? 1;
+        monthLengths[leapMonthIndex] += dayAdjustment;
+
+        // Ensure month length doesn't go below 1
+        if (monthLengths[leapMonthIndex] < 1) {
+          Logger.warn(
+            `Calendar ${this.calendar.id}: Month "${this.calendar.leapYear!.month}" clamped to 1 day (was ${monthLengths[leapMonthIndex]})`
+          );
+          monthLengths[leapMonthIndex] = 1;
+        }
       }
     }
 
@@ -918,7 +929,7 @@ export class CalendarEngine {
   /**
    * Check if a year is a leap year
    */
-  private isLeapYear(year: number): boolean {
+  isLeapYear(year: number): boolean {
     const leapYear = this.calendar.leapYear;
     if (!leapYear) return false;
 

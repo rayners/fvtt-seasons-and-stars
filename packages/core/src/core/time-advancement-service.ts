@@ -495,17 +495,22 @@ export class TimeAdvancementService {
 
   /**
    * Calculate optimal interval based on advancement ratio
-   * Ensures minimum 10000ms real time and dynamic scaling for slow ratios
+   * Ensures minimum configured interval and dynamic scaling for slow ratios
    * @param ratio The advancement ratio (game seconds per real second)
    * @returns Interval in milliseconds
    * @private
    */
   private calculateOptimalInterval(ratio: number): number {
-    // Formula: Math.max(10000, Math.ceil(1000 / ratio))
+    // Get the configured minimum interval (in seconds) and convert to milliseconds
+    const minIntervalSeconds =
+      (game.settings.get('seasons-and-stars', 'realTimeAdvancementInterval') as number) || 10;
+    const minIntervalMs = minIntervalSeconds * 1000;
+
+    // Formula: Math.max(minIntervalMs, Math.ceil(1000 / ratio))
     // This ensures:
-    // - Never advance more frequently than every 10000ms real time
+    // - Never advance more frequently than the configured minimum interval
     // - Always scales appropriately for very slow ratios
-    return Math.max(10000, Math.ceil(1000 / ratio));
+    return Math.max(minIntervalMs, Math.ceil(1000 / ratio));
   }
 
   /**

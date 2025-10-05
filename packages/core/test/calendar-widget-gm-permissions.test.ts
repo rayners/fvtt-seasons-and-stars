@@ -116,4 +116,63 @@ describe('CalendarWidget GM permissions', () => {
     expect(html).not.toContain('data-action="openCalendarSelection"');
     expect(html).not.toContain('calendar-hint');
   });
+
+  it('prevents non-GMs from advancing time via _onAdvanceDate', async () => {
+    game.user = { isGM: false } as any;
+    const manager = game.seasonsStars.manager as any;
+    manager.advanceDays = vi.fn();
+
+    const target = document.createElement('div');
+    target.dataset.amount = '1';
+    target.dataset.unit = 'days';
+
+    const event = new Event('click');
+    await widget._onAdvanceDate(event, target);
+
+    expect(manager.advanceDays).not.toHaveBeenCalled();
+  });
+
+  it('allows GMs to advance time via _onAdvanceDate', async () => {
+    game.user = { isGM: true } as any;
+    const manager = game.seasonsStars.manager as any;
+    manager.advanceDays = vi.fn();
+
+    const target = document.createElement('div');
+    target.dataset.amount = '1';
+    target.dataset.unit = 'days';
+
+    const event = new Event('click');
+    await widget._onAdvanceDate(event, target);
+
+    expect(manager.advanceDays).toHaveBeenCalledWith(1);
+  });
+
+  it('prevents non-GMs from toggling time advancement', async () => {
+    game.user = { isGM: false } as any;
+    const TimeAdvancementService = await import('../src/core/time-advancement-service');
+    const mockService = { isActive: false, play: vi.fn(), pause: vi.fn() };
+    vi.spyOn(TimeAdvancementService.TimeAdvancementService, 'getInstance').mockReturnValue(
+      mockService as any
+    );
+
+    const event = new Event('click');
+    await widget._onToggleTimeAdvancement(event);
+
+    expect(mockService.play).not.toHaveBeenCalled();
+    expect(mockService.pause).not.toHaveBeenCalled();
+  });
+
+  it('allows GMs to toggle time advancement', async () => {
+    game.user = { isGM: true } as any;
+    const TimeAdvancementService = await import('../src/core/time-advancement-service');
+    const mockService = { isActive: false, play: vi.fn(), pause: vi.fn() };
+    vi.spyOn(TimeAdvancementService.TimeAdvancementService, 'getInstance').mockReturnValue(
+      mockService as any
+    );
+
+    const event = new Event('click');
+    await widget._onToggleTimeAdvancement(event);
+
+    expect(mockService.play).toHaveBeenCalled();
+  });
 });

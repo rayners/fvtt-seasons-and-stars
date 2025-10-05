@@ -7,6 +7,8 @@ on:
 jobs:
   trigger-docs-update:
     runs-on: ubuntu-latest
+    # Only trigger for core module releases (seasons-and-stars), not calendar packs
+    if: startsWith(github.event.release.tag_name, 'seasons-and-stars-v') || startsWith(github.event.release.tag_name, 'v')
     steps:
       - name: Trigger documentation update
         uses: peter-evans/repository-dispatch@v3

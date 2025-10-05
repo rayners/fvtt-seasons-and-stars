@@ -20,17 +20,40 @@
         </div>
       {{/if}}
     </div>
-    {{#if showTimeControls}}
-      <div class="mini-time-controls">
-        {{#each (getQuickTimeButtons true)}}
-          <button data-action="advanceTime" 
-                  data-amount="{{this.amount}}" 
-                  data-unit="{{this.unit}}"
-                  class="{{#if (lt this.amount 0)}}rewind{{/if}}"
-                  title="{{#if (lt this.amount 0)}}Go back{{else}}Advance{{/if}} {{this.label}}">
-            <i class="fas fa-{{#if (lt this.amount 0)}}backward{{else}}clock{{/if}}"></i> {{#if (lt this.amount 0)}}{{this.label}}{{else}}+{{this.label}}{{/if}}
-          </button>
-        {{/each}}
+
+    {{#if (or showTimeControls sidebarButtons.length)}}
+      <div class="mini-footer-row{{#unless showTimeControls}} mini-footer-row--no-quick{{/unless}}">
+        {{#if showTimeControls}}
+          <div class="mini-time-controls">
+            {{#each (getQuickTimeButtons true)}}
+              <button data-action="advanceTime" 
+                      data-amount="{{this.amount}}" 
+                      data-unit="{{this.unit}}"
+                      class="{{#if (lt this.amount 0)}}rewind{{/if}}"
+                      title="{{#if (lt this.amount 0)}}Go back{{else}}Advance{{/if}} {{this.label}}">
+                <i class="fas fa-{{#if (lt this.amount 0)}}backward{{else}}clock{{/if}} fa-fw"></i> {{#if (lt this.amount 0)}}{{this.label}}{{else}}+{{this.label}}{{/if}}
+              </button>
+            {{/each}}
+          </div>
+        {{else}}
+          <div class="mini-time-controls mini-time-controls--empty"></div>
+        {{/if}}
+
+        {{#if sidebarButtons.length}}
+          <div class="mini-sidebar-buttons">
+            {{#each sidebarButtons}}
+              <button
+                type="button"
+                class="mini-sidebar-button"
+                title="{{this.tooltip}}"
+                data-action="clickSidebarButton"
+                data-button-name="{{this.name}}"
+              >
+                <i class="{{this.icon}} fa-fw"></i>
+              </button>
+            {{/each}}
+          </div>
+        {{/if}}
       </div>
     {{/if}}
   {{/if}}

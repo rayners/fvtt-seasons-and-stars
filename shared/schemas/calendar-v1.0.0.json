@@ -274,9 +274,9 @@
         },
         "extraDays": {
           "type": "integer",
-          "minimum": 1,
+          "minimum": -10,
           "maximum": 10,
-          "description": "How many extra days to add"
+          "description": "Number of days to add (positive) or remove (negative) during leap years"
         }
       },
       "allOf": [

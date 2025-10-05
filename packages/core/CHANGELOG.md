@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.19.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.18.0...seasons-and-stars-v0.19.0) (2025-10-01)
+
+
+### Features
+
+* allow non-GM users to open calendar widgets ([#328](https://github.com/rayners/fvtt-seasons-and-stars/issues/328)) ([4254f39](https://github.com/rayners/fvtt-seasons-and-stars/commit/4254f39f0ce0868af915bbec03aed470238443af))
+
+## [0.18.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.17.1...seasons-and-stars-v0.18.0) (2025-09-27)
+
+
+### Features
+
+* add support for negative leap days ([#304](https://github.com/rayners/fvtt-seasons-and-stars/issues/304)) ([9790c02](https://github.com/rayners/fvtt-seasons-and-stars/commit/9790c02a8cd9465c9df166066db1c4fa7ae3b406))
+* make minimum real time advancement interval configurable ([#296](https://github.com/rayners/fvtt-seasons-and-stars/issues/296)) ([c863ac3](https://github.com/rayners/fvtt-seasons-and-stars/commit/c863ac324c7d581b2c6955e9b54087576a9691d5))
+
+
+### Bug Fixes
+
+* calendar settings dropdown shows only Gregorian instead of full list ([#316](https://github.com/rayners/fvtt-seasons-and-stars/issues/316)) ([1088fa0](https://github.com/rayners/fvtt-seasons-and-stars/commit/1088fa0d009053ddd41c4c4e48f1ac8af59cb0aa))
+* resolve time advancement race condition in widget toggle logic ([#313](https://github.com/rayners/fvtt-seasons-and-stars/issues/313)) ([4e4749d](https://github.com/rayners/fvtt-seasons-and-stars/commit/4e4749d88833156f8ce24ee66408d15d165a582b))
+* **ui:** handle array vs map mismatch in calendar count check ([#315](https://github.com/rayners/fvtt-seasons-and-stars/issues/315)) ([6d61d95](https://github.com/rayners/fvtt-seasons-and-stars/commit/6d61d957a382551ac3da00be086a49f269742610))
+
+## [0.17.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.17.0...seasons-and-stars-v0.17.1) (2025-09-24)
+
+
+### Bug Fixes
+
+* add missing repository metadata to all packages ([#300](https://github.com/rayners/fvtt-seasons-and-stars/issues/300)) ([d7499ef](https://github.com/rayners/fvtt-seasons-and-stars/commit/d7499ef4a6ec5f232118469a56acf8238542b38a))
+
 ## [0.17.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.16.0...seasons-and-stars-v0.17.0) (2025-09-23)
 
 

@@ -59,7 +59,7 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 
 ### Basic Usage
 
-- **Open Calendar**: Click the calendar button in scene controls
+- **Open Calendar**: Click the calendar button in the journal notes controls (left sidebar)
 - **Change Date**: GMs can click on calendar dates to set world time
 - **Quick Time Controls**: Use the mini widget for rapid time advancement
 - **Calendar Selection**: Switch between different calendar systems anytime

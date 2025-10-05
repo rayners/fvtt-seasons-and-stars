@@ -1,0 +1,74 @@
+name: Claude Q&A Support
+
+on:
+  # schedule:
+  # Run once daily at 9 AM UTC
+  # - cron: '0 9 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  answer-questions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      discussions: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Checkout dev-context repository
+        uses: actions/checkout@v4
+        with:
+          repository: rayners/dev-context
+          path: dev-context
+          fetch-depth: 1
+      - name: Import GH aliases
+        id: import-aliases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh alias import dev-context/.gh-aliases.yml --clobber
+
+      - name: Load shared prompt
+        id: load-prompt
+        run: |
+          {
+            echo 'content<<EOF'
+            cat dev-context/claude-prompts/qa-discussion.md
+            echo ""
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Answer Q&A Discussions
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            ${{ steps.load-prompt.outputs.content }}
+
+            Check the Q&A discussions category for unanswered questions:
+            https://github.com/rayners/fvtt-seasons-and-stars/discussions/categories/q-a
+
+            IMPORTANT LIMITS:
+            - Only address the 3 OLDEST unreplied discussions (no responses at all)
+            - "Unreplied" means zero responses/comments from anyone (human or bot)
+            - Use the GitHub CLI alias: gh disc-category-discussions rayners fvtt-seasons-and-stars DIC_kwDOOzhs_M4Csv_8 unreplied
+            - Any response/comment means the discussion should be skipped entirely
+            - If fewer than 3 unreplied questions exist, handle what's available
+
+            For each qualifying question:
+            1. Provide helpful, accurate responses based on the codebase
+            2. Reference specific files/functions when relevant
+            3. Keep answers concise but thorough
+            4. Use examples from the calendar systems when appropriate
+            5. Be helpful but acknowledge limitations when appropriate
+
+            Skip discussions that already have any responses/comments.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_args: |
+            --model claude-sonnet-4-5
+            --allowedTools "Bash(gh api:*),Bash(gh search:*),Read,Write,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"

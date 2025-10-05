@@ -1139,6 +1139,13 @@ export class CalendarManager {
       return [];
     }
 
+    // Check if module explicitly states it doesn't provide calendars
+    const providesCalendars = module.flags?.['seasons-and-stars']?.['providesCalendars'];
+    if (providesCalendars === false) {
+      Logger.debug(`Module ${moduleId} explicitly does not provide calendars, skipping`);
+      return [];
+    }
+
     // Use module URL protocol for proper CalendarLoader handling
     const indexUrl = `module:${moduleId}`;
 

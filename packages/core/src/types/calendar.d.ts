@@ -41,6 +41,10 @@ export interface SeasonsStarsCalendar {
      */
     offset?: number;
     month?: string;
+    /**
+     * Number of days to add (positive) or remove (negative) during leap years.
+     * For example, +1 adds an extra day, -1 removes a day.
+     */
     extraDays?: number;
   };
 
@@ -68,6 +72,43 @@ export interface SeasonsStarsCalendar {
 
   // Source tracking for badge display and management
   sourceInfo?: CalendarSourceInfo;
+
+  /**
+   * System-specific compatibility adjustments applied by CompatibilityManager.
+   * This field is managed internally and should not be modified by external modules.
+   *
+   * The compatibility manager uses this field to store system-specific date formatting
+   * adjustments (e.g., weekday offsets for WFRP, month offsets for different systems)
+   * that are applied automatically when converting between calendar dates and world time.
+   *
+   * @internal
+   * @see CompatibilityManager
+   *
+   * @example
+   * // Example of how CompatibilityManager uses this field internally
+   * calendar.compatibility = {
+   *   wfrp4e: {
+   *     weekdayOffset: 1,
+   *     description: 'WFRP4e uses Monday as first day of week'
+   *   },
+   *   pf2e: {
+   *     dateFormatting: {
+   *       monthOffset: 1
+   *     },
+   *     description: 'PF2e uses 1-indexed months'
+   *   }
+   * };
+   */
+  compatibility?: {
+    [systemId: string]: {
+      weekdayOffset?: number;
+      dateFormatting?: {
+        monthOffset?: number;
+        dayOffset?: number;
+      };
+      description?: string;
+    };
+  };
 }
 
 export type CalendarSourceReference = string | CalendarCitationReference;
