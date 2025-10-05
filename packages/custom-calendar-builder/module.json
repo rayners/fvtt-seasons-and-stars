@@ -26,6 +26,11 @@
       }
     ]
   },
+  "flags": {
+    "seasons-and-stars": {
+      "providesCalendars": false
+    }
+  },
   "esmodules": [
     "module.js"
   ],
