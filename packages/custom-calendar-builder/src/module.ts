@@ -24,43 +24,16 @@ Hooks.once('init', () => {
 Hooks.once('seasons-and-stars.ready', () => {
   console.log('Calendar Builder | Core module ready, setting up calendar builder');
 
-  // Add builder button to calendar widgets via core widget hook
-  Hooks.on('seasons-stars:widgetCreated', (widget: any) => {
-    if (widget && typeof widget.addSidebarButton === 'function') {
-      widget.addSidebarButton(
-        'calendar-builder',
-        'fa-solid fa-edit',
-        'Open Calendar Builder',
-        () => {
-          if (calendarBuilderApp) {
-            calendarBuilderApp.render(true);
-          }
-        }
-      );
+  // Register sidebar button using the new registry system
+  const registry = (game as any).seasonsStars.buttonRegistry;
+  registry.register({
+    name: 'calendar-builder',
+    icon: 'fa-solid fa-hammer',
+    tooltip: 'Open Calendar Builder',
+    callback: () => {
+      calendarBuilderApp?.render(true);
     }
   });
-
-  // Add to existing widgets if they exist
-  try {
-    const GlobalCalendarWidget = (globalThis as any).CalendarWidget;
-    if (GlobalCalendarWidget?.getActiveInstance) {
-      const activeWidget = GlobalCalendarWidget.getActiveInstance();
-      if (activeWidget && typeof activeWidget.addSidebarButton === 'function') {
-        activeWidget.addSidebarButton(
-          'calendar-builder',
-          'fa-solid fa-edit',
-          'Open Calendar Builder',
-          () => {
-            if (calendarBuilderApp) {
-              calendarBuilderApp.render(true);
-            }
-          }
-        );
-      }
-    }
-  } catch (error) {
-    console.debug('Calendar Builder | Could not add button to existing widget:', error);
-  }
 });
 
 /**

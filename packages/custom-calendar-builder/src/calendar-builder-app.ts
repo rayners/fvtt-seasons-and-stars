@@ -27,7 +27,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   static DEFAULT_OPTIONS = {
     id: 'calendar-builder-app',
     classes: ['calendar-builder'],
-    tag: 'div',
+    tag: 'form',
     window: {
       frame: true,
       positioned: true,
@@ -43,7 +43,6 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     actions: {
       newCalendar: CalendarBuilderApp.prototype._onNewCalendar,
       openCalendar: CalendarBuilderApp.prototype._onOpenCalendar,
-      saveCalendar: CalendarBuilderApp.prototype._onSaveCalendar,
       exportJson: CalendarBuilderApp.prototype._onExportJson,
       importJson: CalendarBuilderApp.prototype._onImportJson,
       validateJson: CalendarBuilderApp.prototype._onValidateJson,
@@ -76,45 +75,21 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
     super._attachPartListeners(partId, htmlElement, options);
 
-    // Set up textarea editor
-    const textarea = htmlElement.querySelector('#calendar-json-editor') as HTMLTextAreaElement;
-    if (textarea) {
-      // Auto-resize textarea
-      this._setupTextareaAutoResize(textarea);
-
-      // Auto-validate on input (debounced)
-      textarea.addEventListener('input', (event) => {
-        const target = event.target as HTMLTextAreaElement;
-        this.currentJson = target.value;
-
-        // Clear previous timeout
-        if (this.validationTimeout) {
-          clearTimeout(this.validationTimeout);
-        }
-
-        // Set new timeout for validation
-        this.validationTimeout = setTimeout(() => {
-          this._validateCurrentJson();
-        }, 2000); // 2 second delay after stopping typing
-      });
-    }
-
     // Update validation results display
     this._updateValidationDisplay();
   }
 
-  /**
-   * Setup auto-resize for textarea
-   */
-  private _setupTextareaAutoResize(textarea: HTMLTextAreaElement): void {
-    const resize = () => {
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.min(textarea.scrollHeight, 400) + 'px';
-    };
+  /** @override */
+  _onChangeForm(formConfig: any, event: Event): void {
+    super._onChangeForm(formConfig, event);
 
-    textarea.addEventListener('input', resize);
-    // Initial resize
-    setTimeout(resize, 0);
+    // Update current JSON from the CodeMirror element
+    const codeMirror = this.element?.querySelector('#calendar-json-editor') as any;
+    if (codeMirror) {
+      this.currentJson = codeMirror.value || '';
+      // Validate when the form changes
+      this._validateCurrentJson();
+    }
   }
 
 
@@ -264,31 +239,57 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       id: 'my-custom-calendar',
       translations: {
         en: {
-          name: 'My Custom Calendar',
-          description: 'A custom calendar created with Calendar Builder'
+          label: 'My Custom Calendar',
+          description: 'A custom calendar created with Calendar Builder',
+          setting: 'Generic'
         }
       },
+      year: {
+        epoch: 0,
+        currentYear: 1,
+        prefix: '',
+        suffix: '',
+        startDay: 0
+      },
       months: [
-        { name: 'January', days: 31 },
-        { name: 'February', days: 28 },
-        { name: 'March', days: 31 }
+        { name: 'January', abbreviation: 'Jan', days: 31 },
+        { name: 'February', abbreviation: 'Feb', days: 28 },
+        { name: 'March', abbreviation: 'Mar', days: 31 },
+        { name: 'April', abbreviation: 'Apr', days: 30 },
+        { name: 'May', abbreviation: 'May', days: 31 },
+        { name: 'June', abbreviation: 'Jun', days: 30 },
+        { name: 'July', abbreviation: 'Jul', days: 31 },
+        { name: 'August', abbreviation: 'Aug', days: 31 },
+        { name: 'September', abbreviation: 'Sep', days: 30 },
+        { name: 'October', abbreviation: 'Oct', days: 31 },
+        { name: 'November', abbreviation: 'Nov', days: 30 },
+        { name: 'December', abbreviation: 'Dec', days: 31 }
       ],
       weekdays: [
-        { name: 'Sunday' },
-        { name: 'Monday' },
-        { name: 'Tuesday' },
-        { name: 'Wednesday' },
-        { name: 'Thursday' },
-        { name: 'Friday' },
-        { name: 'Saturday' }
+        { name: 'Sunday', abbreviation: 'Sun' },
+        { name: 'Monday', abbreviation: 'Mon' },
+        { name: 'Tuesday', abbreviation: 'Tue' },
+        { name: 'Wednesday', abbreviation: 'Wed' },
+        { name: 'Thursday', abbreviation: 'Thu' },
+        { name: 'Friday', abbreviation: 'Fri' },
+        { name: 'Saturday', abbreviation: 'Sat' }
       ],
       leapYear: {
-        rule: 'gregorian'
+        rule: 'gregorian',
+        month: 'February',
+        extraDays: 1
+      },
+      intercalary: [],
+      time: {
+        hoursInDay: 24,
+        minutesInHour: 60,
+        secondsInMinute: 60
       }
     };
 
     this.currentJson = JSON.stringify(template, null, 2);
     this.render(true);
+    this._validateCurrentJson();
     this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.new_template'));
   }
 
@@ -306,6 +307,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
       const filePicker = new FoundryFilePicker({
         type: 'data',
+        current: 'modules/seasons-and-stars/calendars',
         extensions: ['.json'],
         callback: async (path: string): Promise<void> => {
           try {
@@ -322,6 +324,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
             const calendarData = await response.text();
             this.currentJson = calendarData;
             this.render(true);
+            this._validateCurrentJson();
             this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
           } catch (error) {
             console.error('Failed to load calendar file:', error);
@@ -339,19 +342,6 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       console.error('Failed to open file picker:', error);
       this._notify('Failed to open file picker', 'error');
     }
-  }
-
-  /**
-   * Save calendar to file action
-   */
-  async _onSaveCalendar(event: Event, target: HTMLElement): Promise<void> {
-    if (!this.currentJson.trim()) {
-      this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_content'), 'warn');
-      return;
-    }
-
-    // For now, just export as JSON
-    this._onExportJson(event, target);
   }
 
   /**
@@ -426,25 +416,12 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    */
   async _onClearEditor(event: Event, target: HTMLElement): Promise<void> {
     try {
-      const dialog = new foundry.applications.api.DialogV2({
+      const confirmed = await foundry.applications.api.DialogV2.confirm({
         window: { title: 'Confirm Clear' },
         content: game.i18n.localize('CALENDAR_BUILDER.app.dialogs.confirm_clear'),
-        buttons: [
-          {
-            action: 'yes',
-            icon: 'fas fa-check',
-            label: 'Yes',
-            callback: () => true
-          },
-          {
-            action: 'no',
-            icon: 'fas fa-times',
-            label: 'No',
-            callback: () => false
-          }
-        ]
+        rejectClose: false,
+        modal: true
       });
-      const confirmed = await (dialog as any).wait();
 
       if (confirmed) {
         this.currentJson = '';

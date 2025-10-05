@@ -16,6 +16,7 @@
         "import": "Import JSON"
       },
       "editor": {
+        "title": "Calendar JSON",
         "placeholder": "Paste or type your calendar JSON here...",
         "validation": {
           "title": "Validation Results",
@@ -43,6 +44,7 @@
         "confirm_clear": "Are you sure you want to clear the editor? This will lose any unsaved changes."
       },
       "notifications": {
+        "new_template": "New calendar template created",
         "imported": "Calendar JSON imported successfully",
         "exported": "Calendar JSON exported to file",
         "saved": "Calendar saved successfully",

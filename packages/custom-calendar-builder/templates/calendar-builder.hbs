@@ -11,9 +11,6 @@
       <i class="fas fa-upload"></i> {{localize 'CALENDAR_BUILDER.app.buttons.import'}}
     </button>
     <div class="separator"></div>
-    <button type="button" data-action="saveCalendar" class="button" title="{{localize 'CALENDAR_BUILDER.app.buttons.save'}}" {{#unless hasContent}}disabled{{/unless}}>
-      <i class="fas fa-save"></i> {{localize 'CALENDAR_BUILDER.app.buttons.save'}}
-    </button>
     <button type="button" data-action="exportJson" class="button" title="{{localize 'CALENDAR_BUILDER.app.buttons.export'}}" {{#unless hasContent}}disabled{{/unless}}>
       <i class="fas fa-download"></i> {{localize 'CALENDAR_BUILDER.app.buttons.export'}}
     </button>
@@ -31,12 +28,14 @@
     <!-- JSON Editor -->
     <div class="editor-container">
       <h3>{{localize 'CALENDAR_BUILDER.app.editor.title'}}</h3>
-      <textarea
+      <code-mirror
         id="calendar-json-editor"
         class="json-editor"
-        placeholder="{{localize 'CALENDAR_BUILDER.app.editor.placeholder'}}"
-        spellcheck="false"
-      >{{currentJson}}</textarea>
+        language="json"
+        indent="2"
+        name="calendarJson"
+        aria-label="Calendar JSON Editor"
+      >{{currentJson}}</code-mirror>
     </div>
 
     <!-- Validation Results -->
@@ -82,6 +81,11 @@
         {{else}}
           <p class="no-validation">Enter calendar JSON to see validation results</p>
         {{/if}}
+      </div>
+      <div class="docs-link">
+        <a href="https://github.com/rayners/fvtt-seasons-and-stars/blob/main/CALENDAR-FORMAT.md" target="_blank" rel="noopener noreferrer">
+          <i class="fas fa-book"></i> Calendar Format Documentation <i class="fas fa-external-link-alt"></i>
+        </a>
       </div>
     </div>
   </div>

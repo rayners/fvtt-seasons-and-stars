@@ -76,7 +76,7 @@ const mockElement = {
   removeChild: vi.fn(),
   href: '',
   download: '',
-  set textContent(text: string): void {
+  set textContent(text: string) {
     // Escape HTML characters like a real div would
     this._innerHTML = text
       .replace(/&/g, '&amp;')
@@ -96,7 +96,7 @@ Object.defineProperty(globalThis, 'document', {
     createElement: vi.fn().mockImplementation((tagName: string) => ({
       ...mockElement,
       tagName: tagName.toUpperCase(),
-      set textContent(text: string): void {
+      set textContent(text: string) {
         // Escape HTML characters like a real div would
         this._innerHTML = text
           .replace(/&/g, '&amp;')

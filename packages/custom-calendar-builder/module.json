@@ -26,8 +26,8 @@
       }
     ]
   },
-  "scripts": [
-    "dist/module.js"
+  "esmodules": [
+    "module.js"
   ],
   "styles": [
     "styles/calendar-builder.css"
