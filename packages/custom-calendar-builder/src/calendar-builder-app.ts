@@ -2,6 +2,8 @@
  * Calendar Builder ApplicationV2 for creating and editing custom calendars
  */
 
+/// <reference types="../../core/src/types/foundry-v13-essentials" />
+
 export class CalendarBuilderApp extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
@@ -15,7 +17,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   }
 
   /** @override */
-  async close(options?: any): Promise<void> {
+  async close(options?: any): Promise<this> {
     // Clean up validation timeout
     if (this.validationTimeout) {
       clearTimeout(this.validationTimeout);
@@ -79,9 +81,8 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     this._updateValidationDisplay();
   }
 
-  /** @override */
-  _onChangeForm(formConfig: any, event: Event): void {
-    super._onChangeForm?.(formConfig, event);
+  protected override _onChangeForm(formConfig: any, event: Event): void {
+    super._onChangeForm(formConfig, event);
 
     // Update current JSON from the CodeMirror element
     const codeMirror = this.element?.querySelector('#calendar-json-editor') as any;
@@ -417,7 +418,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   async _onClearEditor(event: Event, target: HTMLElement): Promise<void> {
     try {
       const confirmed = await foundry.applications.api.DialogV2.confirm({
-        window: { title: 'Confirm Clear' },
+        title: 'Confirm Clear',
         content: game.i18n.localize('CALENDAR_BUILDER.app.dialogs.confirm_clear'),
         rejectClose: false,
         modal: true

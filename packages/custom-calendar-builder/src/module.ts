@@ -3,6 +3,8 @@
  * Provides a user interface for creating and editing custom calendar JSON files
  */
 
+/// <reference types="../../core/src/types/foundry-v13-essentials" />
+
 import { CalendarBuilderApp } from './calendar-builder-app';
 
 let calendarBuilderApp: CalendarBuilderApp | null = null;

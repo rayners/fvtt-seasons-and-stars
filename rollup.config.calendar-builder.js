@@ -14,6 +14,7 @@ export default {
     nodeResolve(),
     commonjs(),
     typescript({
+      tsconfig: '../../tsconfig.json',
       include: ['src/**/*'],
       compilerOptions: {
         target: 'ES2020',

@@ -390,6 +390,7 @@ declare class ApplicationV2<
     options: RenderOptions
   ): void;
   protected _onClose(options: ApplicationV2.CloseOptions): Promise<void>;
+  protected _onChangeForm(formConfig: any, event: Event): void;
 }
 
 declare namespace ApplicationV2 {
