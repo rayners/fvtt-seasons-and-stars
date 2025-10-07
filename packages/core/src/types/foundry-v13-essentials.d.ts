@@ -519,6 +519,7 @@ declare namespace DialogV2 {
 
   interface ConfirmOptions {
     title?: string;
+  interface ConfirmOptions {
     window?: { title?: string };
     content?: string;
     yes?: Function;
