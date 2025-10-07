@@ -2,6 +2,8 @@
  * Calendar Builder ApplicationV2 for creating and editing custom calendars
  */
 
+/// <reference types="../../core/src/types/foundry-v13-essentials" />
+
 export class CalendarBuilderApp extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
@@ -15,7 +17,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   }
 
   /** @override */
-  async close(options?: any): Promise<void> {
+  async close(options?: any): Promise<this> {
     // Clean up validation timeout
     if (this.validationTimeout) {
       clearTimeout(this.validationTimeout);
@@ -79,8 +81,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     this._updateValidationDisplay();
   }
 
-  /** @override */
-  _onChangeForm(formConfig: any, event: Event): void {
+  protected override _onChangeForm(formConfig: any, event: Event): void {
     super._onChangeForm?.(formConfig, event);
 
     // Update current JSON from the CodeMirror element
