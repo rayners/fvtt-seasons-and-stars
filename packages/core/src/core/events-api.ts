@@ -401,9 +401,28 @@ export class EventsAPI {
       return null;
     }
 
-    // Try to resolve journal entry
-    const journal = fromUuidSync(event.journalEntryId) as JournalEntry | null;
-    if (journal && journal.testUserPermission(game.user, 'OBSERVER')) {
+    // Try to resolve journal entry using Foundry's fromUuidSync
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const foundryGlobal = globalThis as any;
+    const journal = foundryGlobal.fromUuidSync?.(event.journalEntryId) as JournalEntry | null;
+
+    if (!journal || !game.user) {
+      return null;
+    }
+
+    // Check if user has permission to view the journal
+    // GMs can always view
+    if (game.user.isGM) {
+      return journal;
+    }
+
+    // Check ownership level (same pattern as note-permissions)
+    const ownership = journal.ownership;
+    const userLevel =
+      ownership[game.user.id] || ownership.default || CONST.DOCUMENT_OWNERSHIP_LEVELS.NONE;
+
+    // Require at least OBSERVER permission
+    if (userLevel >= CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER) {
       return journal;
     }
 

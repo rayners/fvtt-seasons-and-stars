@@ -14,6 +14,7 @@ import { compatibilityManager } from './core/compatibility-manager';
 import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
 import { CalendarLocalization } from './core/calendar-localization';
+import { EventsAPI } from './core/events-api';
 import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
@@ -360,6 +361,58 @@ export function setup(): void {
       resetSeasonsWarningState();
     });
 
+    // Event occurrence hook integration - fires when events occur on the current date
+    let lastEventCheckDate: { year: number; month: number; day: number } | null = null;
+
+    Hooks.on(
+      'seasons-stars:dateChanged',
+      (data: { newDate: ICalendarDate; oldTime: number; newTime: number; delta: number }) => {
+        const newDate = {
+          year: data.newDate.year,
+          month: data.newDate.month,
+          day: data.newDate.day,
+        };
+
+        // Check if day actually changed (ignore time-of-day changes)
+        const dayChanged =
+          !lastEventCheckDate ||
+          lastEventCheckDate.year !== newDate.year ||
+          lastEventCheckDate.month !== newDate.month ||
+          lastEventCheckDate.day !== newDate.day;
+
+        if (!dayChanged) {
+          return; // Same day, no need to check events
+        }
+
+        const previousDate = lastEventCheckDate ? { ...lastEventCheckDate } : undefined;
+        lastEventCheckDate = { ...newDate };
+
+        // Get events manager for active calendar
+        const eventsManager = calendarManager.getActiveEventsManager();
+        if (!eventsManager) {
+          return; // No events manager available
+        }
+
+        // Get events for the new date
+        const events = eventsManager.getEventsForDate(newDate.year, newDate.month, newDate.day);
+
+        // Only fire hook if there are events
+        if (events.length > 0) {
+          Hooks.callAll('seasons-stars:eventOccurs', {
+            events: events.map(event => ({
+              event,
+              year: newDate.year,
+              month: newDate.month,
+              day: newDate.day,
+            })),
+            date: newDate,
+            isStartup: false,
+            previousDate,
+          });
+        }
+      }
+    );
+
     // Initialize notes manager synchronously
     try {
       notesManager.initializeSync();
@@ -520,6 +573,44 @@ Hooks.once('ready', async () => {
   // Complete calendar manager initialization (read settings and set active calendar)
   // This must happen during ready hook since it sets world-level settings
   await calendarManager.completeInitialization();
+
+  // Check for events on startup (fire hook if current date has events)
+  try {
+    const currentDate = calendarManager.getCurrentDate();
+    if (currentDate) {
+      const eventsManager = calendarManager.getActiveEventsManager();
+      if (eventsManager) {
+        const events = eventsManager.getEventsForDate(
+          currentDate.year,
+          currentDate.month,
+          currentDate.day
+        );
+
+        if (events.length > 0) {
+          Hooks.callAll('seasons-stars:eventOccurs', {
+            events: events.map(event => ({
+              event,
+              year: currentDate.year,
+              month: currentDate.month,
+              day: currentDate.day,
+            })),
+            date: {
+              year: currentDate.year,
+              month: currentDate.month,
+              day: currentDate.day,
+            },
+            isStartup: true,
+            // No previousDate on startup
+          });
+        }
+      }
+    }
+  } catch (error) {
+    Logger.warn(
+      'Failed to check for events on startup:',
+      error instanceof Error ? error : new Error(String(error))
+    );
+  }
 
   // Show default widget if enabled in settings
   if (game.settings?.get('seasons-and-stars', 'showTimeWidget')) {
@@ -862,6 +953,25 @@ function registerSettings(): void {
     config: true,
     type: Boolean,
     default: false,
+  });
+
+  // === EVENTS SYSTEM SETTINGS ===
+
+  // World-level event customizations (GM additions, overrides, disabled events)
+  game.settings.register('seasons-and-stars', 'worldEvents', {
+    name: 'World Events',
+    hint: 'GM customizations for calendar events (hidden setting, managed via API)',
+    scope: 'world',
+    config: false, // Hidden - managed programmatically
+    type: Object,
+    default: {
+      events: [],
+      disabledEventIds: [],
+    },
+    onChange: (value: unknown) => {
+      // Notify that world events have changed
+      Hooks.callAll('seasons-stars:worldEventsChanged', value);
+    },
   });
 
   // === GENERAL UI SETTINGS ===
@@ -1842,6 +1952,72 @@ export function setupAPI(): void {
         }
       );
     },
+
+    /**
+     * Events API - access calendar events system
+     *
+     * Provides methods for retrieving calendar events, managing world-level event
+     * customizations, and integrating events with journal entries.
+     *
+     * Events are recurring occasions (holidays, festivals, observances) that occur
+     * predictably according to calendar rules. Events can be defined in calendar JSON
+     * files or customized at the world level by GMs.
+     *
+     * @example Get events for current date
+     * ```javascript
+     * const date = game.seasonsStars.api.getCurrentDate();
+     * if (date) {
+     *   const events = game.seasonsStars.api.events.getEventsForDate(
+     *     date.year,
+     *     date.month,
+     *     date.day
+     *   );
+     *   console.log('Events today:', events.map(e => e.name).join(', '));
+     * }
+     * ```
+     *
+     * @example Get events in a date range
+     * ```javascript
+     * // Get all events in January 2024
+     * const occurrences = game.seasonsStars.api.events.getEventsInRange(
+     *   2024, 1, 1,  // Start: January 1, 2024
+     *   2024, 1, 31  // End: January 31, 2024
+     * );
+     *
+     * occurrences.forEach(occ => {
+     *   console.log(`${occ.event.name} on ${occ.month}/${occ.day}/${occ.year}`);
+     * });
+     * ```
+     *
+     * @example Add custom world event (GM only)
+     * ```javascript
+     * // Add a custom event for harvest festival
+     * await game.seasonsStars.api.events.setWorldEvent({
+     *   id: 'harvest-festival',
+     *   name: 'Harvest Festival',
+     *   description: 'Annual celebration of the harvest',
+     *   recurrence: { type: 'fixed', month: 9, day: 15 },
+     *   color: '#ff8800',
+     *   icon: 'fas fa-wheat'
+     * });
+     * ```
+     *
+     * @example Link journal entry to event
+     * ```javascript
+     * // Create journal entry about Winter Solstice
+     * const journal = await JournalEntry.create({
+     *   name: 'Winter Solstice Traditions',
+     *   content: '<p>The longest night of the year...</p>'
+     * });
+     *
+     * // Link it to the winter solstice event
+     * await game.seasonsStars.api.events.setEventJournal(
+     *   'winter-solstice',
+     *   journal.uuid
+     * );
+     * ```
+     */
+    events: new EventsAPI(() => calendarManager.getActiveEventsManager()),
   };
 
   // Expose API to global game object

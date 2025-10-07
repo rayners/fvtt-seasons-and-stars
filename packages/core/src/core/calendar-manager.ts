@@ -4,6 +4,7 @@
 
 import type { SeasonsStarsCalendar, CalendarVariant, CalendarSourceInfo } from '../types/calendar';
 import { CalendarEngine } from './calendar-engine';
+import { EventsManager } from './events-manager';
 import { TimeConverter } from './time-converter';
 import { CalendarValidator } from './calendar-validator';
 import { CalendarDate } from './calendar-date';
@@ -15,6 +16,7 @@ import { Logger } from './logger';
 export class CalendarManager {
   public calendars: Map<string, SeasonsStarsCalendar> = new Map();
   public engines: Map<string, CalendarEngine> = new Map();
+  public eventsManagers: Map<string, EventsManager> = new Map();
   private timeConverter: TimeConverter | null = null;
   private activeCalendarId: string | null = null;
   private calendarLoader: CalendarLoader = new CalendarLoader();
@@ -316,6 +318,26 @@ export class CalendarManager {
       return false;
     }
 
+    // Create events manager for this calendar
+    try {
+      const eventsManager = new EventsManager(calendarData, engine);
+      this.eventsManagers.set(calendarData.id, eventsManager);
+
+      // Load world event settings if available
+      if (game.settings) {
+        const worldEvents = game.settings.get('seasons-and-stars', 'worldEvents');
+        if (worldEvents) {
+          eventsManager.setWorldEventSettings(worldEvents);
+        }
+      }
+    } catch (error) {
+      Logger.warn(
+        `Failed to create events manager for ${calendarData.id}:`,
+        error instanceof Error ? error : new Error(String(error))
+      );
+      // Don't fail calendar loading if events manager fails
+    }
+
     // Expand variants if they exist
     if (calendarData.variants) {
       this.expandCalendarVariants(calendarData);
@@ -443,6 +465,14 @@ export class CalendarManager {
   getActiveEngine(): CalendarEngine | null {
     if (!this.activeCalendarId) return null;
     return this.engines.get(this.activeCalendarId) || null;
+  }
+
+  /**
+   * Get the active events manager
+   */
+  getActiveEventsManager(): EventsManager | null {
+    if (!this.activeCalendarId) return null;
+    return this.eventsManagers.get(this.activeCalendarId) || null;
   }
 
   /**
