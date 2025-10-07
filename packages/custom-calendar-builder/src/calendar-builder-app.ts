@@ -82,7 +82,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   }
 
   protected override _onChangeForm(formConfig: any, event: Event): void {
-    super._onChangeForm(formConfig, event);
+    super._onChangeForm?.(formConfig, event);
 
     // Update current JSON from the CodeMirror element
     const codeMirror = this.element?.querySelector('#calendar-json-editor') as any;
@@ -418,7 +418,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   async _onClearEditor(event: Event, target: HTMLElement): Promise<void> {
     try {
       const confirmed = await foundry.applications.api.DialogV2.confirm({
-        title: 'Confirm Clear',
+        window: { title: 'Confirm Clear' },
         content: game.i18n.localize('CALENDAR_BUILDER.app.dialogs.confirm_clear'),
         rejectClose: false,
         modal: true
