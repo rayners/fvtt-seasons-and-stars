@@ -59,6 +59,7 @@ jobs:
             fantasy-pack
             scifi-pack
             pf2e-pack
+            calendar-builder
             golarion
             monorepo
             i18n
