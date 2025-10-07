@@ -275,35 +275,18 @@
           min-width: 60px;
           padding: 6px 8px;
           font-size: 0.75em;
+        }
 
-          // Advance button styling (override data-unit gradients for consistency)
-          &:not(.rewind) {
-            background: linear-gradient(135deg, #10b981, #14b8a6) !important;
-            border-color: #10b981 !important;
-            color: white !important;
+        // Advance button styling (override data-unit gradients for consistency)
+        button:not(.rewind) {
+          background: linear-gradient(135deg, #10b981, #14b8a6);
+          border-color: #10b981;
+          color: white;
 
-            &:hover {
-              background: linear-gradient(135deg, #059669, #0d9488) !important;
-              border-color: #059669 !important;
-              color: white !important;
-            }
-          }
-
-          // Rewind button styling
-          &.rewind {
-            background: linear-gradient(135deg, #dc2626, #ef4444) !important;
-            border-color: #dc2626 !important;
-            color: white !important;
-
-            &:hover {
-              background: linear-gradient(135deg, #b91c1c, #dc2626) !important;
-              border-color: #b91c1c !important;
-              color: white !important;
-            }
-
-            &:active {
-              background: linear-gradient(135deg, #991b1b, #b91c1c) !important;
-            }
+          &:hover {
+            background: linear-gradient(135deg, #059669, #0d9488);
+            border-color: #059669;
+            color: white;
           }
         }
       }
@@ -320,23 +303,24 @@
           min-width: 80px;
           padding: 6px 8px;
           font-size: 0.75em;
+        }
+      }
 
-          // Rewind button styling
-          &.rewind {
-            background: linear-gradient(135deg, #dc2626, #ef4444) !important;
-            border-color: #dc2626 !important;
-            color: white !important;
+      // Shared rewind button styling for both time and date controls
+      .time-buttons button.rewind,
+      .date-buttons button.rewind {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        border-color: #dc2626;
+        color: white;
 
-            &:hover {
-              background: linear-gradient(135deg, #b91c1c, #dc2626) !important;
-              border-color: #b91c1c !important;
-              color: white !important;
-            }
+        &:hover {
+          background: linear-gradient(135deg, #b91c1c, #dc2626);
+          border-color: #b91c1c;
+          color: white;
+        }
 
-            &:active {
-              background: linear-gradient(135deg, #991b1b, #b91c1c) !important;
-            }
-          }
+        &:active {
+          background: linear-gradient(135deg, #991b1b, #b91c1c);
         }
       }
 
