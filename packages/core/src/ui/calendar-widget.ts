@@ -30,14 +30,13 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       resizable: false,
     },
     position: {
-      width: 280,
+      width: 320,
       height: 'auto' as const,
     },
     actions: {
       openCalendarSelection: CalendarWidget.prototype._onOpenCalendarSelection,
       openDetailedView: CalendarWidget.prototype._onOpenDetailedView,
       advanceDate: CalendarWidget.prototype._onAdvanceDate,
-      openBulkAdvance: CalendarWidget.prototype._onOpenBulkAdvance,
       clickSidebarButton: CalendarWidget.prototype._onClickSidebarButton,
       switchToMini: CalendarWidget.prototype._onSwitchToMini,
       switchToGrid: CalendarWidget.prototype._onSwitchToGrid,
@@ -272,16 +271,6 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       Logger.error('Error advancing date', error as Error);
       ui.notifications?.error('Failed to advance date');
     }
-  }
-
-  /**
-   * Instance action handler for opening bulk advance dialog
-   */
-  async _onOpenBulkAdvance(event: Event, _target: HTMLElement): Promise<void> {
-    event.preventDefault();
-
-    // Show placeholder for now - will implement proper dialog later
-    ui.notifications?.info('Bulk time advancement coming soon!');
   }
 
   /**
