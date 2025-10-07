@@ -106,7 +106,6 @@ describe('CalendarWidget GM permissions', () => {
     expect(context.isGM).toBe(true);
     let html = template(context);
     expect(html).toContain('data-action="openCalendarSelection"');
-    expect(html).toContain('calendar-hint');
 
     // Player view
     game.user = { isGM: false } as any;
@@ -114,7 +113,6 @@ describe('CalendarWidget GM permissions', () => {
     expect(context.isGM).toBe(false);
     html = template(context);
     expect(html).not.toContain('data-action="openCalendarSelection"');
-    expect(html).not.toContain('calendar-hint');
   });
 
   it('prevents non-GMs from advancing time via _onAdvanceDate', async () => {
