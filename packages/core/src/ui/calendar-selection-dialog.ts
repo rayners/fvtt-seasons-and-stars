@@ -18,6 +18,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private collectionEntries: Map<string, CalendarCollectionEntry>;
   private externalSources: Map<string, ExternalCalendarSource>;
   private currentCalendarId: string;
+  private collapsedModules: Set<string> = new Set();
 
   constructor(
     calendars: Map<string, SeasonsStarsCalendar> | SeasonsStarsCalendar[],
@@ -97,12 +98,12 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       resizable: true,
     },
     position: {
-      width: 600,
-      height: 750,
+      width: 900,
+      height: 700,
     },
     actions: {
       selectCalendar: CalendarSelectionDialog.prototype._onSelectCalendar,
-      previewCalendar: CalendarSelectionDialog.prototype._onPreviewCalendar,
+      toggleModule: CalendarSelectionDialog.prototype._onToggleModule,
       chooseCalendar: CalendarSelectionDialog.prototype._onChooseCalendar,
       cancel: CalendarSelectionDialog.prototype._onCancel,
       openFilePicker: CalendarSelectionDialog.prototype._onOpenFilePicker,
@@ -114,7 +115,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     main: {
       id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-selection-dialog.hbs',
-      scrollable: ['.calendar-selection-grid'],
+      scrollable: ['.calendar-list-container', '.detail-content'],
     },
   };
 
@@ -145,21 +146,6 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       const description = CalendarLocalization.getCalendarDescription(calendar);
       const setting = CalendarLocalization.getCalendarSetting(calendar);
 
-      // Check if this is a calendar variant
-      const isVariant = id.includes('(') && id.includes(')');
-      let variantInfo = '';
-      let baseCalendarId = id;
-
-      if (isVariant) {
-        // Extract base calendar ID and variant name
-        const match = id.match(/^(.+)\((.+)\)$/);
-        if (match) {
-          baseCalendarId = match[1];
-          const variantId = match[2];
-          variantInfo = `Variant: ${variantId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
-        }
-      }
-
       // Determine the source type and metadata
       const sourceInfo = this.getCalendarSourceInfo(id);
 
@@ -170,6 +156,28 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       // Generate mini widget preview (use collection preview for consistency if available)
       const miniPreview = collectionEntry?.preview || this.generateMiniWidgetPreview(calendar);
 
+      // Get tags from collection entry and add setting if present
+      const tags: string[] = [];
+      if (collectionEntry?.tags) {
+        tags.push(...collectionEntry.tags);
+      }
+      if (setting && !tags.includes(setting.toLowerCase())) {
+        tags.push(setting);
+      }
+
+      // Get author from collection entry
+      const author = collectionEntry?.author || '';
+
+      // Process calendar sources
+      const calendarSources =
+        calendar.sources?.map((source: any) => {
+          if (typeof source === 'string') {
+            return { isUrl: true, url: source };
+          } else {
+            return { isUrl: false, citation: source.citation, notes: source.notes };
+          }
+        }) || [];
+
       return {
         id,
         label,
@@ -179,82 +187,71 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         miniPreview,
         isCurrent: id === this.currentCalendarId,
         isSelected: id === this.selectedCalendarId,
-        isVariant,
-        variantInfo,
-        baseCalendarId,
         sourceType: sourceInfo.type,
         sourceIcon: sourceInfo.icon,
         sourceLabel: sourceInfo.label,
         sourceDescription: sourceInfo.description,
-        isModuleSource: sourceInfo.type === 'module',
-        isBuiltinSource: sourceInfo.type === 'builtin',
-        isExternalSource: sourceInfo.type === 'external',
+        tags,
+        author,
+        calendarSources,
       };
     });
 
-    // Group calendars hierarchically by base calendar
+    // Group calendars by module (source)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const calendarGroups = new Map<string, { base: any | null; variants: any[] }>();
+    const moduleGroups = new Map<string, any>();
 
     for (const calendar of calendarsData) {
-      if (!calendarGroups.has(calendar.baseCalendarId)) {
-        calendarGroups.set(calendar.baseCalendarId, { base: null, variants: [] });
+      const moduleKey = calendar.sourceLabel || 'Unknown';
+
+      if (!moduleGroups.has(moduleKey)) {
+        moduleGroups.set(moduleKey, {
+          moduleId: moduleKey.toLowerCase().replace(/\s+/g, '-'),
+          moduleName: moduleKey,
+          moduleIcon: calendar.sourceIcon,
+          calendars: [],
+          collapsed: this.collapsedModules.has(moduleKey),
+        });
       }
 
-      const group = calendarGroups.get(calendar.baseCalendarId);
-      if (!group) continue;
-      if (calendar.isVariant) {
-        group.variants.push(calendar);
-      } else {
-        group.base = calendar;
-      }
+      moduleGroups.get(moduleKey)?.calendars.push(calendar);
     }
 
-    // Sort groups with Gregorian first, then alphabetically
-    const sortedGroups = Array.from(calendarGroups.entries()).sort(
-      ([aId, aGroup], [bId, bGroup]) => {
-        // Gregorian calendar always comes first
-        if (aId === 'gregorian') return -1;
-        if (bId === 'gregorian') return 1;
+    // Sort modules: Built-in first, then alphabetically
+    const sortedModules = Array.from(moduleGroups.values()).sort((a, b) => {
+      if (a.moduleName === 'Core Calendars' || a.moduleName.includes('Built-in')) return -1;
+      if (b.moduleName === 'Core Calendars' || b.moduleName.includes('Built-in')) return 1;
+      return a.moduleName.localeCompare(b.moduleName);
+    });
 
-        // All other calendars sorted alphabetically by display label
-        const labelA = aGroup.base ? aGroup.base.label : aId;
-        const labelB = bGroup.base ? bGroup.base.label : bId;
-        return labelA.localeCompare(labelB);
-      }
-    );
-
-    // Build hierarchical calendar list
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sortedCalendars: any[] = [];
-    for (const [, group] of sortedGroups) {
-      // Add base calendar first
-      if (group.base) {
-        sortedCalendars.push(group.base);
-      }
-
-      // Sort variants alphabetically and add with hierarchy indicator
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      group.variants.sort((a: any, b: any) => a.label.localeCompare(b.label));
-      for (const variant of group.variants) {
-        // Add visual hierarchy level for CSS styling
-        variant.hierarchyLevel = 1;
-        sortedCalendars.push(variant);
-      }
-    }
+    // Add calendar count to each module
+    sortedModules.forEach(module => {
+      module.calendarCount = module.calendars.length;
+    });
 
     // Determine if file picker should be considered "selected"
-    // Only show as selected if there's actually a file selected AND it's either the selected ID or is currently active
     const filePickerSelected =
       selectedFilePath !== '' &&
       (this.selectedCalendarId === '__FILE_PICKER__' || filePickerActive);
 
+    // Get selected calendar data for detail panel
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let selectedCalendarData: any = null;
+    if (this.selectedCalendarId && this.selectedCalendarId !== '__FILE_PICKER__') {
+      selectedCalendarData = calendarsData.find(cal => cal.id === this.selectedCalendarId) || null;
+    }
+
+    // Extract filename from path for display
+    const selectedFileName = selectedFilePath ? selectedFilePath.split('/').pop() : '';
+
     return Object.assign(context, {
-      calendars: sortedCalendars,
+      calendarsByModule: sortedModules,
+      selectedCalendarData,
       selectedCalendar: this.selectedCalendarId,
       currentCalendar: this.currentCalendarId,
       showFilePicker,
       selectedFilePath,
+      selectedFileName,
       filePickerActive,
       filePickerSelected,
     });
@@ -720,25 +717,34 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   }
 
   /**
-   * Instance action handler for calendar preview
+   * Instance action handler for toggling module collapse
    */
-  async _onPreviewCalendar(event: Event, target: HTMLElement): Promise<void> {
-    Logger.debug('Preview button clicked', { event, target });
-    Logger.debug('Calendars data', {
-      type: typeof this.calendars,
-      isMap: this.calendars instanceof Map,
-      calendars: this.calendars,
-    });
-    event.stopPropagation();
+  async _onToggleModule(event: Event, target: HTMLElement): Promise<void> {
+    Logger.debug('Toggle module clicked', { event, target });
 
-    const calendarId = target.closest('[data-calendar-id]')?.getAttribute('data-calendar-id');
-    Logger.debug(`Found calendar ID: ${calendarId}`);
+    const moduleId = target.getAttribute('data-module-id');
+    Logger.debug(`Found module ID: ${moduleId}`);
 
-    if (calendarId) {
-      Logger.debug(`Calling showPreview with ID: ${calendarId}`);
-      this.showPreview(calendarId);
+    if (moduleId) {
+      // Toggle collapsed state
+      const moduleGroup = this.element?.querySelector(
+        `.module-group[data-module-id="${moduleId}"]`
+      );
+      if (moduleGroup) {
+        const isCollapsed = moduleGroup.classList.toggle('collapsed');
+
+        // Update state tracking
+        const moduleKey = moduleId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        if (isCollapsed) {
+          this.collapsedModules.add(moduleKey);
+        } else {
+          this.collapsedModules.delete(moduleKey);
+        }
+
+        Logger.debug(`Module ${moduleId} ${isCollapsed ? 'collapsed' : 'expanded'}`);
+      }
     } else {
-      Logger.warn('Preview action failed - no calendar ID found');
+      Logger.warn('Toggle module action failed - no module ID found');
     }
   }
 

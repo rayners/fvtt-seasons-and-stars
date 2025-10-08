@@ -36,6 +36,7 @@
         "custom_file_hint": "Select a custom calendar JSON file from your Foundry server. This allows you to use calendars that aren't included in the built-in collection.",
         "browse": "Browse",
         "browse_tooltip": "Select a custom calendar file from your Foundry server",
+        "browse_for_file": "Browse for calendar file...",
         "no_file_selected": "No custom file selected",
         "clear_file": "Clear file selection",
         "clear": "Clear",
@@ -43,7 +44,17 @@
         "file_loaded": "Custom calendar file is loaded and ready to use",
         "file_path": "File Path",
         "status": "Status",
-        "click_to_select": "Click to select a calendar file"
+        "click_to_select": "Click to select a calendar file",
+        "available_calendars": "Available Calendars",
+        "description": "Description",
+        "date_formats": "Date Formats",
+        "full_widget": "Full Widget Format",
+        "mini_widget": "Mini Widget Format",
+        "source_info": "Source Information",
+        "references": "References",
+        "author": "Author",
+        "tags": "Tags",
+        "select_to_view": "Select a calendar to view details"
       },
       "calendar_preview": {
         "title": "Calendar Preview: {calendar}"

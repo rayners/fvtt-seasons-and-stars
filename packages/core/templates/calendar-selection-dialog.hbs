@@ -1,174 +1,202 @@
 <div class="dialog-content">
-  <form class="standard-form">
-    <div class="form-group">
-      <label>{{localize "SEASONS_STARS.dialog.calendar_selection.choose_calendar"}}</label>
-      <p class="hint">{{localize "SEASONS_STARS.dialog.calendar_selection.choose_hint"}}</p>
-      
-      <div class="form-fields">
-        <div class="calendar-selection-grid">
-          {{#each calendars}}
-          <div class="calendar-card ui-control {{#if isCurrent}}active{{/if}} {{#if isSelected}}picked{{/if}} {{#if isVariant}}variant{{/if}} {{#if hierarchyLevel}}hierarchy-level-{{hierarchyLevel}}{{/if}} source-{{sourceType}}" 
-               data-action="selectCalendar"
-               data-calendar-id="{{id}}" 
-               title="{{description}}">
-            
-            <div class="card-header flexcol">
-              <div class="calendar-title-row flexrow">
-                <div class="calendar-title-info flexcol">
-                  <h4 class="calendar-name">
-                    {{#if isVariant}}
-                    <span class="variant-indicator">
-                      <i class="fas fa-code-branch"></i>
-                    </span>
+  <div class="calendar-selection-layout">
+    <!-- Left Panel: Calendar List (Master) -->
+    <div class="calendar-list-panel">
+      <div class="panel-header">
+        <h3>{{localize "SEASONS_STARS.dialog.calendar_selection.available_calendars"}}</h3>
+      </div>
+
+      <div class="calendar-list-container">
+        {{#if calendarsByModule}}
+          {{#each calendarsByModule}}
+          <div class="module-group {{#if collapsed}}collapsed{{/if}}" data-module-id="{{moduleId}}">
+            <div class="module-header" data-action="toggleModule" data-module-id="{{moduleId}}">
+              <i class="fas fa-chevron-down collapse-icon"></i>
+              <i class="{{moduleIcon}} module-icon"></i>
+              <span class="module-name">{{moduleName}}</span>
+              <span class="calendar-count">{{calendarCount}}</span>
+            </div>
+
+            <div class="module-calendars">
+              {{#each calendars}}
+              <div class="calendar-list-item {{#if isCurrent}}current{{/if}} {{#if isSelected}}selected{{/if}}"
+                   data-action="selectCalendar"
+                   data-calendar-id="{{id}}">
+                <div class="calendar-list-main">
+                  <div class="calendar-list-title">
+                    {{#if isCurrent}}
+                    <i class="fas fa-star current-icon"></i>
                     {{/if}}
                     {{label}}
-                  </h4>
-                  {{#if setting}}
-                  <span class="calendar-setting">{{setting}}</span>
-                  {{/if}}
-                  {{#if variantInfo}}
-                  <span class="variant-info">{{variantInfo}}</span>
-                  {{/if}}
-                </div>
-                <div class="calendar-badges flexrow">
-                  {{#if isCurrent}}
-                  <div class="current-badge" data-tooltip="Current active calendar">
-                    <i class="fas fa-star"></i>
                   </div>
-                  {{/if}}
-                  {{#if isModuleSource}}
-                  <div class="module-badge" data-tooltip="{{sourceDescription}}">
-                    <i class="fas fa-puzzle-piece"></i>
-                  </div>
-                  {{else if isExternalSource}}
-                  <div class="external-badge" data-tooltip="{{sourceDescription}}">
-                    <i class="fas fa-cloud"></i>
+                  {{#if tags}}
+                  <div class="calendar-list-tags">
+                    {{#each tags}}
+                    <span class="tag">{{this}}</span>
+                    {{/each}}
                   </div>
                   {{/if}}
                 </div>
               </div>
-              <div class="source-info flexrow">
-                <i class="{{sourceIcon}} source-icon"></i>
-                <span class="source-label">{{sourceLabel}}</span>
-              </div>
-            </div>
-
-            <div class="card-content flexcol">
-              <p class="calendar-description">{{description}}</p>
-              
-              <div class="preview-section">
-                <div class="sample-preview">
-                  <label>{{localize "SEASONS_STARS.dialog.calendar_selection.sample"}}:</label>
-                  <span class="sample-date">{{sampleDate}}</span>
-                </div>
-                
-                <div class="mini-preview">
-                  <label>Mini Widget:</label>
-                  <span class="mini-format">{{miniPreview}}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="card-actions flexrow">
-              <button type="button" data-action="previewCalendar" class="button" data-tooltip="{{localize 'SEASONS_STARS.dialog.calendar_selection.preview_tooltip'}}">
-                <i class="fas fa-eye"></i>
-                {{localize "SEASONS_STARS.dialog.calendar_selection.preview"}}
-              </button>
-              {{#if isSelected}}
-              <i class="fas fa-check-circle selected-indicator"></i>
-              {{/if}}
+              {{/each}}
             </div>
           </div>
           {{/each}}
-          
-          <!-- File Picker Card -->
-          <div class="calendar-card ui-control file-picker-card {{#if filePickerActive}}active{{/if}} {{#if filePickerSelected}}picked{{/if}}" 
-               {{#if selectedFilePath}}data-action="selectCalendar" data-calendar-id="__FILE_PICKER__"{{else}}data-action="openFilePicker"{{/if}}
-               title="{{localize 'SEASONS_STARS.dialog.calendar_selection.custom_file_hint'}}">
-            
-            <div class="card-header flexcol">
-              <div class="calendar-title-row flexrow">
-                <div class="calendar-title-info flexcol">
-                  <h4 class="calendar-name">
-                    <span class="file-picker-indicator">
-                      <i class="fas fa-folder-open"></i>
-                    </span>
-                    {{localize "SEASONS_STARS.dialog.calendar_selection.custom_file"}}
-                  </h4>
-                  {{#if selectedFilePath}}
-                  <span class="calendar-setting">{{selectedFilePath}}</span>
-                  {{/if}}
-                </div>
-                <div class="calendar-badges flexrow">
+        {{/if}}
+
+        {{#if showFilePicker}}
+        <div class="module-group file-picker-group">
+          <div class="module-header">
+            <i class="fas fa-folder-open module-icon"></i>
+            <span class="module-name">{{localize "SEASONS_STARS.dialog.calendar_selection.custom_file"}}</span>
+          </div>
+
+          <div class="module-calendars">
+            <div class="calendar-list-item {{#if filePickerActive}}current{{/if}} {{#if filePickerSelected}}selected{{/if}}"
+                 {{#if selectedFilePath}}data-action="selectCalendar" data-calendar-id="__FILE_PICKER__"{{else}}data-action="openFilePicker"{{/if}}>
+              <div class="calendar-list-main">
+                <div class="calendar-list-title">
                   {{#if filePickerActive}}
-                  <div class="current-badge" data-tooltip="Current active calendar">
-                    <i class="fas fa-star"></i>
-                  </div>
+                  <i class="fas fa-star current-icon"></i>
                   {{/if}}
-                  <div class="file-badge" data-tooltip="Custom calendar file">
-                    <i class="fas fa-file-alt"></i>
-                  </div>
+                  {{#if selectedFilePath}}
+                  {{selectedFileName}}
+                  {{else}}
+                  {{localize "SEASONS_STARS.dialog.calendar_selection.browse_for_file"}}
+                  {{/if}}
                 </div>
-              </div>
-              <div class="source-info flexrow">
-                <i class="fas fa-folder-open source-icon"></i>
-                <span class="source-label">Custom File</span>
-              </div>
-            </div>
-
-            <div class="card-content flexcol">
-              <p class="calendar-description">
                 {{#if selectedFilePath}}
-                  {{localize "SEASONS_STARS.dialog.calendar_selection.file_loaded"}}
-                {{else}}
-                  {{localize "SEASONS_STARS.dialog.calendar_selection.custom_file_hint"}}
-                {{/if}}
-              </p>
-              
-              <div class="preview-section">
-                {{#if selectedFilePath}}
-                <div class="sample-preview">
-                  <label>{{localize "SEASONS_STARS.dialog.calendar_selection.file_path"}}:</label>
-                  <span class="sample-date file-path">{{selectedFilePath}}</span>
-                </div>
-                {{else}}
-                <div class="sample-preview">
-                  <label>{{localize "SEASONS_STARS.dialog.calendar_selection.status"}}:</label>
-                  <span class="sample-date">{{localize "SEASONS_STARS.dialog.calendar_selection.click_to_select"}}</span>
+                <div class="calendar-list-tags">
+                  <span class="tag">custom</span>
                 </div>
                 {{/if}}
               </div>
-            </div>
-
-            <div class="card-actions flexrow">
-              {{#if selectedFilePath}}
-              <button type="button" data-action="clearFilePicker" class="button" data-tooltip="{{localize 'SEASONS_STARS.dialog.calendar_selection.clear_file'}}">
-                <i class="fas fa-times"></i>
-                {{localize "SEASONS_STARS.dialog.calendar_selection.clear"}}
-              </button>
-              {{else}}
-              <button type="button" data-action="openFilePicker" class="button" data-tooltip="{{localize 'SEASONS_STARS.dialog.calendar_selection.browse_tooltip'}}">
-                <i class="fas fa-folder-open"></i>
-                {{localize "SEASONS_STARS.dialog.calendar_selection.browse"}}
-              </button>
-              {{/if}}
-              {{#if filePickerActive}}
-              <i class="fas fa-check-circle selected-indicator"></i>
-              {{/if}}
             </div>
           </div>
         </div>
+        {{/if}}
       </div>
     </div>
-  </form>
 
-  {{#unless calendars.length}}
-  <div class="no-calendars flexcol">
-    <i class="fas fa-calendar-times no-calendars-icon"></i>
-    <div class="no-calendars-message">
-      <h4>{{localize "SEASONS_STARS.dialog.calendar_selection.no_calendars"}}</h4>
-      <p>{{localize "SEASONS_STARS.dialog.calendar_selection.no_calendars_hint"}}</p>
+    <!-- Right Panel: Calendar Details -->
+    <div class="calendar-detail-panel">
+      {{#if selectedCalendarData}}
+      <div class="detail-content">
+        <div class="detail-header">
+          <h2 class="detail-title">{{selectedCalendarData.label}}</h2>
+          {{#if selectedCalendarData.setting}}
+          <p class="detail-setting">{{selectedCalendarData.setting}}</p>
+          {{/if}}
+        </div>
+
+        {{#if selectedCalendarData.description}}
+        <div class="detail-section">
+          <h4>{{localize "SEASONS_STARS.dialog.calendar_selection.description"}}</h4>
+          <p>{{selectedCalendarData.description}}</p>
+        </div>
+        {{/if}}
+
+        <div class="detail-section">
+          <h4>{{localize "SEASONS_STARS.dialog.calendar_selection.date_formats"}}</h4>
+          <div class="format-preview">
+            <div class="format-item">
+              <label>{{localize "SEASONS_STARS.dialog.calendar_selection.full_widget"}}:</label>
+              <span class="format-sample">{{selectedCalendarData.sampleDate}}</span>
+            </div>
+            <div class="format-item">
+              <label>{{localize "SEASONS_STARS.dialog.calendar_selection.mini_widget"}}:</label>
+              <span class="format-sample mini">{{selectedCalendarData.miniPreview}}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h4>{{localize "SEASONS_STARS.dialog.calendar_selection.source_info"}}</h4>
+          <div class="source-details">
+            <div class="source-item">
+              <i class="{{selectedCalendarData.sourceIcon}} source-icon"></i>
+              <span>{{selectedCalendarData.sourceLabel}}</span>
+            </div>
+          </div>
+        </div>
+
+        {{#if selectedCalendarData.calendarSources}}
+        <div class="detail-section">
+          <h4>{{localize "SEASONS_STARS.dialog.calendar_selection.references"}}</h4>
+          <div class="references-list">
+            {{#each selectedCalendarData.calendarSources}}
+            {{#if isUrl}}
+            <div class="reference-item">
+              <i class="fas fa-link"></i>
+              <a href="{{url}}" target="_blank" rel="noopener noreferrer">{{url}}</a>
+            </div>
+            {{else}}
+            <div class="reference-item citation">
+              <i class="fas fa-book"></i>
+              <span class="citation-text">{{citation}}</span>
+              {{#if notes}}
+              <span class="citation-notes">{{notes}}</span>
+              {{/if}}
+            </div>
+            {{/if}}
+            {{/each}}
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if selectedCalendarData.author}}
+        <div class="detail-section">
+          <h4>{{localize "SEASONS_STARS.dialog.calendar_selection.author"}}</h4>
+          <p>{{selectedCalendarData.author}}</p>
+        </div>
+        {{/if}}
+
+        {{#if selectedCalendarData.tags}}
+        <div class="detail-section">
+          <h4>{{localize "SEASONS_STARS.dialog.calendar_selection.tags"}}</h4>
+          <div class="tags-display">
+            {{#each selectedCalendarData.tags}}
+            <span class="tag">{{this}}</span>
+            {{/each}}
+          </div>
+        </div>
+        {{/if}}
+      </div>
+      {{else if filePickerSelected}}
+      <div class="detail-content file-picker-detail">
+        <div class="detail-header">
+          <h2 class="detail-title">{{localize "SEASONS_STARS.dialog.calendar_selection.custom_file"}}</h2>
+        </div>
+
+        <div class="detail-section">
+          {{#if selectedFilePath}}
+          <h4>{{localize "SEASONS_STARS.dialog.calendar_selection.file_path"}}</h4>
+          <p class="file-path-display">{{selectedFilePath}}</p>
+
+          <div class="file-actions">
+            <button type="button" data-action="clearFilePicker" class="button">
+              <i class="fas fa-times"></i>
+              {{localize "SEASONS_STARS.dialog.calendar_selection.clear_file"}}
+            </button>
+          </div>
+          {{else}}
+          <p class="no-file-message">{{localize "SEASONS_STARS.dialog.calendar_selection.no_file_selected"}}</p>
+
+          <div class="file-actions">
+            <button type="button" data-action="openFilePicker" class="button">
+              <i class="fas fa-folder-open"></i>
+              {{localize "SEASONS_STARS.dialog.calendar_selection.browse"}}
+            </button>
+          </div>
+          {{/if}}
+        </div>
+      </div>
+      {{else}}
+      <div class="detail-placeholder">
+        <i class="fas fa-calendar-alt placeholder-icon"></i>
+        <p>{{localize "SEASONS_STARS.dialog.calendar_selection.select_to_view"}}</p>
+      </div>
+      {{/if}}
     </div>
   </div>
-  {{/unless}}
 </div>

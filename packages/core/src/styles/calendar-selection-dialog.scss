@@ -1,698 +1,511 @@
 /**
- * Calendar Selection Dialog - Native Foundry Integration
+ * Calendar Selection Dialog - Two-Column Master-Detail Layout
  */
 
 .seasons-stars.calendar-selection-dialog {
-  // Use native Foundry CSS Grid system with scrolling
-  .calendar-selection-grid {
+  // Two-column layout inspired by calendar builder
+  .calendar-selection-layout {
     display: grid;
-    grid-template-columns: 1fr; // Single column for wider cards
-    gap: 1.25rem;
-    min-height: 300px;
-    max-height: 520px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 0.5rem 0.75rem 0.5rem 0.5rem; // Better padding with scrollbar space
-    
-    // Ensure smooth scrolling
-    scroll-behavior: smooth;
-    
-    // Enhanced scrollbar styling for Foundry
-    &::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    &::-webkit-scrollbar-track {
-      background: var(--color-bg-alt);
-      border-radius: 4px;
-      margin: 4px 0;
-    }
-    
-    &::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, var(--color-border-light-secondary), var(--color-border-light-tertiary));
-      border-radius: 4px;
-      border: 1px solid var(--color-bg-alt);
-      
-      &:hover {
-        background: linear-gradient(180deg, var(--color-border-light-primary), var(--color-border-light-secondary));
-      }
-      
-      &:active {
-        background: var(--color-warm-3);
-      }
-    }
-    
-    // Add subtle fade effect at top/bottom when scrolling
-    &::before, &::after {
-      content: '';
-      position: sticky;
-      display: block;
-      height: 8px;
-      margin: 0 -0.5rem;
-      z-index: 1;
-      pointer-events: none;
-    }
-    
-    &::before {
-      top: 0;
-      background: linear-gradient(to bottom, var(--color-bg-option), transparent);
-    }
-    
-    &::after {
-      bottom: 0;
-      background: linear-gradient(to top, var(--color-bg-option), transparent);
-    }
-  }
-
-  // Calendar cards using native ui-control pattern
-  .calendar-card {
-    // Extend Foundry's ui-control base styling
-    padding: 1.25rem;
-    border-radius: 6px;
-    min-height: 220px;
-    cursor: var(--cursor-pointer, pointer);
-    width: 100%; // Ensure cards use full available width
-    position: relative;
+    grid-template-columns: 380px 1fr;
+    gap: 1px;
+    height: 100%;
     overflow: hidden;
-    
-    // Use Foundry's interactive colors with enhanced gradients
-    border: 1px solid var(--color-border-light-tertiary);
-    background: linear-gradient(145deg, var(--color-bg-option), var(--color-bg-alt));
-    transition: all 0.3s ease;
-    
-    // Add subtle inner shadow for depth
-    box-shadow: 
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 2px 4px rgba(0, 0, 0, 0.1);
-
-    // Enhanced Foundry hover effect
-    &:hover {
-      text-shadow: 0 0 8px var(--color-shadow-primary);
-      border-color: var(--color-warm-2);
-      background: linear-gradient(145deg, var(--color-bg-primary), var(--color-bg-option));
-      box-shadow: 
-        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-        0 4px 12px rgba(0, 0, 0, 0.15),
-        0 0 8px var(--color-shadow-primary);
-      transform: translateY(-2px);
-    }
-
-    // Enhanced active state
-    &.active {
-      background: linear-gradient(145deg, var(--color-bg-primary), var(--color-warm-5));
-      border-color: var(--color-warm-2);
-      box-shadow: 
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 0 12px var(--color-warm-1);
-      
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--color-warm-1), var(--color-warm-2), var(--color-warm-1));
-        z-index: 1;
-      }
-    }
-
-    // Enhanced picked/selected state
-    &.picked {
-      outline: 2px solid var(--color-warm-1);
-      outline-offset: -1px;
-      box-shadow: 
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 0 16px var(--color-warm-1),
-        inset 0 0 20px rgba(255, 200, 100, 0.1);
-      background: linear-gradient(145deg, var(--color-bg-primary), var(--color-warm-5));
-      border-color: var(--color-warm-1);
-      
-      &::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 0;
-        height: 0;
-        border-top: 24px solid var(--color-warm-1);
-        border-left: 24px solid transparent;
-        z-index: 2;
-      }
-      
-      // Add checkmark in corner
-      &::before {
-        content: '✓';
-        position: absolute;
-        top: 4px;
-        right: 6px;
-        color: white;
-        font-size: 12px;
-        font-weight: bold;
-        z-index: 3;
-      }
-    }
-    
-    // Variant calendar cards have a subtle visual distinction
-    &.variant {
-      border-left: 3px solid var(--color-cool-2);
-      margin-left: 1rem;
-      
-      // No connecting line - just indentation and border
-      
-      &:hover {
-        border-left-color: var(--color-cool-1);
-      }
-      
-      &.picked {
-        border-left-color: var(--color-warm-1);
-      }
-      
-      .calendar-name .variant-indicator i {
-        transform: rotate(45deg);
-      }
-    }
-
-    // Hierarchical indentation for variants
-    &.hierarchy-level-1 {
-      margin-left: 1.5rem;
-      border-left: 2px solid var(--color-cool-3);
-      
-      // No connecting line - just indentation and border
-      
-      .calendar-name {
-        font-size: 1rem; // Slightly smaller for hierarchy
-        
-        .variant-indicator {
-          color: var(--color-cool-2);
-          opacity: 0.9;
-        }
-      }
-      
-      &:hover {
-        border-left-color: var(--color-cool-2);
-      }
-      
-      &.picked {
-        border-left-color: var(--color-warm-2);
-      }
-    }
-
-    .card-header {
-      margin-bottom: 0.5rem;
-      gap: 0.5rem;
-
-      .calendar-title-row {
-        align-items: flex-start;
-        gap: 0.5rem;
-
-        .calendar-title-info {
-          flex: 1;
-          min-width: 0;
-
-          .calendar-name {
-            margin: 0 0 0.25rem 0;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--color-text-light-primary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            
-            .variant-indicator {
-              color: var(--color-cool-1);
-              font-size: 0.9rem;
-              opacity: 0.8;
-              
-              i {
-                transform: rotate(0deg);
-                transition: transform 0.2s ease;
-              }
-            }
-          }
-
-          .calendar-setting {
-            font-size: 0.8rem;
-            color: var(--color-text-light-7);
-            font-style: italic;
-          }
-          
-          .variant-info {
-            font-size: 0.75rem;
-            color: var(--color-cool-2);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: var(--color-bg-secondary);
-            padding: 0.125rem 0.375rem;
-            border-radius: 3px;
-            border: 1px solid var(--color-cool-5);
-            margin-top: 0.25rem;
-            display: inline-block;
-          }
-        }
-
-        .calendar-badges {
-          flex-shrink: 0;
-          align-items: center;
-          gap: 0.375rem;
-
-          .current-badge {
-            color: var(--color-warm-1);
-            font-size: 1.2rem;
-            filter: drop-shadow(0 0 4px var(--color-warm-1));
-            animation: current-star-glow 3s ease-in-out infinite alternate;
-            
-            i {
-              transform-origin: center;
-            }
-          }
-
-          .module-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            pointer-events: none; // Make it non-interactive
-            
-            // Default (dark theme) styling
-            background: linear-gradient(135deg, var(--color-cool-2), var(--color-cool-1));
-            color: var(--color-text-light-primary);
-            border: 1px solid var(--color-cool-3);
-            
-            i {
-              margin-right: 0.25rem;
-              font-size: 0.8rem;
-            }
-            
-            // Add "MODULE" text after icon for clarity
-            &::after {
-              content: 'MODULE';
-            }
-          }
-
-          .external-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            pointer-events: none; // Make it non-interactive
-            
-            // Default (dark theme) styling
-            background: linear-gradient(135deg, var(--color-border-light-secondary), var(--color-border-light-tertiary));
-            color: var(--color-text-light-primary);
-            border: 1px solid var(--color-border-light-primary);
-            
-            i {
-              margin-right: 0.25rem;
-              font-size: 0.8rem;
-            }
-            
-            // Add "EXTERNAL" text after icon for clarity
-            &::after {
-              content: 'EXTERNAL';
-            }
-          }
-        }
-      }
-      
-      .source-info {
-        align-items: center;
-        gap: 0.625rem;
-        width: 100%; // Take full width now that it's on its own row
-        background: rgba(0, 0, 0, 0.1);
-        padding: 0.5rem 0.75rem;
-        border-radius: 4px;
-        margin-top: 0.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        
-        .source-icon {
-          font-size: 0.9rem;
-          color: var(--color-text-light-5);
-          flex-shrink: 0;
-          width: 1.1rem;
-          text-align: center;
-        }
-        
-        .source-label {
-          font-size: 0.85rem;
-          color: var(--color-text-light-5);
-          font-weight: 600;
-          word-break: break-word;
-          line-height: 1.3;
-          flex: 1;
-          text-transform: uppercase;
-          letter-spacing: 0.3px;
-        }
-      }
-    }
-
-    .card-content {
-      flex: 1;
-      gap: 0.75rem;
-
-      .calendar-description {
-        font-size: 0.9rem;
-        line-height: 1.4;
-        margin: 0;
-        color: var(--color-text-light-6);
-      }
-
-      .preview-section {
-        margin-top: auto;
-        
-        .sample-preview, 
-        .mini-preview {
-          background: linear-gradient(145deg, var(--color-bg-secondary), var(--color-bg-alt));
-          border: 1px solid var(--color-border-light-tertiary);
-          border-radius: 5px;
-          padding: 0.75rem;
-          margin-bottom: 0.75rem;
-          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-          transition: all 0.2s ease;
-          
-          &:hover {
-            background: linear-gradient(145deg, var(--color-bg-alt), var(--color-bg-secondary));
-            border-color: var(--color-border-light-secondary);
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
-          }
-
-          label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--color-text-light-6);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 0.375rem;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            
-            &::before {
-              content: '◆';
-              font-size: 0.6rem;
-              color: var(--color-cool-2);
-            }
-          }
-
-          .sample-date,
-          .mini-format {
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-            color: var(--color-text-light-primary);
-            font-weight: 600;
-            line-height: 1.3;
-            background: rgba(0, 0, 0, 0.1);
-            padding: 0.25rem 0.5rem;
-            border-radius: 3px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-          }
-        }
-        
-        .mini-preview {
-          background: linear-gradient(145deg, var(--color-warm-5), var(--color-warm-4));
-          border-color: var(--color-warm-3);
-          
-          &:hover {
-            background: linear-gradient(145deg, var(--color-warm-4), var(--color-warm-3));
-            border-color: var(--color-warm-2);
-          }
-          
-          label {
-            color: var(--color-warm-1);
-            
-            &::before {
-              color: var(--color-warm-2);
-              content: '★';
-            }
-          }
-          
-          .mini-format {
-            color: var(--color-warm-1);
-            font-weight: 700;
-            background: rgba(255, 200, 100, 0.1);
-            border-color: var(--color-warm-3);
-          }
-        }
-      }
-    }
-
-    .card-actions {
-      margin-top: 0.75rem;
-      align-items: center;
-      gap: 0.5rem;
-
-      // Use native Foundry button styling
-      button.button {
-        flex: 1;
-        padding: 0.375rem 0.75rem;
-        font-size: 0.8rem;
-        
-        i {
-          margin-right: 0.25rem;
-        }
-      }
-
-      .selected-indicator {
-        color: var(--color-warm-1);
-        font-size: 1.1rem;
-        animation: foundry-pulse 2s infinite;
-      }
-    }
+    background: var(--color-border-dark);
   }
 
-  // No calendars state
-  .no-calendars {
-    padding: 3rem;
-    text-align: center;
-    color: var(--color-text-light-7);
-    min-height: 200px;
-    justify-content: center;
+  // Left Panel: Calendar List (Master)
+  .calendar-list-panel {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg);
+    overflow: hidden;
 
-    .no-calendars-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      opacity: 0.5;
-      color: var(--color-text-light-7);
-    }
+    .panel-header {
+      padding: 12px;
+      background: var(--color-bg-btn);
+      border-bottom: 1px solid var(--color-border-dark);
+      flex-shrink: 0;
 
-    .no-calendars-message {
-      h4 {
-        margin: 0 0 0.5rem 0;
-        color: var(--color-text-light-primary);
-        font-weight: 600;
-      }
-
-      p {
-        margin: 0;
-        font-size: 0.9rem;
-        max-width: 300px;
-      }
-    }
-  }
-}
-
-// Calendar Preview Dialog Styles
-.seasons-stars.calendar-preview-dialog {
-  .calendar-preview {
-    padding: 1rem;
-    max-width: none;
-    
-    .preview-header {
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--color-border-light-secondary);
-      
       h3 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.4rem;
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-text-light-primary);
+      }
+    }
+
+    .calendar-list-container {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: var(--color-bg-alt);
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: var(--color-border-light-tertiary);
+        border-radius: 4px;
+
+        &:hover {
+          background: var(--color-border-light-secondary);
+        }
+      }
+    }
+  }
+
+  // Module Groups (Collapsible)
+  .module-group {
+    border-bottom: 1px solid var(--color-border-dark);
+
+    .module-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--color-bg-alt);
+      cursor: pointer;
+      transition: background 0.2s ease;
+      user-select: none;
+
+      &:hover {
+        background: var(--color-bg-option);
+      }
+
+      .collapse-icon {
+        font-size: 10px;
+        color: var(--color-text-light-6);
+        transition: transform 0.2s ease;
+      }
+
+      .module-icon {
+        font-size: 14px;
+        color: var(--color-text-light-5);
+        width: 16px;
+        text-align: center;
+      }
+
+      .module-name {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-text-light-primary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .calendar-count {
+        font-size: 11px;
+        color: var(--color-text-light-6);
+        background: var(--color-bg);
+        padding: 2px 8px;
+        border-radius: 10px;
+      }
+    }
+
+    &.collapsed {
+      .collapse-icon {
+        transform: rotate(-90deg);
+      }
+
+      .module-calendars {
+        display: none;
+      }
+    }
+
+    .module-calendars {
+      background: var(--color-bg);
+    }
+  }
+
+  // Calendar List Items
+  .calendar-list-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px 10px 36px;
+    border-bottom: 1px solid var(--color-border-dark-tertiary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--color-bg-option);
+    }
+
+    &.selected {
+      background: linear-gradient(90deg, var(--color-warm-5), var(--color-bg-option));
+      border-left: 3px solid var(--color-warm-2);
+      padding-left: 33px;
+    }
+
+    &.current {
+      .current-icon {
+        color: var(--color-warm-1);
+        margin-right: 6px;
+        font-size: 12px;
+      }
+    }
+
+    .calendar-list-main {
+      flex: 1;
+      min-width: 0;
+
+      .calendar-list-title {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-text-light-primary);
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .calendar-list-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 4px;
+      }
+    }
+  }
+
+  // Tags
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--color-cool-5);
+    color: var(--color-cool-1);
+    text-transform: lowercase;
+    font-weight: 500;
+    border: 1px solid var(--color-cool-4);
+  }
+
+  // Right Panel: Calendar Details
+  .calendar-detail-panel {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg);
+    overflow: hidden;
+
+    .detail-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 20px;
+
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: var(--color-bg-alt);
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: var(--color-border-light-tertiary);
+        border-radius: 4px;
+
+        &:hover {
+          background: var(--color-border-light-secondary);
+        }
+      }
+    }
+
+    .detail-header {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--color-border-dark);
+
+      .detail-title {
+        margin: 0 0 8px 0;
+        font-size: 24px;
         font-weight: 600;
         color: var(--color-text-light-primary);
         line-height: 1.2;
       }
-      
-      .preview-setting {
-        font-size: 0.9rem;
-        color: var(--color-text-light-secondary);
+
+      .detail-setting {
+        margin: 0;
+        font-size: 14px;
+        color: var(--color-text-light-6);
         font-style: italic;
-        margin-top: 0.25rem;
       }
     }
-    
-    .preview-description {
-      margin-bottom: 1.5rem;
-      padding: 1rem;
-      background: var(--color-bg-secondary);
-      border: 1px solid var(--color-border-light-secondary);
-      border-radius: 4px;
-      font-size: 0.95rem;
-      line-height: 1.5;
-      color: var(--color-text-light-primary);
-    }
-    
-    .preview-samples {
-      margin-bottom: 1.5rem;
-      
+
+    .detail-section {
+      margin-bottom: 20px;
+
       h4 {
-        margin: 0 0 0.75rem 0;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--color-text-light-primary);
-        display: flex;
-        align-items: center;
-        
-        &::before {
-          content: "📅";
-          margin-right: 0.5rem;
-          font-size: 1rem;
-        }
+        margin: 0 0 10px 0;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--color-text-light-5);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
       }
-      
-      .sample-date {
-        background: var(--color-bg-option);
-        border: 1px solid var(--color-border-light-secondary);
-        border-radius: 3px;
-        padding: 0.5rem 0.75rem;
-        margin-bottom: 0.5rem;
-        font-family: var(--font-mono);
-        font-size: 0.9rem;
+
+      p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.6;
         color: var(--color-text-light-primary);
-        font-weight: 500;
-        
+      }
+    }
+
+    .format-preview {
+      .format-item {
+        background: var(--color-bg-alt);
+        border: 1px solid var(--color-border-dark);
+        border-radius: 4px;
+        padding: 12px;
+        margin-bottom: 10px;
+
         &:last-child {
           margin-bottom: 0;
         }
+
+        label {
+          display: block;
+          font-size: 11px;
+          font-weight: 600;
+          color: var(--color-text-light-6);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 6px;
+        }
+
+        .format-sample {
+          font-family: var(--font-mono);
+          font-size: 14px;
+          color: var(--color-text-light-primary);
+          font-weight: 500;
+
+          &.mini {
+            color: var(--color-warm-1);
+            font-weight: 600;
+          }
+        }
       }
     }
-    
-    .preview-structure {
-      h4 {
-        margin: 0 0 0.75rem 0;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--color-text-light-primary);
+
+    .source-details {
+      .source-item {
         display: flex;
         align-items: center;
-        
-        &::before {
-          content: "📊";
-          margin-right: 0.5rem;
-          font-size: 1rem;
-        }
-      }
-      
-      .structure-info {
-        background: var(--color-bg-secondary);
-        border: 1px solid var(--color-border-light-secondary);
+        gap: 10px;
+        padding: 10px;
+        background: var(--color-bg-alt);
+        border: 1px solid var(--color-border-dark);
         border-radius: 4px;
-        padding: 1rem;
-        
-        div {
-          margin-bottom: 0.5rem;
-          font-size: 0.9rem;
+
+        .source-icon {
+          font-size: 16px;
+          color: var(--color-text-light-5);
+          width: 20px;
+          text-align: center;
+        }
+
+        span {
+          font-size: 13px;
           color: var(--color-text-light-primary);
-          
-          &:last-child {
-            margin-bottom: 0;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .references-list {
+      .reference-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px;
+        background: var(--color-bg-alt);
+        border: 1px solid var(--color-border-dark);
+        border-radius: 4px;
+        margin-bottom: 8px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        i {
+          font-size: 14px;
+          color: var(--color-text-light-5);
+          margin-top: 2px;
+          flex-shrink: 0;
+        }
+
+        a {
+          flex: 1;
+          font-size: 13px;
+          color: var(--color-text-hyperlink);
+          word-break: break-all;
+          text-decoration: none;
+
+          &:hover {
+            text-decoration: underline;
           }
-          
-          strong {
+        }
+
+        &.citation {
+          flex-direction: column;
+
+          .citation-text {
+            font-size: 13px;
             color: var(--color-text-light-primary);
-            font-weight: 600;
-            margin-right: 0.25rem;
+            line-height: 1.5;
           }
+
+          .citation-notes {
+            font-size: 12px;
+            color: var(--color-text-light-6);
+            font-style: italic;
+            margin-top: 4px;
+          }
+        }
+      }
+    }
+
+    .tags-display {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .detail-placeholder {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      text-align: center;
+      color: var(--color-text-light-7);
+
+      .placeholder-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+      }
+
+      p {
+        margin: 0;
+        font-size: 14px;
+      }
+    }
+
+    .file-picker-detail {
+      .file-path-display {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        padding: 10px;
+        background: var(--color-bg-alt);
+        border: 1px solid var(--color-border-dark);
+        border-radius: 4px;
+        word-break: break-all;
+      }
+
+      .no-file-message {
+        font-size: 14px;
+        color: var(--color-text-light-6);
+        font-style: italic;
+      }
+
+      .file-actions {
+        margin-top: 16px;
+
+        button {
+          font-size: 13px;
+          padding: 8px 16px;
+
+          i {
+            margin-right: 6px;
+          }
+        }
+      }
+    }
+  }
+
+  // File picker group specific styling
+  .file-picker-group {
+    .module-header {
+      background: var(--color-warm-5);
+
+      &:hover {
+        background: var(--color-warm-4);
+      }
+
+      .module-icon {
+        color: var(--color-warm-1);
+      }
+    }
+  }
+
+  // Dialog footer buttons (from old implementation)
+  .dialog-buttons {
+    padding: 12px;
+    gap: 10px;
+    justify-content: flex-end;
+    display: flex;
+    background: var(--color-bg-btn);
+    border-top: 1px solid var(--color-border-dark);
+
+    button {
+      padding: 8px 16px;
+      font-size: 13px;
+
+      i {
+        margin-right: 6px;
+      }
+
+      &.ss-button.primary {
+        background: var(--color-warm-2) !important;
+        color: white !important;
+        border-color: var(--color-warm-2) !important;
+        font-weight: 600;
+
+        &:hover {
+          background: var(--color-warm-1) !important;
+          border-color: var(--color-warm-1) !important;
+        }
+
+        &:disabled {
+          opacity: 0.6;
+          background: var(--color-bg-alt) !important;
+          color: var(--color-text-light-secondary) !important;
+          border-color: var(--color-border-light-secondary) !important;
         }
       }
     }
   }
 }
 
-// Dialog footer buttons
-.dialog-buttons {
-  padding: 1rem;
-  gap: 0.75rem;
-  justify-content: flex-end;
-  margin-top: auto;
-  
-  button {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    
-    i {
-      margin-right: 0.5rem;
-    }
-    
-    &.ss-button.primary {
-      background: var(--color-warm-2) !important;
-      color: white !important;
-      border-color: var(--color-warm-2) !important;
-      font-weight: 600;
-      
-      &:hover {
-        background: var(--color-warm-1) !important;
-        border-color: var(--color-warm-1) !important;
-        color: white !important;
-      }
-      
-      &:disabled {
-        opacity: 0.6;
-        background: var(--color-bg-alt) !important;
-        color: var(--color-text-light-secondary) !important;
-        border-color: var(--color-border-light-secondary) !important;
-      }
-    }
-  }
-}
-
-// Native Foundry pulse animation
-@keyframes foundry-pulse {
-  0%, 100% { 
-    opacity: 1; 
-    transform: scale(1);
-  }
-  50% { 
-    opacity: 0.7; 
-    transform: scale(1.05);
-  }
-}
-
-// Current star glow animation
-@keyframes current-star-glow {
-  0% {
-    filter: drop-shadow(0 0 4px var(--color-warm-1));
-    transform: scale(1);
-  }
-  50% {
-    filter: drop-shadow(0 0 8px var(--color-warm-1)) drop-shadow(0 0 16px var(--color-warm-2));
-    transform: scale(1.1);
-  }
-  100% {
-    filter: drop-shadow(0 0 4px var(--color-warm-1));
-    transform: scale(1);
-  }
-}
-
-// Light theme overrides
-body.theme-light {
+// Responsive design
+@media (max-width: 900px) {
   .seasons-stars.calendar-selection-dialog {
-    .calendar-badges {
-      .module-badge {
-        background: linear-gradient(135deg, var(--color-cool-4), var(--color-cool-3));
-        color: var(--color-text-dark-primary);
-        border: 1px solid var(--color-cool-2);
-      }
-      
-      .external-badge {
-        background: linear-gradient(135deg, var(--color-border-light-secondary), var(--color-border-light-tertiary));
-        color: var(--color-text-dark-primary);
-        border: 1px solid var(--color-border-light-primary);
-      }
+    .calendar-selection-layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: 300px 1fr;
+    }
+
+    .calendar-list-panel {
+      border-bottom: 1px solid var(--color-border-dark);
+    }
+  }
+}
+
+// Dark theme adjustments
+body.theme-dark {
+  .seasons-stars.calendar-selection-dialog {
+    .module-header {
+      background: var(--color-bg-darker);
     }
   }
 }
