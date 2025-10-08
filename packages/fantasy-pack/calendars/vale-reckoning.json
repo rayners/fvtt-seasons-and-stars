@@ -214,6 +214,171 @@
     }
   ],
 
+  "events": [
+    {
+      "id": "hearthmoor",
+      "name": "Hearthmoor",
+      "description": "A night of survival rites and shared flame. The long dark wanes. Sacred festival marking the end of winter's grip.",
+      "recurrence": {
+        "type": "fixed",
+        "month": 1,
+        "day": 46
+      },
+      "visibility": "player-visible",
+      "color": "#FF6F00",
+      "icon": "fas fa-fire"
+    },
+    {
+      "id": "goose-day",
+      "name": "The Day of Goose",
+      "description": "A peculiar festival honoring a legendary mallard who saved a village from winter starvation. Waterfowl return, and migration begins. Also known as 'The Duck What Saved Us.'",
+      "recurrence": {
+        "type": "fixed",
+        "month": 2,
+        "day": 15
+      },
+      "visibility": "player-visible",
+      "color": "#4CAF50",
+      "icon": "fas fa-dove"
+    },
+    {
+      "id": "stormrest",
+      "name": "Stormrest",
+      "description": "Offerings are left to the storm spirits. Farmers call this the floodwatch. Sacred day between spring and summer.",
+      "recurrence": {
+        "type": "fixed",
+        "month": 3,
+        "day": 46
+      },
+      "visibility": "player-visible",
+      "color": "#2196F3",
+      "icon": "fas fa-cloud-bolt"
+    },
+    {
+      "id": "thing-assembly",
+      "name": "The Thing",
+      "description": "Parliamentary assembly of free folk. Disputes are settled, laws debated, and oaths sworn. Traditionally held on the first Brightday of the burning months.",
+      "recurrence": {
+        "type": "ordinal",
+        "month": 4,
+        "occurrence": 1,
+        "weekday": 0
+      },
+      "visibility": "player-visible",
+      "color": "#9C27B0",
+      "icon": "fas fa-gavel"
+    },
+    {
+      "id": "suncrest",
+      "name": "Suncrest",
+      "description": "The longest day. Madness, passion, and visions flare under the open sky. The sacred midsummer festival.",
+      "recurrence": {
+        "type": "fixed",
+        "month": 5,
+        "day": 46
+      },
+      "visibility": "player-visible",
+      "color": "#FFC107",
+      "icon": "fas fa-sun"
+    },
+    {
+      "id": "harvest-rite",
+      "name": "First Harvest Rite",
+      "description": "Offerings to the earth spirits. The first sheaf is bound and blessed. Blades are sharpened for the coming reaping.",
+      "recurrence": {
+        "type": "fixed",
+        "month": 6,
+        "day": 1
+      },
+      "visibility": "player-visible",
+      "color": "#F57C00",
+      "icon": "fas fa-wheat-awn"
+    },
+    {
+      "id": "winter-market",
+      "name": "Winter Market",
+      "description": "The last great market before Deepfrost locks the vale. Trade goods, hire guards, settle accounts. Held on the final Graftday before winter.",
+      "recurrence": {
+        "type": "ordinal",
+        "month": 7,
+        "occurrence": -1,
+        "weekday": 1
+      },
+      "visibility": "player-visible",
+      "color": "#795548",
+      "icon": "fas fa-shop"
+    },
+    {
+      "id": "ashfall",
+      "name": "Ashfall",
+      "description": "Ashes of the year are buried or scattered. Old names are sung, and debts burned. Sacred day of endings and remembrance.",
+      "recurrence": {
+        "type": "fixed",
+        "month": 7,
+        "day": 46
+      },
+      "visibility": "player-visible",
+      "color": "#616161",
+      "icon": "fas fa-skull"
+    },
+    {
+      "id": "ancestors-vigil",
+      "name": "Vigil of Ancestors",
+      "description": "On Graveday nearest the full moon of Nótt during Gravecall, the dead are closest. Lanterns are lit, names spoken, and offerings left at burial cairns.",
+      "recurrence": {
+        "type": "ordinal",
+        "month": 7,
+        "occurrence": 3,
+        "weekday": 5
+      },
+      "visibility": "player-visible",
+      "color": "#424242",
+      "icon": "fas fa-candle-holder"
+    },
+    {
+      "id": "midwinter-feast",
+      "name": "Midwinter Feast",
+      "description": "The darkest day. Communities gather to share stores, tell tales, and ward off the hungry cold. Doors are barred, fires stoked high.",
+      "recurrence": {
+        "type": "fixed",
+        "month": 8,
+        "day": 23
+      },
+      "visibility": "player-visible",
+      "color": "#1565C0",
+      "icon": "fas fa-snowflake"
+    },
+    {
+      "id": "wyrd-conjunction",
+      "name": "The Wyrd Conjunction",
+      "description": "Every four years when Máni and Nótt align, seers gather on Wyrdday to divine the coming years. Visions are strongest, truths most perilous.",
+      "recurrence": {
+        "type": "interval",
+        "intervalYears": 4,
+        "anchorYear": 1540,
+        "month": 5,
+        "day": 22
+      },
+      "visibility": "player-visible",
+      "color": "#673AB7",
+      "icon": "fas fa-eye"
+    },
+    {
+      "id": "gm-lore-night",
+      "name": "Lorekeeper's Night",
+      "description": "Monthly reminder for loremasters to prepare tales, secrets, and hooks. Check your notes, weave your threads.",
+      "recurrence": {
+        "type": "ordinal",
+        "month": 1,
+        "occurrence": 2,
+        "weekday": 4
+      },
+      "visibility": "gm-only",
+      "color": "#37474F",
+      "icon": "fas fa-book-skull"
+    }
+  ],
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,

@@ -434,6 +434,219 @@ const count = game.seasonsStars.buttonRegistry.count;
 - Use `except` to hide button on specific widgets
 - If both are provided, `only` takes precedence
 
+### Events API
+
+_Added in v0.20.0_
+
+The Events API provides access to calendar events defined in calendar JSON files. Events support fixed dates, ordinal recurrence (Nth weekday of month), and interval recurrence (every N years).
+
+#### `getAllEvents()`
+
+Get all events for the active calendar (filtered by visibility permissions).
+
+```javascript
+const events = game.seasonsStars.api.events.getAllEvents();
+
+// Events array structure
+events.forEach(event => {
+  console.log(`Event: ${event.name}`);
+  console.log(`Recurrence: ${event.recurrence.type}`);
+  console.log(`Visibility: ${event.visibility || 'player-visible'}`);
+});
+```
+
+**Returns:** `CalendarEvent[]` - Only includes events the current user has permission to see
+
+#### `getEventsForDate(year: number, month: number, day: number)`
+
+Get events occurring on a specific date.
+
+```javascript
+// Get events for January 1st, 2024
+const newYearEvents = game.seasonsStars.api.events.getEventsForDate(2024, 1, 1);
+
+newYearEvents.forEach(occurrence => {
+  console.log(`Today is ${occurrence.event.name}!`);
+  if (occurrence.event.description) {
+    console.log(occurrence.event.description);
+  }
+});
+```
+
+**Parameters:**
+
+- `year` (number): The year (e.g., 2024)
+- `month` (number): 1-based month index (1 = first month)
+- `day` (number): 1-based day index (1 = first day)
+
+**Returns:** `CalendarEvent[]` - Array of events occurring on the specified date
+
+#### `getEventById(eventId: string)`
+
+Get a specific event by its ID.
+
+```javascript
+const thanksgiving = game.seasonsStars.api.getEventById('us-thanksgiving');
+
+if (thanksgiving) {
+  console.log(`Event: ${thanksgiving.name}`);
+  console.log(`Description: ${thanksgiving.description}`);
+}
+```
+
+**Returns:** `CalendarEvent | undefined`
+
+#### `addWorldEvent(event: CalendarEvent)`
+
+Add a custom event to the world (not part of calendar definition).
+
+```javascript
+// Add a campaign-specific event
+await game.seasonsStars.api.addWorldEvent({
+  id: 'dragon-attack',
+  name: 'Dragon Attack on Waterdeep',
+  description: 'Anniversary of the great dragon attack',
+  recurrence: {
+    type: 'fixed',
+    month: 6,
+    day: 15,
+  },
+  visibility: 'player-visible',
+  color: '#FF0000',
+  icon: 'fas fa-dragon',
+  startYear: 1492,
+});
+```
+
+**Note:** World events are stored in world settings and persist across sessions.
+
+#### `removeWorldEvent(eventId: string)`
+
+Remove a custom world event.
+
+```javascript
+await game.seasonsStars.api.removeWorldEvent('dragon-attack');
+```
+
+#### `getWorldEvents()`
+
+Get all custom world events.
+
+```javascript
+const worldEvents = game.seasonsStars.api.getWorldEvents();
+console.log(`Custom events in this world: ${worldEvents.length}`);
+```
+
+**Returns:** `CalendarEvent[]`
+
+#### Event Recurrence Types
+
+**Fixed Date Recurrence** - Same date each year:
+
+```javascript
+{
+  type: 'fixed',
+  month: 12,      // December
+  day: 25,        // 25th
+  ifDayNotExists: 'lastDay'  // Optional: fallback if day doesn't exist
+}
+```
+
+**Ordinal Recurrence** - Nth weekday of month:
+
+```javascript
+{
+  type: 'ordinal',
+  month: 11,       // November
+  occurrence: 4,   // 4th occurrence (-1 for last)
+  weekday: 4,      // Thursday (0 = first weekday in calendar)
+  includeIntercalary: false  // Optional: include intercalary days
+}
+```
+
+**Interval Recurrence** - Every N years:
+
+```javascript
+{
+  type: 'interval',
+  intervalYears: 4,   // Every 4 years
+  anchorYear: 2024,   // Reference year
+  month: 7,           // July
+  day: 26            // 26th
+}
+```
+
+#### Event Visibility
+
+Events support two visibility levels:
+
+- `player-visible` (default): Visible to all players
+- `gm-only`: Only visible to GMs
+
+```javascript
+// Check visibility before displaying
+if (event.visibility === 'player-visible' || game.user.isGM) {
+  displayEvent(event);
+}
+```
+
+#### Event Integration Pattern
+
+```javascript
+class EventNotificationModule {
+  constructor() {
+    this.setupEventHandling();
+  }
+
+  setupEventHandling() {
+    // Listen for event occurrences
+    Hooks.on('seasons-stars:eventOccurs', this.onEventOccurs.bind(this));
+
+    // Check for events on module initialization
+    Hooks.on('seasons-stars:ready', () => {
+      const currentDate = game.seasonsStars.api.getCurrentDate();
+      const todaysEvents = game.seasonsStars.api.events.getEventsForDate(
+        currentDate.year,
+        currentDate.month,
+        currentDate.day
+      );
+
+      if (todaysEvents.length > 0) {
+        this.displayEventSummary(todaysEvents);
+      }
+    });
+  }
+
+  onEventOccurs(data) {
+    // Handle event occurrences
+    data.events.forEach(({ event, year, month, day }) => {
+      this.notifyPlayers(event, year, month, day);
+    });
+  }
+
+  notifyPlayers(event, year, month, day) {
+    if (event.visibility === 'player-visible' || game.user.isGM) {
+      ChatMessage.create({
+        content: `<div class="calendar-event">
+          <h3>${event.name}</h3>
+          <p>${event.description || ''}</p>
+        </div>`,
+        whisper:
+          event.visibility === 'gm-only' ? game.users.filter(u => u.isGM).map(u => u.id) : [],
+      });
+    }
+  }
+
+  displayEventSummary(events) {
+    const eventList = events
+      .map(e => `<li>${e.name}${e.description ? `: ${e.description}` : ''}</li>`)
+      .join('');
+
+    ui.notifications.info(`Events today: <ul>${eventList}</ul>`, { permanent: true });
+  }
+}
+```
+
 ## 📦 Calendar Pack Modules
 
 Calendar pack modules are **pure data modules** that provide additional calendars for Seasons & Stars through an **auto-detection system**. No JavaScript required - just properly structured JSON files.
@@ -1123,22 +1336,160 @@ Hooks.on('seasons-stars:registerExternalCalendars', ({ registerCalendar, manager
 });
 ```
 
+#### `seasons-stars:eventOccurs`
+
+Fired when calendar events occur on the current date. This hook fires when time advances to a date with events AND on startup if the current date has events. Added in v0.20.0.
+
+```javascript
+Hooks.on('seasons-stars:eventOccurs', data => {
+  console.log('Events occurring today:', data.events);
+
+  // Show notification for each event
+  data.events.forEach(({ event, year, month, day }) => {
+    ui.notifications.info(`Today is ${event.name}: ${event.description}`);
+  });
+
+  // Handle startup vs. time advancement
+  if (data.isStartup) {
+    console.log('Events on world startup');
+  } else {
+    console.log('Events triggered by time advancement from', data.previousDate);
+  }
+});
+```
+
+**Data Structure:**
+
+```typescript
+interface EventOccursData {
+  events: Array<{
+    event: CalendarEvent;
+    year: number;
+    month: number;
+    day: number;
+  }>;
+  date: {
+    year: number;
+    month: number;
+    day: number;
+  };
+  isStartup: boolean;
+  previousDate?: {
+    year: number;
+    month: number;
+    day: number;
+  };
+}
+```
+
+**Event Structure:**
+
+```typescript
+interface CalendarEvent {
+  id: string;
+  name: string;
+  description?: string;
+  recurrence: FixedRecurrence | OrdinalRecurrence | IntervalRecurrence;
+  visibility?: 'gm-only' | 'player-visible';
+  color?: string; // Hex color (e.g., "#FF6F00")
+  icon?: string; // Font Awesome icon class
+  journalEntryId?: string;
+  startYear?: number;
+  endYear?: number;
+  exceptions?: Array<{ year: number; month: number; day: number }>;
+  translations?: Record<string, { name: string; description?: string }>;
+}
+```
+
+**Recurrence Types:**
+
+```typescript
+// Fixed date recurrence (same date each year)
+interface FixedRecurrence {
+  type: 'fixed';
+  month: number; // 1-based month index
+  day: number; // 1-based day index
+  ifDayNotExists?: 'lastDay' | 'beforeDay' | 'afterDay';
+}
+
+// Ordinal recurrence (Nth weekday of month)
+interface OrdinalRecurrence {
+  type: 'ordinal';
+  month: number; // 1-based month index
+  occurrence: 1 | 2 | 3 | 4 | -1; // -1 = last occurrence
+  weekday: number; // 0-based weekday index
+  includeIntercalary?: boolean; // Include intercalary days in calculation
+}
+
+// Interval recurrence (every N years)
+interface IntervalRecurrence {
+  type: 'interval';
+  intervalYears: number; // Years between occurrences
+  anchorYear: number; // Reference year for calculation
+  month: number; // 1-based month index
+  day: number; // 1-based day index
+}
+```
+
+**Use Cases:**
+
+```javascript
+// Display event notifications to players
+Hooks.on('seasons-stars:eventOccurs', data => {
+  data.events.forEach(({ event }) => {
+    if (event.visibility === 'player-visible' || game.user.isGM) {
+      ChatMessage.create({
+        content: `<h3>${event.name}</h3><p>${event.description}</p>`,
+        whisper:
+          event.visibility === 'gm-only' ? game.users.filter(u => u.isGM).map(u => u.id) : [],
+      });
+    }
+  });
+});
+
+// Trigger weather changes on specific events
+Hooks.on('seasons-stars:eventOccurs', data => {
+  data.events.forEach(({ event }) => {
+    if (event.id === 'summer-solstice') {
+      weatherModule.setSeasonalWeather('summer');
+    }
+  });
+});
+
+// Create journal entries for GM-only events
+Hooks.on('seasons-stars:eventOccurs', async data => {
+  for (const { event, year, month, day } of data.events) {
+    if (event.visibility === 'gm-only' && !event.journalEntryId) {
+      const entry = await JournalEntry.create({
+        name: `${event.name} - ${year}/${month}/${day}`,
+        content: event.description,
+        ownership: { default: 0, [game.user.id]: 3 },
+      });
+
+      // Store reference for future use
+      event.journalEntryId = entry.id;
+    }
+  }
+});
+```
+
 ### Complete Hook Reference
 
 Here's a complete reference table of all Seasons & Stars hooks:
 
-| Hook Event                                | When Fired               | Data Passed                                | Added  |
-| ----------------------------------------- | ------------------------ | ------------------------------------------ | ------ |
-| `seasons-stars:dateChanged`               | World time changes       | `{newDate, oldTime, newTime, delta}`       | v0.1.0 |
-| `seasons-stars:calendarChanged`           | Active calendar switches | `{newCalendarId, oldCalendarId, calendar}` | v0.1.0 |
-| `seasons-stars:ready`                     | Module fully initialized | `{manager, api}`                           | v0.1.0 |
-| `seasons-stars:timeAdvancementStarted`    | Auto advancement begins  | `ratio (number)`                           | v0.2.0 |
-| `seasons-stars:timeAdvancementPaused`     | Auto advancement stops   | None                                       | v0.2.0 |
-| `seasons-stars:settingsChanged`           | Module setting updated   | `settingName (string)`                     | v0.1.0 |
-| `seasons-stars:noteCreated`               | Calendar note created    | `journalEntry`                             | v0.1.0 |
-| `seasons-stars:noteUpdated`               | Calendar note modified   | `journalEntry`                             | v0.1.0 |
-| `seasons-stars:noteDeleted`               | Calendar note removed    | `noteId (string)`                          | v0.1.0 |
-| `seasons-stars:registerExternalCalendars` | Module initialization    | `{registerCalendar, manager}`              | v0.8.0 |
+| Hook Event                                | When Fired                   | Data Passed                                | Added   |
+| ----------------------------------------- | ---------------------------- | ------------------------------------------ | ------- |
+| `seasons-stars:dateChanged`               | World time changes           | `{newDate, oldTime, newTime, delta}`       | v0.1.0  |
+| `seasons-stars:calendarChanged`           | Active calendar switches     | `{newCalendarId, oldCalendarId, calendar}` | v0.1.0  |
+| `seasons-stars:ready`                     | Module fully initialized     | `{manager, api}`                           | v0.1.0  |
+| `seasons-stars:timeAdvancementStarted`    | Auto advancement begins      | `ratio (number)`                           | v0.2.0  |
+| `seasons-stars:timeAdvancementPaused`     | Auto advancement stops       | None                                       | v0.2.0  |
+| `seasons-stars:settingsChanged`           | Module setting updated       | `settingName (string)`                     | v0.1.0  |
+| `seasons-stars:eventOccurs`               | Events occur on current date | `EventOccursData`                          | v0.20.0 |
+| `seasons-stars:noteCreated`               | Calendar note created        | `journalEntry`                             | v0.1.0  |
+| `seasons-stars:noteUpdated`               | Calendar note modified       | `journalEntry`                             | v0.1.0  |
+| `seasons-stars:noteDeleted`               | Calendar note removed        | `noteId (string)`                          | v0.1.0  |
+| `seasons-stars:registerExternalCalendars` | Module initialization        | `{registerCalendar, manager}`              | v0.8.0  |
 
 ### Hook Integration Best Practices
 

@@ -13,6 +13,7 @@ import type {
 } from './calendar';
 import type { SeasonsStarsIntegration, SidebarButtonRegistryAPI } from './bridge-interfaces';
 import type { LoadResult, ExternalCalendarSource } from '../core/calendar-loader';
+import type { EventsAPI } from '../core/events-api';
 // ValidationResult imported in bridge-interfaces.d.ts to avoid circular dependencies
 
 // Extend the Game interface to include S&S specific properties
@@ -176,6 +177,8 @@ export interface SeasonsStarsAPI {
   // Module Calendar Loading Methods
   loadModuleCalendars(moduleId: string): Promise<LoadResult[]>;
   validateCalendar(calendarData: unknown): Promise<import('./bridge-interfaces').ValidationResult>;
+  // Events API
+  events: EventsAPI;
 }
 
 // Type guard functions (implementations in type-guards.ts)
