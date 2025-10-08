@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.0...seasons-and-stars-v0.20.1) (2025-10-08)
+
+
+### Bug Fixes
+
+* ensure sidebar template part always renders single root element ([#346](https://github.com/rayners/fvtt-seasons-and-stars/issues/346)) ([9177a95](https://github.com/rayners/fvtt-seasons-and-stars/commit/9177a953e4366b7f507adf47cee551d7a22bd0cd))
+
 ## [0.20.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.19.0...seasons-and-stars-v0.20.0) (2025-10-08)
 
 
