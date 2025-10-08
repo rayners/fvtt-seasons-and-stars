@@ -319,17 +319,15 @@ export function registerWidgetFactories(): void {
   Logger.debug('Registering widget factories');
   CalendarWidgetManager.registerWidget(
     'main',
-    () => new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+    () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
   );
   CalendarWidgetManager.registerWidget(
     'mini',
-    () =>
-      new WidgetWrapper(CalendarMiniWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+    () => new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
   );
   CalendarWidgetManager.registerWidget(
     'grid',
-    () =>
-      new WidgetWrapper(CalendarGridWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+    () => new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
   );
 }
 
