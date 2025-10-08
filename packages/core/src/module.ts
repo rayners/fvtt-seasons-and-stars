@@ -594,6 +594,13 @@ Hooks.once('ready', async () => {
             isStartup: true,
             // No previousDate on startup
           });
+
+          // Update lastEventCheckDate to prevent duplicate hook fire on first dateChanged
+          lastEventCheckDate = {
+            year: currentDate.year,
+            month: currentDate.month,
+            day: currentDate.day,
+          };
         }
       }
     }

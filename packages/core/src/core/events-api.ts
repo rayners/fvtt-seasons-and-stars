@@ -32,6 +32,33 @@ export class EventsAPI {
   constructor(private getEventsManager: () => EventsManager | null) {}
 
   /**
+   * Check if current user can see an event based on visibility
+   * @private
+   */
+  private canUserSeeEvent(event: CalendarEvent): boolean {
+    // No visibility set or player-visible: everyone can see
+    if (!event.visibility || event.visibility === 'player-visible') {
+      return true;
+    }
+
+    // GM-only events: only GMs can see
+    if (event.visibility === 'gm-only') {
+      return game.user?.isGM || false;
+    }
+
+    // Unknown visibility type: default to visible
+    return true;
+  }
+
+  /**
+   * Filter event occurrences by visibility permissions
+   * @private
+   */
+  private filterOccurrencesByVisibility(occurrences: EventOccurrence[]): EventOccurrence[] {
+    return occurrences.filter(occ => this.canUserSeeEvent(occ.event));
+  }
+
+  /**
    * Get all events occurring on a specific date
    *
    * Returns event occurrences with full context (event + date) ready for
@@ -56,7 +83,8 @@ export class EventsAPI {
       return [];
     }
 
-    return manager.getEventsForDate(year, month, day);
+    const allOccurrences = manager.getEventsForDate(year, month, day);
+    return this.filterOccurrencesByVisibility(allOccurrences);
   }
 
   /**
@@ -96,7 +124,15 @@ export class EventsAPI {
       return [];
     }
 
-    return manager.getEventsInRange(startYear, startMonth, startDay, endYear, endMonth, endDay);
+    const allOccurrences = manager.getEventsInRange(
+      startYear,
+      startMonth,
+      startDay,
+      endYear,
+      endMonth,
+      endDay
+    );
+    return this.filterOccurrencesByVisibility(allOccurrences);
   }
 
   /**
@@ -128,7 +164,14 @@ export class EventsAPI {
       return null;
     }
 
-    return manager.getNextOccurrence(eventId, afterYear, afterMonth, afterDay);
+    const occurrence = manager.getNextOccurrence(eventId, afterYear, afterMonth, afterDay);
+
+    // Check visibility permission
+    if (occurrence && !this.canUserSeeEvent(occurrence.event)) {
+      return null;
+    }
+
+    return occurrence;
   }
 
   /**
@@ -150,7 +193,10 @@ export class EventsAPI {
       return false;
     }
 
-    return manager.hasEventsOnDate(year, month, day);
+    // Check if there are any visible events on this date
+    const allOccurrences = manager.getEventsForDate(year, month, day);
+    const visibleOccurrences = this.filterOccurrencesByVisibility(allOccurrences);
+    return visibleOccurrences.length > 0;
   }
 
   /**
@@ -174,7 +220,8 @@ export class EventsAPI {
       return [];
     }
 
-    return manager.getAllEvents();
+    const allEvents = manager.getAllEvents();
+    return allEvents.filter(event => this.canUserSeeEvent(event));
   }
 
   /**
@@ -194,7 +241,14 @@ export class EventsAPI {
       return null;
     }
 
-    return manager.getEvent(eventId);
+    const event = manager.getEvent(eventId);
+
+    // Check visibility permission
+    if (event && !this.canUserSeeEvent(event)) {
+      return null;
+    }
+
+    return event;
   }
 
   /**

@@ -111,12 +111,12 @@ describe('EventsAPI Wrapper', () => {
   });
 
   describe('getEventsInRange', () => {
-    it('should return events in a date range', () => {
+    it('should return only player-visible events for players', () => {
       const occurrences = eventsAPI.getEventsInRange(2024, 1, 1, 2024, 3, 31);
       expect(occurrences.length).toBeGreaterThan(0);
       const eventIds = occurrences.map(o => o.event.id);
       expect(eventIds).toContain('new-year');
-      expect(eventIds).toContain('spring-fest');
+      expect(eventIds).not.toContain('spring-fest'); // GM-only event filtered out
     });
 
     it('should return empty array when manager not initialized', () => {
@@ -163,11 +163,11 @@ describe('EventsAPI Wrapper', () => {
   });
 
   describe('getAllEvents', () => {
-    it('should return all events', () => {
+    it('should return only player-visible events for players', () => {
       const events = eventsAPI.getAllEvents();
-      expect(events).toHaveLength(2);
+      expect(events).toHaveLength(1); // Only new-year (player-visible)
       expect(events.map(e => e.id)).toContain('new-year');
-      expect(events.map(e => e.id)).toContain('spring-fest');
+      expect(events.map(e => e.id)).not.toContain('spring-fest'); // GM-only filtered out
     });
 
     it('should return empty array when manager not initialized', () => {
@@ -412,7 +412,10 @@ describe('EventsAPI Wrapper', () => {
       (globalThis as any).fromUuidSync = vi.fn().mockReturnValue(mockJournal);
     });
 
-    it('should return journal for event with journalEntryId', () => {
+    it('should return journal for event with journalEntryId (GM access)', () => {
+      // Need to be GM to see spring-fest (GM-only event)
+      globalThis.game.user.isGM = true;
+
       const journal = eventsAPI.getEventJournal('spring-fest');
       expect(journal).not.toBeNull();
     });
