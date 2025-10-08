@@ -26,13 +26,33 @@ A step-by-step guide to creating your own custom calendar for Seasons & Stars.
 
 Seasons & Stars allows you to create completely custom calendars for your world. Whether you're running a campaign in a homebrewed setting or adapting an existing calendar system, this tutorial will walk you through the process from an empty file to a fully functional calendar.
 
+**Recommended Tool:** This tutorial focuses on using the **Custom Calendar Builder** module, a companion tool that provides a user-friendly interface with real-time validation, JSON editing, and import/export capabilities. While you can also create calendars using external text editors and validation tools, the Calendar Builder streamlines the process significantly.
+
 ## Prerequisites
 
 Before you begin, you'll need:
 
-- A text editor (Notepad, TextEdit, VS Code, or any code editor)
+- Foundry VTT with Seasons & Stars installed (v0.17.0 or higher)
+- **Custom Calendar Builder module** installed and enabled (recommended)
+  - Install from the Foundry VTT module manager alongside Seasons & Stars
+  - Provides real-time validation and streamlined workflow
 - Basic understanding of your calendar system (how many months, days per month, etc.)
-- Access to Foundry VTT with Seasons & Stars installed
+- _Alternative:_ A text editor (VS Code, Notepad++, etc.) if not using the Calendar Builder
+
+## Using External Tools (Alternative)
+
+While this tutorial focuses on the Calendar Builder module, you can also create calendars using external tools:
+
+- **Text Editors**: VS Code, Notepad++, Sublime Text (with JSON plugins)
+- **Online Validators**: JSONLint, JSON Schema Validator
+- **IDEs**: Any code editor with JSON schema support
+
+The Calendar Builder is recommended because it:
+
+- Uses the exact same validation as Seasons & Stars
+- Provides real-time feedback
+- Eliminates the need to switch between tools
+- Offers a streamlined import/export workflow
 
 ## Understanding JSON
 
@@ -59,19 +79,46 @@ JSON (JavaScript Object Notation) is a human-readable text format for storing st
 
 ## Creating Your Calendar
 
-### Step 1: Empty JSON File
+### Step 1: Open the Calendar Builder
 
-Create a new file with a `.json` extension (e.g., `my-calendar.json`) and start with an empty object:
+1. **Install the Custom Calendar Builder** module if you haven't already
+2. **Enable both modules** in your Foundry VTT world (Seasons & Stars and Custom Calendar Builder)
+3. **Open any Seasons & Stars calendar widget** in your world
+4. **Look for the Calendar Builder button** (hammer icon) in the widget toolbar
+5. **Click the hammer icon** to open the Calendar Builder interface
 
-```json
-{}
-```
+The Calendar Builder provides:
 
-This is valid JSON, but it doesn't contain any calendar data yet.
+- Real-time JSON validation as you type
+- Syntax highlighting for easier editing
+- Import/export functionality
+- Automatic schema validation
 
-### Step 2: Bare Minimum Calendar
+**Alternative Workflow:** If you prefer to work in an external text editor, create a new file with a `.json` extension (e.g., `my-calendar.json`) and start with an empty object `{}`. You can then import it into the Calendar Builder for validation.
 
-The absolute minimum data required for a valid calendar is:
+**Calendar Builder Features:**
+
+- **New Calendar**: Creates a starter template with all required fields
+- **Open Calendar**: Browse and load existing calendar JSON files from your Foundry data
+- **Import JSON**: Load a calendar JSON file from your computer
+- **Export JSON**: Download your calendar as a JSON file to use in Foundry
+- **Validate**: Check your calendar against the Seasons & Stars schema
+- **Clear**: Reset the editor (with confirmation prompt)
+
+**Important Workflow Note:** The Calendar Builder is a creation and validation tool. After creating or editing your calendar, you must:
+
+1. Export the JSON file
+2. Upload it to Foundry VTT via the file picker
+3. Select it in the Calendar Selection Dialog
+
+### Step 2: Start with a Template
+
+In the Calendar Builder:
+
+1. **Click the "New" button** in the toolbar (file icon)
+2. This loads a starter template with all required fields
+
+The template provides a basic Gregorian-style calendar that you can customize. Here's what the minimum required data looks like:
 
 ```json
 {
@@ -120,7 +167,9 @@ The absolute minimum data required for a valid calendar is:
 - `intercalary`: Special days outside normal calendar structure
 - `time`: Time units configuration
 
-**Try it:** Save this file and skip ahead to [Using Your Custom Calendar](#using-your-custom-calendar) to see it in action!
+**Try it:** Click the "Validate" button in the Calendar Builder to verify this minimal structure is correct, then click "Export" to download it as a JSON file!
+
+**Note:** The Calendar Builder validates and exports your calendar JSON, but does not automatically apply it to your world. After exporting, you'll need to upload and select the calendar file using the Calendar Selection Dialog (see [Using Your Custom Calendar](#using-your-custom-calendar)).
 
 ### Step 3: Adding Months
 
@@ -357,20 +406,9 @@ Leap years add extra days periodically to keep the calendar aligned with astrono
 }
 ```
 
-**Custom leap year rules:**
-
-```json
-{
-  "leapYear": {
-    "rule": "custom",
-    "month": "Twelfthmoon",
-    "extraDays": 5,
-    "condition": "year % 10 === 0"
-  }
-}
-```
-
 **Important:** The `month` field must exactly match the `name` of one of your months.
+
+**Note:** Custom leap year rules with conditional logic are not currently supported. Use `"none"`, `"gregorian"`, or `"simple"` rules only.
 
 ### Step 7: Adding Intercalary Days
 
@@ -568,7 +606,19 @@ Define seasonal divisions in your calendar:
 
 Before using your calendar, it's important to validate that it's correctly formatted.
 
-### Method 1: Online JSON Validators
+### Method 1: Calendar Builder (Recommended)
+
+The Calendar Builder provides real-time validation as you edit:
+
+1. **Edit your calendar JSON** in the Calendar Builder editor
+2. **Validation runs automatically** as you type (with a short delay)
+3. **Check the "Validation Results" panel** on the right side
+4. **Review any errors or warnings** and fix them in the editor
+5. **Click "Validate"** button for on-demand validation
+
+The Calendar Builder uses the official Seasons & Stars validation API, ensuring your calendar will work correctly when loaded into the module.
+
+### Method 2: Online JSON Validators
 
 **JSONLint** - Simple JSON syntax checking:
 
@@ -585,6 +635,8 @@ Before using your calendar, it's important to validate that it's correctly forma
 2. In the left panel, paste the schema from: `https://raw.githubusercontent.com/rayners/fvtt-seasons-and-stars/main/shared/schemas/calendar-v1.0.0.json`
 3. In the right panel, paste your calendar JSON
 4. Review validation results
+
+**Note:** For the most accurate validation, use the Calendar Builder's built-in validation, which uses the same validation logic as the Seasons & Stars module.
 
 **Screenshot Placeholder:** _[Screenshot of JSON Schema Validator with calendar schema and example calendar]_
 
@@ -607,24 +659,41 @@ Many text editors support automatic JSON validation:
 
 3. VS Code will now show errors as you type
 
+**Note:** This validation only checks JSON structure against the schema. For complete validation including calendar logic, use the Calendar Builder.
+
+3. VS Code will now show errors as you type
+
 **Screenshot Placeholder:** _[Screenshot of VS Code with calendar JSON showing inline validation]_
 
-### Method 3: Foundry VTT Built-in Validation
+### Method 4: In-Game Validation
 
 When you upload your calendar file to Foundry VTT, Seasons & Stars automatically validates it:
 
 1. Open the Calendar Selection dialog
 2. Upload your calendar file
 3. If there are errors, you'll see a notification with details
-4. Fix the errors and re-upload
-
-**Note:** A more comprehensive built-in validation tool is planned for a future release.
+4. Check the browser console (F12) for detailed validation errors
+5. Fix the errors in the Calendar Builder and re-export
 
 ## Using Your Custom Calendar
 
-Once your calendar is created and validated, follow these steps to use it in Foundry VTT:
+Once your calendar is created and validated in the Calendar Builder, follow these steps to use it in Foundry VTT:
 
-### Step 1: Open the Calendar Selection Dialog
+### Important Note
+
+The Calendar Builder **validates and exports** your calendar JSON but does **not automatically apply** it to your world. After creating your calendar in the builder, you need to:
+
+1. **Export the JSON** from the Calendar Builder (using the "Export" button)
+2. **Upload the file** to Foundry VTT
+3. **Select the calendar** using the Calendar Selection Dialog
+
+### Step 1: Export from Calendar Builder
+
+1. **Click the "Export" button** in the Calendar Builder toolbar (download icon)
+2. **Save the JSON file** to your computer
+3. **Remember the file location** - you'll need to upload it to Foundry
+
+### Step 2: Open the Calendar Selection Dialog
 
 1. **Click the calendar widget** in your Foundry VTT interface (typically positioned near the player list or above SmallTime if you have it installed)
 2. The calendar widget will open showing your current date and time
@@ -638,21 +707,21 @@ Once your calendar is created and validated, follow these steps to use it in Fou
 
 **Screenshot Placeholder:** _[Screenshot of calendar widget with arrow pointing to the selection button]_
 
-### Step 3: Scroll to Custom Calendar Section
+### Step 4: Scroll to Custom Calendar Section
 
 1. In the Calendar Selection Dialog, **scroll to the bottom**
 2. You'll see a section labeled "Custom Calendar File" with a file picker option
 
 **Screenshot Placeholder:** _[Screenshot of Calendar Selection Dialog scrolled to bottom showing file picker card]_
 
-### Step 4: Open the File Picker
+### Step 5: Open the File Picker
 
 1. **Click the "Choose File" button** (or file picker icon) in the Custom Calendar section
 2. The Foundry VTT file picker dialog opens
 
 **Screenshot Placeholder:** _[Screenshot showing the file picker button being clicked]_
 
-### Step 5: Upload Your Calendar File
+### Step 6: Upload Your Calendar File
 
 1. In the file picker dialog, **click the "Upload" button** (cloud icon)
 2. **Select your calendar JSON file** from your computer
@@ -664,7 +733,7 @@ Once your calendar is created and validated, follow these steps to use it in Fou
 
 **Screenshot Placeholder:** _[Screenshot of file picker showing uploaded calendar JSON file]_
 
-### Step 6: Activate Your Calendar
+### Step 7: Activate Your Calendar
 
 1. Back in the Calendar Selection Dialog, your custom calendar now appears as "Custom File: your-calendar-name.json"
 2. The file picker card should show your selected file path
@@ -673,7 +742,7 @@ Once your calendar is created and validated, follow these steps to use it in Fou
 
 **Screenshot Placeholder:** _[Screenshot of Calendar Selection Dialog with custom calendar file selected and "Select Calendar" button highlighted]_
 
-### Step 7: Verify Your Calendar
+### Step 8: Verify Your Calendar
 
 Your calendar widget should now display dates using your custom calendar:
 
@@ -698,62 +767,24 @@ To switch back to a built-in calendar:
 
 To update your calendar after making changes:
 
-1. Edit your JSON file on your computer
-2. Re-upload the file through the file picker (it will overwrite the old version)
-3. In the Calendar Selection Dialog, click "Clear Selection" on the file picker card
-4. Re-select your updated file
-5. Click "Select Calendar" to activate the new version
+#### Using the Calendar Builder:
+
+1. **Open the Calendar Builder** (hammer icon in calendar widget)
+2. **Click "Open" or "Import"** to load your existing calendar JSON
+3. **Make your changes** in the editor
+4. **Validate** to ensure changes are correct
+5. **Export** the updated JSON file
+6. **Re-upload** the file through the Foundry file picker (overwrites the old version)
+7. In the Calendar Selection Dialog, **clear and re-select** the updated file
+8. Click **"Select Calendar"** to activate the new version
+
+#### Alternative (External Editor):
+
+1. Edit your JSON file in an external text editor
+2. Import into Calendar Builder to validate
+3. Follow steps 4-8 above
 
 ## Advanced Features
-
-### Date Formats
-
-Customize how dates are displayed with date format templates:
-
-```json
-{
-  "dateFormats": {
-    "short": "{day} {monthAbbr} {year}",
-    "long": "{weekday}, {monthName} {day}, {year}",
-    "numeric": "{month}/{day}/{year}",
-    "widgets": {
-      "mini": "{day} {monthAbbr}"
-    }
-  }
-}
-```
-
-**Available placeholders:**
-
-- `{day}` - Day number
-- `{month}` - Month number
-- `{monthName}` - Full month name
-- `{monthAbbr}` - Month abbreviation
-- `{year}` - Year number
-- `{weekday}` - Weekday name
-- `{weekdayAbbr}` - Weekday abbreviation
-
-### Named Years
-
-Add special names to years:
-
-```json
-{
-  "extensions": {
-    "seasons-and-stars": {
-      "namedYears": {
-        "rule": "repeat",
-        "names": [
-          "Year of the Dragon",
-          "Year of the Phoenix",
-          "Year of the Griffin",
-          "Year of the Unicorn"
-        ]
-      }
-    }
-  }
-}
-```
 
 ### Source Documentation
 
@@ -915,7 +946,6 @@ Here's a complete custom calendar with all features:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/rayners/fvtt-seasons-and-stars/main/shared/schemas/calendar-v1.0.0.json",
   "id": "mystara-calendar",
   "translations": {
     "en": {
@@ -1022,17 +1052,27 @@ Here's a complete custom calendar with all features:
 }
 ```
 
-Save this as `mystara-calendar.json` and follow the [Using Your Custom Calendar](#using-your-custom-calendar) steps to load it!
+**To use this example:**
+
+1. **Copy the JSON above**
+2. **Open the Calendar Builder** in Foundry VTT
+3. **Paste it into the editor**
+4. **Click "Validate"** to ensure it's correct
+5. **Click "Export"** to download as `mystara-calendar.json`
+6. Follow the [Using Your Custom Calendar](#using-your-custom-calendar) steps to load it!
+
+**Alternatively:** Save this JSON directly to a file and import it into the Calendar Builder using the "Import" button.
 
 ## Next Steps
 
 Now that you've created your custom calendar:
 
 1. **Test thoroughly** - Try advancing time through different months and years
-2. **Document your calendar** - Add descriptions to help players understand it
-3. **Share with your players** - Consider creating a handout with calendar information
-4. **Backup your file** - Keep a copy of your calendar JSON in a safe place
-5. **Iterate and improve** - Refine your calendar based on actual play experience
+2. **Keep your Calendar Builder handy** - Use it to quickly validate and update your calendar
+3. **Document your calendar** - Add descriptions to help players understand it
+4. **Share with your players** - Consider creating a handout with calendar information
+5. **Backup your file** - Keep a copy of your calendar JSON in a safe place
+6. **Iterate and improve** - Use the Calendar Builder to refine your calendar based on actual play experience
 
 For more advanced features and integration options, see:
 
