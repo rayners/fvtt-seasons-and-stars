@@ -684,9 +684,15 @@ function registerSettings(): void {
     onChange: async (value: string) => {
       Logger.debug('File picker path updated:', value);
 
-      if (value && value.trim() !== '' && calendarManager) {
-        const fileUrl = calendarManager.convertFoundryPathToUrl(value);
-        const result = await calendarManager.loadCalendarFromUrl(fileUrl, { validate: true });
+      if (value && value.trim() !== '') {
+        const manager = game.seasonsStars?.manager as CalendarManager | undefined;
+        if (!manager) {
+          Logger.warn('Calendar manager not initialized yet, deferring file load');
+          return;
+        }
+
+        const fileUrl = manager.convertFoundryPathToUrl(value);
+        const result = await manager.loadCalendarFromUrl(fileUrl, { validate: true });
 
         if (result.success && result.calendar) {
           const fileSourceInfo: CalendarSourceInfo = {
@@ -697,11 +703,12 @@ function registerSettings(): void {
             url: fileUrl,
           };
 
-          const loadSuccess = calendarManager.loadCalendar(result.calendar, fileSourceInfo);
+          await game.settings.set('seasons-and-stars', 'activeCalendarData', result.calendar);
+
+          const loadSuccess = manager.loadCalendar(result.calendar, fileSourceInfo);
 
           if (loadSuccess) {
-            await calendarManager.setActiveCalendar(result.calendar.id, false);
-            await game.settings.set('seasons-and-stars', 'activeCalendarData', result.calendar);
+            await manager.setActiveCalendar(result.calendar.id, false);
             Logger.info('Calendar loaded from file setting change:', value);
           } else {
             Logger.error(`Failed to load calendar from file setting: ${value}`);

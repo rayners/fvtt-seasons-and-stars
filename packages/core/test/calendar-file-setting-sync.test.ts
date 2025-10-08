@@ -35,7 +35,6 @@ const mockCustomCalendar: SeasonsStarsCalendar = {
 
 describe('Calendar File Setting Synchronization (Issue #348)', () => {
   let gmCalendarManager: CalendarManager;
-  let playerCalendarManager: CalendarManager;
   let settingsStore: Map<string, any>;
   let onChangeHandlers: Map<string, Function>;
 
@@ -74,7 +73,10 @@ describe('Calendar File Setting Synchronization (Issue #348)', () => {
     });
 
     gmCalendarManager = new CalendarManager();
-    playerCalendarManager = new CalendarManager();
+
+    (globalThis as any).game.seasonsStars = {
+      manager: gmCalendarManager,
+    };
   });
 
   afterEach(() => {
@@ -201,38 +203,64 @@ describe('Calendar File Setting Synchronization (Issue #348)', () => {
 
       const testFilePath = 'worlds/test-world/calendars/custom-calendar.json';
 
-      const mockLoadFromUrl = vi.fn().mockResolvedValue({
+      const mockLoadFromUrl = vi.spyOn(gmCalendarManager, 'loadCalendarFromUrl').mockResolvedValue({
         success: true,
         calendar: mockCustomCalendar,
       });
 
-      (globalThis as any).game.seasonsStars = {
-        manager: {
-          ...playerCalendarManager,
-          loadCalendarFromUrl: mockLoadFromUrl,
-          convertFoundryPathToUrl: (path: string) => path,
-        },
-      };
+      vi.spyOn(gmCalendarManager, 'convertFoundryPathToUrl').mockImplementation(
+        (path: string) => path
+      );
+      vi.spyOn(gmCalendarManager, 'loadCalendar').mockReturnValue(true);
+      const mockSetActive = vi.spyOn(gmCalendarManager, 'setActiveCalendar').mockResolvedValue();
 
       await game.settings.set('seasons-and-stars', 'activeCalendarFile', testFilePath);
+
+      expect(mockLoadFromUrl).toHaveBeenCalledWith(testFilePath, { validate: true });
+      expect(gmCalendarManager.loadCalendar).toHaveBeenCalledWith(
+        mockCustomCalendar,
+        expect.objectContaining({
+          type: 'external',
+          sourceName: 'Custom File',
+        })
+      );
+      expect(mockSetActive).toHaveBeenCalledWith(mockCustomCalendar.id, false);
     });
 
-    it('EXPECTED: activeCalendarData should be cached for persistence', async () => {
+    it('EXPECTED: activeCalendarData should be cached BEFORE activation', async () => {
       const { registerSettings } = await import('../src/module');
       registerSettings();
 
       const testFilePath = 'worlds/test-world/calendars/custom-calendar.json';
 
-      gmCalendarManager.loadCalendar(mockCustomCalendar, {
-        type: 'external',
-        sourceName: 'Custom File',
+      vi.spyOn(gmCalendarManager, 'loadCalendarFromUrl').mockResolvedValue({
+        success: true,
+        calendar: mockCustomCalendar,
       });
-      await gmCalendarManager.setActiveCalendar(mockCustomCalendar.id, false);
+      vi.spyOn(gmCalendarManager, 'convertFoundryPathToUrl').mockImplementation(
+        (path: string) => path
+      );
+      vi.spyOn(gmCalendarManager, 'loadCalendar').mockReturnValue(true);
+      vi.spyOn(gmCalendarManager, 'setActiveCalendar').mockResolvedValue();
 
       await game.settings.set('seasons-and-stars', 'activeCalendarFile', testFilePath);
 
       const cachedData = settingsStore.get('seasons-and-stars.activeCalendarData');
-      expect(cachedData).toBeDefined();
+      expect(cachedData).toEqual(mockCustomCalendar);
+    });
+
+    it('EXPECTED: should handle case when manager not yet initialized', async () => {
+      const { registerSettings } = await import('../src/module');
+      registerSettings();
+
+      (globalThis as any).game.seasonsStars = undefined;
+
+      const testFilePath = 'worlds/test-world/calendars/custom-calendar.json';
+
+      await game.settings.set('seasons-and-stars', 'activeCalendarFile', testFilePath);
+
+      const cachedData = settingsStore.get('seasons-and-stars.activeCalendarData');
+      expect(cachedData).toBeNull();
     });
   });
 });
