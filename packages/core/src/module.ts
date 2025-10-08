@@ -357,12 +357,14 @@ export function setup(): void {
     timeAdvancementService.initialize();
 
     // Reset seasons warning flag when calendar changes
-    Hooks.on('seasons-stars:calendarChanged', () => {
-      resetSeasonsWarningState();
-    });
-
     // Event occurrence hook integration - fires when events occur on the current date
     let lastEventCheckDate: { year: number; month: number; day: number } | null = null;
+
+    Hooks.on('seasons-stars:calendarChanged', () => {
+      resetSeasonsWarningState();
+      // Reset event check date when calendar changes to allow events to fire on new calendar
+      lastEventCheckDate = null;
+    });
 
     Hooks.on(
       'seasons-stars:dateChanged',

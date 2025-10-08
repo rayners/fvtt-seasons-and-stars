@@ -200,6 +200,17 @@ export class EventsManager {
 
   /**
    * Get the next occurrence of an event after a given date
+   *
+   * @param eventId - The ID of the event
+   * @param afterYear - Year to search after
+   * @param afterMonth - Month to search after (1-based)
+   * @param afterDay - Day to search after (1-based)
+   * @returns The next occurrence, or null if none found within search limit
+   *
+   * @remarks
+   * Searches up to 100 years in the future from the given date. This limit
+   * prevents infinite loops for events that may never occur again (e.g.,
+   * events with endYear in the past, or ordinal events that can't be satisfied).
    */
   getNextOccurrence(
     eventId: string,
