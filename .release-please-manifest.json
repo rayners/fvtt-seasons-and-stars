@@ -1,6 +1,7 @@
 {
-  "packages/core": "0.19.0",
-  "packages/fantasy-pack": "0.6.1",
+  "packages/core": "0.20.1",
+  "packages/fantasy-pack": "0.7.0",
   "packages/scifi-pack": "0.3.1",
-  "packages/pf2e-pack": "0.5.2"
+  "packages/pf2e-pack": "0.5.2",
+  "packages/custom-calendar-builder": "0.2.4"
 }

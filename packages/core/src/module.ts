@@ -14,6 +14,7 @@ import { compatibilityManager } from './core/compatibility-manager';
 import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
 import { CalendarLocalization } from './core/calendar-localization';
+import { EventsAPI } from './core/events-api';
 import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
@@ -26,6 +27,7 @@ import { CalendarWidgetManager, WidgetWrapper } from './ui/widget-manager';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
+import type { ValidationResult } from './core/calendar-validator';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import { TimeAdvancementService } from './core/time-advancement-service';
 import type { MemoryMageAPI } from './types/external-integrations';
@@ -41,6 +43,7 @@ import type {
   DateFormatOptions,
   SeasonsStarsCalendar,
 } from './types/calendar';
+import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
 
 // Import integrations (they register their own hooks independently)
 // PF2e integration moved to separate pf2e-pack module
@@ -48,9 +51,13 @@ import type {
 // Module instances
 let calendarManager: CalendarManager;
 let notesManager: NotesManager;
+let eventsAPI: EventsAPI;
 
 // Track if we've already warned about missing seasons for the current active calendar
 let hasWarnedAboutMissingSeasons = false;
+
+// Track last date we checked for events (prevents duplicate hook fires on startup)
+let lastEventCheckDate: { year: number; month: number; day: number } | null = null;
 
 /**
  * Reset the seasons warning state - exposed for testing and external calendar changes
@@ -353,10 +360,54 @@ export function setup(): void {
     const timeAdvancementService = TimeAdvancementService.getInstance();
     timeAdvancementService.initialize();
 
+    // Create EventsAPI instance for use in hooks (with visibility filtering)
+    eventsAPI = new EventsAPI(() => calendarManager.getActiveEventsManager());
+
     // Reset seasons warning flag when calendar changes
+    // Event occurrence hook integration - fires when events occur on the current date
     Hooks.on('seasons-stars:calendarChanged', () => {
       resetSeasonsWarningState();
+      // Reset event check date when calendar changes to allow events to fire on new calendar
+      lastEventCheckDate = null;
     });
+
+    Hooks.on(
+      'seasons-stars:dateChanged',
+      (data: { newDate: ICalendarDate; oldTime: number; newTime: number; delta: number }) => {
+        const newDate = {
+          year: data.newDate.year,
+          month: data.newDate.month,
+          day: data.newDate.day,
+        };
+
+        // Check if day actually changed (ignore time-of-day changes)
+        const dayChanged =
+          !lastEventCheckDate ||
+          lastEventCheckDate.year !== newDate.year ||
+          lastEventCheckDate.month !== newDate.month ||
+          lastEventCheckDate.day !== newDate.day;
+
+        if (!dayChanged) {
+          return; // Same day, no need to check events
+        }
+
+        const previousDate = lastEventCheckDate ? { ...lastEventCheckDate } : undefined;
+        lastEventCheckDate = { ...newDate };
+
+        // Get events for the new date with visibility filtering
+        const events = eventsAPI.getEventsForDate(newDate.year, newDate.month, newDate.day);
+
+        // Only fire hook if there are events
+        if (events.length > 0) {
+          Hooks.callAll('seasons-stars:eventOccurs', {
+            events,
+            date: newDate,
+            isStartup: false,
+            previousDate,
+          });
+        }
+      }
+    );
 
     // Initialize notes manager synchronously
     try {
@@ -519,6 +570,44 @@ Hooks.once('ready', async () => {
   // This must happen during ready hook since it sets world-level settings
   await calendarManager.completeInitialization();
 
+  // Check for events on startup (fire hook if current date has events)
+  try {
+    const currentDate = calendarManager.getCurrentDate();
+    if (currentDate) {
+      // Get events for current date with visibility filtering
+      const events = eventsAPI.getEventsForDate(
+        currentDate.year,
+        currentDate.month,
+        currentDate.day
+      );
+
+      if (events.length > 0) {
+        Hooks.callAll('seasons-stars:eventOccurs', {
+          events,
+          date: {
+            year: currentDate.year,
+            month: currentDate.month,
+            day: currentDate.day,
+          },
+          isStartup: true,
+          // No previousDate on startup
+        });
+
+        // Update lastEventCheckDate to prevent duplicate hook fire on first dateChanged
+        lastEventCheckDate = {
+          year: currentDate.year,
+          month: currentDate.month,
+          day: currentDate.day,
+        };
+      }
+    }
+  } catch (error) {
+    Logger.warn(
+      'Failed to check for events on startup:',
+      error instanceof Error ? error : new Error(String(error))
+    );
+  }
+
   // Show default widget if enabled in settings
   if (game.settings?.get('seasons-and-stars', 'showTimeWidget')) {
     const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
@@ -541,6 +630,9 @@ Hooks.once('ready', async () => {
   await CalendarDeprecationDialog.showWarningIfNeeded();
 
   Logger.info('UI setup complete - module fully ready');
+
+  // Signal that core module is ready for integrations
+  Hooks.callAll('seasons-and-stars.ready');
 });
 
 /**
@@ -857,6 +949,25 @@ function registerSettings(): void {
     config: true,
     type: Boolean,
     default: false,
+  });
+
+  // === EVENTS SYSTEM SETTINGS ===
+
+  // World-level event customizations (GM additions, overrides, disabled events)
+  game.settings.register('seasons-and-stars', 'worldEvents', {
+    name: 'World Events',
+    hint: 'GM customizations for calendar events (hidden setting, managed via API)',
+    scope: 'world',
+    config: false, // Hidden - managed programmatically
+    type: Object,
+    default: {
+      events: [],
+      disabledEventIds: [],
+    },
+    onChange: (value: unknown) => {
+      // Notify that world events have changed
+      Hooks.callAll('seasons-stars:worldEventsChanged', value);
+    },
   });
 
   // === GENERAL UI SETTINGS ===
@@ -1218,8 +1329,9 @@ export function setupAPI(): void {
         'advanceDays',
         { days, calendarId },
         params => {
-          APIWrapper.validateNumber(params.days, 'Days');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.days, 'Days');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceDays(days)
       );
@@ -1230,8 +1342,9 @@ export function setupAPI(): void {
         'advanceHours',
         { hours, calendarId },
         params => {
-          APIWrapper.validateNumber(params.hours, 'Hours');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.hours, 'Hours');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceHours(hours)
       );
@@ -1242,8 +1355,9 @@ export function setupAPI(): void {
         'advanceMinutes',
         { minutes, calendarId },
         params => {
-          APIWrapper.validateNumber(params.minutes, 'Minutes');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.minutes, 'Minutes');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceMinutes(minutes)
       );
@@ -1254,8 +1368,9 @@ export function setupAPI(): void {
         'advanceWeeks',
         { weeks, calendarId },
         params => {
-          APIWrapper.validateNumber(params.weeks, 'Weeks');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.weeks, 'Weeks');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceWeeks(weeks)
       );
@@ -1266,8 +1381,9 @@ export function setupAPI(): void {
         'advanceMonths',
         { months, calendarId },
         params => {
-          APIWrapper.validateNumber(params.months, 'Months');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.months, 'Months');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceMonths(months)
       );
@@ -1278,8 +1394,9 @@ export function setupAPI(): void {
         'advanceYears',
         { years, calendarId },
         params => {
-          APIWrapper.validateNumber(params.years, 'Years');
-          APIWrapper.validateCalendarId(params.calendarId);
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateNumber(p.years, 'Years');
+          APIWrapper.validateCalendarId(p.calendarId as string | undefined);
         },
         () => calendarManager.advanceYears(years)
       );
@@ -1647,7 +1764,8 @@ export function setupAPI(): void {
         'loadCalendarFromUrl',
         { url, options },
         params => {
-          APIWrapper.validateString(params.url, 'URL');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.url, 'URL');
         },
         () => calendarManager.loadCalendarFromUrl(url, options)
       );
@@ -1661,7 +1779,8 @@ export function setupAPI(): void {
         'loadCalendarCollection',
         { url, options },
         params => {
-          APIWrapper.validateString(params.url, 'URL');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.url, 'URL');
         },
         () => calendarManager.loadCalendarCollection(url, options)
       );
@@ -1754,7 +1873,8 @@ export function setupAPI(): void {
         'refreshExternalCalendar',
         { sourceId },
         params => {
-          APIWrapper.validateString(params.sourceId, 'Source ID');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.sourceId, 'Source ID');
         },
         () => calendarManager.refreshExternalCalendar(sourceId)
       );
@@ -1789,30 +1909,133 @@ export function setupAPI(): void {
         'loadModuleCalendars',
         { moduleId },
         params => {
-          APIWrapper.validateString(params.moduleId, 'Module ID');
+          const p = APIWrapper.extractParams(params);
+          APIWrapper.validateString(p.moduleId, 'Module ID');
         },
         () => calendarManager.loadModuleCalendars(moduleId)
       );
     },
+
+    /**
+     * Validate calendar JSON data using the schema validator
+     *
+     * @param calendarData The calendar data to validate
+     * @returns Promise<ValidationResult> with validation results
+     * @throws {Error} If validation setup fails
+     *
+     * @example
+     * ```javascript
+     * const result = await game.seasonsStars.api.validateCalendar(calendarData);
+     * if (result.isValid) {
+     *   console.log('Calendar is valid');
+     * } else {
+     *   console.log('Validation errors:', result.errors);
+     * }
+     * ```
+     */
+    async validateCalendar(calendarData: unknown): Promise<ValidationResult> {
+      return APIWrapper.wrapAPIMethod(
+        'validateCalendar',
+        { hasData: !!calendarData },
+        _params => {
+          if (!calendarData) {
+            throw new Error('Calendar data is required');
+          }
+        },
+        async () => {
+          const { CalendarValidator } = await import('./core/calendar-validator');
+          return CalendarValidator.validate(calendarData);
+        }
+      );
+    },
+
+    /**
+     * Events API - access calendar events system
+     *
+     * Provides methods for retrieving calendar events, managing world-level event
+     * customizations, and integrating events with journal entries.
+     *
+     * Events are recurring occasions (holidays, festivals, observances) that occur
+     * predictably according to calendar rules. Events can be defined in calendar JSON
+     * files or customized at the world level by GMs.
+     *
+     * @example Get events for current date
+     * ```javascript
+     * const date = game.seasonsStars.api.getCurrentDate();
+     * if (date) {
+     *   const events = game.seasonsStars.api.events.getEventsForDate(
+     *     date.year,
+     *     date.month,
+     *     date.day
+     *   );
+     *   console.log('Events today:', events.map(e => e.name).join(', '));
+     * }
+     * ```
+     *
+     * @example Get events in a date range
+     * ```javascript
+     * // Get all events in January 2024
+     * const occurrences = game.seasonsStars.api.events.getEventsInRange(
+     *   2024, 1, 1,  // Start: January 1, 2024
+     *   2024, 1, 31  // End: January 31, 2024
+     * );
+     *
+     * occurrences.forEach(occ => {
+     *   console.log(`${occ.event.name} on ${occ.month}/${occ.day}/${occ.year}`);
+     * });
+     * ```
+     *
+     * @example Add custom world event (GM only)
+     * ```javascript
+     * // Add a custom event for harvest festival
+     * await game.seasonsStars.api.events.setWorldEvent({
+     *   id: 'harvest-festival',
+     *   name: 'Harvest Festival',
+     *   description: 'Annual celebration of the harvest',
+     *   recurrence: { type: 'fixed', month: 9, day: 15 },
+     *   color: '#ff8800',
+     *   icon: 'fas fa-wheat'
+     * });
+     * ```
+     *
+     * @example Link journal entry to event
+     * ```javascript
+     * // Create journal entry about Winter Solstice
+     * const journal = await JournalEntry.create({
+     *   name: 'Winter Solstice Traditions',
+     *   content: '<p>The longest night of the year...</p>'
+     * });
+     *
+     * // Link it to the winter solstice event
+     * await game.seasonsStars.api.events.setEventJournal(
+     *   'winter-solstice',
+     *   journal.uuid
+     * );
+     * ```
+     */
+    events: new EventsAPI(() => calendarManager.getActiveEventsManager()),
   };
 
   // Expose API to global game object
   if (game) {
-    game.seasonsStars = {
+    const seasonsStarsNamespace: typeof game.seasonsStars = {
       api,
       manager: calendarManager,
       notes: notesManager,
       categories: noteCategories, // Will be available by this point since ready runs after init
-      integration: null, // Will be set after the object is fully created
+      integration: null as SeasonsStarsIntegration | null,
       compatibilityManager, // Expose for debugging and external access
       // Expose warning state functions for debugging and external access
       resetSeasonsWarningState,
       getSeasonsWarningState,
       setSeasonsWarningState,
+      buttonRegistry: SidebarButtonRegistry.getInstance(),
     };
 
+    game.seasonsStars = seasonsStarsNamespace;
+
     // Set integration after game.seasonsStars is fully assigned
-    game.seasonsStars.integration = SeasonsStarsIntegration.detect();
+    seasonsStarsNamespace.integration = SeasonsStarsIntegration.detect();
   }
 
   // Expose API to window for debugging
@@ -1821,6 +2044,7 @@ export function setupAPI(): void {
     manager: calendarManager,
     notes: notesManager,
     integration: SeasonsStarsIntegration.detect() || null,
+    buttonRegistry: SidebarButtonRegistry.getInstance(),
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,

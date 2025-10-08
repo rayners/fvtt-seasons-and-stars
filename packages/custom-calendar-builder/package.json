@@ -1,0 +1,51 @@
+{
+  "name": "seasons-and-stars-calendar-builder",
+  "version": "0.2.4",
+  "description": "Calendar builder application for creating custom calendars for Seasons & Stars",
+  "type": "module",
+  "main": "dist/module.js",
+  "scripts": {
+    "prebuild": "echo 'No prebuild needed for calendar-builder'",
+    "build": "rollup -c ../../rollup.config.calendar-builder.js",
+    "watch": "rollup -c ../../rollup.config.calendar-builder.js -w",
+    "typecheck": "tsc --noEmit",
+    "test": "cd ../../ && vitest",
+    "test:ui": "cd ../../ && vitest --ui",
+    "test:run": "cd ../../ && vitest run",
+    "test:coverage": "cd ../../ && vitest run --coverage",
+    "test:junit": "cd ../../ && vitest run --reporter=junit --reporter=default",
+    "test:coverage:junit": "cd ../../ && vitest run --coverage --reporter=junit --reporter=default"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/jquery": "^3.5.33",
+    "@types/node": "^24.6.2",
+    "rollup": "^4.24.0",
+    "rollup-plugin-copy": "^3.4.0",
+    "rollup-plugin-livereload": "^2.0.5",
+    "rollup-plugin-scss": "^4.0.0",
+    "rollup-plugin-serve": "^2.0.2",
+    "sass": "^1.90.0",
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.4",
+    "vitest": "^3.2.2"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rayners/fvtt-seasons-and-stars.git",
+    "directory": "packages/custom-calendar-builder"
+  },
+  "bugs": {
+    "url": "https://github.com/rayners/fvtt-seasons-and-stars/issues"
+  },
+  "homepage": "https://github.com/rayners/fvtt-seasons-and-stars#readme",
+  "author": "David Raynes",
+  "license": "MIT"
+}

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.6.1...seasons-and-stars-fantasy-v0.7.0) (2025-10-08)
+
+
+### Features
+
+* add event occurrence hooks and reference calendar events ([#340](https://github.com/rayners/fvtt-seasons-and-stars/issues/340)) ([54d7403](https://github.com/rayners/fvtt-seasons-and-stars/commit/54d74031b112e395c8fcb58911c149e9eb5a6816))
+
 ## [0.6.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.6.0...seasons-and-stars-fantasy-v0.6.1) (2025-09-24)
 
 

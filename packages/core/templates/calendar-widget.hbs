@@ -8,25 +8,20 @@
   {{else}}
     {{!-- Calendar Header --}}
     <div class="calendar-header">
-      <div class="calendar-title {{#if isGM}}clickable{{/if}}" {{#if isGM}}data-action="openCalendarSelection" title="Click to change calendar system"{{/if}}>
-        <i class="fas fa-calendar-alt"></i>
-        <span>{{calendar.label}}</span>
-        {{#if isGM}}<i class="fas fa-chevron-down dropdown-icon"></i>{{/if}}
-      </div>
-      <div class="widget-switching-controls">
-        <button type="button" class="widget-switch-btn" data-action="switchToMini" title="Switch to Mini Widget">
+      <span class="calendar-name">{{calendar.label}}</span>
+      <div class="header-controls">
+        <button type="button" class="header-control-btn" data-action="switchToMini" title="Switch to Mini Widget">
           <i class="fas fa-compress-alt"></i>
         </button>
-        <button type="button" class="widget-switch-btn" data-action="switchToGrid" title="Switch to Grid Widget">
+        <button type="button" class="header-control-btn" data-action="switchToGrid" title="Switch to Grid Widget">
           <i class="fas fa-th"></i>
         </button>
+        {{#if isGM}}
+        <button type="button" class="header-control-btn" data-action="openCalendarSelection" title="Change Calendar System">
+          <i class="fas fa-cog"></i>
+        </button>
+        {{/if}}
       </div>
-      {{#if isGM}}
-        <div class="calendar-hint">Click above to change calendar</div>
-      {{/if}}
-      {{#if calendar.setting}}
-        <div class="calendar-setting">{{calendar.setting}}</div>
-      {{/if}}
     </div>
 
     {{!-- Date Display --}}
@@ -60,12 +55,12 @@
         {{!-- Existing time controls continue below --}}
         {{#if showTimeControls}}
           <div class="time-advance-section">
-            <div class="control-group horizontal">
+            <div class="control-group">
               <label>Quick Time:</label>
               <div class="time-buttons">
                 {{#each (getQuickTimeButtons false)}}
-                  <button data-action="advanceDate" 
-                          data-amount="{{this.amount}}" 
+                  <button data-action="advanceDate"
+                          data-amount="{{this.amount}}"
                           data-unit="{{this.unit}}"
                           class="{{#if (lt this.amount 0)}}rewind{{/if}}"
                           title="{{#if (lt this.amount 0)}}Go back{{else}}Advance{{/if}} {{this.label}}">
@@ -79,25 +74,29 @@
 
         <div class="date-advance-section">
           <div class="control-group">
-            <label>Advance Date:</label>
-            <button data-action="advanceDate" data-amount="1" data-unit="days" title="Advance 1 day">
-              <i class="fas fa-plus"></i> 1 Day
-            </button>
-            <button data-action="advanceDate" data-amount="1" data-unit="weeks" title="Advance 1 week">
-              <i class="fas fa-plus"></i> 1 Week
-            </button>
-            <button data-action="advanceDate" data-amount="1" data-unit="months" title="Advance 1 month">
-              <i class="fas fa-plus"></i> 1 Month
-            </button>
-          </div>
-        </div>
-
-        <div class="bulk-advance-section">
-          <div class="control-group">
-            <label>Bulk Advance:</label>
-            <button data-action="openBulkAdvance" title="Open bulk time advancement dialog">
-              <i class="fas fa-fast-forward"></i> Custom
-            </button>
+            <label>Date Controls:</label>
+            <div class="date-buttons">
+              <button data-action="advanceDate" data-amount="1" data-unit="days" title="Advance 1 day">
+                <i class="fas fa-plus"></i> 1 Day
+              </button>
+              <button data-action="advanceDate" data-amount="1" data-unit="weeks" title="Advance 1 week">
+                <i class="fas fa-plus"></i> 1 Week
+              </button>
+              <button data-action="advanceDate" data-amount="1" data-unit="months" title="Advance 1 month">
+                <i class="fas fa-plus"></i> 1 Month
+              </button>
+            </div>
+            <div class="date-buttons">
+              <button data-action="advanceDate" data-amount="-1" data-unit="days" class="rewind" title="Go back 1 day">
+                <i class="fas fa-minus"></i> 1 Day
+              </button>
+              <button data-action="advanceDate" data-amount="-1" data-unit="weeks" class="rewind" title="Go back 1 week">
+                <i class="fas fa-minus"></i> 1 Week
+              </button>
+              <button data-action="advanceDate" data-amount="-1" data-unit="months" class="rewind" title="Go back 1 month">
+                <i class="fas fa-minus"></i> 1 Month
+              </button>
+            </div>
           </div>
         </div>
 
@@ -109,17 +108,6 @@
       <div class="calendar-description" title="{{calendar.description}}">
         <i class="fas fa-info-circle"></i>
         <span>{{calendar.description}}</span>
-      </div>
-    {{/if}}
-
-    {{!-- Sidebar Buttons (for module integration) --}}
-    {{#if sidebarButtons.length}}
-      <div class="sidebar-buttons">
-        {{#each sidebarButtons}}
-          <button type="button" class="sidebar-button" title="{{this.tooltip}}" data-action="clickSidebarButton" data-button-name="{{this.name}}">
-            <i class="{{this.icon}}"></i> {{this.name}}
-          </button>
-        {{/each}}
       </div>
     {{/if}}
   {{/if}}

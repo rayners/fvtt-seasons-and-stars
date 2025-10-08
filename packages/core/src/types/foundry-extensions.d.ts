@@ -11,8 +11,10 @@ import type {
   DateFormatOptions,
   CalendarIntercalary,
 } from './calendar';
-import type { SeasonsStarsIntegration } from './bridge-interfaces';
+import type { SeasonsStarsIntegration, SidebarButtonRegistryAPI } from './bridge-interfaces';
 import type { LoadResult, ExternalCalendarSource } from '../core/calendar-loader';
+import type { EventsAPI } from '../core/events-api';
+// ValidationResult imported in bridge-interfaces.d.ts to avoid circular dependencies
 
 // Extend the Game interface to include S&S specific properties
 declare global {
@@ -39,11 +41,16 @@ declare global {
           // Protected lifecycle hooks
           protected _onRender(context: any, options: any): void;
           protected _prepareContext(options: any): any;
+          protected _preparePartContext?(
+            partId: string,
+            context: Record<string, unknown>
+          ): Promise<Record<string, unknown>>;
           protected _attachPartListeners(
             partId: string,
             htmlElement: HTMLElement,
             options: any
           ): void;
+          protected _onChangeForm?(formConfig: any, event: Event): void;
 
           // Static properties
           static DEFAULT_OPTIONS: any;
@@ -53,7 +60,12 @@ declare global {
         function HandlebarsApplicationMixin<T extends typeof ApplicationV2>(BaseApplication: T): T;
 
         class DialogV2 extends ApplicationV2 {
-          // DialogV2 specific properties if needed
+          static confirm(config: {
+            window?: { title?: string };
+            content: string;
+            rejectClose?: boolean;
+            modal?: boolean;
+          }): Promise<boolean>;
         }
       }
       namespace ux {
@@ -93,6 +105,7 @@ declare global {
       resetSeasonsWarningState?: () => void;
       getSeasonsWarningState?: () => boolean;
       setSeasonsWarningState?: (warned: boolean) => void;
+      buttonRegistry?: SidebarButtonRegistryAPI;
     };
   }
 
@@ -102,6 +115,7 @@ declare global {
       manager?: CalendarManagerInterface;
       notes?: NotesManagerInterface;
       integration?: SeasonsStarsIntegration | null;
+      buttonRegistry?: SidebarButtonRegistryAPI;
       CalendarWidget?: unknown;
       CalendarMiniWidget?: unknown;
       CalendarGridWidget?: unknown;
@@ -162,6 +176,9 @@ export interface SeasonsStarsAPI {
   clearExternalCalendarCache(): void;
   // Module Calendar Loading Methods
   loadModuleCalendars(moduleId: string): Promise<LoadResult[]>;
+  validateCalendar(calendarData: unknown): Promise<import('./bridge-interfaces').ValidationResult>;
+  // Events API
+  events: EventsAPI;
 }
 
 // Type guard functions (implementations in type-guards.ts)
