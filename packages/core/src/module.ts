@@ -42,6 +42,7 @@ import type {
   CalendarDate as ICalendarDate,
   DateFormatOptions,
   SeasonsStarsCalendar,
+  CalendarSourceInfo,
 } from './types/calendar';
 import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
 
@@ -681,8 +682,34 @@ function registerSettings(): void {
     type: String,
     default: '',
     onChange: async (value: string) => {
-      // File picker setting only stores the path - actual loading happens when user clicks select
       Logger.debug('File picker path updated:', value);
+
+      if (value && value.trim() !== '' && calendarManager) {
+        const fileUrl = calendarManager.convertFoundryPathToUrl(value);
+        const result = await calendarManager.loadCalendarFromUrl(fileUrl, { validate: true });
+
+        if (result.success && result.calendar) {
+          const fileSourceInfo: CalendarSourceInfo = {
+            type: 'external',
+            sourceName: 'Custom File',
+            description: `Calendar loaded from ${value}`,
+            icon: 'fa-solid fa-file',
+            url: fileUrl,
+          };
+
+          const loadSuccess = calendarManager.loadCalendar(result.calendar, fileSourceInfo);
+
+          if (loadSuccess) {
+            await calendarManager.setActiveCalendar(result.calendar.id, false);
+            await game.settings.set('seasons-and-stars', 'activeCalendarData', result.calendar);
+            Logger.info('Calendar loaded from file setting change:', value);
+          } else {
+            Logger.error(`Failed to load calendar from file setting: ${value}`);
+          }
+        } else {
+          Logger.error(`Failed to load calendar from file setting: ${result.error}`);
+        }
+      }
     },
   });
 

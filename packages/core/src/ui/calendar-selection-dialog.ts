@@ -648,6 +648,10 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
 
             // Set the calendar as active, but don't save to activeCalendar setting
             await calendarManager.setActiveCalendar(result.calendar.id, false);
+
+            // Cache the calendar data for persistence and player sync
+            await game.settings?.set('seasons-and-stars', 'activeCalendarData', result.calendar);
+
             Logger.info('Successfully loaded and activated calendar from file:', selectedFilePath);
 
             // Notify user
