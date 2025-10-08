@@ -83,33 +83,55 @@ export class EventsManager {
     const allEvents = this.getAllEvents();
     const result: EventOccurrence[] = [];
 
+    // Check which years could have events on this date
+    const yearsToCheck = [year];
+
+    // If checking January, also check previous year's events that might roll into this year
+    if (month === 1) {
+      yearsToCheck.push(year - 1);
+    }
+
     for (const event of allEvents) {
-      // Check year range
-      if (event.startYear && year < event.startYear) continue;
-      if (event.endYear && year > event.endYear) continue;
+      for (const checkYear of yearsToCheck) {
+        // Check year range (use the checkYear for the calculation, but the requested year for the result)
+        if (event.startYear && checkYear < event.startYear) continue;
+        if (event.endYear && checkYear > event.endYear) continue;
 
-      // Calculate occurrence
-      const occurrence = this.recurrenceCalculator.calculateOccurrence(event.recurrence, year);
+        // Calculate occurrence for the check year
+        const occurrence = this.recurrenceCalculator.calculateOccurrence(
+          event.recurrence,
+          checkYear
+        );
 
-      if (occurrence && occurrence.month === month && occurrence.day === day) {
-        // Check exceptions
-        if (event.exceptions) {
-          const exception = event.exceptions.find(ex => ex.year === year);
-          if (exception) {
-            if (exception.type === 'skip') {
-              continue; // Skip this occurrence
-            } else if (exception.type === 'move') {
-              // Check if moved to this date
-              if (exception.moveToMonth !== month || exception.moveToDay !== day) {
-                continue; // Moved to different date
+        if (!occurrence) continue;
+
+        // Calculate actual occurrence year (may be offset by yearOffset)
+        const occurrenceYear = checkYear + (occurrence.yearOffset || 0);
+
+        // Check if this occurrence matches the requested date
+        if (occurrence.month === month && occurrence.day === day && occurrenceYear === year) {
+          // Check exceptions (use the check year, not the occurrence year)
+          if (event.exceptions) {
+            const exception = event.exceptions.find(ex => ex.year === checkYear);
+            if (exception) {
+              if (exception.type === 'skip') {
+                continue; // Skip this occurrence
+              } else if (exception.type === 'move') {
+                // Check if moved to this date
+                if (exception.moveToMonth !== month || exception.moveToDay !== day) {
+                  continue; // Moved to different date
+                }
               }
             }
           }
-        }
 
-        result.push({ event, year, month, day });
-      } else if (event.exceptions) {
-        // Check if moved TO this date
+          result.push({ event, year, month, day });
+          break; // Found match for this event, don't check other years
+        }
+      }
+
+      // Check if moved TO this date (exception handling)
+      if (event.exceptions) {
         const exception = event.exceptions.find(ex => ex.year === year);
         if (
           exception &&

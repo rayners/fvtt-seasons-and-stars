@@ -168,7 +168,7 @@ describe('EventRecurrenceCalculator - Fixed Date Recurrence', () => {
       };
 
       const result = calculator.calculateOccurrence(recurrence, 2023);
-      expect(result).toEqual({ month: 3, day: 1 });
+      expect(result).toEqual({ month: 3, day: 1, yearOffset: 0 });
     });
 
     it('should skip when day does not exist and no option specified', () => {
@@ -180,6 +180,32 @@ describe('EventRecurrenceCalculator - Fixed Date Recurrence', () => {
 
       const result = calculator.calculateOccurrence(recurrence, 2023);
       expect(result).toBeNull();
+    });
+
+    it('should handle year rollover with afterDay option (December -> January)', () => {
+      // Event on December 32 (doesn't exist) should roll to January 1 of NEXT year
+      const recurrence: FixedDateRecurrence = {
+        type: 'fixed',
+        month: 12,
+        day: 32,
+        ifDayNotExists: 'afterDay',
+      };
+
+      const result = calculator.calculateOccurrence(recurrence, 2023);
+      expect(result).toEqual({ month: 1, day: 1, yearOffset: 1 });
+    });
+
+    it('should NOT set yearOffset for mid-year afterDay rollover', () => {
+      // Event on February 30 -> March 1 (same year)
+      const recurrence: FixedDateRecurrence = {
+        type: 'fixed',
+        month: 2,
+        day: 30,
+        ifDayNotExists: 'afterDay',
+      };
+
+      const result = calculator.calculateOccurrence(recurrence, 2023);
+      expect(result).toEqual({ month: 3, day: 1, yearOffset: 0 });
     });
   });
 });

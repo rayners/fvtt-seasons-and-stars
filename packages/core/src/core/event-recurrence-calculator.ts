@@ -19,6 +19,11 @@ import type {
 export interface OccurrenceResult {
   month: number;
   day: number;
+  /**
+   * Year offset from the requested year
+   * Used when event rolls into next year (e.g., December 31 with afterDay -> January 1)
+   */
+  yearOffset?: number;
 }
 
 /**
@@ -80,9 +85,14 @@ export class EventRecurrenceCalculator {
 
       case 'afterDay': {
         // Move to first day of next month
-        const nextMonth =
-          recurrence.month === this.calendar.months.length ? 1 : recurrence.month + 1;
-        return { month: nextMonth, day: 1 };
+        const isLastMonth = recurrence.month === this.calendar.months.length;
+        const nextMonth = isLastMonth ? 1 : recurrence.month + 1;
+        return {
+          month: nextMonth,
+          day: 1,
+          // If rolling from last month to month 1, increment year
+          yearOffset: isLastMonth ? 1 : 0,
+        };
       }
 
       default:
