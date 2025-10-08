@@ -55,6 +55,9 @@ let notesManager: NotesManager;
 // Track if we've already warned about missing seasons for the current active calendar
 let hasWarnedAboutMissingSeasons = false;
 
+// Track last date we checked for events (prevents duplicate hook fires on startup)
+let lastEventCheckDate: { year: number; month: number; day: number } | null = null;
+
 /**
  * Reset the seasons warning state - exposed for testing and external calendar changes
  * This is called automatically when the seasons-stars:calendarChanged hook fires
@@ -358,8 +361,6 @@ export function setup(): void {
 
     // Reset seasons warning flag when calendar changes
     // Event occurrence hook integration - fires when events occur on the current date
-    let lastEventCheckDate: { year: number; month: number; day: number } | null = null;
-
     Hooks.on('seasons-stars:calendarChanged', () => {
       resetSeasonsWarningState();
       // Reset event check date when calendar changes to allow events to fire on new calendar
