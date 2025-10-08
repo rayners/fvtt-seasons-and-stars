@@ -359,6 +359,9 @@ export function setup(): void {
     const timeAdvancementService = TimeAdvancementService.getInstance();
     timeAdvancementService.initialize();
 
+    // Create EventsAPI instance for use in hooks (with visibility filtering)
+    const eventsAPI = new EventsAPI(() => calendarManager.getActiveEventsManager());
+
     // Reset seasons warning flag when calendar changes
     // Event occurrence hook integration - fires when events occur on the current date
     Hooks.on('seasons-stars:calendarChanged', () => {
@@ -390,14 +393,8 @@ export function setup(): void {
         const previousDate = lastEventCheckDate ? { ...lastEventCheckDate } : undefined;
         lastEventCheckDate = { ...newDate };
 
-        // Get events manager for active calendar
-        const eventsManager = calendarManager.getActiveEventsManager();
-        if (!eventsManager) {
-          return; // No events manager available
-        }
-
-        // Get events for the new date (already includes year/month/day context)
-        const events = eventsManager.getEventsForDate(newDate.year, newDate.month, newDate.day);
+        // Get events for the new date with visibility filtering
+        const events = eventsAPI.getEventsForDate(newDate.year, newDate.month, newDate.day);
 
         // Only fire hook if there are events
         if (events.length > 0) {
@@ -576,33 +573,31 @@ Hooks.once('ready', async () => {
   try {
     const currentDate = calendarManager.getCurrentDate();
     if (currentDate) {
-      const eventsManager = calendarManager.getActiveEventsManager();
-      if (eventsManager) {
-        const events = eventsManager.getEventsForDate(
-          currentDate.year,
-          currentDate.month,
-          currentDate.day
-        );
+      // Get events for current date with visibility filtering
+      const events = eventsAPI.getEventsForDate(
+        currentDate.year,
+        currentDate.month,
+        currentDate.day
+      );
 
-        if (events.length > 0) {
-          Hooks.callAll('seasons-stars:eventOccurs', {
-            events,
-            date: {
-              year: currentDate.year,
-              month: currentDate.month,
-              day: currentDate.day,
-            },
-            isStartup: true,
-            // No previousDate on startup
-          });
-
-          // Update lastEventCheckDate to prevent duplicate hook fire on first dateChanged
-          lastEventCheckDate = {
+      if (events.length > 0) {
+        Hooks.callAll('seasons-stars:eventOccurs', {
+          events,
+          date: {
             year: currentDate.year,
             month: currentDate.month,
             day: currentDate.day,
-          };
-        }
+          },
+          isStartup: true,
+          // No previousDate on startup
+        });
+
+        // Update lastEventCheckDate to prevent duplicate hook fire on first dateChanged
+        lastEventCheckDate = {
+          year: currentDate.year,
+          month: currentDate.month,
+          day: currentDate.day,
+        };
       }
     }
   } catch (error) {
