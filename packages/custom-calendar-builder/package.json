@@ -1,6 +1,6 @@
 {
   "name": "seasons-and-stars-calendar-builder",
-  "version": "0.1.0",
+  "version": "0.2.4",
   "description": "Calendar builder application for creating custom calendars for Seasons & Stars",
   "type": "module",
   "main": "dist/module.js",

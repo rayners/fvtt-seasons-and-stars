@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.20.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.19.0...seasons-and-stars-v0.20.0) (2025-10-08)
+
+
+### Features
+
+* add event occurrence hooks and reference calendar events ([#340](https://github.com/rayners/fvtt-seasons-and-stars/issues/340)) ([54d7403](https://github.com/rayners/fvtt-seasons-and-stars/commit/54d74031b112e395c8fcb58911c149e9eb5a6816))
+* create custom calendar builder package ([#311](https://github.com/rayners/fvtt-seasons-and-stars/issues/311)) ([bf9f11a](https://github.com/rayners/fvtt-seasons-and-stars/commit/bf9f11af21bb6c8e0268c73a2b0ec921e2afbce9))
+* **ui:** implement sidebar button registry system ([#334](https://github.com/rayners/fvtt-seasons-and-stars/issues/334)) ([2c0ddef](https://github.com/rayners/fvtt-seasons-and-stars/commit/2c0ddefd2ed58349faf7e02a212055e87cd1f9b8))
+* **ui:** improve main calendar widget layout and styling ([#339](https://github.com/rayners/fvtt-seasons-and-stars/issues/339)) ([739a9ae](https://github.com/rayners/fvtt-seasons-and-stars/commit/739a9aec8f29de43802c0b1419f7c2907bcd0b9b))
+
+
+### Bug Fixes
+
+* **calendar-builder:** eliminate TypeScript build warnings ([#338](https://github.com/rayners/fvtt-seasons-and-stars/issues/338)) ([718afae](https://github.com/rayners/fvtt-seasons-and-stars/commit/718afae9c69f9956df617e567ca6210a47cf4b02))
+
 ## [0.19.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.18.0...seasons-and-stars-v0.19.0) (2025-10-01)
 
 
