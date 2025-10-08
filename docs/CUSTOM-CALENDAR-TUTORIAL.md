@@ -393,22 +393,36 @@ Leap years add extra days periodically to keep the calendar aligned with astrono
 }
 ```
 
-**Simple leap years** (every N years):
+**Custom leap years** (every N years):
 
 ```json
 {
   "leapYear": {
-    "rule": "simple",
-    "frequency": 4,
+    "rule": "custom",
+    "interval": 4,
     "month": "Secondmoon",
     "extraDays": 1
   }
 }
 ```
 
-**Important:** The `month` field must exactly match the `name` of one of your months.
+**Advanced custom leap years** (with offset):
 
-**Note:** Custom leap year rules with conditional logic are not currently supported. Use `"none"`, `"gregorian"`, or `"simple"` rules only.
+```json
+{
+  "leapYear": {
+    "rule": "custom",
+    "interval": 8,
+    "offset": 4,
+    "month": "Secondmoon",
+    "extraDays": 1
+  }
+}
+```
+
+The `offset` field shifts the starting point of the leap year cycle. For example, with `interval: 8` and `offset: 4`, leap years occur on years 4, 12, 20, etc.
+
+**Important:** The `month` field must exactly match the `name` of one of your months.
 
 ### Step 7: Adding Intercalary Days
 
@@ -640,7 +654,7 @@ The Calendar Builder uses the official Seasons & Stars validation API, ensuring 
 
 **Screenshot Placeholder:** _[Screenshot of JSON Schema Validator with calendar schema and example calendar]_
 
-### Method 2: IDE/Editor Validation
+### Method 3: IDE/Editor Validation
 
 Many text editors support automatic JSON validation:
 
@@ -660,8 +674,6 @@ Many text editors support automatic JSON validation:
 3. VS Code will now show errors as you type
 
 **Note:** This validation only checks JSON structure against the schema. For complete validation including calendar logic, use the Calendar Builder.
-
-3. VS Code will now show errors as you type
 
 **Screenshot Placeholder:** _[Screenshot of VS Code with calendar JSON showing inline validation]_
 
@@ -700,7 +712,7 @@ The Calendar Builder **validates and exports** your calendar JSON but does **not
 
 **Screenshot Placeholder:** _[Screenshot of Foundry VTT interface with arrow pointing to the calendar widget]_
 
-### Step 2: Access Calendar Selection
+### Step 3: Access Calendar Selection
 
 1. **Click the calendar selection button** (gear icon or dropdown) in the calendar widget
 2. This opens the Calendar Selection Dialog showing all available calendars
@@ -820,6 +832,61 @@ Add translations for multiple languages:
     "de": {
       "label": "Mein Kalender",
       "description": "Ein individueller Fantasy-Kalender"
+    }
+  }
+}
+```
+
+### Custom Date Formats
+
+Customize how dates are displayed throughout the UI using Handlebars templates:
+
+```json
+{
+  "dateFormats": {
+    "default": "{{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}}",
+    "short": "{{ss-day}}/{{ss-month}}/{{year}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-day format=\"ordinal\"}} {{ss-month format=\"name\"}}, {{year}}",
+    "widgets": {
+      "mini": "{{ss-day}} {{ss-month format=\"abbr\"}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day}} {{ss-month format=\"name\"}}",
+      "grid": "{{ss-day}}"
+    }
+  }
+}
+```
+
+**Available Handlebars helpers:**
+
+- `{{year}}` - Calendar year with prefix/suffix
+- `{{ss-day}}` - Day of month (number)
+- `{{ss-day format="ordinal"}}` - Day with ordinal suffix (1st, 2nd, 3rd, etc.)
+- `{{ss-month}}` - Month number
+- `{{ss-month format="name"}}` - Full month name
+- `{{ss-month format="abbr"}}` - Month abbreviation
+- `{{ss-weekday format="name"}}` - Full weekday name
+- `{{ss-weekday format="abbr"}}` - Weekday abbreviation
+- `{{intercalary}}` - Intercalary day name (for intercalary-specific formats)
+
+**Format contexts:**
+
+- `default` - Default date format used throughout the UI
+- `short` - Compact format for space-constrained contexts
+- `long` - Full format with complete information
+- `widgets.mini` - Ultra-compact format for mini widgets
+- `widgets.main` - Standard format for main widgets
+- `widgets.grid` - Minimal format for calendar grid cells
+
+For intercalary days, you can define specialized formats by adding `-intercalary` suffix:
+
+```json
+{
+  "dateFormats": {
+    "short-intercalary": "{{intercalary}}, {{year}}",
+    "long-intercalary": "{{intercalary}} ({{year}})",
+    "widgets": {
+      "mini-intercalary": "{{intercalary}}",
+      "main-intercalary": "{{intercalary}}, {{year}}"
     }
   }
 }
@@ -963,8 +1030,8 @@ Here's a complete custom calendar with all features:
     "startDay": 0
   },
   "leapYear": {
-    "rule": "simple",
-    "frequency": 5,
+    "rule": "custom",
+    "interval": 5,
     "month": "Vatermont",
     "extraDays": 1
   },
