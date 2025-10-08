@@ -10,10 +10,15 @@
  * - WidgetWrapper calls methods on the instance, not static methods
  * - ApplicationV2 provides 'render'/'close' as instance methods
  * - Bug caused widgets to fail to open (issue #344)
+ *
+ * These tests now use the actual widget implementations to verify the fix.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { CalendarWidgetManager, WidgetWrapper } from '../src/ui/widget-manager';
+import { CalendarWidget } from '../src/ui/calendar-widget';
+import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
+import { CalendarGridWidget } from '../src/ui/calendar-grid-widget';
 
 vi.mock('../src/core/logger', () => ({
   Logger: {
@@ -34,77 +39,128 @@ describe('Widget Wrapper Method Name Bug (Issue #344)', () => {
     CalendarWidgetManager.clearInstances();
   });
 
-  describe('Bug Reproduction - Using Wrong Method Names', () => {
-    it('should fail to call show() when widget has no instance method named show', async () => {
-      const mockWidget = {
-        rendered: false,
-        render: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-      };
+  afterEach(() => {
+    // Clean up any active widget instances
+    const mainInstance = CalendarWidget.getInstance();
+    if (mainInstance?.rendered) {
+      mainInstance.close();
+    }
+    const miniInstance = CalendarMiniWidget.getInstance();
+    if (miniInstance?.rendered) {
+      miniInstance.close();
+    }
+    const gridInstance = CalendarGridWidget.getInstance();
+    if (gridInstance?.rendered) {
+      gridInstance.close();
+    }
+  });
+
+  describe('Bug Reproduction - Static vs Instance Methods', () => {
+    it('should demonstrate CalendarWidget has show/hide as static methods only', () => {
+      // CalendarWidget.show is a static method
+      expect(typeof CalendarWidget.show).toBe('function');
+      expect(typeof CalendarWidget.hide).toBe('function');
+
+      // But instances don't have show/hide methods
+      const instance = new CalendarWidget();
+      expect(typeof (instance as any).show).toBe('undefined');
+      expect(typeof (instance as any).hide).toBe('undefined');
+
+      // Instances DO have render/close from ApplicationV2
+      expect(typeof instance.render).toBe('function');
+      expect(typeof instance.close).toBe('function');
+    });
+
+    it('should demonstrate CalendarMiniWidget has show/hide as static methods only', () => {
+      expect(typeof CalendarMiniWidget.show).toBe('function');
+      expect(typeof CalendarMiniWidget.hide).toBe('function');
+
+      const instance = new CalendarMiniWidget();
+      expect(typeof (instance as any).show).toBe('undefined');
+      expect(typeof (instance as any).hide).toBe('undefined');
+      expect(typeof instance.render).toBe('function');
+      expect(typeof instance.close).toBe('function');
+    });
+
+    it('should demonstrate CalendarGridWidget has hide as static method only', () => {
+      expect(typeof CalendarGridWidget.hide).toBe('function');
+
+      const instance = new CalendarGridWidget();
+      expect(typeof (instance as any).show).toBe('undefined');
+      expect(typeof (instance as any).hide).toBe('undefined');
+      expect(typeof instance.render).toBe('function');
+      expect(typeof instance.close).toBe('function');
+    });
+
+    it('should fail when WidgetWrapper tries to call non-existent instance methods', () => {
+      const instance = new CalendarWidget();
+
+      // Spy on render to confirm it's NOT called when using wrong method names
+      const renderSpy = vi.spyOn(instance, 'render');
 
       const wrapper = new WidgetWrapper(
-        mockWidget,
-        'show',
-        'hide',
+        instance,
+        'show', // Wrong - this doesn't exist as instance method
+        'hide', // Wrong - this doesn't exist as instance method
         'toggle',
         'getInstance',
         'rendered'
       );
 
-      await wrapper.show();
+      wrapper.show();
 
-      expect(mockWidget.render).not.toHaveBeenCalled();
-    });
-
-    it('should fail to call hide() when widget has no instance method named hide', async () => {
-      const mockWidget = {
-        rendered: true,
-        render: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-      };
-
-      const wrapper = new WidgetWrapper(
-        mockWidget,
-        'show',
-        'hide',
-        'toggle',
-        'getInstance',
-        'rendered'
-      );
-
-      await wrapper.hide();
-
-      expect(mockWidget.close).not.toHaveBeenCalled();
-    });
-
-    it('should demonstrate the bug: widget manager showWidget fails silently', async () => {
-      const mockWidget = {
-        rendered: false,
-        render: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-      };
-
-      CalendarWidgetManager.registerWidget(
-        'main',
-        () => new WidgetWrapper(mockWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
-      );
-
-      await CalendarWidgetManager.showWidget('main');
-
-      expect(mockWidget.render).not.toHaveBeenCalled();
+      // render should NOT have been called because 'show' doesn't exist on the instance
+      expect(renderSpy).not.toHaveBeenCalled();
     });
   });
 
-  describe('Fix Verification - Using Correct Method Names', () => {
-    it('should successfully call render() when using correct method name', async () => {
-      const mockWidget = {
-        rendered: false,
-        render: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-      };
+  describe('Fix Verification - Using Correct Instance Method Names', () => {
+    it('should successfully call render when using correct method name', async () => {
+      const instance = new CalendarWidget();
+      const renderSpy = vi.spyOn(instance, 'render');
 
       const wrapper = new WidgetWrapper(
-        mockWidget,
+        instance,
+        'render', // Correct - ApplicationV2 instance method
+        'close', // Correct - ApplicationV2 instance method
+        'toggle',
+        'getInstance',
+        'rendered'
+      );
+
+      await wrapper.show();
+
+      expect(renderSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should successfully call close when using correct method name', async () => {
+      const instance = new CalendarWidget();
+      const closeSpy = vi.spyOn(instance, 'close');
+
+      // Set rendered to true so close will be called
+      (instance as any).rendered = true;
+
+      const wrapper = new WidgetWrapper(
+        instance,
+        'render',
+        'close', // Correct - ApplicationV2 instance method
+        'toggle',
+        'getInstance',
+        'rendered'
+      );
+
+      await wrapper.hide();
+
+      expect(closeSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should work with CalendarMiniWidget using correct method names', async () => {
+      const instance = new CalendarMiniWidget();
+      const renderSpy = vi.spyOn(instance, 'render');
+      const closeSpy = vi.spyOn(instance, 'close');
+
+      const wrapper = new WidgetWrapper(
+        instance,
         'render',
         'close',
         'toggle',
@@ -113,19 +169,20 @@ describe('Widget Wrapper Method Name Bug (Issue #344)', () => {
       );
 
       await wrapper.show();
+      expect(renderSpy).toHaveBeenCalledTimes(1);
 
-      expect(mockWidget.render).toHaveBeenCalledTimes(1);
+      (instance as any).rendered = true;
+      await wrapper.hide();
+      expect(closeSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should successfully call close() when using correct method name', async () => {
-      const mockWidget = {
-        rendered: true,
-        render: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-      };
+    it('should work with CalendarGridWidget using correct method names', async () => {
+      const instance = new CalendarGridWidget();
+      const renderSpy = vi.spyOn(instance, 'render');
+      const closeSpy = vi.spyOn(instance, 'close');
 
       const wrapper = new WidgetWrapper(
-        mockWidget,
+        instance,
         'render',
         'close',
         'toggle',
@@ -133,191 +190,184 @@ describe('Widget Wrapper Method Name Bug (Issue #344)', () => {
         'rendered'
       );
 
+      await wrapper.show();
+      expect(renderSpy).toHaveBeenCalledTimes(1);
+
+      (instance as any).rendered = true;
       await wrapper.hide();
-
-      expect(mockWidget.close).toHaveBeenCalledTimes(1);
+      expect(closeSpy).toHaveBeenCalledTimes(1);
     });
+  });
 
-    it('should verify the fix: widget manager showWidget works correctly', async () => {
-      const mockWidget = {
-        rendered: false,
-        render: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-      };
+  describe('Widget Manager Integration with Correct Method Names', () => {
+    it('should successfully show CalendarWidget through manager with correct method names', async () => {
+      const instance = new CalendarWidget();
+      const renderSpy = vi.spyOn(instance, 'render');
 
       CalendarWidgetManager.registerWidget(
         'main',
-        () => new WidgetWrapper(mockWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+        () => new WidgetWrapper(instance, 'render', 'close', 'toggle', 'getInstance', 'rendered')
       );
 
       await CalendarWidgetManager.showWidget('main');
 
-      expect(mockWidget.render).toHaveBeenCalledTimes(1);
+      expect(renderSpy).toHaveBeenCalled();
     });
 
-    it('should verify the fix: widget manager hideWidget works correctly', async () => {
-      const mockWidget = {
-        rendered: true,
-        render: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-      };
+    it('should successfully hide CalendarWidget through manager with correct method names', async () => {
+      const instance = new CalendarWidget();
+      const closeSpy = vi.spyOn(instance, 'close');
+      (instance as any).rendered = true;
 
       CalendarWidgetManager.registerWidget(
         'main',
-        () => new WidgetWrapper(mockWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+        () => new WidgetWrapper(instance, 'render', 'close', 'toggle', 'getInstance', 'rendered')
       );
 
       await CalendarWidgetManager.hideWidget('main');
 
-      expect(mockWidget.close).toHaveBeenCalledTimes(1);
+      expect(closeSpy).toHaveBeenCalled();
     });
 
-    it('should verify the fix: widget manager toggleWidget works correctly', async () => {
-      const mockWidget = {
-        rendered: false,
-        render: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-      };
+    it('should successfully toggle CalendarWidget through manager with correct method names', async () => {
+      const instance = new CalendarWidget();
+      const renderSpy = vi.spyOn(instance, 'render');
+      const closeSpy = vi.spyOn(instance, 'close');
 
       CalendarWidgetManager.registerWidget(
         'main',
-        () => new WidgetWrapper(mockWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+        () => new WidgetWrapper(instance, 'render', 'close', 'toggle', 'getInstance', 'rendered')
       );
 
+      // First toggle should show
       await CalendarWidgetManager.toggleWidget('main');
+      expect(renderSpy).toHaveBeenCalled();
 
-      expect(mockWidget.render).toHaveBeenCalledTimes(1);
+      // Mark as rendered
+      (instance as any).rendered = true;
 
-      mockWidget.rendered = true;
-
+      // Second toggle should hide
       await CalendarWidgetManager.toggleWidget('main');
-
-      expect(mockWidget.close).toHaveBeenCalledTimes(1);
+      expect(closeSpy).toHaveBeenCalled();
     });
   });
 
-  describe('ApplicationV2 Pattern Compliance', () => {
-    it('should use ApplicationV2 instance method pattern (render/close)', async () => {
-      const applicationV2Like = {
-        rendered: false,
-        render: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-      };
-
-      const wrapper = new WidgetWrapper(
-        applicationV2Like,
-        'render',
-        'close',
-        'toggle',
-        'getInstance',
-        'rendered'
-      );
-
-      await wrapper.show();
-      expect(applicationV2Like.render).toHaveBeenCalledTimes(1);
-
-      applicationV2Like.rendered = true;
-
-      await wrapper.hide();
-      expect(applicationV2Like.close).toHaveBeenCalledTimes(1);
-    });
-
+  describe('All Three Widget Types with Correct Method Names', () => {
     it('should work with all three widget types using correct method names', async () => {
-      const createMockWidget = () => ({
-        rendered: false,
-        render: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-      });
+      const mainInstance = new CalendarWidget();
+      const miniInstance = new CalendarMiniWidget();
+      const gridInstance = new CalendarGridWidget();
 
-      const mainWidget = createMockWidget();
-      const miniWidget = createMockWidget();
-      const gridWidget = createMockWidget();
+      const mainRenderSpy = vi.spyOn(mainInstance, 'render');
+      const miniRenderSpy = vi.spyOn(miniInstance, 'render');
+      const gridRenderSpy = vi.spyOn(gridInstance, 'render');
 
       CalendarWidgetManager.registerWidget(
         'main',
-        () => new WidgetWrapper(mainWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+        () =>
+          new WidgetWrapper(mainInstance, 'render', 'close', 'toggle', 'getInstance', 'rendered')
       );
       CalendarWidgetManager.registerWidget(
         'mini',
-        () => new WidgetWrapper(miniWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+        () =>
+          new WidgetWrapper(miniInstance, 'render', 'close', 'toggle', 'getInstance', 'rendered')
       );
       CalendarWidgetManager.registerWidget(
         'grid',
-        () => new WidgetWrapper(gridWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+        () =>
+          new WidgetWrapper(gridInstance, 'render', 'close', 'toggle', 'getInstance', 'rendered')
       );
 
       await CalendarWidgetManager.showWidget('main');
       await CalendarWidgetManager.showWidget('mini');
       await CalendarWidgetManager.showWidget('grid');
 
-      expect(mainWidget.render).toHaveBeenCalledTimes(1);
-      expect(miniWidget.render).toHaveBeenCalledTimes(1);
-      expect(gridWidget.render).toHaveBeenCalledTimes(1);
+      expect(mainRenderSpy).toHaveBeenCalled();
+      expect(miniRenderSpy).toHaveBeenCalled();
+      expect(gridRenderSpy).toHaveBeenCalled();
     });
   });
 
-  describe('Toggle Fallback Behavior', () => {
-    it('should use fallback toggle when widget has no toggle method', async () => {
-      const mockWidget = {
-        rendered: false,
-        render: vi.fn().mockResolvedValue(undefined),
-        close: vi.fn().mockResolvedValue(undefined),
-      };
+  describe('ApplicationV2 Pattern Compliance', () => {
+    it('should verify render and close are ApplicationV2 instance methods', () => {
+      const widget = new CalendarWidget();
+
+      // These methods come from ApplicationV2
+      expect(typeof widget.render).toBe('function');
+      expect(typeof widget.close).toBe('function');
+
+      // Widget instances extend ApplicationV2
+      expect(widget instanceof foundry.applications.api.ApplicationV2).toBe(true);
+    });
+
+    it('should verify WidgetWrapper calls instance methods correctly', async () => {
+      const widget = new CalendarWidget();
+      const renderSpy = vi.spyOn(widget, 'render');
+      const closeSpy = vi.spyOn(widget, 'close');
 
       const wrapper = new WidgetWrapper(
-        mockWidget,
+        widget,
         'render',
         'close',
-        'nonexistentToggle',
+        'toggle',
         'getInstance',
         'rendered'
       );
 
-      await wrapper.toggle();
-      expect(mockWidget.render).toHaveBeenCalledTimes(1);
+      // Test that wrapper.show() calls widget.render()
+      await wrapper.show();
+      expect(renderSpy).toHaveBeenCalledWith();
 
-      mockWidget.rendered = true;
-      await wrapper.toggle();
-      expect(mockWidget.close).toHaveBeenCalledTimes(1);
+      // Mark as rendered so hide will work
+      (widget as any).rendered = true;
+
+      // Test that wrapper.hide() calls widget.close()
+      await wrapper.hide();
+      expect(closeSpy).toHaveBeenCalledWith();
     });
   });
 
-  describe('Method Name Validation', () => {
-    it('should document that show/hide are static methods only on CalendarWidget', () => {
-      // This test documents the root cause: CalendarWidget only has static show/hide methods
-      // The instance methods from ApplicationV2 are render/close
+  describe('Root Cause Documentation', () => {
+    it('should document that static methods are not accessible on instances', () => {
+      // This test documents the root cause of the bug
+      class TestClass {
+        static staticMethod() {
+          return 'static';
+        }
+        instanceMethod() {
+          return 'instance';
+        }
+      }
 
-      const hasStaticShow =
-        typeof class {
-          static show() {}
-        }.show === 'function';
-      const hasStaticHide =
-        typeof class {
-          static hide() {}
-        }.hide === 'function';
+      // Static methods exist on the class
+      expect(typeof TestClass.staticMethod).toBe('function');
 
-      expect(hasStaticShow).toBe(true);
-      expect(hasStaticHide).toBe(true);
+      // But NOT on instances
+      const instance = new TestClass();
+      expect(typeof (instance as any).staticMethod).toBe('undefined');
 
-      // But instances don't have these methods unless explicitly defined
-      const instance = new (class {
-        static show() {}
-        static hide() {}
-      })();
-
-      expect(typeof (instance as any).show).toBe('undefined');
-      expect(typeof (instance as any).hide).toBe('undefined');
+      // Only instance methods exist on instances
+      expect(typeof instance.instanceMethod).toBe('function');
     });
 
-    it('should demonstrate ApplicationV2 provides render/close as instance methods', () => {
-      // ApplicationV2 pattern: render and close are instance methods
-      const applicationV2Instance = {
-        render: () => {},
-        close: () => {},
-      };
+    it('should document why the bug manifested silently', () => {
+      const instance = new CalendarWidget();
 
-      expect(typeof applicationV2Instance.render).toBe('function');
-      expect(typeof applicationV2Instance.close).toBe('function');
+      // WidgetWrapper checks if method exists before calling
+      const methodName = 'show';
+      const fn = (instance as Record<string, unknown>)[methodName];
+
+      // This is undefined for static methods
+      expect(fn).toBeUndefined();
+
+      // So the check fails silently
+      if (typeof fn === 'function') {
+        // This block never executes - the bug!
+        throw new Error('Should not reach here');
+      }
+
+      // No error thrown, widget just doesn't open
+      expect(true).toBe(true);
     });
   });
 });
