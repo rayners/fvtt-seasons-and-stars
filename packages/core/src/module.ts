@@ -51,6 +51,7 @@ import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
 // Module instances
 let calendarManager: CalendarManager;
 let notesManager: NotesManager;
+let eventsAPI: EventsAPI;
 
 // Track if we've already warned about missing seasons for the current active calendar
 let hasWarnedAboutMissingSeasons = false;
@@ -360,7 +361,7 @@ export function setup(): void {
     timeAdvancementService.initialize();
 
     // Create EventsAPI instance for use in hooks (with visibility filtering)
-    const eventsAPI = new EventsAPI(() => calendarManager.getActiveEventsManager());
+    eventsAPI = new EventsAPI(() => calendarManager.getActiveEventsManager());
 
     // Reset seasons warning flag when calendar changes
     // Event occurrence hook integration - fires when events occur on the current date
