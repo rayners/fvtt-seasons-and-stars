@@ -10,6 +10,7 @@ import { CalendarWidgetManager, WidgetWrapper } from '../src/ui/widget-manager';
 import { CalendarWidget } from '../src/ui/calendar-widget';
 import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../src/ui/calendar-grid-widget';
+import { registerWidgetFactories } from '../src/module';
 
 // Mock the logger module with simple vi.fn() mocks
 vi.mock('../src/core/logger', () => ({
@@ -42,98 +43,38 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
   });
 
   describe('Widget Factory Registration Code Coverage', () => {
-    it('should register main widget factory correctly', () => {
-      // Simulate the exact code added to module.ts
-      CalendarWidgetManager.registerWidget(
-        'main',
-        () =>
-          new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
-      );
-
-      // Verify registration worked
-      const widget = CalendarWidgetManager.getWidget('main');
-      expect(widget).not.toBeNull();
-      expect(widget).toBeInstanceOf(WidgetWrapper);
-    });
-
-    it('should register mini widget factory correctly', () => {
-      // Simulate the exact code added to module.ts
-      CalendarWidgetManager.registerWidget(
-        'mini',
-        () =>
-          new WidgetWrapper(
-            CalendarMiniWidget,
-            'render',
-            'close',
-            'toggle',
-            'getInstance',
-            'rendered'
-          )
-      );
-
-      // Verify registration worked
-      const widget = CalendarWidgetManager.getWidget('mini');
-      expect(widget).not.toBeNull();
-      expect(widget).toBeInstanceOf(WidgetWrapper);
-    });
-
-    it('should register grid widget factory correctly', () => {
-      // Simulate the exact code added to module.ts
-      CalendarWidgetManager.registerWidget(
-        'grid',
-        () =>
-          new WidgetWrapper(
-            CalendarGridWidget,
-            'render',
-            'close',
-            'toggle',
-            'getInstance',
-            'rendered'
-          )
-      );
-
-      // Verify registration worked
-      const widget = CalendarWidgetManager.getWidget('grid');
-      expect(widget).not.toBeNull();
-      expect(widget).toBeInstanceOf(WidgetWrapper);
-    });
-
-    it('should register all three widget factories as done in module.ts', () => {
-      // Simulate the complete registration block added to module.ts
-      CalendarWidgetManager.registerWidget(
-        'main',
-        () =>
-          new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
-      );
-      CalendarWidgetManager.registerWidget(
-        'mini',
-        () =>
-          new WidgetWrapper(
-            CalendarMiniWidget,
-            'render',
-            'close',
-            'toggle',
-            'getInstance',
-            'rendered'
-          )
-      );
-      CalendarWidgetManager.registerWidget(
-        'grid',
-        () =>
-          new WidgetWrapper(
-            CalendarGridWidget,
-            'render',
-            'close',
-            'toggle',
-            'getInstance',
-            'rendered'
-          )
-      );
+    it('should register all widget factories using actual module function', () => {
+      // Call the ACTUAL function from module.ts
+      registerWidgetFactories();
 
       // Verify all registrations worked
       expect(CalendarWidgetManager.getWidget('main')).not.toBeNull();
       expect(CalendarWidgetManager.getWidget('mini')).not.toBeNull();
       expect(CalendarWidgetManager.getWidget('grid')).not.toBeNull();
+    });
+
+    it('should register main widget factory with correct wrapper type', () => {
+      registerWidgetFactories();
+
+      const widget = CalendarWidgetManager.getWidget('main');
+      expect(widget).not.toBeNull();
+      expect(widget).toBeInstanceOf(WidgetWrapper);
+    });
+
+    it('should register mini widget factory with correct wrapper type', () => {
+      registerWidgetFactories();
+
+      const widget = CalendarWidgetManager.getWidget('mini');
+      expect(widget).not.toBeNull();
+      expect(widget).toBeInstanceOf(WidgetWrapper);
+    });
+
+    it('should register grid widget factory with correct wrapper type', () => {
+      registerWidgetFactories();
+
+      const widget = CalendarWidgetManager.getWidget('grid');
+      expect(widget).not.toBeNull();
+      expect(widget).toBeInstanceOf(WidgetWrapper);
     });
 
     it('should create WidgetWrapper instances with correct parameters', () => {
@@ -175,9 +116,8 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
       // Import Logger to get the mocked version
       const { Logger } = await import('../src/core/logger');
 
-      // Test that the debug logging line is covered
-      // Note: In actual module.ts this would be called, we simulate it here
-      Logger.debug('Registering widget factories');
+      // Call the actual function which includes the debug logging
+      registerWidgetFactories();
 
       expect(Logger.debug).toHaveBeenCalledWith('Registering widget factories');
     });
@@ -188,43 +128,10 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
       // Import Logger to get the mocked version
       const { Logger } = await import('../src/core/logger');
 
-      // Simulate the complete flow that happens in module.ts ready hook
+      // Call the ACTUAL function from module.ts
+      registerWidgetFactories();
 
-      // 1. Debug logging
-      Logger.debug('Registering widget factories');
-
-      // 2. Register all three widgets (exact code from module.ts)
-      CalendarWidgetManager.registerWidget(
-        'main',
-        () =>
-          new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
-      );
-      CalendarWidgetManager.registerWidget(
-        'mini',
-        () =>
-          new WidgetWrapper(
-            CalendarMiniWidget,
-            'render',
-            'close',
-            'toggle',
-            'getInstance',
-            'rendered'
-          )
-      );
-      CalendarWidgetManager.registerWidget(
-        'grid',
-        () =>
-          new WidgetWrapper(
-            CalendarGridWidget,
-            'render',
-            'close',
-            'toggle',
-            'getInstance',
-            'rendered'
-          )
-      );
-
-      // 3. Verify the bug from issue #78 is fixed
+      // Verify the bug from issue #78 is fixed
       // Before the fix, this would return null and cause the error
       const mainWidget = CalendarWidgetManager.getWidget('main');
       const miniWidget = CalendarWidgetManager.getWidget('mini');
@@ -242,11 +149,13 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
     it('should prevent the "No factory registered for widget type" error', () => {
       // This test specifically addresses issue #78
 
+      // Call the actual registration function
+      registerWidgetFactories();
+
       // Test with a non-existent widget type to verify error handling
       expect(CalendarWidgetManager.getWidget('nonexistent' as any)).toBeNull();
 
       // Ensure the main widget types that module.ts registers are available
-      // These should be registered by previous tests or module initialization
       const mainWidget = CalendarWidgetManager.getWidget('main');
       const miniWidget = CalendarWidgetManager.getWidget('mini');
       const gridWidget = CalendarWidgetManager.getWidget('grid');
@@ -267,49 +176,25 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
 
   describe('Error Prevention Coverage', () => {
     it('should handle factory registration errors gracefully', () => {
-      // Test error handling in the registration process
+      // Call the actual registration function
       expect(() => {
-        CalendarWidgetManager.registerWidget(
-          'main',
-          () =>
-            new WidgetWrapper(
-              CalendarWidget,
-              'render',
-              'close',
-              'toggle',
-              'getInstance',
-              'rendered'
-            )
-        );
+        registerWidgetFactories();
       }).not.toThrow();
     });
 
     it('should allow re-registration of widgets', () => {
-      // Test that registering the same widget type twice works
-      CalendarWidgetManager.registerWidget(
-        'main',
-        () =>
-          new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
-      );
+      // Register once
+      registerWidgetFactories();
 
-      // Re-register the same type
+      // Re-register (should not throw)
       expect(() => {
-        CalendarWidgetManager.registerWidget(
-          'main',
-          () =>
-            new WidgetWrapper(
-              CalendarWidget,
-              'render',
-              'close',
-              'toggle',
-              'getInstance',
-              'rendered'
-            )
-        );
+        registerWidgetFactories();
       }).not.toThrow();
 
       // Should still work
       expect(CalendarWidgetManager.getWidget('main')).not.toBeNull();
+      expect(CalendarWidgetManager.getWidget('mini')).not.toBeNull();
+      expect(CalendarWidgetManager.getWidget('grid')).not.toBeNull();
     });
   });
 });

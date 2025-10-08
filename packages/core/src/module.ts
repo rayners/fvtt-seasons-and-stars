@@ -311,6 +311,29 @@ export function init(): void {
 Hooks.once('init', init);
 
 /**
+ * Register widget factories for the CalendarWidgetManager
+ * Extracted into a separate function for testability
+ * @internal Exported for testing purposes only
+ */
+export function registerWidgetFactories(): void {
+  Logger.debug('Registering widget factories');
+  CalendarWidgetManager.registerWidget(
+    'main',
+    () => new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+  );
+  CalendarWidgetManager.registerWidget(
+    'mini',
+    () =>
+      new WidgetWrapper(CalendarMiniWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+  );
+  CalendarWidgetManager.registerWidget(
+    'grid',
+    () =>
+      new WidgetWrapper(CalendarGridWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+  );
+}
+
+/**
  * Core module setup during setup - exposes fully functional API before any module's ready hook
  * This ensures compatibility modules can access the S&S API immediately during ready
  * CRITICAL: This must be synchronous and block until complete
@@ -437,36 +460,7 @@ export function setup(): void {
     CalendarMiniWidget.registerSmallTimeIntegration();
 
     // Register widget factories for CalendarWidgetManager
-    Logger.debug('Registering widget factories');
-    CalendarWidgetManager.registerWidget(
-      'main',
-      () =>
-        new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
-    );
-    CalendarWidgetManager.registerWidget(
-      'mini',
-      () =>
-        new WidgetWrapper(
-          CalendarMiniWidget,
-          'render',
-          'close',
-          'toggle',
-          'getInstance',
-          'rendered'
-        )
-    );
-    CalendarWidgetManager.registerWidget(
-      'grid',
-      () =>
-        new WidgetWrapper(
-          CalendarGridWidget,
-          'render',
-          'close',
-          'toggle',
-          'getInstance',
-          'rendered'
-        )
-    );
+    registerWidgetFactories();
 
     // Scene controls registered at top level for timing requirements
     Logger.debug('Registering macros');
