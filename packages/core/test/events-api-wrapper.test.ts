@@ -92,7 +92,10 @@ describe('EventsAPI Wrapper', () => {
     it('should return events for a specific date', () => {
       const events = eventsAPI.getEventsForDate(2024, 1, 1);
       expect(events).toHaveLength(1);
-      expect(events[0].id).toBe('new-year');
+      expect(events[0].event.id).toBe('new-year');
+      expect(events[0].year).toBe(2024);
+      expect(events[0].month).toBe(1);
+      expect(events[0].day).toBe(1);
     });
 
     it('should return empty array when manager not initialized', () => {

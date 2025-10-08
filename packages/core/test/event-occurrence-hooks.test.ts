@@ -121,12 +121,7 @@ describe('Event Occurrence Hooks', () => {
       // Simulate time advancement
       // Act
       Hooks.callAll('seasons-stars:eventOccurs', {
-        events: events.map(event => ({
-          event,
-          year: newDate.year,
-          month: newDate.month,
-          day: newDate.day,
-        })),
+        events,
         date: newDate,
         isStartup: false,
         previousDate: currentDate,
@@ -153,12 +148,7 @@ describe('Event Occurrence Hooks', () => {
       const events = eventsManager.getEventsForDate(newDate.year, newDate.month, newDate.day);
 
       Hooks.callAll('seasons-stars:eventOccurs', {
-        events: events.map(event => ({
-          event,
-          year: newDate.year,
-          month: newDate.month,
-          day: newDate.day,
-        })),
+        events,
         date: newDate,
         isStartup: false,
         previousDate: currentDate,
@@ -183,12 +173,7 @@ describe('Event Occurrence Hooks', () => {
       // Only fire if there are events
       if (events.length > 0) {
         Hooks.callAll('seasons-stars:eventOccurs', {
-          events: events.map(event => ({
-            event,
-            year: newDate.year,
-            month: newDate.month,
-            day: newDate.day,
-          })),
+          events,
           date: newDate,
           isStartup: false,
           previousDate: currentDate,
@@ -208,12 +193,7 @@ describe('Event Occurrence Hooks', () => {
       const events = eventsManager.getEventsForDate(newDate.year, newDate.month, newDate.day);
 
       Hooks.callAll('seasons-stars:eventOccurs', {
-        events: events.map(event => ({
-          event,
-          year: newDate.year,
-          month: newDate.month,
-          day: newDate.day,
-        })),
+        events,
         date: newDate,
         isStartup: false,
         previousDate: currentDate,
@@ -241,12 +221,7 @@ describe('Event Occurrence Hooks', () => {
 
       // Simulate startup
       Hooks.callAll('seasons-stars:eventOccurs', {
-        events: events.map(event => ({
-          event,
-          year: currentDate.year,
-          month: currentDate.month,
-          day: currentDate.day,
-        })),
+        events,
         date: currentDate,
         isStartup: true,
         // No previousDate on startup
@@ -275,12 +250,7 @@ describe('Event Occurrence Hooks', () => {
       // Only fire if there are events
       if (events.length > 0) {
         Hooks.callAll('seasons-stars:eventOccurs', {
-          events: events.map(event => ({
-            event,
-            year: currentDate.year,
-            month: currentDate.month,
-            day: currentDate.day,
-          })),
+          events,
           date: currentDate,
           isStartup: true,
         } as EventOccursData);
@@ -300,12 +270,7 @@ describe('Event Occurrence Hooks', () => {
       const events = eventsManager.getEventsForDate(newDate.year, newDate.month, newDate.day);
 
       Hooks.callAll('seasons-stars:eventOccurs', {
-        events: events.map(event => ({
-          event,
-          year: newDate.year,
-          month: newDate.month,
-          day: newDate.day,
-        })),
+        events,
         date: newDate,
         isStartup: false,
         previousDate: currentDate,
@@ -340,12 +305,7 @@ describe('Event Occurrence Hooks', () => {
       const events = eventsManager.getEventsForDate(newDate.year, newDate.month, newDate.day);
 
       Hooks.callAll('seasons-stars:eventOccurs', {
-        events: events.map(event => ({
-          event,
-          year: newDate.year,
-          month: newDate.month,
-          day: newDate.day,
-        })),
+        events,
         date: newDate,
         isStartup: true,
       } as EventOccursData);
@@ -385,12 +345,7 @@ describe('Event Occurrence Hooks', () => {
       const events = eventsManager.getEventsForDate(newDate.year, newDate.month, newDate.day);
 
       Hooks.callAll('seasons-stars:eventOccurs', {
-        events: events.map(event => ({
-          event,
-          year: newDate.year,
-          month: newDate.month,
-          day: newDate.day,
-        })),
+        events,
         date: newDate,
         isStartup: false,
         previousDate: { year: 2024, month: 3, day: 14 },
@@ -425,12 +380,7 @@ describe('Event Occurrence Hooks', () => {
       // Only fire if there are events
       if (events.length > 0) {
         Hooks.callAll('seasons-stars:eventOccurs', {
-          events: events.map(event => ({
-            event,
-            year: newDate.year,
-            month: newDate.month,
-            day: newDate.day,
-          })),
+          events,
           date: newDate,
           isStartup: false,
           previousDate: { year: 2023, month: 4, day: 31 },
@@ -453,12 +403,7 @@ describe('Event Occurrence Hooks', () => {
       const events = eventsManager.getEventsForDate(newDate.year, newDate.month, newDate.day);
 
       Hooks.callAll('seasons-stars:eventOccurs', {
-        events: events.map(event => ({
-          event,
-          year: newDate.year,
-          month: newDate.month,
-          day: newDate.day,
-        })),
+        events,
         date: newDate,
         isStartup: true,
       } as EventOccursData);

@@ -132,19 +132,28 @@ describe('EventsManager - Event Retrieval', () => {
     it('should get events for New Year', () => {
       const events = eventsManager.getEventsForDate(2024, 1, 1);
       expect(events).toHaveLength(1);
-      expect(events[0].id).toBe('new-year');
+      expect(events[0].event.id).toBe('new-year');
+      expect(events[0].year).toBe(2024);
+      expect(events[0].month).toBe(1);
+      expect(events[0].day).toBe(1);
     });
 
     it('should get events for Independence Day', () => {
       const events = eventsManager.getEventsForDate(2024, 7, 4);
       expect(events).toHaveLength(1);
-      expect(events[0].id).toBe('independence-day');
+      expect(events[0].event.id).toBe('independence-day');
+      expect(events[0].year).toBe(2024);
+      expect(events[0].month).toBe(7);
+      expect(events[0].day).toBe(4);
     });
 
     it('should get events for Thanksgiving 2024 (Nov 28)', () => {
       const events = eventsManager.getEventsForDate(2024, 11, 28);
       expect(events).toHaveLength(1);
-      expect(events[0].id).toBe('thanksgiving');
+      expect(events[0].event.id).toBe('thanksgiving');
+      expect(events[0].year).toBe(2024);
+      expect(events[0].month).toBe(11);
+      expect(events[0].day).toBe(28);
     });
 
     it('should return empty array for date with no events', () => {

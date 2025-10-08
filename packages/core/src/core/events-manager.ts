@@ -75,10 +75,13 @@ export class EventsManager {
 
   /**
    * Get all events occurring on a specific date
+   *
+   * Returns event occurrences with the full context (event + date information)
+   * ready for hook consumers and UI display.
    */
-  getEventsForDate(year: number, month: number, day: number): CalendarEvent[] {
+  getEventsForDate(year: number, month: number, day: number): EventOccurrence[] {
     const allEvents = this.getAllEvents();
-    const result: CalendarEvent[] = [];
+    const result: EventOccurrence[] = [];
 
     for (const event of allEvents) {
       // Check year range
@@ -104,7 +107,7 @@ export class EventsManager {
           }
         }
 
-        result.push(event);
+        result.push({ event, year, month, day });
       } else if (event.exceptions) {
         // Check if moved TO this date
         const exception = event.exceptions.find(ex => ex.year === year);
@@ -114,7 +117,7 @@ export class EventsManager {
           exception.moveToMonth === month &&
           exception.moveToDay === day
         ) {
-          result.push(event);
+          result.push({ event, year, month, day });
         }
       }
     }

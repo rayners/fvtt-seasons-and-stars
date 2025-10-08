@@ -34,17 +34,22 @@ export class EventsAPI {
   /**
    * Get all events occurring on a specific date
    *
+   * Returns event occurrences with full context (event + date) ready for
+   * hook consumers and UI display. No manual transformation needed.
+   *
    * @param year The year to check
    * @param month The month to check (1-based)
    * @param day The day to check
-   * @returns Array of events occurring on this date
+   * @returns Array of event occurrences on this date
    *
    * @example
    * // Get events for July 4th, 2024
-   * const events = game.seasonsStars.api.events.getEventsForDate(2024, 7, 4);
-   * console.log(events); // [{ id: 'independence-day', name: 'Independence Day', ... }]
+   * const occurrences = game.seasonsStars.api.events.getEventsForDate(2024, 7, 4);
+   * occurrences.forEach(occ => {
+   *   console.log(`${occ.event.name} on ${occ.month}/${occ.day}/${occ.year}`);
+   * });
    */
-  getEventsForDate(year: number, month: number, day: number): CalendarEvent[] {
+  getEventsForDate(year: number, month: number, day: number): EventOccurrence[] {
     const manager = this.getEventsManager();
     if (!manager) {
       Logger.warn('Events manager not initialized');

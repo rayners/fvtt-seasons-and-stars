@@ -395,18 +395,13 @@ export function setup(): void {
           return; // No events manager available
         }
 
-        // Get events for the new date
+        // Get events for the new date (already includes year/month/day context)
         const events = eventsManager.getEventsForDate(newDate.year, newDate.month, newDate.day);
 
         // Only fire hook if there are events
         if (events.length > 0) {
           Hooks.callAll('seasons-stars:eventOccurs', {
-            events: events.map(event => ({
-              event,
-              year: newDate.year,
-              month: newDate.month,
-              day: newDate.day,
-            })),
+            events,
             date: newDate,
             isStartup: false,
             previousDate,
@@ -590,12 +585,7 @@ Hooks.once('ready', async () => {
 
         if (events.length > 0) {
           Hooks.callAll('seasons-stars:eventOccurs', {
-            events: events.map(event => ({
-              event,
-              year: currentDate.year,
-              month: currentDate.month,
-              day: currentDate.day,
-            })),
+            events,
             date: {
               year: currentDate.year,
               month: currentDate.month,
