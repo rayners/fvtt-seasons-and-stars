@@ -46,7 +46,8 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
       // Simulate the exact code added to module.ts
       CalendarWidgetManager.registerWidget(
         'main',
-        () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+        () =>
+          new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
       );
 
       // Verify registration worked
@@ -60,7 +61,14 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
       CalendarWidgetManager.registerWidget(
         'mini',
         () =>
-          new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+          new WidgetWrapper(
+            CalendarMiniWidget,
+            'render',
+            'close',
+            'toggle',
+            'getInstance',
+            'rendered'
+          )
       );
 
       // Verify registration worked
@@ -74,7 +82,14 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
       CalendarWidgetManager.registerWidget(
         'grid',
         () =>
-          new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+          new WidgetWrapper(
+            CalendarGridWidget,
+            'render',
+            'close',
+            'toggle',
+            'getInstance',
+            'rendered'
+          )
       );
 
       // Verify registration worked
@@ -87,17 +102,32 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
       // Simulate the complete registration block added to module.ts
       CalendarWidgetManager.registerWidget(
         'main',
-        () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+        () =>
+          new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
       );
       CalendarWidgetManager.registerWidget(
         'mini',
         () =>
-          new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+          new WidgetWrapper(
+            CalendarMiniWidget,
+            'render',
+            'close',
+            'toggle',
+            'getInstance',
+            'rendered'
+          )
       );
       CalendarWidgetManager.registerWidget(
         'grid',
         () =>
-          new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+          new WidgetWrapper(
+            CalendarGridWidget,
+            'render',
+            'close',
+            'toggle',
+            'getInstance',
+            'rendered'
+          )
       );
 
       // Verify all registrations worked
@@ -110,24 +140,24 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
       // Test the WidgetWrapper constructor calls from module.ts
       const mainWrapper = new WidgetWrapper(
         CalendarWidget,
-        'show',
-        'hide',
+        'render',
+        'close',
         'toggle',
         'getInstance',
         'rendered'
       );
       const miniWrapper = new WidgetWrapper(
         CalendarMiniWidget,
-        'show',
-        'hide',
+        'render',
+        'close',
         'toggle',
         'getInstance',
         'rendered'
       );
       const gridWrapper = new WidgetWrapper(
         CalendarGridWidget,
-        'show',
-        'hide',
+        'render',
+        'close',
         'toggle',
         'getInstance',
         'rendered'
@@ -166,17 +196,32 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
       // 2. Register all three widgets (exact code from module.ts)
       CalendarWidgetManager.registerWidget(
         'main',
-        () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+        () =>
+          new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
       );
       CalendarWidgetManager.registerWidget(
         'mini',
         () =>
-          new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+          new WidgetWrapper(
+            CalendarMiniWidget,
+            'render',
+            'close',
+            'toggle',
+            'getInstance',
+            'rendered'
+          )
       );
       CalendarWidgetManager.registerWidget(
         'grid',
         () =>
-          new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+          new WidgetWrapper(
+            CalendarGridWidget,
+            'render',
+            'close',
+            'toggle',
+            'getInstance',
+            'rendered'
+          )
       );
 
       // 3. Verify the bug from issue #78 is fixed
@@ -227,7 +272,14 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
         CalendarWidgetManager.registerWidget(
           'main',
           () =>
-            new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+            new WidgetWrapper(
+              CalendarWidget,
+              'render',
+              'close',
+              'toggle',
+              'getInstance',
+              'rendered'
+            )
         );
       }).not.toThrow();
     });
@@ -236,7 +288,8 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
       // Test that registering the same widget type twice works
       CalendarWidgetManager.registerWidget(
         'main',
-        () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+        () =>
+          new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
       );
 
       // Re-register the same type
@@ -244,7 +297,14 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
         CalendarWidgetManager.registerWidget(
           'main',
           () =>
-            new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+            new WidgetWrapper(
+              CalendarWidget,
+              'render',
+              'close',
+              'toggle',
+              'getInstance',
+              'rendered'
+            )
         );
       }).not.toThrow();
 
