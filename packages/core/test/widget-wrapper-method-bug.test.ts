@@ -246,4 +246,140 @@ describe('Widget Wrapper Architecture (Issue #344)', () => {
       expect(showSpy).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('Scene Control Button Integration (Issue #344)', () => {
+    it('should call CalendarWidget.show() when showWidget is called for main widget', async () => {
+      // This simulates the scene control button flow:
+      // scene-controls.ts:85 → CalendarWidgetManager.showWidget('main')
+
+      CalendarWidgetManager.registerWidget(
+        'main',
+        () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+      );
+
+      const showSpy = vi.spyOn(CalendarWidget, 'show');
+
+      await CalendarWidgetManager.showWidget('main');
+
+      expect(showSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call CalendarMiniWidget.show() when showWidget is called for mini widget', async () => {
+      // This simulates the scene control button flow when defaultWidget is 'mini'
+      // scene-controls.ts:78 → CalendarWidgetManager.showWidget('mini')
+
+      CalendarWidgetManager.registerWidget(
+        'mini',
+        () =>
+          new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+      );
+
+      const showSpy = vi.spyOn(CalendarMiniWidget, 'show');
+
+      await CalendarWidgetManager.showWidget('mini');
+
+      expect(showSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call CalendarGridWidget.show() when showWidget is called for grid widget', async () => {
+      // This simulates the scene control button flow when defaultWidget is 'grid'
+      // scene-controls.ts:81 → CalendarWidgetManager.showWidget('grid')
+
+      CalendarWidgetManager.registerWidget(
+        'grid',
+        () =>
+          new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+      );
+
+      const showSpy = vi.spyOn(CalendarGridWidget, 'show');
+
+      await CalendarWidgetManager.showWidget('grid');
+
+      expect(showSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call CalendarWidget.hide() when hideWidget is called for main widget', async () => {
+      // This simulates the scene control button hide flow:
+      // scene-controls.ts:116 → CalendarWidgetManager.hideWidget('main')
+
+      CalendarWidgetManager.registerWidget(
+        'main',
+        () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+      );
+
+      const hideSpy = vi.spyOn(CalendarWidget, 'hide');
+
+      await CalendarWidgetManager.hideWidget('main');
+
+      expect(hideSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call CalendarWidget.toggle() when toggleWidget is called for main widget', async () => {
+      // This simulates the scene control button toggle flow:
+      // scene-controls.ts:147 → CalendarWidgetManager.toggleWidget('main')
+
+      CalendarWidgetManager.registerWidget(
+        'main',
+        () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+      );
+
+      const toggleSpy = vi.spyOn(CalendarWidget, 'toggle');
+
+      await CalendarWidgetManager.toggleWidget('main');
+
+      expect(toggleSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should demonstrate scene control button would fail with instance method names', async () => {
+      // This test documents why issue #344 would occur if we used 'render'/'close'
+
+      CalendarWidgetManager.registerWidget(
+        'main',
+        () =>
+          new WidgetWrapper(CalendarWidget, 'render', 'close', 'toggle', 'getInstance', 'rendered')
+      );
+
+      const showSpy = vi.spyOn(CalendarWidget, 'show');
+
+      // Try to show the widget through the manager
+      await CalendarWidgetManager.showWidget('main');
+
+      // The static method was NOT called because wrapper looked for 'render' which doesn't exist on the class
+      expect(showSpy).not.toHaveBeenCalled();
+
+      // This is why the scene control button would fail to open widgets
+    });
+
+    it('should verify complete scene control flow with all three widget types registered', async () => {
+      // Register all widgets as they are in module.ts
+      CalendarWidgetManager.registerWidget(
+        'main',
+        () => new WidgetWrapper(CalendarWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+      );
+      CalendarWidgetManager.registerWidget(
+        'mini',
+        () =>
+          new WidgetWrapper(CalendarMiniWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+      );
+      CalendarWidgetManager.registerWidget(
+        'grid',
+        () =>
+          new WidgetWrapper(CalendarGridWidget, 'show', 'hide', 'toggle', 'getInstance', 'rendered')
+      );
+
+      const mainShowSpy = vi.spyOn(CalendarWidget, 'show');
+      const miniShowSpy = vi.spyOn(CalendarMiniWidget, 'show');
+      const gridShowSpy = vi.spyOn(CalendarGridWidget, 'show');
+
+      // Simulate scene control button clicking for each widget type
+      await CalendarWidgetManager.showWidget('main');
+      await CalendarWidgetManager.showWidget('mini');
+      await CalendarWidgetManager.showWidget('grid');
+
+      // All widgets should successfully open
+      expect(mainShowSpy).toHaveBeenCalledTimes(1);
+      expect(miniShowSpy).toHaveBeenCalledTimes(1);
+      expect(gridShowSpy).toHaveBeenCalledTimes(1);
+    });
+  });
 });

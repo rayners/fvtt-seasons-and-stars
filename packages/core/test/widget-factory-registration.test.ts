@@ -79,26 +79,27 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
 
     it('should create WidgetWrapper instances with correct parameters', () => {
       // Test the WidgetWrapper constructor calls from module.ts
+      // Uses static method names ('show'/'hide') because WidgetWrapper receives classes
       const mainWrapper = new WidgetWrapper(
         CalendarWidget,
-        'render',
-        'close',
+        'show',
+        'hide',
         'toggle',
         'getInstance',
         'rendered'
       );
       const miniWrapper = new WidgetWrapper(
         CalendarMiniWidget,
-        'render',
-        'close',
+        'show',
+        'hide',
         'toggle',
         'getInstance',
         'rendered'
       );
       const gridWrapper = new WidgetWrapper(
         CalendarGridWidget,
-        'render',
-        'close',
+        'show',
+        'hide',
         'toggle',
         'getInstance',
         'rendered'
