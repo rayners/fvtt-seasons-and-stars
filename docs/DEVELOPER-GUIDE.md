@@ -440,12 +440,12 @@ _Added in v0.20.0_
 
 The Events API provides access to calendar events defined in calendar JSON files. Events support fixed dates, ordinal recurrence (Nth weekday of month), and interval recurrence (every N years).
 
-#### `getEvents()`
+#### `getAllEvents()`
 
-Get all events for the active calendar.
+Get all events for the active calendar (filtered by visibility permissions).
 
 ```javascript
-const events = game.seasonsStars.api.getEvents();
+const events = game.seasonsStars.api.events.getAllEvents();
 
 // Events array structure
 events.forEach(event => {
@@ -455,7 +455,7 @@ events.forEach(event => {
 });
 ```
 
-**Returns:** `CalendarEvent[]`
+**Returns:** `CalendarEvent[]` - Only includes events the current user has permission to see
 
 #### `getEventsForDate(year: number, month: number, day: number)`
 
@@ -463,12 +463,12 @@ Get events occurring on a specific date.
 
 ```javascript
 // Get events for January 1st, 2024
-const newYearEvents = game.seasonsStars.api.getEventsForDate(2024, 1, 1);
+const newYearEvents = game.seasonsStars.api.events.getEventsForDate(2024, 1, 1);
 
-newYearEvents.forEach(event => {
-  console.log(`Today is ${event.name}!`);
-  if (event.description) {
-    console.log(event.description);
+newYearEvents.forEach(occurrence => {
+  console.log(`Today is ${occurrence.event.name}!`);
+  if (occurrence.event.description) {
+    console.log(occurrence.event.description);
   }
 });
 ```
@@ -605,7 +605,7 @@ class EventNotificationModule {
     // Check for events on module initialization
     Hooks.on('seasons-stars:ready', () => {
       const currentDate = game.seasonsStars.api.getCurrentDate();
-      const todaysEvents = game.seasonsStars.api.getEventsForDate(
+      const todaysEvents = game.seasonsStars.api.events.getEventsForDate(
         currentDate.year,
         currentDate.month,
         currentDate.day
