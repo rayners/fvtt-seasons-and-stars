@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.1...seasons-and-stars-v0.20.2) (2025-10-09)
+
+
+### Bug Fixes
+
+* prevent non-GM permission errors and improve file picker UX ([#353](https://github.com/rayners/fvtt-seasons-and-stars/issues/353)) ([e105075](https://github.com/rayners/fvtt-seasons-and-stars/commit/e105075c1a6ab272ff88015a030fdddedf63bda3))
+
 ## [0.20.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.0...seasons-and-stars-v0.20.1) (2025-10-08)
 
 
