@@ -11,6 +11,10 @@ import { CalendarDate } from './calendar-date';
 import { CalendarLocalization } from './calendar-localization';
 import { CalendarLoader, type ExternalCalendarSource, type LoadResult } from './calendar-loader';
 import { Logger } from './logger';
+import {
+  saveCalendarDataForSync,
+  clearConflictingCalendarSetting,
+} from '../ui/calendar-file-helpers.js';
 // Calendar list is now loaded dynamically from calendars/index.json
 
 export class CalendarManager {
@@ -95,10 +99,9 @@ export class CalendarManager {
     // Prioritize file-based calendars - if there's a file path, use it regardless of activeCalendar setting
     if (activeCalendarFile && activeCalendarFile.trim() !== '') {
       // Ensure activeCalendar is cleared if it's set (defensive cleanup)
-      // Only GMs can modify world settings
-      if (activeCalendar && activeCalendar.trim() !== '' && game.user?.isGM) {
-        Logger.debug('Clearing conflicting activeCalendar setting');
-        await game.settings?.set('seasons-and-stars', 'activeCalendar', '');
+      const clearResult = await clearConflictingCalendarSetting();
+      if (!clearResult.success && clearResult.error) {
+        Logger.error(`Failed to clear conflicting setting during init: ${clearResult.error}`);
       }
       Logger.debug('Loading calendar from file:', activeCalendarFile);
 
@@ -127,10 +130,9 @@ export class CalendarManager {
           await this.setActiveCalendar(result.calendar.id, false);
 
           // Save the calendar data for other clients to load synchronously
-          // Only GMs can save world settings
-          if (game.settings && game.user?.isGM) {
-            await game.settings.set('seasons-and-stars', 'activeCalendarData', result.calendar);
-            Logger.debug(`Cached file-based calendar data for sync to other clients`);
+          const saveResult = await saveCalendarDataForSync(result.calendar);
+          if (!saveResult.success && saveResult.error) {
+            Logger.error(`Failed to save calendar data during init: ${saveResult.error}`);
           }
 
           Logger.info('Successfully loaded and activated calendar from file:', activeCalendarFile);
@@ -446,8 +448,12 @@ export class CalendarManager {
       // Also store the full calendar JSON for synchronous loading
       const calendarData = this.calendars.get(resolvedCalendarId);
       if (calendarData) {
-        await game.settings.set('seasons-and-stars', 'activeCalendarData', calendarData);
-        Logger.debug(`Cached calendar data for ${resolvedCalendarId} in settings`);
+        const saveResult = await saveCalendarDataForSync(calendarData);
+        if (!saveResult.success && saveResult.error) {
+          Logger.error(
+            `Failed to cache calendar data for ${resolvedCalendarId}: ${saveResult.error}`
+          );
+        }
       }
     }
 
