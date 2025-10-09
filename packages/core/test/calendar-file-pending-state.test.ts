@@ -363,4 +363,87 @@ describe('Calendar File Selection - Pending State Pattern', () => {
       expect((dialog as any).pendingFilePath).toBeNull();
     });
   });
+
+  describe('Clear File Picker - Pending State Pattern', () => {
+    it('should clear local state only (not settings) when clear button clicked', async () => {
+      (globalThis as any).game.user = { isGM: true };
+
+      // Set up file picker state - user previously confirmed a file
+      const originalPath = 'worlds/test/custom.json';
+      settingsStore.set('seasons-and-stars.activeCalendarFile', originalPath);
+
+      const calendars = new Map([['gregorian', {} as any]]);
+      const dialog = new CalendarSelectionDialog(calendars, 'gregorian');
+      (dialog as any).pendingFilePath = 'worlds/test/another.json';
+      (dialog as any).selectedCalendarId = '__FILE_PICKER__';
+
+      // Mock render to prevent rendering errors
+      dialog.render = vi.fn();
+
+      // Clear the file picker
+      await (dialog as any)._onClearFilePicker(
+        new Event('click'),
+        document.createElement('button')
+      );
+
+      // Verify local state cleared
+      expect((dialog as any).pendingFilePath).toBeNull();
+      expect((dialog as any).selectedCalendarId).toBeNull();
+
+      // Verify settings NOT modified (pending state pattern - only cleared on confirm)
+      expect(settingsStore.get('seasons-and-stars.activeCalendarFile')).toBe(originalPath);
+    });
+
+    it('should work for both GM and non-GM (no permission check needed)', async () => {
+      (globalThis as any).game.user = { isGM: false };
+
+      // Set up file picker state
+      const originalPath = 'worlds/test/custom.json';
+      settingsStore.set('seasons-and-stars.activeCalendarFile', originalPath);
+
+      const calendars = new Map([['gregorian', {} as any]]);
+      const dialog = new CalendarSelectionDialog(calendars, 'gregorian');
+      (dialog as any).pendingFilePath = originalPath;
+      (dialog as any).selectedCalendarId = '__FILE_PICKER__';
+
+      // Mock render to prevent rendering errors
+      dialog.render = vi.fn();
+
+      // Clear the file picker as non-GM (no permission error)
+      await (dialog as any)._onClearFilePicker(
+        new Event('click'),
+        document.createElement('button')
+      );
+
+      // Verify local state cleared (same behavior as GM)
+      expect((dialog as any).pendingFilePath).toBeNull();
+      expect((dialog as any).selectedCalendarId).toBeNull();
+
+      // Verify settings NOT modified (pending state pattern)
+      expect(settingsStore.get('seasons-and-stars.activeCalendarFile')).toBe(originalPath);
+    });
+
+    it('should handle clear when no pending state exists', async () => {
+      (globalThis as any).game.user = { isGM: true };
+
+      // No pending state
+      const calendars = new Map([['gregorian', {} as any]]);
+      const dialog = new CalendarSelectionDialog(calendars, 'gregorian');
+      (dialog as any).pendingFilePath = null;
+      (dialog as any).selectedCalendarId = 'gregorian';
+
+      // Mock render to prevent rendering errors
+      dialog.render = vi.fn();
+
+      // Clear the file picker (should safely handle null state)
+      await (dialog as any)._onClearFilePicker(
+        new Event('click'),
+        document.createElement('button')
+      );
+
+      // Verify state remains null
+      expect((dialog as any).pendingFilePath).toBeNull();
+      expect((dialog as any).selectedCalendarId).toBeNull();
+    });
+  });
 });

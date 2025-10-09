@@ -841,11 +841,12 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     Logger.debug('Clear file picker button clicked', { event, target });
 
     try {
-      // Clear the pending file path
+      // Clear the pending file path (local UI state only)
+      // Settings will only be cleared when user clicks "Select" to confirm
       this.pendingFilePath = null;
 
-      // Clear the file picker setting
-      await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
+      // Also clear the selected calendar ID so user must make a new selection
+      this.selectedCalendarId = null;
 
       // Re-render dialog to show updated state
       this.render(true);
