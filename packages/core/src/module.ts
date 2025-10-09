@@ -42,6 +42,7 @@ import type {
   CalendarDate as ICalendarDate,
   DateFormatOptions,
   SeasonsStarsCalendar,
+  CalendarSourceInfo,
 } from './types/calendar';
 import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
 
@@ -654,9 +655,12 @@ function registerSettings(): void {
     choices: { gregorian: 'Gregorian Calendar' }, // Basic default, updated later
     onChange: async (value: string) => {
       if (value && value.trim() !== '' && calendarManager) {
-        // Clear file picker calendar when regular calendar is selected
-        await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
-        await calendarManager.setActiveCalendar(value);
+        // Clear file picker calendar when regular calendar is selected (GM only)
+        if (game.user?.isGM) {
+          await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
+        }
+        // Don't save to settings again - we're already in an onChange handler
+        await calendarManager.setActiveCalendar(value, false);
       }
     },
   });
@@ -669,7 +673,30 @@ function registerSettings(): void {
     config: false, // Hidden setting
     type: Object,
     default: null,
-    requiresReload: true, // Changes require reload since this affects init hook behavior
+    onChange: async (calendarData: unknown) => {
+      // When calendar data changes, reload it for all clients without page refresh
+      if (calendarData && calendarManager) {
+        const calendar = calendarData as SeasonsStarsCalendar;
+        Logger.debug('Calendar data changed, reloading calendar:', calendar.id);
+
+        // Always ensure calendar is loaded (loadCalendar is idempotent)
+        const sourceInfo: CalendarSourceInfo = {
+          type: 'builtin',
+          sourceName: 'Seasons & Stars',
+          description: 'Built-in calendar from settings update',
+          icon: 'fa-solid fa-calendar',
+        };
+
+        // Non-GMs should only load the calendar data, not try to set it as active
+        // The active calendar will be set by the GM's settings change
+        const loadSuccess = calendarManager.loadCalendar(calendar, sourceInfo);
+
+        if (loadSuccess) {
+          // Set it as active (don't save to settings again to avoid loop)
+          await calendarManager.setActiveCalendar(calendar.id, false);
+        }
+      }
+    },
   });
 
   // File picker calendar setting - allows users to load custom calendar files
@@ -681,7 +708,8 @@ function registerSettings(): void {
     type: String,
     default: '',
     onChange: async (value: string) => {
-      // File picker setting only stores the path - actual loading happens when user clicks select
+      // File picker setting stores the path, but actual loading happens when user clicks "Select" in dialog
+      // This ensures the user can preview and confirm their selection before the calendar is activated
       Logger.debug('File picker path updated:', value);
     },
   });
@@ -1055,9 +1083,12 @@ function registerCalendarSettings(): void {
     choices: choices,
     onChange: async (value: string) => {
       if (value && value.trim() !== '' && calendarManager) {
-        // Clear file picker calendar when regular calendar is selected
-        await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
-        await calendarManager.setActiveCalendar(value);
+        // Clear file picker calendar when regular calendar is selected (GM only)
+        if (game.user?.isGM) {
+          await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
+        }
+        // Don't save to settings again - we're already in an onChange handler
+        await calendarManager.setActiveCalendar(value, false);
       }
     },
   });
