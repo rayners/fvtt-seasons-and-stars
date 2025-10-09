@@ -4,6 +4,9 @@
 
 /// <reference types="../../core/src/types/foundry-v13-essentials" />
 
+import { SimpleCalendarConverter } from './simple-calendar-converter';
+import type { SimpleCalendarExport, SimpleCalendarData } from './simple-calendar-types';
+
 export class CalendarBuilderApp extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
@@ -389,12 +392,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
       try {
         const text = await file.text();
-        // Validate it's proper JSON
-        JSON.parse(text);
-
-        this.currentJson = text;
-        this.render(true);
-        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
+        await this._handleImportedJson(text);
       } catch (error) {
         console.error('Import failed:', error);
         this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.invalid_json'), 'error');
@@ -402,6 +400,91 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     });
 
     input.click();
+  }
+
+  private async _handleImportedJson(text: string): Promise<void> {
+    const data = JSON.parse(text);
+
+    if (await this._detectAndHandleSimpleCalendar(data, text)) {
+      return;
+    }
+
+    this.currentJson = text;
+    this.render(true);
+    this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
+  }
+
+  private async _detectAndHandleSimpleCalendar(data: any, originalText: string): Promise<boolean> {
+    if (!SimpleCalendarConverter.isSimpleCalendarFormat(data)) {
+      return false;
+    }
+
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: 'Simple Calendar Format Detected' },
+      content: `<p>This file appears to be in Simple Calendar format.</p>
+                <p>The Calendar Builder can attempt to automatically convert it to Seasons & Stars format,
+                but not all data may translate directly.</p>
+                <p><strong>Would you like to attempt automatic conversion?</strong></p>
+                <p class="notification info">If you choose "No", the JSON will be loaded as-is (it will not function correctly).</p>`,
+      rejectClose: false,
+      modal: true
+    });
+
+    if (!confirmed) {
+      this.currentJson = originalText;
+      this.render(true);
+      this._notify('Loaded Simple Calendar JSON without conversion - validation will likely fail', 'warn');
+      return true;
+    }
+
+    const scExport = data as SimpleCalendarExport;
+
+    if (!scExport.calendars || scExport.calendars.length === 0) {
+      this._notify('No calendars found in Simple Calendar export', 'error');
+      return true;
+    }
+
+    const calendarToConvert: SimpleCalendarData = scExport.calendars.length === 1
+      ? scExport.calendars[0]
+      : await this._selectCalendar(scExport.calendars);
+
+    const converter = new SimpleCalendarConverter();
+    const result = converter.convert(calendarToConvert);
+
+    this.currentJson = JSON.stringify(result.calendar, null, 2);
+    this.render(true);
+
+    if (result.warnings.length > 0) {
+      this._reportConversionWarnings(result.warnings);
+      this._notify(`Conversion complete with ${result.warnings.length} warning(s) - check console for details`, 'warn');
+    } else {
+      this._notify('Calendar successfully converted from Simple Calendar format', 'info');
+    }
+
+    return true;
+  }
+
+  private async _selectCalendar(calendars: SimpleCalendarData[]): Promise<SimpleCalendarData> {
+    return calendars[0];
+  }
+
+  private _reportConversionWarnings(warnings: any[]): void {
+    console.warn('=== Simple Calendar Conversion Warnings ===');
+    console.warn(`Total warnings: ${warnings.length}`);
+    console.warn('');
+
+    for (const warning of warnings) {
+      const valueStr = typeof warning.value === 'object'
+        ? JSON.stringify(warning.value)
+        : String(warning.value);
+
+      console.warn(`Property: ${warning.path}.${warning.property}`);
+      console.warn(`  Value: ${valueStr}`);
+      console.warn(`  Reason: ${warning.reason}`);
+      console.warn('');
+    }
+
+    console.warn('=== End Conversion Warnings ===');
   }
 
   /**
