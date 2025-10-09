@@ -663,11 +663,11 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
             // Clear pending file path since we've now committed it
             this.pendingFilePath = null;
 
-            // Clear regular calendar setting if it's currently set
+            // Clear regular calendar setting if it's currently set (GM only)
             const currentActiveCalendar =
               (game.settings?.get('seasons-and-stars', 'activeCalendar') as string) || '';
-            if (currentActiveCalendar) {
-              await game.settings?.set('seasons-and-stars', 'activeCalendar', '');
+            if (currentActiveCalendar && game.settings && game.user?.isGM) {
+              await game.settings.set('seasons-and-stars', 'activeCalendar', '');
             }
 
             // Set the calendar as active, but don't save to activeCalendar setting
