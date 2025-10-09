@@ -126,6 +126,7 @@ describe('CalendarBuilderApp', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     app = new CalendarBuilderApp();
+    mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
   });
 
   describe('initialization', () => {
@@ -288,6 +289,114 @@ describe('CalendarBuilderApp', () => {
       const result = app['_basicValidation'](invalidData);
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Simple Calendar import', () => {
+    it('should detect Simple Calendar format', async () => {
+      const scExport = {
+        exportVersion: 2,
+        calendars: [
+          {
+            id: 'test',
+            name: 'Test Calendar',
+            months: [{ name: 'January', numberOfDays: 31 }],
+            weekdays: [{ name: 'Monday' }],
+          },
+        ],
+      };
+
+      const detectSpy = vi.spyOn(app as any, '_detectAndHandleSimpleCalendar');
+      await app['_handleImportedJson'](JSON.stringify(scExport));
+
+      expect(detectSpy).toHaveBeenCalled();
+    });
+
+    it('should show dialog for Simple Calendar format', async () => {
+      const scExport = {
+        exportVersion: 2,
+        calendars: [
+          {
+            id: 'test',
+            name: 'Test Calendar',
+            months: [],
+            weekdays: [],
+          },
+        ],
+      };
+
+      mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
+      const dialogSpy = vi.spyOn(mockFoundry.applications.api.DialogV2, 'confirm');
+
+      await app['_handleImportedJson'](JSON.stringify(scExport));
+
+      expect(dialogSpy).toHaveBeenCalled();
+    });
+
+    it('should convert Simple Calendar when user confirms', async () => {
+      const scExport = {
+        exportVersion: 2,
+        calendars: [
+          {
+            id: 'test-cal',
+            name: 'Test Calendar',
+            months: [{ name: 'January', numberOfDays: 31 }],
+            weekdays: [{ name: 'Monday' }],
+          },
+        ],
+      };
+
+      mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
+
+      await app['_handleImportedJson'](JSON.stringify(scExport));
+
+      expect(app['currentJson']).toContain('test-cal');
+      expect(app['currentJson']).toContain('January');
+    });
+
+    it('should not convert when user cancels', async () => {
+      const scExport = {
+        exportVersion: 2,
+        calendars: [
+          {
+            id: 'test',
+            name: 'Test',
+            months: [],
+            weekdays: [],
+          },
+        ],
+      };
+
+      mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(false);
+
+      await app['_handleImportedJson'](JSON.stringify(scExport));
+
+      const parsed = JSON.parse(app['currentJson']);
+      expect(parsed.exportVersion).toBe(2);
+    });
+
+    it('should report warnings after conversion', async () => {
+      const scExport = {
+        exportVersion: 2,
+        calendars: [
+          {
+            id: 'test',
+            name: 'Test',
+            months: [],
+            weekdays: [],
+            years: {
+              yearNames: ['Dragon', 'Tiger'],
+            },
+          },
+        ],
+      };
+
+      mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
+      const consoleSpy = vi.spyOn(console, 'warn');
+
+      await app['_handleImportedJson'](JSON.stringify(scExport));
+
+      expect(consoleSpy).toHaveBeenCalled();
     });
   });
 });
