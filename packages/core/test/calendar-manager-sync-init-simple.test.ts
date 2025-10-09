@@ -28,6 +28,9 @@ const mockGame = {
   modules: {
     get: vi.fn().mockReturnValue({ active: true }),
   },
+  user: {
+    isGM: true,
+  },
 } as any;
 
 const mockHooks = {

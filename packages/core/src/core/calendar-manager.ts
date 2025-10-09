@@ -95,7 +95,8 @@ export class CalendarManager {
     // Prioritize file-based calendars - if there's a file path, use it regardless of activeCalendar setting
     if (activeCalendarFile && activeCalendarFile.trim() !== '') {
       // Ensure activeCalendar is cleared if it's set (defensive cleanup)
-      if (activeCalendar && activeCalendar.trim() !== '') {
+      // Only GMs can modify world settings
+      if (activeCalendar && activeCalendar.trim() !== '' && game.user?.isGM) {
         Logger.debug('Clearing conflicting activeCalendar setting');
         await game.settings?.set('seasons-and-stars', 'activeCalendar', '');
       }
@@ -124,6 +125,14 @@ export class CalendarManager {
         if (loadSuccess) {
           // Set it as active using the proper method, but don't save to activeCalendar setting
           await this.setActiveCalendar(result.calendar.id, false);
+
+          // Save the calendar data for other clients to load synchronously
+          // Only GMs can save world settings
+          if (game.settings && game.user?.isGM) {
+            await game.settings.set('seasons-and-stars', 'activeCalendarData', result.calendar);
+            Logger.debug(`Cached file-based calendar data for sync to other clients`);
+          }
+
           Logger.info('Successfully loaded and activated calendar from file:', activeCalendarFile);
           return;
         } else {
@@ -430,7 +439,8 @@ export class CalendarManager {
     }
 
     // Save to settings only if requested (skip for file-based calendars to avoid mutual exclusion)
-    if (saveToSettings && game.settings) {
+    // Only GMs can save world settings
+    if (saveToSettings && game.settings && game.user?.isGM) {
       await game.settings.set('seasons-and-stars', 'activeCalendar', resolvedCalendarId);
 
       // Also store the full calendar JSON for synchronous loading
