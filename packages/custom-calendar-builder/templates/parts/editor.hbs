@@ -1,0 +1,71 @@
+<section
+  class='tab editor {{tab.cssClass}}'
+  data-group='main'
+  data-tab='editor'
+>
+<div class="calendar-builder-main">
+  <!-- JSON Editor -->
+  <div class="editor-container">
+    <h3>{{localize 'CALENDAR_BUILDER.app.editor.title'}}</h3>
+    <code-mirror
+      id="calendar-json-editor"
+      class="json-editor"
+      language="json"
+      indent="2"
+      name="calendarJson"
+      aria-label="Calendar JSON Editor"
+    >{{currentJson}}</code-mirror>
+  </div>
+
+  <!-- Validation Results -->
+  <div class="validation-container">
+    <h3>{{localize 'CALENDAR_BUILDER.app.editor.validation.title'}}</h3>
+    <div class="validation-results">
+      {{#if validationResult}}
+        {{#if validationResult.isValid}}
+          <div class="validation-status valid">
+            <i class="fas fa-check-circle"></i> {{localize 'CALENDAR_BUILDER.app.editor.validation.valid'}}
+          </div>
+        {{else}}
+          <div class="validation-status invalid">
+            <i class="fas fa-times-circle"></i> {{localize 'CALENDAR_BUILDER.app.editor.validation.invalid'}}
+          </div>
+        {{/if}}
+
+        {{#if validationResult.errors}}
+          {{#if (gt validationResult.errors.length 0)}}
+            <div class="validation-errors">
+              <h4>Errors:</h4>
+              <ul>
+                {{#each validationResult.errors}}
+                  <li class="error">{{this}}</li>
+                {{/each}}
+              </ul>
+            </div>
+          {{/if}}
+        {{/if}}
+
+        {{#if validationResult.warnings}}
+          {{#if (gt validationResult.warnings.length 0)}}
+            <div class="validation-warnings">
+              <h4>{{localize 'CALENDAR_BUILDER.app.editor.validation.warnings'}}</h4>
+              <ul>
+                {{#each validationResult.warnings}}
+                  <li class="warning">{{this}}</li>
+                {{/each}}
+              </ul>
+            </div>
+          {{/if}}
+        {{/if}}
+      {{else}}
+        <p class="no-validation">Enter calendar JSON to see validation results</p>
+      {{/if}}
+    </div>
+    <div class="docs-link">
+      <a href="https://github.com/rayners/fvtt-seasons-and-stars/blob/main/CALENDAR-FORMAT.md" target="_blank" rel="noopener noreferrer">
+        <i class="fas fa-book"></i> Calendar Format Documentation <i class="fas fa-external-link-alt"></i>
+      </a>
+    </div>
+  </div>
+</div>
+</section>
