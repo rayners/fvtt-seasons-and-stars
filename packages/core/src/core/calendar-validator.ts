@@ -90,6 +90,33 @@ async function getAjvValidators() {
 }
 
 export class CalendarValidator {
+  // Valid root-level calendar properties for case-insensitive matching
+  private static readonly VALID_ROOT_PROPERTIES = [
+    'id',
+    'translations',
+    'sources',
+    'year',
+    'months',
+    'weekdays',
+    'intercalary',
+    'leapYear',
+    'time',
+    'compatibility',
+    'variants',
+    'worldTime',
+    'seasons',
+    'moons',
+    'dateFormats',
+    'canonicalHours',
+    'events',
+    'extensions',
+    'baseCalendar',
+    'name',
+    'description',
+    'author',
+    'version',
+  ];
+
   /**
    * Validate a complete calendar configuration using JSON schema
    */
@@ -133,12 +160,8 @@ export class CalendarValidator {
       const isValid = validator(calendar);
 
       if (!isValid && validator.errors) {
-        // Convert AJV errors to our format
-        for (const error of validator.errors) {
-          const path = error.instancePath ? error.instancePath : 'root';
-          const message = error.message || 'Validation error';
-          result.errors.push(`${path}: ${message}`);
-        }
+        // Convert AJV errors to our format with enhanced messages
+        this.enhanceAjvErrors(validator.errors, calendar, result);
       }
 
       // Add additional custom validations for calendar files
@@ -161,6 +184,208 @@ export class CalendarValidator {
       legacyResult.isValid = legacyResult.errors.length === 0;
       return legacyResult;
     }
+  }
+
+  /**
+   * Enhance AJV errors with helpful suggestions for common mistakes
+   */
+  private static enhanceAjvErrors(ajvErrors: any[], calendar: any, result: ValidationResult): void {
+    // Group errors by path to avoid duplicate processing
+    const errorsByPath = new Map<string, any[]>();
+
+    for (const error of ajvErrors) {
+      const path = error.instancePath || 'root';
+      if (!errorsByPath.has(path)) {
+        errorsByPath.set(path, []);
+      }
+      errorsByPath.get(path)!.push(error);
+    }
+
+    // Process each path's errors
+    for (const [path, errors] of errorsByPath) {
+      // Check for additionalProperties errors
+      const additionalPropsErrors = errors.filter(e => e.keyword === 'additionalProperties');
+
+      if (additionalPropsErrors.length > 0 && path === 'root') {
+        // For root-level additional properties, provide enhanced error message
+        const unexpectedProps = this.findUnexpectedProperties(calendar, this.VALID_ROOT_PROPERTIES);
+
+        if (unexpectedProps.length > 0) {
+          const enhancedMessage = this.createEnhancedPropertyError(unexpectedProps);
+          result.errors.push(enhancedMessage);
+        } else {
+          // Fallback to original error if we can't find unexpected properties
+          result.errors.push(`${path}: must NOT have additional properties`);
+        }
+      } else if (additionalPropsErrors.length > 0) {
+        // For nested paths, try to identify the unexpected properties
+        const pathParts = path.split('/').filter(Boolean);
+        const targetObject = this.getObjectAtPath(calendar, pathParts);
+
+        if (targetObject && typeof targetObject === 'object') {
+          // Try to find valid properties for this nested object
+          const validProps = this.getValidPropertiesForPath(path);
+          const unexpectedProps = this.findUnexpectedProperties(targetObject, validProps);
+
+          if (unexpectedProps.length > 0) {
+            result.errors.push(`${path}: Unexpected properties: ${unexpectedProps.join(', ')}`);
+          } else {
+            result.errors.push(`${path}: must NOT have additional properties`);
+          }
+        } else {
+          result.errors.push(`${path}: must NOT have additional properties`);
+        }
+      }
+
+      // Add other non-additionalProperties errors
+      for (const error of errors) {
+        if (error.keyword !== 'additionalProperties') {
+          const message = error.message || 'Validation error';
+          result.errors.push(`${path}: ${message}`);
+        }
+      }
+    }
+  }
+
+  /**
+   * Find unexpected properties in an object
+   * A property is unexpected if:
+   * 1. It doesn't match any valid property exactly (case-sensitive), OR
+   * 2. It matches a valid property case-insensitively but not exactly (wrong case)
+   */
+  private static findUnexpectedProperties(obj: any, validProps: string[]): string[] {
+    if (!obj || typeof obj !== 'object') {
+      return [];
+    }
+
+    const actualProps = Object.keys(obj);
+
+    return actualProps.filter(prop => {
+      // Check for exact match first (case-sensitive)
+      if (validProps.includes(prop)) {
+        return false; // Property is valid with correct case
+      }
+
+      // If no exact match, it's unexpected (whether it's a typo or wrong case)
+      return true;
+    });
+  }
+
+  /**
+   * Create enhanced error message for unexpected properties
+   */
+  private static createEnhancedPropertyError(unexpectedProps: string[]): string {
+    const suggestions: string[] = [];
+
+    for (const prop of unexpectedProps) {
+      const suggestion = this.suggestCorrectProperty(prop, this.VALID_ROOT_PROPERTIES);
+      if (suggestion) {
+        suggestions.push(`'${prop}' (did you mean '${suggestion}'?)`);
+      } else {
+        suggestions.push(`'${prop}'`);
+      }
+    }
+
+    if (suggestions.length === 1) {
+      return `Unexpected property at root: ${suggestions[0]}`;
+    } else {
+      return `Unexpected properties at root: ${suggestions.join(', ')}`;
+    }
+  }
+
+  /**
+   * Suggest the correct property name based on common mistakes
+   */
+  private static suggestCorrectProperty(prop: string, validProps: string[]): string | null {
+    const propLower = prop.toLowerCase();
+
+    // Check for exact case-insensitive match
+    for (const validProp of validProps) {
+      if (validProp.toLowerCase() === propLower) {
+        return validProp;
+      }
+    }
+
+    // Check for Levenshtein distance < 3 for typos
+    let bestMatch: string | null = null;
+    let bestDistance = 3;
+
+    for (const validProp of validProps) {
+      const distance = this.levenshteinDistance(propLower, validProp.toLowerCase());
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestMatch = validProp;
+      }
+    }
+
+    return bestMatch;
+  }
+
+  /**
+   * Calculate Levenshtein distance between two strings
+   */
+  private static levenshteinDistance(str1: string, str2: string): number {
+    const len1 = str1.length;
+    const len2 = str2.length;
+    const matrix: number[][] = [];
+
+    for (let i = 0; i <= len1; i++) {
+      matrix[i] = [i];
+    }
+
+    for (let j = 0; j <= len2; j++) {
+      matrix[0][j] = j;
+    }
+
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+
+    return matrix[len1][len2];
+  }
+
+  /**
+   * Get object at a specific path
+   */
+  private static getObjectAtPath(obj: any, pathParts: string[]): any {
+    let current = obj;
+    for (const part of pathParts) {
+      if (current && typeof current === 'object') {
+        current = current[part];
+      } else {
+        return null;
+      }
+    }
+    return current;
+  }
+
+  /**
+   * Get valid properties for a specific path (used for nested objects)
+   */
+  private static getValidPropertiesForPath(path: string): string[] {
+    // For common nested paths, return known valid properties
+    if (path.includes('/translations/')) {
+      return ['label', 'description', 'setting', 'yearName'];
+    }
+    if (path.includes('/year')) {
+      return ['epoch', 'currentYear', 'prefix', 'suffix', 'startDay'];
+    }
+    if (path.includes('/leapYear')) {
+      return ['rule', 'interval', 'offset', 'month', 'extraDays'];
+    }
+    if (path.includes('/time')) {
+      return ['hoursInDay', 'minutesInHour', 'secondsInMinute'];
+    }
+
+    // For unknown paths, return empty array (will fall back to generic message)
+    return [];
   }
 
   /**
