@@ -641,6 +641,15 @@ export class CalendarValidator {
             );
           }
         }
+        if (intercalary.before) {
+          const monthExists = calendar.months.some((m: any) => m.name === intercalary.before);
+
+          if (!monthExists) {
+            result.errors.push(
+              `Intercalary day ${index + 1} references non-existent month '${intercalary.before}'`
+            );
+          }
+        }
       });
     }
   }
