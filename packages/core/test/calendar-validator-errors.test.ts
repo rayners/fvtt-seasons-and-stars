@@ -235,4 +235,71 @@ describe('CalendarValidator - Enhanced Error Messages', () => {
       expect(result.errors).toHaveLength(0);
     });
   });
+
+  describe('Nested Path Handling (P1 Bug)', () => {
+    it('should not misreport valid nested properties when an invalid property exists', async () => {
+      const calendarWithInvalidMonthProperty = {
+        id: 'test-calendar',
+        translations: {
+          en: {
+            label: 'Test Calendar',
+          },
+        },
+        months: [
+          {
+            name: 'January',
+            days: 31,
+            invalidMonthProp: 'this is wrong',
+          },
+        ],
+        weekdays: [{ name: 'Monday' }],
+        time: {
+          hoursInDay: 24,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+        },
+      };
+
+      const result = await CalendarValidator.validate(calendarWithInvalidMonthProperty);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+
+      const errorText = result.errors.join(' ');
+      expect(errorText).toContain('invalidMonthProp');
+      expect(errorText).not.toContain('name');
+      expect(errorText).not.toContain('days');
+    });
+
+    it('should fallback to generic message for truly unhandled nested paths', async () => {
+      const calendarWithInvalidSeasonProperty = {
+        id: 'test-calendar',
+        translations: {
+          en: {
+            label: 'Test Calendar',
+          },
+        },
+        months: [{ name: 'January', days: 31 }],
+        weekdays: [{ name: 'Monday' }],
+        time: {
+          hoursInDay: 24,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+        },
+        seasons: [
+          {
+            name: 'Spring',
+            startMonth: 'January',
+            unknownSeasonField: 'invalid',
+          },
+        ],
+      };
+
+      const result = await CalendarValidator.validate(calendarWithInvalidSeasonProperty);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+
+      const errorText = result.errors.join(' ');
+      expect(errorText).toMatch(/must NOT have additional properties/i);
+    });
+  });
 });

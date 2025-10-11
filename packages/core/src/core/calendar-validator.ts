@@ -10,11 +10,29 @@ export interface ValidationResult {
   warnings: string[];
 }
 
+// AJV error interface for typed error handling
+interface AjvError {
+  keyword: string;
+  instancePath: string;
+  message?: string;
+  params?: Record<string, unknown>;
+}
+
+// AJV validator function type
+interface AjvValidateFunction {
+  (data: unknown): boolean;
+  errors?: AjvError[] | null;
+}
+
+// AJV instance type (using unknown but with type assertions where needed)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AjvInstance = any;
+
 // Lazy-loaded AJV instances to avoid module resolution issues
-let ajvInstance: any = null;
-let validateCalendar: any = null;
-let validateVariants: any = null;
-let validateCollection: any = null;
+let ajvInstance: AjvInstance = null;
+let validateCalendar: AjvValidateFunction = null as unknown as AjvValidateFunction;
+let validateVariants: AjvValidateFunction = null as unknown as AjvValidateFunction;
+let validateCollection: AjvValidateFunction = null as unknown as AjvValidateFunction;
 
 type SourceVerificationOutcome = 'ok' | 'warning' | 'error';
 
@@ -120,6 +138,7 @@ export class CalendarValidator {
   /**
    * Validate a complete calendar configuration using JSON schema
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async validate(calendar: any): Promise<ValidationResult> {
     const result: ValidationResult = {
       isValid: true,
@@ -139,14 +158,17 @@ export class CalendarValidator {
       const validators = await getAjvValidators();
 
       // Determine schema type based on structure
-      let validator: any;
+      let validator: AjvValidateFunction;
       let schemaType: 'calendar' | 'variants' | 'collection';
 
-      if (calendar.baseCalendar && calendar.variants) {
+      // Type assertion for calendar structure checks
+      const cal = calendar as Record<string, unknown>;
+
+      if (cal.baseCalendar && cal.variants) {
         // External variants file
         validator = validators.validateVariants;
         schemaType = 'variants';
-      } else if (calendar.calendars && Array.isArray(calendar.calendars)) {
+      } else if (cal.calendars && Array.isArray(cal.calendars)) {
         // Collection index file
         validator = validators.validateCollection;
         schemaType = 'collection';
@@ -189,16 +211,24 @@ export class CalendarValidator {
   /**
    * Enhance AJV errors with helpful suggestions for common mistakes
    */
-  private static enhanceAjvErrors(ajvErrors: any[], calendar: any, result: ValidationResult): void {
+  private static enhanceAjvErrors(
+    ajvErrors: AjvError[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    calendar: any,
+    result: ValidationResult
+  ): void {
     // Group errors by path to avoid duplicate processing
-    const errorsByPath = new Map<string, any[]>();
+    const errorsByPath = new Map<string, AjvError[]>();
 
     for (const error of ajvErrors) {
       const path = error.instancePath || 'root';
       if (!errorsByPath.has(path)) {
         errorsByPath.set(path, []);
       }
-      errorsByPath.get(path)!.push(error);
+      const pathErrors = errorsByPath.get(path);
+      if (pathErrors) {
+        pathErrors.push(error);
+      }
     }
 
     // Process each path's errors
@@ -225,11 +255,19 @@ export class CalendarValidator {
         if (targetObject && typeof targetObject === 'object') {
           // Try to find valid properties for this nested object
           const validProps = this.getValidPropertiesForPath(path);
-          const unexpectedProps = this.findUnexpectedProperties(targetObject, validProps);
 
-          if (unexpectedProps.length > 0) {
-            result.errors.push(`${path}: Unexpected properties: ${unexpectedProps.join(', ')}`);
+          // Only try to identify unexpected properties if we know the valid properties
+          // If validProps is empty, we don't know what's valid, so fallback to generic message
+          if (validProps.length > 0) {
+            const unexpectedProps = this.findUnexpectedProperties(targetObject, validProps);
+
+            if (unexpectedProps.length > 0) {
+              result.errors.push(`${path}: Unexpected properties: ${unexpectedProps.join(', ')}`);
+            } else {
+              result.errors.push(`${path}: must NOT have additional properties`);
+            }
           } else {
+            // Fallback to generic message when we don't have the valid property list
             result.errors.push(`${path}: must NOT have additional properties`);
           }
         } else {
@@ -253,6 +291,7 @@ export class CalendarValidator {
    * 1. It doesn't match any valid property exactly (case-sensitive), OR
    * 2. It matches a valid property case-insensitively but not exactly (wrong case)
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static findUnexpectedProperties(obj: any, validProps: string[]): string[] {
     if (!obj || typeof obj !== 'object') {
       return [];
@@ -354,6 +393,7 @@ export class CalendarValidator {
   /**
    * Get object at a specific path
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static getObjectAtPath(obj: any, pathParts: string[]): any {
     let current = obj;
     for (const part of pathParts) {
@@ -383,6 +423,12 @@ export class CalendarValidator {
     if (path.includes('/time')) {
       return ['hoursInDay', 'minutesInHour', 'secondsInMinute'];
     }
+    if (path.includes('/months/')) {
+      return ['name', 'length', 'days', 'description', 'abbreviation'];
+    }
+    if (path.includes('/weekdays/')) {
+      return ['name', 'description', 'abbreviation'];
+    }
 
     // For unknown paths, return empty array (will fall back to generic message)
     return [];
@@ -391,6 +437,7 @@ export class CalendarValidator {
   /**
    * Fallback validation method that doesn't use JSON schemas
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static validateLegacy(calendar: any): ValidationResult {
     const result: ValidationResult = {
       isValid: true,
@@ -434,6 +481,7 @@ export class CalendarValidator {
   /**
    * Additional calendar-specific validations not covered by JSON schema
    */
+
   private static async validateCalendarSpecific(
     calendar: any,
     result: ValidationResult
@@ -446,6 +494,7 @@ export class CalendarValidator {
   /**
    * Additional variants-specific validations not covered by JSON schema
    */
+
   private static async validateVariantsSpecific(
     _calendar: any,
     _result: ValidationResult
@@ -467,6 +516,7 @@ export class CalendarValidator {
    * - Better to prevent excessive formats at source than manage complex cache eviction
    * - Foundry sessions last 2-4 hours then browser refresh clears cache anyway
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static validateDateFormats(calendar: any, result: ValidationResult): void {
     if (!calendar.dateFormats || typeof calendar.dateFormats !== 'object') {
       return; // dateFormats is optional
@@ -533,6 +583,7 @@ export class CalendarValidator {
   /**
    * Validate cross-references between fields
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static validateCrossReferences(calendar: any, result: ValidationResult): void {
     // Check for unique month names
     if (Array.isArray(calendar.months)) {
@@ -597,6 +648,7 @@ export class CalendarValidator {
   /**
    * Validate calendar and provide helpful error messages (synchronous version)
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static validateWithHelp(calendar: any): ValidationResult {
     // Use legacy validation for synchronous operation
     const result = this.validateLegacy(calendar);
@@ -613,6 +665,7 @@ export class CalendarValidator {
   /**
    * Quick validation for just checking if calendar is loadable
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static isValid(calendar: any): boolean {
     return this.validateWithHelp(calendar).isValid;
   }
@@ -620,6 +673,7 @@ export class CalendarValidator {
   /**
    * Get a list of validation errors as strings
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static getErrors(calendar: any): string[] {
     return this.validateWithHelp(calendar).errors;
   }
@@ -643,6 +697,7 @@ export class CalendarValidator {
     return typeof process !== 'undefined' && typeof process.versions?.node === 'string';
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static async validateSourceUrls(calendar: any, result: ValidationResult): Promise<void> {
     if (!this.shouldVerifySources()) {
       return;
