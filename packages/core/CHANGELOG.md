@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.2...seasons-and-stars-v0.20.3) (2025-10-11)
+
+
+### Bug Fixes
+
+* improve error messages for unexpected properties ([#358](https://github.com/rayners/fvtt-seasons-and-stars/issues/358)) ([30b5941](https://github.com/rayners/fvtt-seasons-and-stars/commit/30b5941f811aaf2ac0ce4dd6cba1977d1fd91789))
+
 ## [0.20.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.1...seasons-and-stars-v0.20.2) (2025-10-09)
 
 
