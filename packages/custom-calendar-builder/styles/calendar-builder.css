@@ -14,6 +14,47 @@
   min-height: 500px;
 }
 
+/* Tab content area */
+.tab-content-area {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Tab sections - ApplicationV2 handles visibility via .active class */
+.calendar-builder section.tab {
+  flex: 1 1 0;
+  min-height: 0;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.calendar-builder section.tab.active {
+  display: flex;
+}
+
+/* Padding for scrollable form tabs (but not editor) */
+.calendar-builder section.tab.scrollable:not(.editor) {
+  padding: 16px;
+  margin: 16px;
+  overflow-y: auto;
+}
+
+/* Coming soon message */
+.coming-soon-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  color: var(--color-text-dark-inactive);
+  font-size: 24px;
+}
+
 /* Toolbar */
 .calendar-builder-toolbar {
   display: flex;
@@ -66,6 +107,7 @@
   gap: 1px;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* Editor container */
@@ -75,6 +117,7 @@
   background: var(--color-bg);
   border-right: 1px solid var(--color-border-dark);
   overflow: hidden;
+  min-height: 0;
 }
 
 .editor-container h3 {
@@ -90,7 +133,7 @@
 /* JSON Editor CodeMirror */
 .json-editor {
   flex: 1;
-  min-height: 300px;
+  min-height: 0;
   overflow: auto;
 }
 
@@ -100,6 +143,8 @@
   flex-direction: column;
   background: var(--color-bg);
   min-width: 300px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .validation-container h3 {
@@ -294,4 +339,76 @@ body.theme-light .calendar-builder-toolbar {
   background: var(--color-bg-btn-hover);
   transform: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Tab Navigation at Bottom */
+.calendar-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: var(--color-bg-btn);
+  border-top: 1px solid var(--color-border-dark);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.calendar-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-radius: 4px 4px 0 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  color: var(--color-text);
+  font-family: var(--font-primary);
+}
+
+.calendar-tab:hover {
+  background: var(--color-bg-btn-hover);
+}
+
+.calendar-tab.active {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-dark);
+  border-bottom: 1px solid var(--color-bg);
+  font-weight: bold;
+  position: relative;
+  bottom: -1px;
+  z-index: 1;
+}
+
+.calendar-tab i {
+  font-size: 11px;
+}
+
+/* Dark theme tab support */
+body.theme-dark .calendar-tabs {
+  background: var(--color-bg-darker);
+}
+
+body.theme-dark .calendar-tab.active {
+  border-bottom-color: var(--color-bg);
+}
+
+/* Light theme tab support */
+body.theme-light .calendar-tabs {
+  background: #f8f9fa;
+}
+
+/* Responsive tabs */
+@media (max-width: 900px) {
+  .calendar-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .calendar-tab {
+    flex-shrink: 0;
+  }
 }

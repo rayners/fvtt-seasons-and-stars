@@ -1,0 +1,41 @@
+<section class="tab scrollable {{tab.cssClass}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+  <div class="form-group">
+    <label for="leapyear-rule">Leap Year Rule</label>
+    <div class="form-fields">
+      <select name="leapYear.rule" id="leapyear-rule" disabled>
+        <option value="none">No Leap Years</option>
+        <option value="gregorian" selected>Gregorian (Every 4 years, except centuries unless divisible by 400)</option>
+        <option value="julian">Julian (Every 4 years)</option>
+        <option value="custom">Custom Rule</option>
+      </select>
+    </div>
+    <p class="hint">Choose how leap years are calculated in your calendar</p>
+  </div>
+
+  <div class="form-group">
+    <label for="leapyear-month">Leap Month</label>
+    <div class="form-fields">
+      <input type="text" name="leapYear.month" id="leapyear-month" placeholder="February" disabled />
+    </div>
+    <p class="hint">Which month receives the extra day(s)</p>
+  </div>
+
+  <div class="form-group">
+    <label for="leapyear-extra-days">Extra Days</label>
+    <div class="form-fields">
+      <input type="number" name="leapYear.extraDays" id="leapyear-extra-days" value="1" min="1" disabled />
+    </div>
+    <p class="hint">Number of days added during a leap year</p>
+  </div>
+
+  <fieldset>
+    <legend>Custom Leap Year Rules (Coming Soon)</legend>
+    <p class="hint" style="margin-bottom: 1rem;">Define complex leap year patterns with custom intervals and conditions</p>
+
+    <div style="padding: 2rem; text-align: center; color: var(--color-text-dark-secondary); background: var(--color-bg-option); border-radius: 4px; border: 1px dashed var(--color-border-light-tertiary);">
+      <i class="fas fa-calendar-plus fa-3x" style="margin-bottom: 1rem; opacity: 0.5;"></i>
+      <p style="margin: 0;">Custom leap year rule editor coming soon</p>
+      <p style="margin: 0.5rem 0 0 0; font-size: 0.9em;">You'll be able to define complex patterns and exceptions</p>
+    </div>
+  </fieldset>
+</section>

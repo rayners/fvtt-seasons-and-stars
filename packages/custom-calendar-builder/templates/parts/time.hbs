@@ -1,0 +1,40 @@
+<section class="tab scrollable {{tab.cssClass}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+  <div class="form-group">
+    <label for="hours-in-day">Hours in Day</label>
+    <div class="form-fields">
+      <input type="number" name="time.hoursInDay" id="hours-in-day" value="24" min="1" />
+    </div>
+    <p class="hint">Number of hours in a full day cycle</p>
+  </div>
+
+  <div class="form-group">
+    <label for="minutes-in-hour">Minutes in Hour</label>
+    <div class="form-fields">
+      <input type="number" name="time.minutesInHour" id="minutes-in-hour" value="60" min="1" />
+    </div>
+    <p class="hint">Number of minutes in an hour</p>
+  </div>
+
+  <div class="form-group">
+    <label for="seconds-in-minute">Seconds in Minute</label>
+    <div class="form-fields">
+      <input type="number" name="time.secondsInMinute" id="seconds-in-minute" value="60" min="1" />
+    </div>
+    <p class="hint">Number of seconds in a minute</p>
+  </div>
+
+  <fieldset>
+    <legend>Canonical Hours (Optional)</legend>
+    <p class="hint" style="margin-bottom: 1rem;">Define named time periods (e.g., "Matins", "Noon", "Vespers") for cultural or religious timekeeping</p>
+
+    <div class="form-group">
+      <label>Canonical Hours</label>
+      <div class="form-fields">
+        <button type="button" class="button" disabled>
+          <i class="fas fa-plus"></i> Add Canonical Hour
+        </button>
+      </div>
+      <p class="hint">Coming soon: Add and configure named time periods</p>
+    </div>
+  </fieldset>
+</section>

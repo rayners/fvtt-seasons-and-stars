@@ -12,6 +12,9 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   private validationTimeout: number | null = null;
   private validationSequence: number = 0;
 
+  // Type declaration for HandlebarsApplicationMixin method
+  declare _prepareTabs: (group: string) => Record<string, any>;
+
   constructor() {
     super();
   }
@@ -28,7 +31,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
   static DEFAULT_OPTIONS = {
     id: 'calendar-builder-app',
-    classes: ['calendar-builder'],
+    classes: ['calendar-builder', 'standard-form'],
     tag: 'form',
     window: {
       frame: true,
@@ -39,8 +42,8 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       resizable: true,
     },
     position: {
-      width: 800,
-      height: 600,
+      width: 1000,
+      height: 700,
     },
     actions: {
       newCalendar: CalendarBuilderApp.prototype._onNewCalendar,
@@ -53,13 +56,74 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   };
 
   static PARTS = {
-    main: {
-      id: 'main',
-      template: 'modules/seasons-and-stars-calendar-builder/templates/calendar-builder.hbs',
-      scrollable: ['.editor-container', '.validation-results'],
+    toolbar: {
+      id: 'toolbar',
+      template: 'modules/seasons-and-stars-calendar-builder/templates/parts/toolbar.hbs',
+    },
+    tabs: {
+      id: 'tabs',
+      template: 'templates/generic/tab-navigation.hbs',
+    },
+    editor: {
+      id: 'editor',
+      template: 'modules/seasons-and-stars-calendar-builder/templates/parts/editor.hbs',
+      scrollable: ['.json-editor', '.validation-results'],
+    },
+    basic: {
+      id: 'basic',
+      template: 'modules/seasons-and-stars-calendar-builder/templates/parts/basic.hbs',
+    },
+    time: {
+      id: 'time',
+      template: 'modules/seasons-and-stars-calendar-builder/templates/parts/time.hbs',
+    },
+    months: {
+      id: 'months',
+      template: 'modules/seasons-and-stars-calendar-builder/templates/parts/months.hbs',
+    },
+    weekdays: {
+      id: 'weekdays',
+      template: 'modules/seasons-and-stars-calendar-builder/templates/parts/weekdays.hbs',
+    },
+    leapyear: {
+      id: 'leapyear',
+      template: 'modules/seasons-and-stars-calendar-builder/templates/parts/leapyear.hbs',
+    },
+    intercalary: {
+      id: 'intercalary',
+      template: 'modules/seasons-and-stars-calendar-builder/templates/parts/intercalary.hbs',
+    },
+    events: {
+      id: 'events',
+      template: 'modules/seasons-and-stars-calendar-builder/templates/parts/events.hbs',
+    },
+    moons: {
+      id: 'moons',
+      template: 'modules/seasons-and-stars-calendar-builder/templates/parts/moons.hbs',
+    },
+    seasons: {
+      id: 'seasons',
+      template: 'modules/seasons-and-stars-calendar-builder/templates/parts/seasons.hbs',
     },
   };
 
+  static TABS = {
+    main: {
+      tabs: [
+        { id: 'editor', label: 'Editor', icon: 'fas fa-code' },
+        { id: 'basic', label: 'Basic Info', icon: 'fas fa-info-circle' },
+        { id: 'time', label: 'Time', icon: 'fas fa-clock' },
+        { id: 'months', label: 'Months', icon: 'fas fa-calendar-alt' },
+        { id: 'weekdays', label: 'Weekdays', icon: 'fas fa-calendar-week' },
+        { id: 'leapyear', label: 'Leap Year', icon: 'fas fa-calendar-plus' },
+        { id: 'intercalary', label: 'Intercalary', icon: 'fas fa-calendar-day' },
+        { id: 'events', label: 'Events', icon: 'fas fa-star' },
+        { id: 'moons', label: 'Moons', icon: 'fas fa-moon' },
+        { id: 'seasons', label: 'Seasons', icon: 'fas fa-leaf' },
+      ],
+      initial: 'editor',
+    },
+  };
 
   /** @override */
   async _prepareContext(options = {}): Promise<any> {
@@ -72,13 +136,32 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     });
   }
 
+  /** @override */
+  async _preparePartContext(partId: string, context: any): Promise<any> {
+    // Start with a copy of the context
+    const partContext = { ...context };
+
+    // Prepare tabs for the navigation part
+    if (partId === 'tabs') {
+      partContext.tabs = this._prepareTabs('main');
+    }
+
+    // Add tab data to individual tab parts
+    if (partId in context.tabs) {
+      partContext.tab = context.tabs[partId];
+    }
+
+    return partContext;
+  }
 
   /** @override */
   _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
     super._attachPartListeners(partId, htmlElement, options);
 
-    // Update validation results display
-    this._updateValidationDisplay();
+    // Update validation results display for editor part
+    if (partId === 'editor') {
+      this._updateValidationDisplay();
+    }
   }
 
   protected override _onChangeForm(formConfig: any, event: Event): void {
