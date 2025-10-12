@@ -1,16 +1,18 @@
 {{!-- Calendar Mini Widget - Moon Phases Row --}}
-{{#if showMoonPhases}}
-  {{#if moonPhases.length}}
-    <div class="mini-moon-phases" style="--moon-count: {{moonPhases.length}};">
-      {{#each moonPhases}}
-        <div class="mini-moon-phase"
-             role="img"
-             aria-label="{{this.moonName}}: {{this.phaseName}}"
-             title="{{this.moonName}}: {{this.phaseName}}"
-             {{#if this.moonColor}}style="color: {{this.moonColor}};"{{/if}}>
-          <i class="fas fa-{{this.faIcon}} moon-phase-{{this.phaseIcon}}"></i>
-        </div>
-      {{/each}}
-    </div>
+<div class="mini-moon-phases-container">
+  {{#if showMoonPhases}}
+    {{#if moonPhases.length}}
+      <div class="mini-moon-phases" style="--moon-count: {{moonPhases.length}};">
+        {{#each moonPhases}}
+          <div class="mini-moon-phase"
+               role="img"
+               aria-label="{{this.moonName}}: {{this.phaseName}}"
+               title="{{this.moonName}}: {{this.phaseName}}"
+               {{#if this.moonColor}}style="color: {{this.moonColor}};"{{/if}}>
+            <i class="fas fa-{{this.faIcon}} moon-phase-{{this.phaseIcon}}"></i>
+          </div>
+        {{/each}}
+      </div>
+    {{/if}}
   {{/if}}
-{{/if}}
+</div>

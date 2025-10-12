@@ -1,13 +1,15 @@
-{{#if moonPhases.length}}
-  <div class="moon-phases" style="--moon-count: {{moonPhases.length}};">
-    {{#each moonPhases}}
-      <div class="moon-phase"
-           role="img"
-           aria-label="{{this.moonName}}: {{this.phaseName}}"
-           title="{{this.moonName}}: {{this.phaseName}}"
-           {{#if this.moonColor}}style="color: {{this.moonColor}};"{{/if}}>
-        <i class="fas fa-{{this.faIcon}} moon-phase-{{this.phaseIcon}}"></i>
-      </div>
-    {{/each}}
-  </div>
-{{/if}}
+<div class="moon-phases-container">
+  {{#if moonPhases.length}}
+    <div class="moon-phases" style="--moon-count: {{moonPhases.length}};">
+      {{#each moonPhases}}
+        <div class="moon-phase"
+             role="img"
+             aria-label="{{this.moonName}}: {{this.phaseName}}"
+             title="{{this.moonName}}: {{this.phaseName}}"
+             {{#if this.moonColor}}style="color: {{this.moonColor}};"{{/if}}>
+          <i class="fas fa-{{this.faIcon}} moon-phase-{{this.phaseIcon}}"></i>
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+</div>
