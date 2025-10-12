@@ -660,7 +660,7 @@ function registerSettings(): void {
           await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
         }
         // Don't save to settings again - we're already in an onChange handler
-        await calendarManager.setActiveCalendar(value, false);
+        await calendarManager.setActiveCalendar(value, false, 'user-change');
       }
     },
   });
@@ -1088,7 +1088,7 @@ function registerCalendarSettings(): void {
           await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
         }
         // Don't save to settings again - we're already in an onChange handler
-        await calendarManager.setActiveCalendar(value, false);
+        await calendarManager.setActiveCalendar(value, false, 'user-change');
       }
     },
   });
@@ -1548,7 +1548,8 @@ export function setupAPI(): void {
           throw error;
         }
 
-        await calendarManager.setActiveCalendar(calendarId);
+        // API calls are typically user-initiated (macros, scripts, console commands)
+        await calendarManager.setActiveCalendar(calendarId, true, 'user-change');
         Logger.api('setActiveCalendar', { calendarId }, 'success');
       } catch (error) {
         Logger.error(
