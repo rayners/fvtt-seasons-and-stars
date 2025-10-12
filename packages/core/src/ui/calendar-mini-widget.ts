@@ -17,6 +17,7 @@ import {
 } from './sidebar-button-mixin';
 import type { MiniWidgetContext, WidgetRenderOptions } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
+import type { MoonPhaseInfo } from '../types/calendar';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -180,11 +181,24 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const showMoonPhases =
       game.settings?.get('seasons-and-stars', 'miniWidgetShowMoonPhases') || false;
 
+    // Icon mapping for moon phases
+    const moonPhaseIconMap: Record<string, string> = {
+      new: 'circle',
+      'waxing-crescent': 'moon',
+      'first-quarter': 'adjust',
+      'waxing-gibbous': 'circle',
+      full: 'circle',
+      'waning-gibbous': 'circle',
+      'last-quarter': 'adjust',
+      'waning-crescent': 'moon',
+    };
+
     // Get moon phase data if enabled
     let moonPhases: Array<{
       moonName: string;
       phaseName: string;
       phaseIcon: string;
+      faIcon: string;
       moonColor?: string;
     }> = [];
 
@@ -192,12 +206,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       try {
         const engine = manager.getActiveEngine();
         if (engine) {
-          const moonPhaseInfo = (engine as any).getMoonPhaseInfo?.(currentDate);
+          const moonPhaseInfo = engine.getMoonPhaseInfo(currentDate);
           if (moonPhaseInfo && moonPhaseInfo.length > 0) {
-            moonPhases = moonPhaseInfo.map((info: any) => ({
+            moonPhases = moonPhaseInfo.map((info: MoonPhaseInfo) => ({
               moonName: info.moon.name,
               phaseName: info.phase.name,
               phaseIcon: info.phase.icon,
+              faIcon: moonPhaseIconMap[info.phase.icon] || 'circle',
               moonColor: info.moon.color,
             }));
           }
@@ -227,7 +242,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         label: activeCalendar.label || activeCalendar.name || 'Unknown Calendar',
         description: activeCalendar.description,
       },
-      currentDate: currentDate.toObject(),
+      currentDate: currentDate,
       formattedDate: currentDate.toLongString(),
       sidebarButtons: loadButtonsFromRegistry('mini'),
       showMoonPhases: showMoonPhases,

@@ -214,6 +214,9 @@ export interface CalendarEngineInterface {
   getIntercalaryDaysAfterMonth(month: number, year: number): CalendarIntercalary[];
   addMonths(date: CalendarDate, months: number): CalendarDate;
   addYears(date: CalendarDate, years: number): CalendarDate;
+  getMoonPhaseInfo(date: CalendarDate, moonName?: string): MoonPhaseInfo[];
+  getCurrentMoonPhases?(worldTime?: number): MoonPhaseInfo[];
+  getMoonPhaseAtWorldTime?(worldTime: number, moonName?: string): MoonPhaseInfo[];
 }
 
 // Notes Manager interface for type safety

@@ -3,15 +3,12 @@
   {{#if moonPhases.length}}
     <div class="mini-moon-phases" style="--moon-count: {{moonPhases.length}};">
       {{#each moonPhases}}
-        <div class="mini-moon-phase" title="{{this.moonName}}: {{this.phaseName}}" {{#if this.moonColor}}style="color: {{this.moonColor}};"{{/if}}>
-          {{#if (eq this.phaseIcon "new")}}<i class="fas fa-circle moon-phase-new"></i>{{/if}}
-          {{#if (eq this.phaseIcon "waxing-crescent")}}<i class="fas fa-moon moon-phase-waxing-crescent"></i>{{/if}}
-          {{#if (eq this.phaseIcon "first-quarter")}}<i class="fas fa-adjust moon-phase-first-quarter"></i>{{/if}}
-          {{#if (eq this.phaseIcon "waxing-gibbous")}}<i class="fas fa-circle moon-phase-waxing-gibbous"></i>{{/if}}
-          {{#if (eq this.phaseIcon "full")}}<i class="fas fa-circle moon-phase-full"></i>{{/if}}
-          {{#if (eq this.phaseIcon "waning-gibbous")}}<i class="fas fa-circle moon-phase-waning-gibbous"></i>{{/if}}
-          {{#if (eq this.phaseIcon "last-quarter")}}<i class="fas fa-adjust moon-phase-last-quarter"></i>{{/if}}
-          {{#if (eq this.phaseIcon "waning-crescent")}}<i class="fas fa-moon moon-phase-waning-crescent"></i>{{/if}}
+        <div class="mini-moon-phase"
+             role="img"
+             aria-label="{{this.moonName}}: {{this.phaseName}}"
+             title="{{this.moonName}}: {{this.phaseName}}"
+             {{#if this.moonColor}}style="color: {{this.moonColor}};"{{/if}}>
+          <i class="fas fa-{{this.faIcon}} moon-phase-{{this.phaseIcon}}"></i>
         </div>
       {{/each}}
     </div>

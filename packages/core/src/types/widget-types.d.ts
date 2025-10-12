@@ -34,6 +34,7 @@ export interface MiniWidgetContext extends BaseWidgetContext {
     moonName: string;
     phaseName: string;
     phaseIcon: string;
+    faIcon: string;
     moonColor?: string;
   }>;
 }
