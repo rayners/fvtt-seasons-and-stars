@@ -84,6 +84,10 @@ export class CalendarManager {
 
   /**
    * Complete initialization after settings are registered
+   *
+   * IMPORTANT: During initialization, calendar activation must use saveToSettings: false
+   * to prevent circular update loops. We're loading FROM settings, so writing BACK to
+   * settings would trigger onChange handlers that could reset the calendar state.
    */
   async completeInitialization(): Promise<void> {
     Logger.debug('Completing Calendar Manager initialization');
