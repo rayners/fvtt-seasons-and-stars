@@ -182,12 +182,14 @@ export class CalendarManager {
       this.setActiveCalendarSync(savedCalendarId);
     } else if (savedCalendarId && this.calendars.has(savedCalendarId)) {
       // Fall back to async loading if calendar is already loaded but not cached
-      await this.setActiveCalendar(savedCalendarId);
+      // Don't save to settings during initialization to avoid triggering onChange handlers
+      await this.setActiveCalendar(savedCalendarId, false);
     } else {
       // Default to first available calendar
       const firstCalendarId = this.calendars.keys().next().value;
       if (firstCalendarId) {
-        await this.setActiveCalendar(firstCalendarId);
+        // Don't save to settings during initialization to avoid triggering onChange handlers
+        await this.setActiveCalendar(firstCalendarId, false);
       }
     }
 
