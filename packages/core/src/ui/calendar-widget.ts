@@ -49,6 +49,10 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-widget.hbs',
     },
+    moonPhases: {
+      id: 'moon-phases',
+      template: 'modules/seasons-and-stars/templates/calendar-widget-moon-phases.hbs',
+    },
     sidebar: {
       id: 'sidebar',
       template: 'modules/seasons-and-stars/templates/calendar-widget-sidebar.hbs',
@@ -133,6 +137,45 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       }
     }
 
+    // Icon mapping for moon phases
+    const moonPhaseIconMap: Record<string, string> = {
+      new: 'circle',
+      'waxing-crescent': 'moon',
+      'first-quarter': 'adjust',
+      'waxing-gibbous': 'circle',
+      full: 'circle',
+      'waning-gibbous': 'circle',
+      'last-quarter': 'adjust',
+      'waning-crescent': 'moon',
+    };
+
+    // Get moon phase data
+    let moonPhases: Array<{
+      moonName: string;
+      phaseName: string;
+      phaseIcon: string;
+      faIcon: string;
+      moonColor?: string;
+    }> = [];
+
+    try {
+      const engine = manager.getActiveEngine();
+      if (engine) {
+        const moonPhaseInfo = engine.getMoonPhaseInfo(currentDate);
+        if (moonPhaseInfo && moonPhaseInfo.length > 0) {
+          moonPhases = moonPhaseInfo.map((info: any) => ({
+            moonName: info.moon.name,
+            phaseName: info.phase.name,
+            phaseIcon: info.phase.icon,
+            faIcon: moonPhaseIconMap[info.phase.icon] || 'circle',
+            moonColor: info.moon.color,
+          }));
+        }
+      }
+    } catch (error) {
+      Logger.debug('Failed to get moon phase data for calendar widget', error);
+    }
+
     return Object.assign(context, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
@@ -155,6 +198,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       playPauseButtonClass: playPauseButtonClass,
       playPauseButtonIcon: playPauseButtonIcon,
       playPauseButtonText: playPauseButtonText,
+      // Moon phase data
+      moonPhases: moonPhases,
     });
   }
 

@@ -158,6 +158,69 @@
       }
 
     }
+
+    // Moon phases row
+    .moon-phases {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: calc(100% / (var(--moon-count) * 2 + 1));
+      padding: 0.5rem 0;
+      margin-top: 0.5rem;
+      min-height: 2rem;
+
+      .moon-phase {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: help;
+        transition: all 0.15s ease;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
+        width: 2rem;
+        height: 2rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+        &:hover {
+          transform: scale(1.15);
+          background: rgba(0, 0, 0, 0.4);
+        }
+
+        i {
+          font-size: 1.2rem;
+          line-height: 1;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+
+          &.moon-phase-new {
+            opacity: 0.4;
+          }
+
+          &.moon-phase-waxing-crescent,
+          &.moon-phase-waning-crescent {
+            transform: rotate(90deg);
+          }
+
+          &.moon-phase-first-quarter {
+            // fa-adjust is already vertical by default - no rotation needed
+            transform: none;
+          }
+
+          &.moon-phase-last-quarter {
+            // Flip fa-adjust horizontally for last quarter (left half lit)
+            transform: scaleX(-1);
+          }
+
+          &.moon-phase-waxing-gibbous,
+          &.moon-phase-waning-gibbous {
+            opacity: 0.9;
+          }
+
+          &.moon-phase-full {
+            opacity: 1;
+          }
+        }
+      }
+    }
   }
 
   // Calendar controls (GM only)
