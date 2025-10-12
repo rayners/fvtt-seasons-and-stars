@@ -167,9 +167,9 @@ export class CalendarManager {
       'activeCalendarData'
     ) as SeasonsStarsCalendar | null;
 
-    // Try to load from cached calendar data first (synchronous)
+    // Try to load from cached calendar data first
     if (savedCalendarId && cachedCalendarData && cachedCalendarData.id === savedCalendarId) {
-      Logger.debug('Loading calendar synchronously from cached data:', savedCalendarId);
+      Logger.debug('Loading calendar from cached data:', savedCalendarId);
 
       // Load the calendar into the manager if not already present
       if (!this.calendars.has(savedCalendarId)) {
@@ -182,10 +182,10 @@ export class CalendarManager {
         this.loadCalendar(cachedCalendarData, sourceInfo);
       }
 
-      // Set active calendar synchronously (no settings save needed)
-      this.setActiveCalendarSync(savedCalendarId);
+      // Set active calendar without saving to settings during initialization
+      await this.setActiveCalendar(savedCalendarId, false);
     } else if (savedCalendarId && this.calendars.has(savedCalendarId)) {
-      // Fall back to async loading if calendar is already loaded but not cached
+      // Fall back if calendar is already loaded but not cached
       // Don't save to settings during initialization to avoid triggering onChange handlers
       await this.setActiveCalendar(savedCalendarId, false);
     } else {

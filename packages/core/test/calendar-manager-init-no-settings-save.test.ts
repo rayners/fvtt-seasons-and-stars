@@ -55,19 +55,65 @@ describe('Issue #363: Calendar reset on reload', () => {
     TestLogger.clearLogs();
   });
 
-  it('should not call settings.set during initialization when restoring saved calendar', async () => {
-    // Mock a saved calendar in settings
+  it('should not call settings.set during initialization when loading from cached calendar data', async () => {
+    // Mock a cached calendar in settings (fast path with full calendar data)
+    const cachedCalendar = {
+      id: 'cached-calendar',
+      name: 'Cached Calendar',
+      version: '1.0.0',
+      year: { epoch: 0, currentYear: 1 },
+      months: [{ name: 'Month 1', length: 30 }],
+      weekdays: [{ name: 'Day 1' }],
+      timekeeping: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+      translations: { en: { label: 'Cached Calendar' } },
+    };
+
     mockSettings.get.mockImplementation((module: string, setting: string) => {
-      if (setting === 'activeCalendar') return 'test-calendar';
-      if (setting === 'activeCalendarData') return null;
+      if (setting === 'activeCalendar') return 'cached-calendar';
+      if (setting === 'activeCalendarData') return cachedCalendar;
+      if (setting === 'activeCalendarFile') return '';
       if (setting === 'worldEvents') return undefined;
       return undefined;
     });
 
-    // Mock a calendar that exists in the manager
-    const mockCalendar = { id: 'test-calendar', name: 'Test Calendar' };
-    manager.calendars.set('test-calendar', mockCalendar as any);
-    manager.engines.set('test-calendar', {} as any);
+    // Clear mocks so we can see what completeInitialization does
+    vi.clearAllMocks();
+
+    // Run completeInitialization
+    await manager.completeInitialization();
+
+    // VERIFY FIX: settings.set should NOT be called during initialization
+    // The cached path loads the calendar data directly and should not write back
+    expect(mockSettings.set).not.toHaveBeenCalledWith(
+      'seasons-and-stars',
+      'activeCalendar',
+      expect.anything()
+    );
+  });
+
+  it('should not call settings.set during initialization when restoring saved calendar', async () => {
+    // Mock a saved calendar in settings (already loaded calendar scenario)
+    const testCalendar = {
+      id: 'test-calendar',
+      name: 'Test Calendar',
+      version: '1.0.0',
+      year: { epoch: 0, currentYear: 1 },
+      months: [{ name: 'Month 1', length: 30 }],
+      weekdays: [{ name: 'Day 1' }],
+      timekeeping: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+      translations: { en: { label: 'Test Calendar' } },
+    };
+
+    mockSettings.get.mockImplementation((module: string, setting: string) => {
+      if (setting === 'activeCalendar') return 'test-calendar';
+      if (setting === 'activeCalendarData') return null;
+      if (setting === 'activeCalendarFile') return '';
+      if (setting === 'worldEvents') return undefined;
+      return undefined;
+    });
+
+    // Pre-load the calendar to simulate it being discovered during initialization
+    manager.loadCalendar(testCalendar as any);
 
     // Clear mocks so we can see what completeInitialization does
     vi.clearAllMocks();
@@ -87,17 +133,27 @@ describe('Issue #363: Calendar reset on reload', () => {
 
   it('should not call settings.set during initialization when defaulting to first calendar', async () => {
     // Mock no saved calendar (should default to first)
+    const firstCalendar = {
+      id: 'first-calendar',
+      name: 'First Calendar',
+      version: '1.0.0',
+      year: { epoch: 0, currentYear: 1 },
+      months: [{ name: 'Month 1', length: 30 }],
+      weekdays: [{ name: 'Day 1' }],
+      timekeeping: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+      translations: { en: { label: 'First Calendar' } },
+    };
+
     mockSettings.get.mockImplementation((module: string, setting: string) => {
       if (setting === 'activeCalendar') return null;
       if (setting === 'activeCalendarData') return null;
+      if (setting === 'activeCalendarFile') return '';
       if (setting === 'worldEvents') return undefined;
       return undefined;
     });
 
-    // Mock a calendar that exists in the manager
-    const mockCalendar = { id: 'first-calendar', name: 'First Calendar' };
-    manager.calendars.set('first-calendar', mockCalendar as any);
-    manager.engines.set('first-calendar', {} as any);
+    // Pre-load the calendar to simulate it being discovered during initialization
+    manager.loadCalendar(firstCalendar as any);
 
     // Clear mocks so we can see what completeInitialization does
     vi.clearAllMocks();
@@ -116,6 +172,17 @@ describe('Issue #363: Calendar reset on reload', () => {
 
   it('should not call settings.set during initialization when loading from custom file', async () => {
     // Mock file-based calendar configuration
+    const fileCalendar = {
+      id: 'custom-file-calendar',
+      name: 'Custom File Calendar',
+      version: '1.0.0',
+      year: { epoch: 0, currentYear: 1 },
+      months: [{ name: 'Month 1', length: 30 }],
+      weekdays: [{ name: 'Day 1' }],
+      timekeeping: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+      translations: { en: { label: 'Custom File Calendar' } },
+    };
+
     mockSettings.get.mockImplementation((module: string, setting: string) => {
       if (setting === 'activeCalendarFile') return 'calendars/custom-calendar.json';
       if (setting === 'activeCalendar') return null;
@@ -124,39 +191,22 @@ describe('Issue #363: Calendar reset on reload', () => {
       return undefined;
     });
 
-    // Mock the calendar that will be loaded from the file
-    const mockFileCalendar = {
-      id: 'custom-file-calendar',
-      name: 'Custom File Calendar',
-      version: '1.0.0',
-      year_data: {
-        global_week: ['Day1', 'Day2'],
-        timekeeping: {
-          hours_in_day: 24,
-          minutes_in_hour: 60,
-          seconds_in_minute: 60,
-        },
-        months: [
-          {
-            name: 'Month 1',
-            length: 30,
-          },
-        ],
-      },
-    };
-
-    // Mock the loadCalendarFromUrl method to return success
-    vi.spyOn(manager, 'loadCalendarFromUrl').mockResolvedValue({
-      success: true,
-      calendar: mockFileCalendar as any,
-    });
-
     // Mock convertFoundryPathToUrl to return a URL
     vi.spyOn(manager, 'convertFoundryPathToUrl').mockReturnValue(
       'http://localhost/calendars/custom-calendar.json'
     );
 
-    // Clear mocks so we can see what completeInitialization does
+    // Mock loadCalendarFromUrl to simulate the file load and calendar registration
+    vi.spyOn(manager, 'loadCalendarFromUrl').mockImplementation(async () => {
+      // Simulate what loadCalendarFromUrl does: loads and registers the calendar
+      manager.loadCalendar(fileCalendar as any);
+      return {
+        success: true,
+        calendar: fileCalendar as any,
+      };
+    });
+
+    // Clear mocks to track what completeInitialization does
     vi.clearAllMocks();
 
     // Run completeInitialization
