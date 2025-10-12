@@ -3,6 +3,7 @@
  */
 
 import type { SeasonsStarsCalendar, CalendarVariant, CalendarSourceInfo } from '../types/calendar';
+import type { CalendarChangeReason, CalendarChangedHookData } from '../types/external-integrations';
 import { CalendarEngine } from './calendar-engine';
 import { EventsManager } from './events-manager';
 import { TimeConverter } from './time-converter';
@@ -84,6 +85,10 @@ export class CalendarManager {
 
   /**
    * Complete initialization after settings are registered
+   *
+   * IMPORTANT: During initialization, calendar activation must use saveToSettings: false
+   * to prevent circular update loops. We're loading FROM settings, so writing BACK to
+   * settings would trigger onChange handlers that could reset the calendar state.
    */
   async completeInitialization(): Promise<void> {
     Logger.debug('Completing Calendar Manager initialization');
@@ -163,9 +168,9 @@ export class CalendarManager {
       'activeCalendarData'
     ) as SeasonsStarsCalendar | null;
 
-    // Try to load from cached calendar data first (synchronous)
+    // Try to load from cached calendar data first
     if (savedCalendarId && cachedCalendarData && cachedCalendarData.id === savedCalendarId) {
-      Logger.debug('Loading calendar synchronously from cached data:', savedCalendarId);
+      Logger.debug('Loading calendar from cached data:', savedCalendarId);
 
       // Load the calendar into the manager if not already present
       if (!this.calendars.has(savedCalendarId)) {
@@ -178,16 +183,18 @@ export class CalendarManager {
         this.loadCalendar(cachedCalendarData, sourceInfo);
       }
 
-      // Set active calendar synchronously (no settings save needed)
-      this.setActiveCalendarSync(savedCalendarId);
+      // Set active calendar without saving to settings during initialization
+      await this.setActiveCalendar(savedCalendarId, false);
     } else if (savedCalendarId && this.calendars.has(savedCalendarId)) {
-      // Fall back to async loading if calendar is already loaded but not cached
-      await this.setActiveCalendar(savedCalendarId);
+      // Fall back if calendar is already loaded but not cached
+      // Don't save to settings during initialization to avoid triggering onChange handlers
+      await this.setActiveCalendar(savedCalendarId, false);
     } else {
       // Default to first available calendar
       const firstCalendarId = this.calendars.keys().next().value;
       if (firstCalendarId) {
-        await this.setActiveCalendar(firstCalendarId);
+        // Don't save to settings during initialization to avoid triggering onChange handlers
+        await this.setActiveCalendar(firstCalendarId, false);
       }
     }
 
@@ -400,12 +407,16 @@ export class CalendarManager {
     // Get calendar data for hook
     const calendarData = this.calendars.get(resolvedCalendarId);
 
-    // Fire calendar changed event
-    Hooks.callAll('seasons-stars:calendarChanged', {
-      oldCalendarId,
-      newCalendarId: resolvedCalendarId,
-      calendar: calendarData,
-    });
+    // Fire calendar changed event only if calendar actually changed
+    if (oldCalendarId !== resolvedCalendarId) {
+      const hookData: CalendarChangedHookData = {
+        oldCalendarId,
+        newCalendarId: resolvedCalendarId,
+        calendar: calendarData,
+        reason: 'initialization', // Sync method is only used during initialization
+      };
+      Hooks.callAll('seasons-stars:calendarChanged', hookData);
+    }
 
     Logger.debug(`Active calendar set synchronously: ${resolvedCalendarId}`);
     return true;
@@ -415,8 +426,13 @@ export class CalendarManager {
    * Set the active calendar
    * @param calendarId The calendar ID to set as active
    * @param saveToSettings Whether to save the calendar ID to settings (default: true)
+   * @param reason Why the calendar is being changed (default: 'settings-sync' during init, 'user-change' after)
    */
-  async setActiveCalendar(calendarId: string, saveToSettings: boolean = true): Promise<boolean> {
+  async setActiveCalendar(
+    calendarId: string,
+    saveToSettings: boolean = true,
+    reason: CalendarChangeReason = 'settings-sync'
+  ): Promise<boolean> {
     // Resolve default variant if setting base calendar with variants
     const resolvedCalendarId = this.resolveDefaultVariant(calendarId);
 
@@ -424,6 +440,9 @@ export class CalendarManager {
       Logger.error(`Calendar not found: ${resolvedCalendarId}`);
       return false;
     }
+
+    // Store old calendar ID for hook
+    const oldCalendarId = this.activeCalendarId;
 
     this.activeCalendarId = resolvedCalendarId;
 
@@ -457,11 +476,16 @@ export class CalendarManager {
       }
     }
 
-    // Emit hook for calendar change
-    Hooks.callAll('seasons-stars:calendarChanged', {
-      newCalendarId: resolvedCalendarId,
-      calendar: this.calendars.get(resolvedCalendarId),
-    });
+    // Emit hook for calendar change only if calendar actually changed
+    if (oldCalendarId !== resolvedCalendarId) {
+      const hookData: CalendarChangedHookData = {
+        oldCalendarId,
+        newCalendarId: resolvedCalendarId,
+        calendar: this.calendars.get(resolvedCalendarId),
+        reason,
+      };
+      Hooks.callAll('seasons-stars:calendarChanged', hookData);
+    }
 
     Logger.debug(`Active calendar set to: ${resolvedCalendarId}`);
     return true;

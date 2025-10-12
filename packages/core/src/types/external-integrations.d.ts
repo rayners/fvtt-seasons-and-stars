@@ -300,3 +300,29 @@ export interface CalendarDayData {
   moonTooltip?: string; // Tooltip text for moon phases
   hasMultipleMoons?: boolean; // True if more than one moon
 }
+
+// Hook Payload Types
+// These define the data structures passed to Seasons & Stars hook callbacks
+
+/**
+ * Reason for calendar change
+ * - initialization: Calendar being set during module initialization (silent, no notifications)
+ * - user-change: User actively switching calendars (should show notifications)
+ * - settings-sync: Calendar synced from settings or file load
+ */
+export type CalendarChangeReason = 'initialization' | 'user-change' | 'settings-sync';
+
+/**
+ * Payload for seasons-stars:calendarChanged hook
+ * Fired when the active calendar changes
+ */
+export interface CalendarChangedHookData {
+  /** Previous calendar ID, null if this is initial setup */
+  oldCalendarId: string | null;
+  /** New active calendar ID */
+  newCalendarId: string;
+  /** Full calendar data for the new calendar */
+  calendar: unknown;
+  /** Reason for the calendar change */
+  reason: CalendarChangeReason;
+}
