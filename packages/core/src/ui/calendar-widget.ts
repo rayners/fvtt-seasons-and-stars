@@ -9,7 +9,9 @@ import { Logger } from '../core/logger';
 import { TimeAdvancementService } from '../core/time-advancement-service';
 import { SidebarButtonRegistry } from './sidebar-button-registry';
 import { loadButtonsFromRegistry } from './sidebar-button-mixin';
+import { MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
+import type { MoonPhaseInfo } from '../types/calendar';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -137,18 +139,6 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       }
     }
 
-    // Icon mapping for moon phases
-    const moonPhaseIconMap: Record<string, string> = {
-      new: 'circle',
-      'waxing-crescent': 'moon',
-      'first-quarter': 'adjust',
-      'waxing-gibbous': 'circle',
-      full: 'circle',
-      'waning-gibbous': 'circle',
-      'last-quarter': 'adjust',
-      'waning-crescent': 'moon',
-    };
-
     // Get moon phase data
     let moonPhases: Array<{
       moonName: string;
@@ -163,12 +153,12 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       if (engine) {
         const moonPhaseInfo = engine.getMoonPhaseInfo(currentDate);
         if (moonPhaseInfo && moonPhaseInfo.length > 0) {
-          moonPhases = moonPhaseInfo.map((info: any) => ({
+          moonPhases = moonPhaseInfo.map((info: MoonPhaseInfo) => ({
             moonName: info.moon.name,
             phaseName: info.phase.name,
             phaseIcon: info.phase.icon,
-            faIcon: moonPhaseIconMap[info.phase.icon] || 'circle',
-            moonColor: info.moon.color,
+            faIcon: MOON_PHASE_ICON_MAP[info.phase.icon] || 'circle',
+            moonColor: sanitizeColor(info.moon.color),
           }));
         }
       }

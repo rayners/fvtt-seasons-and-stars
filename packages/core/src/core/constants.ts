@@ -57,3 +57,34 @@ export const UI_CONSTANTS = {
   NOTIFICATION_DURATION: 5000,
   DEFAULT_QUICK_TIME_BUTTONS: [-15, 15, 30, 60, 240],
 } as const;
+
+// Moon phase icon mapping for FontAwesome icons
+export const MOON_PHASE_ICON_MAP: Record<string, string> = {
+  new: 'circle',
+  'waxing-crescent': 'moon',
+  'first-quarter': 'adjust',
+  'waxing-gibbous': 'circle',
+  full: 'circle',
+  'waning-gibbous': 'circle',
+  'last-quarter': 'adjust',
+  'waning-crescent': 'moon',
+} as const;
+
+/**
+ * Validate and sanitize a color value for safe use in HTML
+ * Returns undefined if the color is invalid
+ */
+export function sanitizeColor(color: string | undefined): string | undefined {
+  if (!color) return undefined;
+
+  // Only allow hex colors (#RGB, #RRGGBB, #RRGGBBAA) and named CSS colors
+  const hexPattern = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
+  const namedColors =
+    /^(red|blue|green|yellow|orange|purple|pink|brown|black|white|gray|grey|cyan|magenta|lime|navy|teal|olive|maroon|aqua|fuchsia|silver|gold)$/i;
+
+  if (hexPattern.test(color) || namedColors.test(color)) {
+    return color;
+  }
+
+  return undefined;
+}

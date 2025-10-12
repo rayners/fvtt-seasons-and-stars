@@ -5,7 +5,7 @@
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
-import { WIDGET_POSITIONING } from '../core/constants';
+import { WIDGET_POSITIONING, MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
 import { TimeAdvancementService } from '../core/time-advancement-service';
 import { DateFormatter } from '../core/date-formatter';
 import { SidebarButtonRegistry } from './sidebar-button-registry';
@@ -179,19 +179,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Check if moon phases should be displayed
     const showMoonPhases =
-      game.settings?.get('seasons-and-stars', 'miniWidgetShowMoonPhases') || false;
-
-    // Icon mapping for moon phases
-    const moonPhaseIconMap: Record<string, string> = {
-      new: 'circle',
-      'waxing-crescent': 'moon',
-      'first-quarter': 'adjust',
-      'waxing-gibbous': 'circle',
-      full: 'circle',
-      'waning-gibbous': 'circle',
-      'last-quarter': 'adjust',
-      'waning-crescent': 'moon',
-    };
+      game.settings?.get('seasons-and-stars', 'miniWidgetShowMoonPhases') ?? true;
 
     // Get moon phase data if enabled
     let moonPhases: Array<{
@@ -212,8 +200,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
               moonName: info.moon.name,
               phaseName: info.phase.name,
               phaseIcon: info.phase.icon,
-              faIcon: moonPhaseIconMap[info.phase.icon] || 'circle',
-              moonColor: info.moon.color,
+              faIcon: MOON_PHASE_ICON_MAP[info.phase.icon] || 'circle',
+              moonColor: sanitizeColor(info.moon.color),
             }));
           }
         }
