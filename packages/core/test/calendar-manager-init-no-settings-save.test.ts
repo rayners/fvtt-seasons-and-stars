@@ -113,4 +113,62 @@ describe('Issue #363: Calendar reset on reload', () => {
       expect.anything()
     );
   });
+
+  it('should not call settings.set during initialization when loading from custom file', async () => {
+    // Mock file-based calendar configuration
+    mockSettings.get.mockImplementation((module: string, setting: string) => {
+      if (setting === 'activeCalendarFile') return 'calendars/custom-calendar.json';
+      if (setting === 'activeCalendar') return null;
+      if (setting === 'activeCalendarData') return null;
+      if (setting === 'worldEvents') return undefined;
+      return undefined;
+    });
+
+    // Mock the calendar that will be loaded from the file
+    const mockFileCalendar = {
+      id: 'custom-file-calendar',
+      name: 'Custom File Calendar',
+      version: '1.0.0',
+      year_data: {
+        global_week: ['Day1', 'Day2'],
+        timekeeping: {
+          hours_in_day: 24,
+          minutes_in_hour: 60,
+          seconds_in_minute: 60,
+        },
+        months: [
+          {
+            name: 'Month 1',
+            length: 30,
+          },
+        ],
+      },
+    };
+
+    // Mock the loadCalendarFromUrl method to return success
+    vi.spyOn(manager, 'loadCalendarFromUrl').mockResolvedValue({
+      success: true,
+      calendar: mockFileCalendar as any,
+    });
+
+    // Mock convertFoundryPathToUrl to return a URL
+    vi.spyOn(manager, 'convertFoundryPathToUrl').mockReturnValue(
+      'http://localhost/calendars/custom-calendar.json'
+    );
+
+    // Clear mocks so we can see what completeInitialization does
+    vi.clearAllMocks();
+
+    // Run completeInitialization
+    await manager.completeInitialization();
+
+    // VERIFY FIX: settings.set should NOT be called with activeCalendar during file-based initialization
+    // When loading from a file, we should not write the calendar ID back to the activeCalendar setting
+    // This would trigger onChange handlers and cause a reset loop
+    expect(mockSettings.set).not.toHaveBeenCalledWith(
+      'seasons-and-stars',
+      'activeCalendar',
+      expect.anything()
+    );
+  });
 });
