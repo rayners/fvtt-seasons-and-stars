@@ -659,8 +659,21 @@ function registerSettings(): void {
         if (game.user?.isGM) {
           await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
         }
+
+        // Check if calendar is actually loaded before trying to activate it
+        // This prevents race conditions where onChange fires before calendars are loaded
+        const calendar = calendarManager.getCalendar(value);
+        if (!calendar) {
+          Logger.debug(`Calendar '${value}' not yet loaded, will be set during initialization`);
+          // Don't try to set it - completeInitialization will handle it
+          return;
+        }
+
         // Don't save to settings again - we're already in an onChange handler
-        await calendarManager.setActiveCalendar(value, false);
+        const success = await calendarManager.setActiveCalendar(value, false);
+        if (!success) {
+          Logger.warn(`Failed to set active calendar to '${value}' in onChange handler`);
+        }
       }
     },
   });
@@ -1087,8 +1100,21 @@ function registerCalendarSettings(): void {
         if (game.user?.isGM) {
           await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
         }
+
+        // Check if calendar is actually loaded before trying to activate it
+        // This prevents race conditions where onChange fires before calendars are loaded
+        const calendar = calendarManager.getCalendar(value);
+        if (!calendar) {
+          Logger.debug(`Calendar '${value}' not yet loaded, will be set during initialization`);
+          // Don't try to set it - completeInitialization will handle it
+          return;
+        }
+
         // Don't save to settings again - we're already in an onChange handler
-        await calendarManager.setActiveCalendar(value, false);
+        const success = await calendarManager.setActiveCalendar(value, false);
+        if (!success) {
+          Logger.warn(`Failed to set active calendar to '${value}' in onChange handler`);
+        }
       }
     },
   });
