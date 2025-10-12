@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.3...seasons-and-stars-v0.20.4) (2025-10-12)
+
+
+### Bug Fixes
+
+* prevent active calendar reset on Foundry reload ([#364](https://github.com/rayners/fvtt-seasons-and-stars/issues/364)) ([5881b70](https://github.com/rayners/fvtt-seasons-and-stars/commit/5881b70bf873dfdebddaf41d8c4baaf20b825e73))
+
 ## [0.20.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.2...seasons-and-stars-v0.20.3) (2025-10-11)
 
 
