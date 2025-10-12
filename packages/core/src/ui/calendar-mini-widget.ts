@@ -82,6 +82,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-mini-widget.hbs',
     },
+    moonPhases: {
+      id: 'moon-phases',
+      template: 'modules/seasons-and-stars/templates/calendar-mini-widget-moon-phases.hbs',
+    },
   };
 
   /**
@@ -172,6 +176,37 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false);
     const compactMode = showDayOfWeek && showTimeControlsValue;
 
+    // Check if moon phases should be displayed
+    const showMoonPhases =
+      game.settings?.get('seasons-and-stars', 'miniWidgetShowMoonPhases') || false;
+
+    // Get moon phase data if enabled
+    let moonPhases: Array<{
+      moonName: string;
+      phaseName: string;
+      phaseIcon: string;
+      moonColor?: string;
+    }> = [];
+
+    if (showMoonPhases) {
+      try {
+        const engine = manager.getActiveEngine();
+        if (engine) {
+          const moonPhaseInfo = (engine as any).getMoonPhaseInfo?.(currentDate);
+          if (moonPhaseInfo && moonPhaseInfo.length > 0) {
+            moonPhases = moonPhaseInfo.map((info: any) => ({
+              moonName: info.moon.name,
+              phaseName: info.phase.name,
+              phaseIcon: info.phase.icon,
+              moonColor: info.moon.color,
+            }));
+          }
+        }
+      } catch (error) {
+        Logger.debug('Failed to get moon phase data for mini widget', error);
+      }
+    }
+
     return Object.assign(context, {
       shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
@@ -195,6 +230,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       currentDate: currentDate.toObject(),
       formattedDate: currentDate.toLongString(),
       sidebarButtons: loadButtonsFromRegistry('mini'),
+      showMoonPhases: showMoonPhases,
+      moonPhases: moonPhases,
     }) as MiniWidgetContext;
   }
 
@@ -620,6 +657,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           settingName === 'miniWidgetShowTime' ||
           settingName === 'miniWidgetShowDayOfWeek' ||
           settingName === 'miniWidgetCanonicalMode' ||
+          settingName === 'miniWidgetShowMoonPhases' ||
           settingName === 'alwaysShowQuickTimeButtons') &&
         CalendarMiniWidget.activeInstance?.rendered
       ) {

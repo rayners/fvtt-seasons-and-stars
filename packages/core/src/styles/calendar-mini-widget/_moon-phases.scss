@@ -1,0 +1,57 @@
+/**
+ * Calendar Mini Widget - Moon Phases Row Styles
+ */
+
+.calendar-mini-widget {
+  .mini-moon-phases {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: calc(100% / (var(--moon-count) * 2 + 1));
+    padding: 0.2rem 0;
+    min-height: 1.2rem;
+
+    .mini-moon-phase {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: help;
+      transition: transform 0.15s ease;
+
+      &:hover {
+        transform: scale(1.15);
+      }
+
+      i {
+        font-size: 1rem;
+        line-height: 1;
+
+        &.moon-phase-new {
+          opacity: 0.4;
+        }
+
+        &.moon-phase-waxing-crescent,
+        &.moon-phase-waning-crescent {
+          transform: rotate(90deg);
+        }
+
+        &.moon-phase-first-quarter {
+          transform: rotate(90deg);
+        }
+
+        &.moon-phase-last-quarter {
+          transform: rotate(270deg);
+        }
+
+        &.moon-phase-waxing-gibbous,
+        &.moon-phase-waning-gibbous {
+          opacity: 0.9;
+        }
+
+        &.moon-phase-full {
+          opacity: 1;
+        }
+      }
+    }
+  }
+}

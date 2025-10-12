@@ -29,6 +29,13 @@ export interface MiniWidgetContext extends BaseWidgetContext {
   advancementRatioDisplay?: string;
   compactMode: boolean;
   sidebarButtons: SidebarButton[];
+  showMoonPhases: boolean;
+  moonPhases: Array<{
+    moonName: string;
+    phaseName: string;
+    phaseIcon: string;
+    moonColor?: string;
+  }>;
 }
 
 // Main widget specific context
