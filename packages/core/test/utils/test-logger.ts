@@ -50,11 +50,6 @@ export class TestLogger {
       data,
       timestamp: Date.now(),
     });
-
-    // Optionally output to console in test environment
-    if (this.isEnabled && process.env.NODE_ENV === 'test') {
-      console.log(`[TEST LOG ${level.toUpperCase()}] ${message}`, data || '');
-    }
   }
 
   static clearLogs() {

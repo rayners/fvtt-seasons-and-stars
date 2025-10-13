@@ -1,0 +1,297 @@
+/* Calendar Builder Styles */
+
+.calendar-builder .window-content {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.calendar-builder-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 500px;
+}
+
+/* Toolbar */
+.calendar-builder-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  background: var(--color-bg-btn);
+  border-bottom: 1px solid var(--color-border-dark);
+  flex-shrink: 0;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.calendar-builder-toolbar .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.calendar-builder-toolbar .separator {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border-dark);
+  margin: 0 4px;
+}
+
+.calendar-builder-toolbar .button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.calendar-builder-toolbar .button.danger {
+  background: var(--color-bg-btn);
+  color: #cc0000;
+  border-color: #cc0000;
+}
+
+.calendar-builder-toolbar .button.danger:hover:not(:disabled) {
+  background: #cc0000;
+  color: white;
+}
+
+/* Main content area */
+.calendar-builder-main {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 1px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Editor container */
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  border-right: 1px solid var(--color-border-dark);
+  overflow: hidden;
+}
+
+.editor-container h3 {
+  margin: 0;
+  padding: 12px;
+  background: var(--color-bg-btn);
+  border-bottom: 1px solid var(--color-border-dark);
+  font-size: 14px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+/* JSON Editor CodeMirror */
+.json-editor {
+  flex: 1;
+  min-height: 300px;
+  overflow: auto;
+}
+
+/* Validation container */
+.validation-container {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  min-width: 300px;
+}
+
+.validation-container h3 {
+  margin: 0;
+  padding: 12px;
+  background: var(--color-bg-btn);
+  border-bottom: 1px solid var(--color-border-dark);
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.validation-results {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+.validation-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.validation-status.valid {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.validation-status.invalid {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.validation-errors,
+.validation-warnings {
+  margin-bottom: 16px;
+}
+
+.validation-errors h4,
+.validation-warnings h4 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.validation-errors h4 {
+  color: #dc3545;
+}
+
+.validation-warnings h4 {
+  color: #ffc107;
+}
+
+.validation-errors ul,
+.validation-warnings ul {
+  margin: 0;
+  padding-left: 20px;
+  list-style: none;
+}
+
+.validation-errors li,
+.validation-warnings li {
+  padding: 4px 0;
+  line-height: 1.3;
+  font-size: 12px;
+  position: relative;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  cursor: text;
+}
+
+.validation-errors li.error::before {
+  content: "✗";
+  color: #dc3545;
+  font-weight: bold;
+  margin-right: 6px;
+  position: absolute;
+  left: -16px;
+}
+
+.validation-warnings li.warning::before {
+  content: "⚠";
+  color: #ffc107;
+  font-weight: bold;
+  margin-right: 6px;
+  position: absolute;
+  left: -16px;
+}
+
+.no-validation {
+  color: var(--color-text-dark-inactive);
+  font-style: italic;
+  text-align: center;
+  margin: 20px 0;
+}
+
+/* Documentation link */
+.docs-link {
+  padding: 8px 12px;
+  border-top: 1px solid var(--color-border-dark);
+  text-align: right;
+  flex-shrink: 0;
+  background: var(--color-bg-btn);
+}
+
+.docs-link a {
+  color: var(--color-text-hyperlink);
+  text-decoration: none;
+  text-decoration-style: dashed;
+  text-decoration-line: underline;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.docs-link a i.fa-external-link-alt {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.docs-link a:hover {
+  color: var(--color-text-hyperlink);
+  text-decoration-style: solid;
+}
+
+/* Responsive design */
+@media (max-width: 900px) {
+  .calendar-builder-main {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+
+  .validation-container {
+    min-width: unset;
+    max-height: 200px;
+    border-top: 1px solid var(--color-border-dark);
+  }
+
+  .editor-container {
+    border-right: none;
+  }
+}
+
+/* Dark theme support */
+body.theme-dark .calendar-builder-toolbar {
+  background: var(--color-bg-darker);
+}
+
+
+body.theme-dark .validation-status.valid {
+  background: #1e4620;
+  color: #7bc97e;
+  border-color: #2d5930;
+}
+
+body.theme-dark .validation-status.invalid {
+  background: #4a1e21;
+  color: #f8b2b8;
+  border-color: #5c2d32;
+}
+
+body.theme-dark .validation-errors h4 {
+  color: #ff6b7a;
+}
+
+body.theme-dark .validation-warnings h4 {
+  color: #ffd93d;
+}
+
+/* Light theme support */
+body.theme-light .calendar-builder-toolbar {
+  background: #f8f9fa;
+}
+
+
+/* Button hover states */
+.calendar-builder-toolbar .button:hover:not(:disabled) {
+  background: var(--color-bg-btn-hover);
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

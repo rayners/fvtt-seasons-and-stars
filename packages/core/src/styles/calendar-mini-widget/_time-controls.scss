@@ -1,0 +1,59 @@
+/**
+ * Calendar Mini Widget - Time Controls Component
+ * Time advancement buttons (rewind/forward)
+ */
+
+.calendar-mini-widget {
+  .calendar-mini-content {
+    .mini-time-controls {
+      display: flex;
+      gap: 0.15rem;
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      flex: 0 1 auto;
+      flex-shrink: 0;
+
+      button {
+        background: linear-gradient(135deg, #10b981, #14b8a6);
+        border: 1px solid #10b981;
+        border-radius: 2px;
+        padding: 0.15rem 0.3rem;
+        color: white;
+        font-size: 0.65rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background: linear-gradient(135deg, #059669, #0d9488);
+          border-color: #059669;
+          color: white;
+        }
+
+        &.rewind {
+          background: linear-gradient(135deg, #dc2626, #ef4444);
+          border-color: #dc2626;
+
+          &:hover {
+            background: linear-gradient(135deg, #b91c1c, #dc2626);
+            border-color: #b91c1c;
+            color: white;
+          }
+        }
+
+        i {
+          font-size: 0.6rem;
+          margin-right: 0.2rem;
+        }
+      }
+    }
+
+    .mini-time-controls--empty {
+      min-height: 0.5rem;
+      flex: 1 1 auto;
+    }
+  }
+}

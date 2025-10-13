@@ -338,8 +338,6 @@ describe('Real User Report Simulation', () => {
       expect(converted2.year).toBe(1025);
 
       // Both interpretations should work correctly
-      console.log('Start of year intercalary world time:', worldTime1);
-      console.log('After first month intercalary world time:', worldTime2);
     });
 
     it('should identify if the issue is with specific calendar configurations', () => {

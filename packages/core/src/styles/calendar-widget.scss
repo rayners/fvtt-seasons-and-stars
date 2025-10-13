@@ -39,80 +39,39 @@
   // Calendar header
   .calendar-header {
     border-bottom: 1px solid var(--color-border-light-primary);
-    padding-bottom: 6px;
+    padding: 8px;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    align-items: center;
+    gap: 8px;
+    background: var(--color-bg-alt);
 
-    .calendar-title {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      padding: 6px 8px;
-      border-radius: 4px;
-      transition: all 0.2s;
+    .calendar-name {
+      flex: 1;
       font-weight: 600;
       color: var(--color-text-light-primary);
-      border: 1px solid var(--color-border-light-primary);
-      background: var(--color-bg-alt);
-
-      &.clickable:hover {
-        background: var(--color-bg-option);
-        border-color: var(--color-border-light-secondary);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      i:first-child {
-        color: var(--color-text-light-heading);
-      }
-
-      .dropdown-icon {
-        margin-left: auto;
-        font-size: 0.8em;
-        opacity: 0.8;
-        transition: transform 0.2s;
-      }
-
-      &.clickable:hover .dropdown-icon {
-        transform: translateY(1px);
-        opacity: 1;
-      }
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .calendar-hint {
-      font-size: 0.75em;
-      color: var(--color-text-light-secondary);
-      margin-top: 4px;
-      padding: 2px 8px;
-      text-align: center;
-      opacity: 0.8;
-      font-style: italic;
-    }
-
-    .calendar-setting {
-      font-size: 0.8em;
-      color: var(--color-text-light-secondary);
-      margin-top: 2px;
-      padding-left: 22px;
-    }
-
-    .widget-switching-controls {
+    .header-controls {
       display: flex;
       gap: 4px;
-      justify-content: center;
-      margin-top: 4px;
+      flex-shrink: 0;
 
-      .widget-switch-btn {
+      .header-control-btn {
         background: var(--color-bg-btn);
         border: 1px solid var(--color-border-dark);
         border-radius: 3px;
         padding: 4px 8px;
         cursor: pointer;
-        font-size: 0.8em;
         color: var(--color-text-primary);
         transition: all 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
 
         &:hover {
           background: var(--color-bg-btn-hover);
@@ -125,32 +84,60 @@
         }
 
         i {
-          margin-right: 4px;
+          font-size: 0.9em;
         }
       }
     }
   }
 
-  // Date display
+  // Date display (well/inset style)
   .date-display {
     cursor: pointer;
-    padding: 8px;
+    padding: 20px;
+    margin: 8px;
     border-radius: 6px;
-    background: var(--color-bg-alt);
-    border: 1px solid var(--color-border-light-primary);
+    border: 2px solid var(--color-border-dark);
     transition: all 0.2s;
 
-    &:hover {
-      background: var(--color-bg-option);
-      border-color: var(--color-border-light-secondary);
+    // Light theme: darker inset
+    body.theme-light & {
+      background: rgba(0, 0, 0, 0.15);
+      box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 -1px 2px rgba(255, 255, 255, 0.1);
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.2);
+        border-color: var(--color-border-light-secondary);
+        box-shadow:
+          inset 0 2px 4px rgba(0, 0, 0, 0.4),
+          inset 0 -1px 2px rgba(255, 255, 255, 0.15);
+      }
+    }
+
+    // Dark theme: lighter inset
+    body.theme-dark & {
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.5),
+        inset 0 -1px 2px rgba(255, 255, 255, 0.1);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: var(--color-border-light-secondary);
+        box-shadow:
+          inset 0 2px 4px rgba(0, 0, 0, 0.6),
+          inset 0 -1px 2px rgba(255, 255, 255, 0.15);
+      }
     }
 
     .main-date {
-      font-size: 1.1em;
-      font-weight: 600;
+      font-size: 1.3em;
+      font-weight: 700;
       color: var(--color-text-light-primary);
       text-align: center;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
     }
 
     .time-display {
@@ -161,14 +148,81 @@
 
       .time {
         font-family: var(--font-mono);
-        font-size: 1em;
+        font-size: 1.1em;
+        font-weight: 500;
         color: var(--color-text-light-secondary);
-        background: var(--color-bg);
-        padding: 2px 6px;
-        border-radius: 3px;
+        background: var(--color-bg-alt);
+        padding: 4px 12px;
+        border-radius: 4px;
         border: 1px solid var(--color-border-light-tertiary);
       }
 
+    }
+
+    // Moon phases row
+    .moon-phases {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(0.25rem, calc(100% / (var(--moon-count) * 2 + 1)), 1rem);
+      padding: 0.3rem 0;
+      margin-top: 0.5rem;
+      min-height: 1.5rem;
+
+      .moon-phase {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: help;
+        transition: all 0.15s ease;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
+        width: 1.6rem;
+        height: 1.6rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+        // Color is applied directly via CSS custom properties in TypeScript
+        // This supports unlimited moons without hardcoded indices
+
+        &:hover {
+          transform: scale(1.15);
+          background: rgba(0, 0, 0, 0.4);
+        }
+
+        i {
+          font-size: 1rem;
+          line-height: 1;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+
+          &.moon-phase-new {
+            opacity: 0.4;
+          }
+
+          &.moon-phase-waxing-crescent,
+          &.moon-phase-waning-crescent {
+            transform: rotate(90deg);
+          }
+
+          &.moon-phase-first-quarter {
+            // fa-adjust is already vertical by default - no rotation needed
+            transform: none;
+          }
+
+          &.moon-phase-last-quarter {
+            // Flip fa-adjust horizontally for last quarter (left half lit)
+            transform: scaleX(-1);
+          }
+
+          &.moon-phase-waxing-gibbous,
+          &.moon-phase-waning-gibbous {
+            opacity: 0.9;
+          }
+
+          &.moon-phase-full {
+            opacity: 1;
+          }
+        }
+      }
     }
   }
 
@@ -264,14 +318,75 @@
         }
 
         &[data-unit="months"] {
-          background: linear-gradient(135deg, #dc2626, #ef4444);
+          background: linear-gradient(135deg, #0891b2, #06b6d4);
           color: white;
-          border-color: #dc2626;
+          border-color: #0891b2;
 
           &:hover {
-            background: linear-gradient(135deg, #991b1b, #dc2626);
+            background: linear-gradient(135deg, #0e7490, #0891b2);
             transform: translateY(-2px);
           }
+        }
+      }
+
+      // Time buttons (for quick time controls)
+      .time-buttons {
+        display: flex;
+        flex-direction: row;
+        gap: 6px;
+        flex-wrap: wrap;
+
+        button {
+          flex: 1;
+          min-width: 60px;
+          padding: 6px 8px;
+          font-size: 0.75em;
+        }
+
+        // Advance button styling (override data-unit gradients for consistency)
+        button:not(.rewind) {
+          background: linear-gradient(135deg, #10b981, #14b8a6);
+          border-color: #10b981;
+          color: white;
+
+          &:hover {
+            background: linear-gradient(135deg, #059669, #0d9488);
+            border-color: #059669;
+            color: white;
+          }
+        }
+      }
+
+      // Date buttons (for date advance controls)
+      .date-buttons {
+        display: flex;
+        flex-direction: row;
+        gap: 6px;
+        flex-wrap: wrap;
+
+        button {
+          flex: 1;
+          min-width: 80px;
+          padding: 6px 8px;
+          font-size: 0.75em;
+        }
+      }
+
+      // Shared rewind button styling for both time and date controls
+      .time-buttons button.rewind,
+      .date-buttons button.rewind {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        border-color: #dc2626;
+        color: white;
+
+        &:hover {
+          background: linear-gradient(135deg, #b91c1c, #dc2626);
+          border-color: #b91c1c;
+          color: white;
+        }
+
+        &:active {
+          background: linear-gradient(135deg, #991b1b, #b91c1c);
         }
       }
 
@@ -284,51 +399,6 @@
         label {
           margin-bottom: 0;
           flex-shrink: 0;
-        }
-
-        .time-buttons {
-          display: flex;
-          flex-direction: row;
-          gap: 6px;
-          flex-wrap: wrap;
-          flex: 1;
-          
-          button {
-            flex: 1;
-            min-width: 60px;
-            padding: 6px 8px;
-            font-size: 0.75em;
-            
-            // Advance button styling (override data-unit gradients for consistency)
-            &:not(.rewind) {
-              background: linear-gradient(135deg, #10b981, #14b8a6) !important;
-              border-color: #10b981 !important;
-              color: white !important;
-              
-              &:hover {
-                background: linear-gradient(135deg, #059669, #0d9488) !important;
-                border-color: #059669 !important;
-                color: white !important;
-              }
-            }
-            
-            // Rewind button styling
-            &.rewind {
-              background: linear-gradient(135deg, #dc2626, #ef4444);
-              border-color: #dc2626;
-              color: white;
-              
-              &:hover {
-                background: linear-gradient(135deg, #b91c1c, #dc2626);
-                border-color: #b91c1c;
-                color: white;
-              }
-              
-              &:active {
-                background: linear-gradient(135deg, #991b1b, #b91c1c);
-              }
-            }
-          }
         }
       }
     }
@@ -425,10 +495,6 @@
       // Date advance section inherits control-group styles
     }
 
-    .bulk-advance-section {
-      // Bulk advance section inherits control-group styles
-    }
-
     // Error test section styling
     .error-test-section {
       border-top: 1px dashed var(--color-border-light-primary);
@@ -498,31 +564,37 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 10px;
-      font-size: 0.8em;
-      border: 1px solid var(--color-border-light-secondary);
-      background: var(--color-bg);
+      padding: 8px 12px;
+      font-size: 0.85em;
+      border: 2px solid var(--color-border-light-secondary);
+      background: linear-gradient(to bottom, var(--color-bg-btn), var(--color-bg));
       color: var(--color-text-light-primary);
-      border-radius: 4px;
+      border-radius: 5px;
       cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 500;
+      transition: all 0.15s ease;
+      font-weight: 600;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
 
       &:hover {
         background: var(--color-text-light-highlight);
         color: var(--color-text-dark-primary);
         border-color: var(--color-text-light-highlight);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
       }
 
       &:active {
         transform: translateY(0);
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
       }
 
       i {
-        font-size: 0.9em;
+        font-size: 1em;
+        flex-shrink: 0;
+      }
+
+      .sidebar-button-text {
+        flex: 1;
       }
     }
   }

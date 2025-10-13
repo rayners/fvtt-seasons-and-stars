@@ -65,7 +65,7 @@ The main calendar interface with complete controls.
 
 **How to Access:**
 
-- Click the **calendar icon** in Scene Controls (left sidebar)
+- Click the **calendar icon** in the journal notes controls (left sidebar)
 - Or use the macro: `SeasonsStars.CalendarWidget.show()`
 
 ### 2. Mini Widget (SmallTime Integration)
@@ -85,7 +85,9 @@ A compact calendar companion that works alongside SmallTime.
 
 - **With SmallTime**: Appears above SmallTime automatically
 - **Without SmallTime**: Positions near player list
-- **Responsive**: Adapts to UI changes and window resizing
+- **Draggable**: Drag the widget to any position to pin it in place
+- **Persistent**: Pinned positions are saved and restored when the world reloads
+- **Responsive**: Adapts to UI changes and window resizing when not pinned
 
 ### 3. Monthly Grid View
 
@@ -170,6 +172,141 @@ For new worlds using the Gregorian calendar:
 - Only applies to worlds with worldTime = 0 (new worlds)
 - Only affects Gregorian calendar (not fantasy calendars)
 
+### Game Pause Integration
+
+_Added in v0.12.0_
+
+Seasons & Stars can automatically sync with Foundry's game pause state to provide seamless time management during gameplay.
+
+#### How It Works
+
+When **"Sync with Game Pause"** is enabled in world settings:
+
+- **Game Paused**: Time advancement automatically pauses
+- **Game Unpaused**: Time advancement resumes (if it was active before the pause)
+- **Smart Resume**: Only resumes if time advancement was running before the game was paused
+- **GM Control**: Only GMs can trigger resume actions for security
+
+#### Multi-Source Pause Behavior
+
+The pause system coordinates with other pause sources for predictable behavior:
+
+**Pause Sources:**
+
+- **Game Pause**: Foundry's built-in pause button (spacebar)
+- **Combat Pause**: Automatic pause when combat starts (if enabled)
+
+**Pause Combinations:**
+
+| Game Status | Combat Status | Time Advancement             |
+| ----------- | ------------- | ---------------------------- |
+| Running     | No Combat     | ✅ **Active** (if enabled)   |
+| Running     | In Combat     | ⏸️ **Paused** (combat pause) |
+| Paused      | No Combat     | ⏸️ **Paused** (game pause)   |
+| Paused      | In Combat     | ⏸️ **Paused** (both sources) |
+
+**Resume Logic:**
+
+- Time advancement only resumes when **ALL** blocking conditions are cleared
+- If game is unpaused but combat is still active, time remains paused
+- If combat ends but game is still paused, time remains paused
+- Time only resumes when both game is running AND no combat is active
+
+#### Configuration
+
+**To Enable Game Pause Sync:**
+
+1. Go to **Game Settings → Module Settings → Seasons & Stars**
+2. Find **"Sync with Game Pause"** in the **Time Advancement** section
+3. Enable the setting (enabled by default)
+4. Setting change takes effect immediately
+
+**User Feedback:**
+
+- Notification messages inform when time advancement is paused/resumed due to game pause
+- Messages clearly indicate the reason for pause/resume actions
+- Messages only appear for GMs to avoid player notification spam
+
+#### Use Cases
+
+**During Roleplay:**
+
+- Pause the game for discussion → time advancement automatically stops
+- Resume the game → time advancement continues seamlessly
+
+**Combat Management:**
+
+- Combat starts → time paused (combat pause)
+- GM pauses game mid-combat for rules discussion → time stays paused
+- GM unpauses game, combat continues → time stays paused (combat still active)
+- Combat ends, game still running → time resumes automatically
+
+**Session Planning:**
+
+- Pause game during breaks → time advancement stops automatically
+- Resume after break → time advancement continues from where it left off
+
+### Time Advancement Button Behavior
+
+_Improved in v0.12.0_
+
+The time advancement play/pause button now provides clearer, more intuitive behavior regardless of game state:
+
+#### Intelligent Button States
+
+**Visual State Logic:**
+
+- **Pause Button (⏸️)**: Shows when time advancement is active OR when it was active before being auto-paused
+- **Play Button (▶️)**: Shows when time advancement is fully stopped by user action
+
+**Why This Matters:**
+
+- Button state now reflects user intent, not just internal technical state
+- No more confusion about whether time advancement is "really" running
+- Clear visual feedback about what will happen when you click
+
+#### One-Click Control
+
+**Consistent Single-Click Behavior:**
+
+- **When game is running**: Click works immediately (play/pause as expected)
+- **When game is paused**: Click works immediately (no double-clicking required)
+- **After auto-pause**: Single click to manually pause prevents auto-resume
+
+**Previous Issue (Fixed):**
+In earlier versions, clicking the pause button while the game was paused required two clicks to properly stop time advancement. This has been resolved.
+
+#### Manual Override of Auto-Pause
+
+**User Control Priority:**
+
+- **Auto-pause active**: Button shows pause state, allowing you to "lock in" the pause
+- **Manual pause after auto-pause**: Time advancement stays paused even when auto-pause conditions clear
+- **Clear user intent**: Your manual pause action overrides automatic resume behavior
+
+**Example Workflow:**
+
+1. Time advancement is running → Game pauses → Auto-pause activates
+2. Button shows pause state (⏸️) → Click once → Manual pause locked in
+3. Game unpauses → Time advancement stays paused (respects your manual choice)
+
+#### Multi-Source Pause Coordination
+
+**Smart State Management:**
+
+- System tracks difference between automatic pause (game/combat) and manual pause (user action)
+- UI button state reflects the effective state (what you'll get when you click)
+- Manual pause always takes priority over automatic resume
+
+**Visual Indicators:**
+
+- **Active**: Green/active button styling when time is actively advancing
+- **Auto-paused**: Pause button available to manually stop (prevents auto-resume)
+- **Manually paused**: Play button available to restart time advancement
+- **Blocked**: Clear feedback when advancement is blocked by external conditions
+
+This improved system ensures the time advancement controls work predictably and intuitively, regardless of game pause state, combat status, or other external factors.
+
 ## 🗓️ Calendar Selection
 
 ### Available Calendar Systems (16 Total)
@@ -233,6 +370,7 @@ Access via **Game Settings → Module Settings → Seasons & Stars**:
 - **Auto-Show Default Widget**: Automatically show calendar widget when world loads
 - **Default Widget**: Choose which widget appears by default (Main/Mini/Grid)
 - **Display Time in Mini Widget**: Show time alongside date in mini widget
+- **Canonical Hours Display Mode**: How to display time when canonical hours are available (Auto/Canonical Only/Exact Time)
 - **Display Day of Week in Mini Widget**: Show abbreviated day name in mini widget
 - **Always Display Quick Time Buttons**: Show S&S time controls even when SmallTime is present
 
@@ -253,8 +391,10 @@ Access via **Game Settings → Module Settings → Seasons & Stars**:
 - **Quick Time Buttons**: Configure main widget time advancement buttons (see [Quick Time Button Configuration](#quick-time-button-configuration))
 - **Mini Widget Quick Time Buttons**: Specific buttons for mini widget (leave empty for auto-selection)
 - **Time Advancement Ratio**: Speed of automatic time progression (0.1 to 100.0x)
+- **Real-Time Advancement Interval**: How often (in seconds) the game time updates when real-time advancement is active (1-300 seconds, default: 10)
 - **Pause Time on Combat**: Automatically pause time advancement during combat
 - **Resume Time After Combat**: Automatically resume time advancement when combat ends
+- **Sync with Game Pause**: Automatically pause time advancement when Foundry's game is paused (see [Game Pause Integration](#game-pause-integration))
 
 **Notes System:**
 
@@ -342,11 +482,12 @@ When SmallTime is enabled:
 
 ### Manual Configuration
 
-If automatic positioning doesn't work:
+The mini widget now provides drag-and-drop positioning:
 
-1. Disable auto-positioning in settings
-2. Use CSS to manually position the mini widget
-3. Or disable the mini widget and use only the full calendar
+1. **Drag to Position**: Simply drag the mini widget anywhere on screen to pin it
+2. **Right-click to Unpin**: Right-click the widget to return to automatic positioning
+3. **Persistent Storage**: Pinned positions are automatically saved and restored
+4. **Fallback**: If needed, disable the mini widget and use only the full calendar
 
 ### Without SmallTime
 
@@ -393,10 +534,11 @@ Your support helps fund new features, bug fixes, and comprehensive documentation
 
 **Solution:**
 
-1. Try refreshing the page
-2. Toggle the widget off and on in settings
-3. Check for UI module conflicts
-4. Use manual positioning if needed
+1. **Drag and Pin**: Simply drag the mini widget to your preferred position - it will automatically pin and remember the location
+2. **Unpin**: Right-click the widget to unpin and return to automatic positioning
+3. Try refreshing the page if positioning seems incorrect
+4. Toggle the widget off and on in settings if needed
+5. Check for UI module conflicts with other positioning systems
 
 #### SmallTime Integration Problems
 
@@ -453,6 +595,77 @@ If you're using compatibility bridges (e.g., Simple Weather with Simple Calendar
 - **Escape**: Close open calendar dialogs
 
 _(Note: Additional keyboard shortcuts for time advancement planned for future updates)_
+
+## 🕐 Canonical Hours
+
+_Added in v0.12.0_
+
+Canonical hours allow calendars to display named time periods instead of exact times, perfect for fantasy settings where characters refer to time periods like "Strange's Bells" or medieval monastery hours.
+
+### What are Canonical Hours?
+
+Canonical hours are named time periods that replace exact time display when the current time falls within those periods. For example:
+
+- **"Strange's Bells"** might represent 3:00 AM - 6:00 AM
+- **"Dawn's Call"** might represent 9:00 AM - 11:00 AM
+- **"Matins"** (monastery hour) might represent 2:00 AM - 3:00 AM
+
+### How They Work
+
+When time display is enabled, Seasons & Stars will:
+
+1. **Check for canonical hours**: If the current time falls within a defined canonical hour period, display the canonical hour name
+2. **Fall back to exact time**: If no canonical hour matches, display the exact time (e.g., "07:30")
+3. **Respect display modes**: Honor the **Canonical Hours Display Mode** setting
+
+### Display Modes
+
+**Auto (Default)**: Shows canonical hour names when available, exact time otherwise
+
+- 4:30 AM → "Strange's Bells" (if 3-6 AM is defined)
+- 7:30 AM → "07:30" (if no canonical hour defined)
+
+**Canonical Only**: Shows only canonical hour names, hides time when no match
+
+- 4:30 AM → "Strange's Bells"
+- 7:30 AM → (time hidden completely)
+
+**Exact Time**: Always shows exact time, ignoring canonical hours
+
+- 4:30 AM → "04:30"
+- 7:30 AM → "07:30"
+
+### Midnight Wraparound
+
+Canonical hours can span midnight for periods like night watches:
+
+- **"Night Watch"**: 23:00 (11 PM) - 02:00 (2 AM)
+
+### Calendar Examples
+
+See the **Gregorian Canonical Hours** calendar variant for examples including:
+
+- Medieval monastery hours (Matins, Prime, Terce, Sext, None, Vespers, Compline)
+- Custom fantasy hours (Strange's Bells, Dawn's Call, etc.)
+
+### Creating Custom Canonical Hours
+
+Calendar creators can add canonical hours to any calendar by including them in the calendar JSON:
+
+```json
+{
+  "canonicalHours": [
+    {
+      "name": "Strange's Bells",
+      "startHour": 3,
+      "endHour": 6,
+      "description": "The mysterious bells that ring in the early morning"
+    }
+  ]
+}
+```
+
+See the [Developer Guide](./DEVELOPER-GUIDE.md) for complete technical details.
 
 ## 🎯 Best Practices
 

@@ -1,0 +1,52 @@
+name: Claude Development
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned, edited]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  development:
+    # Only run for issues by rayners that contain @claude
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # Allow creating branches and pushing code
+      issues: write # Allow issue commenting
+      pull-requests: read # Allow reading PRs
+      packages: read
+      id-token: write
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout dev-context repository
+        uses: actions/checkout@v4
+        with:
+          repository: rayners/dev-context
+          path: dev-context
+          fetch-depth: 1
+
+      - name: Development Task
+        uses: anthropics/claude-code-action@v1.0.8
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          additional_permissions: |
+            actions: read
+          claude_args: |
+            --model claude-sonnet-4-5
+            --allowedTools "Bash(mkdir:*),Bash(npm:*),Bash(git:*),Bash(gh:*),Read,Write,Edit,MultiEdit,Glob,Grep,TodoWrite,Task,WebFetch"

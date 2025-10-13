@@ -25,6 +25,9 @@ import { isCalendarManager } from '../types/type-guards';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
+import { CalendarWidgetManager } from '../ui/widget-manager';
+import { SidebarButtonRegistry } from '../ui/sidebar-button-registry';
+import type { WidgetType } from '../types/widget-types';
 import { Logger } from './logger';
 
 // Additional bridge-specific interfaces not in the main bridge-interfaces file
@@ -163,6 +166,38 @@ export class SeasonsStarsIntegration {
    */
   get hooks(): SeasonsStarsHooks {
     return this.hookManager as any; // TODO: Fix interface mismatches
+  }
+
+  get buttonRegistry() {
+    return SidebarButtonRegistry.getInstance();
+  }
+
+  /**
+   * Register a sidebar button across all widgets
+   */
+  addSidebarButton(config: {
+    name: string;
+    icon: string;
+    tooltip: string;
+    callback: () => void;
+    only?: ('main' | 'mini' | 'grid')[];
+    except?: ('main' | 'mini' | 'grid')[];
+  }): void {
+    SidebarButtonRegistry.getInstance().register(config);
+  }
+
+  /**
+   * Remove a sidebar button from all widgets
+   */
+  removeSidebarButton(name: string): void {
+    SidebarButtonRegistry.getInstance().unregister(name);
+  }
+
+  /**
+   * Check if a sidebar button is registered
+   */
+  hasSidebarButton(name: string): boolean {
+    return SidebarButtonRegistry.getInstance().has(name);
   }
 
   /**
@@ -347,7 +382,7 @@ class IntegrationAPI {
   }
 
   getAvailableCalendars(): string[] {
-    return this.manager.getAvailableCalendars();
+    return this.manager.getAvailableCalendars().map(calendar => calendar.id);
   }
 
   async advanceDays(days: number, _calendarId?: string): Promise<void> {
@@ -420,6 +455,21 @@ class IntegrationAPI {
 class IntegrationWidgetManager {
   private changeCallbacks: ((widgets: SeasonsStarsWidgets) => void)[] = [];
 
+  private async show(type: WidgetType): Promise<void> {
+    await CalendarWidgetManager.showWidget(type);
+    this.notifyWidgetChange();
+  }
+
+  private async hide(type: WidgetType): Promise<void> {
+    await CalendarWidgetManager.hideWidget(type);
+    this.notifyWidgetChange();
+  }
+
+  private async toggle(type: WidgetType): Promise<void> {
+    await CalendarWidgetManager.toggleWidget(type);
+    this.notifyWidgetChange();
+  }
+
   get main(): BridgeCalendarWidget | null {
     const widget = CalendarWidget.getInstance();
     return widget ? new BridgeWidgetWrapper(widget, 'main') : null;
@@ -478,6 +528,54 @@ class IntegrationWidgetManager {
   cleanup(): void {
     this.changeCallbacks.length = 0;
   }
+
+  async showMainWidget(): Promise<void> {
+    await this.show('main');
+  }
+
+  async hideMainWidget(): Promise<void> {
+    await this.hide('main');
+  }
+
+  async toggleMainWidget(): Promise<void> {
+    await this.toggle('main');
+  }
+
+  isMainWidgetVisible(): boolean {
+    return CalendarWidget.getInstance()?.rendered ?? false;
+  }
+
+  async showMiniWidget(): Promise<void> {
+    await this.show('mini');
+  }
+
+  async hideMiniWidget(): Promise<void> {
+    await this.hide('mini');
+  }
+
+  async toggleMiniWidget(): Promise<void> {
+    await this.toggle('mini');
+  }
+
+  isMiniWidgetVisible(): boolean {
+    return CalendarMiniWidget.getInstance()?.rendered ?? false;
+  }
+
+  async showGridWidget(): Promise<void> {
+    await this.show('grid');
+  }
+
+  async hideGridWidget(): Promise<void> {
+    await this.hide('grid');
+  }
+
+  async toggleGridWidget(): Promise<void> {
+    await this.toggle('grid');
+  }
+
+  isGridWidgetVisible(): boolean {
+    return CalendarGridWidget.getInstance()?.rendered ?? false;
+  }
 }
 
 /**
@@ -486,7 +584,7 @@ class IntegrationWidgetManager {
 class BridgeWidgetWrapper implements BridgeCalendarWidget {
   constructor(
     private widget: any,
-    private widgetType: string
+    private widgetType: WidgetType
   ) {}
 
   get id(): string {
@@ -497,25 +595,90 @@ class BridgeWidgetWrapper implements BridgeCalendarWidget {
     return this.widget.rendered || false;
   }
 
+  /**
+   * Add a sidebar button to this widget via the compatibility bridge
+   *
+   * **Merge Behavior**: This method uses a widget-targeting merge strategy designed for
+   * compatibility bridges that may register the same button multiple times across different
+   * widget instances. Unlike the global registry which rejects duplicates, this method:
+   *
+   * - **New button**: Registers with `only: [widgetType]` to show on this widget only
+   * - **Existing with `only` filter**: Adds this widget type to the list if not present
+   * - **Existing with `except` filter**: Removes this widget type from exclusion list
+   * - **Existing with no filters (global)**: Preserves global scope, no modifications
+   * - **Callback preservation**: Always preserves the original callback, ignoring new callback
+   *
+   * This merge behavior allows compatibility layers (like Simple Calendar Bridge) to
+   * build up widget targeting across multiple registration calls without callback conflicts.
+   * Global buttons (registered without filters) remain global to preserve their intended scope.
+   *
+   * @param name - Unique button identifier
+   * @param icon - Font Awesome icon class (e.g., 'fas fa-star')
+   * @param tooltip - Button tooltip text
+   * @param callback - Click handler (ignored if button already exists)
+   */
   addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void {
-    if (typeof this.widget.addSidebarButton === 'function') {
-      this.widget.addSidebarButton(name, icon, tooltip, callback);
-    } else {
-      throw new Error(`Widget ${this.widgetType} does not support sidebar buttons`);
+    const registry = SidebarButtonRegistry.getInstance();
+    const existing = registry.get(name);
+
+    if (existing) {
+      // Button already exists - merge widget type targeting
+      const updated = { ...existing };
+
+      if (updated.only) {
+        // Add this widget type to the existing 'only' list if not already present
+        if (!updated.only.includes(this.widgetType)) {
+          updated.only = [...updated.only, this.widgetType];
+        }
+      } else if (updated.except) {
+        // Remove this widget type from the 'except' list so button shows here
+        updated.except = updated.except.filter(type => type !== this.widgetType);
+        // If except list becomes empty, remove the property
+        if (updated.except.length === 0) {
+          delete updated.except;
+        }
+      } else {
+        // No filters means shows everywhere - do not modify
+        // Bridge attempting to add a global button should not restrict its scope
+        Logger.debug(
+          `Bridge widget "${this.widgetType}" attempted to add global button "${name}". ` +
+            `Button remains global and will show on all widgets.`
+        );
+        // No changes to updated - button stays global
+      }
+
+      // Preserve original callback to avoid unexpected overrides
+      // Use update() instead of unregister/register to reduce hook emissions
+      registry.update(updated);
+      return;
     }
+
+    // New button - register for this widget type only
+    registry.register({
+      name,
+      icon,
+      tooltip,
+      callback,
+      only: [this.widgetType],
+    });
   }
 
   removeSidebarButton(name: string): void {
-    if (typeof this.widget.removeSidebarButton === 'function') {
-      this.widget.removeSidebarButton(name);
-    }
+    SidebarButtonRegistry.getInstance().unregister(name);
   }
 
   hasSidebarButton(name: string): boolean {
-    if (typeof this.widget.hasSidebarButton === 'function') {
-      return this.widget.hasSidebarButton(name);
+    const registry = SidebarButtonRegistry.getInstance();
+    const config = registry.get(name);
+    if (!config) {
+      return false;
     }
-    return false;
+
+    const appliesToWidget =
+      (!config.only || config.only.includes(this.widgetType)) &&
+      (!config.except || !config.except.includes(this.widgetType));
+
+    return appliesToWidget;
   }
 
   getInstance(): any {

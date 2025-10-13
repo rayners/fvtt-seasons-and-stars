@@ -17,12 +17,12 @@ jobs:
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           registry-url: 'https://npm.pkg.github.com'
           cache: 'npm'
 
@@ -33,6 +33,9 @@ jobs:
 
       - name: Run security audit
         run: npm audit --audit-level high
+
+      - name: Check for outdated dependencies
+        run: npm outdated || true
 
       - name: Check for known vulnerabilities
         uses: aquasecurity/trivy-action@master
@@ -62,7 +65,7 @@ jobs:
         language: ['typescript']
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -73,7 +76,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           registry-url: 'https://npm.pkg.github.com'
           cache: 'npm'
 

@@ -4,7 +4,7 @@ Calendar pack providing fantasy RPG calendars for the Seasons & Stars module.
 
 ## What This Is
 
-A data module containing 11 fantasy calendar systems for use with Seasons & Stars. Includes calendars from D&D settings, popular RPGs, and generic fantasy systems.
+A data module containing 16 fantasy calendar systems for use with Seasons & Stars. Includes calendars from D&D settings, popular RPGs, Glorantha, and generic fantasy systems.
 
 ## Requirements
 
@@ -24,6 +24,14 @@ Install from Foundry's package manager when available.
 - **Greyhawk Calendar**
 - **Eberron Calendar** (Galifar Calendar)
 - **Athasian Calendar** (Dark Sun)
+
+### Glorantha
+
+- **Orlanthi Calendar**
+- **Brithini Calendar**
+- **Dara Happan Calendar**
+- **Lunar Calendar**
+- **Pamaltelan Calendar**
 
 ### Other RPGs
 
@@ -50,3 +58,11 @@ This is a pure data module - no JavaScript required. Calendar definitions are JS
 ## License
 
 MIT License - see main repository for details.
+
+## 🤖 AI-Assisted Development
+
+These calendar definitions are curated with help from Claude (Anthropic's AI assistant) to speed up data entry, formatting, and validation while I focus on accuracy and integration details. Every calendar is reviewed manually before release. Curious about the full workflow? See [rayners/dev-context](https://github.com/rayners/dev-context) for documentation on how AI collaboration fits into development.
+
+## Support
+
+Questions or feedback? Connect with the community on [Discord](https://discord.gg/tqZnxAdEqE) or open an issue on [GitHub](https://github.com/rayners/fvtt-seasons-and-stars/issues).

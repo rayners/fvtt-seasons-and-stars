@@ -133,6 +133,8 @@ interface Game {
   journal: FoundryCollection<FoundryJournalEntry>;
   folders?: FoundryCollection<FoundryFolder>;
   keybindings?: FoundryKeybindings;
+  paused: boolean; // Game pause state
+  combat?: Combat | null; // Active combat encounter
 
   // Additional Foundry properties
   scenes?: FoundryCollection<FoundryScene> & {
@@ -160,12 +162,19 @@ interface Game {
     resetSeasonsWarningState?: () => void;
     getSeasonsWarningState?: () => boolean;
     setSeasonsWarningState?: (warned: boolean) => void;
+    buttonRegistry?: unknown;
   };
 }
 
 interface GameTime {
   worldTime: number;
   advance(seconds: number): Promise<void>;
+}
+
+interface Combat {
+  id: string;
+  started: boolean;
+  [key: string]: any;
 }
 
 interface Localization {
@@ -259,6 +268,7 @@ interface Module {
   active: boolean;
   version?: string;
   api?: unknown; // For modules that expose APIs
+  flags?: Record<string, unknown>; // Module flags from module.json
 }
 
 interface UI {
@@ -380,6 +390,7 @@ declare class ApplicationV2<
     options: RenderOptions
   ): void;
   protected _onClose(options: ApplicationV2.CloseOptions): Promise<void>;
+  protected _onChangeForm(formConfig: any, event: Event): void;
 }
 
 declare namespace ApplicationV2 {
@@ -508,6 +519,7 @@ declare namespace DialogV2 {
 
   interface ConfirmOptions {
     title?: string;
+    window?: { title?: string };
     content?: string;
     yes?: Function;
     no?: Function;
@@ -606,7 +618,7 @@ interface CalendarSeason {
   name: string;
   description?: string;
   startMonth: number;
-  startDay: number;
+  startDay?: number;
   color?: string;
 }
 

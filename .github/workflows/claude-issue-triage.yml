@@ -1,0 +1,59 @@
+name: Claude Issue Triage
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  triage:
+    # Only run for bug issues opened by others
+    if: contains(github.event.issue.labels.*.name, 'bug') && github.event.issue.user.login != 'rayners'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Checkout dev-context repository
+        uses: actions/checkout@v4
+        with:
+          repository: rayners/dev-context
+          path: dev-context
+          fetch-depth: 1
+
+      - name: Load shared prompt
+        id: load-prompt
+        run: |
+          {
+            echo 'content<<EOF'
+            cat dev-context/claude-prompts/bug-triage.md
+            echo ""
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Bug Triage Assessment
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            ${{ steps.load-prompt.outputs.content }}
+
+            ISSUE: ${{ github.event.issue.html_url }}
+            TITLE: "${{ github.event.issue.title }}"
+            REPORTER: @-${{ github.event.issue.user.login }}
+
+            BODY:
+            ${{ github.event.issue.body }}
+
+            Respond directly to the issue with your assessment. Use @-username (with dash) to avoid notifications during testing.
+          allowed_non_write_users: '*'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_args: |
+            --model claude-sonnet-4-5
+            --allowedTools "Bash(gh issue comment:*),Bash(gh issue view:*),Read,WebFetch,Glob,Grep"

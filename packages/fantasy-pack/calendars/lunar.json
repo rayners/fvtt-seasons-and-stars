@@ -1,0 +1,47 @@
+{
+  "id": "lunar",
+  "translations": {
+    "en": {
+      "label": "Lunar Calendar (Glorantha)",
+      "description": "Imperial Lunar calendar invented by Irrippi Ontor. Features ten 28-day months and a Sacred Time of 14 days.",
+      "setting": "Glorantha"
+    }
+  },
+  "sources": ["https://glorantha.fandom.com/wiki/Lunar_Calendar"],
+  "year": {
+    "epoch": 0,
+    "currentYear": 1625,
+    "prefix": "",
+    "suffix": " ST",
+    "startDay": 0
+  },
+  "leapYear": { "rule": "none" },
+  "months": [
+    { "name": "Month of Innocence", "abbreviation": "Inn", "days": 28 },
+    { "name": "Month of Glamour", "abbreviation": "Gla", "days": 28 },
+    { "name": "Month of Anticipation", "abbreviation": "Ant", "days": 28 },
+    { "name": "Month of Ascension", "abbreviation": "Asc", "days": 28 },
+    { "name": "Month of Zenith", "abbreviation": "Zen", "days": 28 },
+    { "name": "Month of Change", "abbreviation": "Cha", "days": 28 },
+    { "name": "Month of Descent", "abbreviation": "Des", "days": 28 },
+    { "name": "Month of Moonset", "abbreviation": "Moo", "days": 28 },
+    { "name": "Month of Suffering", "abbreviation": "Suf", "days": 28 },
+    { "name": "Month of Balance", "abbreviation": "Bal", "days": 28 },
+    { "name": "Sacred Time", "abbreviation": "Sac", "days": 14 }
+  ],
+  "weekdays": [
+    { "name": "Veriday", "abbreviation": "Ver" },
+    { "name": "Lesilday", "abbreviation": "Les" },
+    { "name": "Gerraday", "abbreviation": "Ger" },
+    { "name": "Rashoday", "abbreviation": "Ras" },
+    { "name": "Ulurday", "abbreviation": "Ulu" },
+    { "name": "Nathaday", "abbreviation": "Nat" },
+    { "name": "Zayday", "abbreviation": "Zay" }
+  ],
+  "intercalary": [],
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}

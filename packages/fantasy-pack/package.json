@@ -22,6 +22,15 @@
   "devDependencies": {
     "vitest": "^3.2.2"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rayners/fvtt-seasons-and-stars.git",
+    "directory": "packages/fantasy-pack"
+  },
+  "bugs": {
+    "url": "https://github.com/rayners/fvtt-seasons-and-stars/issues"
+  },
+  "homepage": "https://github.com/rayners/fvtt-seasons-and-stars#readme",
   "author": "David Raynes",
   "license": "MIT"
 }

@@ -68,6 +68,40 @@
       "additionalProperties": false,
       "description": "Localization data for the variant collection"
     },
+    "sources": {
+      "type": "array",
+      "description": "Public URLs or user-supplied bibliographic citations verifying the variant data",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "format": "uri",
+            "description": "Publicly accessible URL that verifies variant information"
+          },
+          {
+            "type": "object",
+            "required": ["citation"],
+            "additionalProperties": false,
+            "properties": {
+              "citation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500,
+                "description": "User-supplied bibliographic reference text"
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "Optional context about how the citation was provided"
+              }
+            },
+            "description": "User-supplied bibliographic citation"
+          }
+        ]
+      }
+    },
     "variants": {
       "type": "object",
       "minProperties": 1,
@@ -206,6 +240,54 @@
                   "type": "object",
                   "additionalProperties": true,
                   "description": "Override for date formatting templates"
+                },
+                "canonicalHours": {
+                  "type": "array",
+                  "description": "Optional canonical hour definitions for time period naming",
+                  "items": {
+                    "type": "object",
+                    "required": ["name", "startHour", "endHour"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 50,
+                        "description": "Display name for the canonical hour"
+                      },
+                      "startHour": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 23,
+                        "description": "Starting hour (0-23)"
+                      },
+                      "endHour": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 23,
+                        "description": "Ending hour (0-23)"
+                      },
+                      "startMinute": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 59,
+                        "default": 0,
+                        "description": "Starting minute (0-59, default: 0)"
+                      },
+                      "endMinute": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 59,
+                        "default": 0,
+                        "description": "Ending minute (0-59, default: 0)"
+                      },
+                      "description": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "description": "Optional description of the canonical hour"
+                      }
+                    }
+                  }
                 }
               },
               "description": "Property overrides for the variant"

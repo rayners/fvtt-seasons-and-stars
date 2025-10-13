@@ -21,6 +21,7 @@ on:
           - fantasy-pack
           - scifi-pack
           - pf2e-pack
+          - custom-calendar-builder
           - all
       release_type:
         description: 'Type of release'
@@ -57,6 +58,8 @@ jobs:
               echo "module=scifi-pack" >> "$GITHUB_OUTPUT"
             elif [[ "$TAG" == seasons-and-stars-pf2e-v* ]]; then
               echo "module=pf2e-pack" >> "$GITHUB_OUTPUT"
+            elif [[ "$TAG" == seasons-and-stars-calendar-builder-v* ]]; then
+              echo "module=custom-calendar-builder" >> "$GITHUB_OUTPUT"
             elif [[ "$TAG" == seasons-and-stars-v* ]]; then
               echo "module=core" >> "$GITHUB_OUTPUT"
             # Legacy/manual tagging support
@@ -77,15 +80,15 @@ jobs:
       packages: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Release Core Module
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v6.0.1
         with:
-          node-version: '20'
-          build-command: 'npm run build --workspace=packages/core'
+          node-version: '24'
+          build-command: 'npm run build'
           working-directory: 'dist/core'
           module-files: 'module.js module.json templates/ calendars/ styles/ languages/ schemas/ README.md CHANGELOG.md LICENSE'
         env:
@@ -100,15 +103,15 @@ jobs:
       packages: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Release Fantasy Pack
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v6.0.1
         with:
-          node-version: '20'
-          build-command: 'npm run build --workspace=packages/fantasy-pack'
+          node-version: '24'
+          build-command: 'npm run build'
           working-directory: 'dist/fantasy-pack'
           module-files: 'module.json calendars/'
 
@@ -121,15 +124,15 @@ jobs:
       packages: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Release Sci-Fi Pack
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v6.0.1
         with:
-          node-version: '20'
-          build-command: 'npm run build --workspace=packages/scifi-pack'
+          node-version: '24'
+          build-command: 'npm run build'
           working-directory: 'dist/scifi-pack'
           module-files: 'module.json calendars/'
 
@@ -142,14 +145,35 @@ jobs:
       packages: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Release PF2e Pack
-        uses: rayners/foundry-module-actions/release@v4
+        uses: rayners/foundry-module-actions/release@v6.0.1
         with:
-          node-version: '20'
-          build-command: 'npm run build --workspace=packages/pf2e-pack'
+          node-version: '24'
+          build-command: 'npm run build'
           working-directory: 'dist/pf2e-pack'
           module-files: 'pf2e-pack.js module.json calendars/ README.md CHANGELOG.md LICENSE'
+
+  release-calendar-builder:
+    needs: detect-module
+    if: needs.detect-module.outputs.module == 'custom-calendar-builder' || needs.detect-module.outputs.module == 'all'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Release Calendar Builder
+        uses: rayners/foundry-module-actions/release@v6.0.1
+        with:
+          node-version: '24'
+          build-command: 'npm run build'
+          working-directory: 'dist/custom-calendar-builder'
+          module-files: 'module.js module.json styles/ templates/ languages/ README_FOUNDRY.md'

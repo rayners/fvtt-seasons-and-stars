@@ -1,0 +1,128 @@
+/**
+ * Calendar Mini Widget - Header Component
+ * Includes weekday, date display, and play/pause controls
+ */
+
+.calendar-mini-widget {
+  .calendar-mini-content {
+    .mini-header-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      gap: 0.3rem;
+      white-space: nowrap;
+      position: relative;
+
+      .mini-weekday {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.75em;
+        font-weight: 500;
+        white-space: nowrap;
+        min-width: fit-content;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        opacity: 0.8;
+        flex-shrink: 0;
+      }
+
+      .mini-date {
+        text-align: center;
+        color: #ffffff;
+        white-space: nowrap;
+        letter-spacing: 0.025em;
+        margin: 0;
+        cursor: pointer;
+        padding: 2px 4px;
+        border-radius: 3px;
+        transition: all 0.2s;
+        pointer-events: all !important;
+        user-select: none;
+        min-width: 100px;
+        min-height: 16px;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+          transform: scale(1.02);
+          text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+        }
+
+        .mini-time {
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 0.9em;
+          font-weight: 300;
+          margin-left: 0.4em;
+          opacity: 0.9;
+        }
+      }
+
+      .mini-play-pause-controls {
+        position: absolute;
+        right: 0;
+
+        .play-pause-btn {
+          background: var(--color-bg-btn, rgba(255, 255, 255, 0.1));
+          border: 1px solid var(--color-border-dark, rgba(255, 255, 255, 0.2));
+          border-radius: 2px;
+          padding: 1px 3px;
+          cursor: pointer;
+          font-size: 9px;
+          color: rgba(255, 255, 255, 0.8);
+          transition: all 0.2s ease;
+          min-width: 18px;
+          height: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          &:hover {
+            background: var(--color-bg-btn-hover, rgba(255, 255, 255, 0.15));
+            color: #ffffff;
+            transform: scale(1.05);
+          }
+
+          &.active {
+            background: var(--color-bg-option, rgba(16, 185, 129, 0.8));
+            color: var(--color-text-highlight, #ffffff);
+            border-color: rgba(16, 185, 129, 1);
+
+            &:hover {
+              background: rgba(16, 185, 129, 0.9);
+            }
+          }
+
+          i {
+            font-size: 8px;
+          }
+        }
+      }
+    }
+
+    // Fallback for old structure (if mini-date exists without mini-header-row)
+    .mini-date:not(.mini-header-row .mini-date) {
+      color: #ffffff;
+      text-align: center;
+      white-space: nowrap;
+      letter-spacing: 0.025em;
+      margin: 0;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 3px;
+      transition: all 0.2s;
+      user-select: none;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.02);
+      }
+
+      .mini-time {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.9em;
+        font-weight: 300;
+        margin-left: 0.4em;
+        opacity: 0.9;
+      }
+    }
+  }
+}

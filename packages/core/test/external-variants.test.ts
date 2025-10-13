@@ -87,10 +87,12 @@ describe('External Calendar Variants System', () => {
     it('should load base calendar and external variants successfully', async () => {
       await calendarManager.loadBuiltInCalendars();
 
-      // Should have core calendar only (gregorian = 1 total)
-      // Note: All pack calendars moved to separate packages during extraction
-      expect(calendarManager.calendars.size).toBe(1);
+      // Should have core calendars: gregorian + 2 canonical hours variants = 3 total
+      // Note: External variant calendars create one calendar per variant using parentheses notation
+      expect(calendarManager.calendars.size).toBe(3);
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
+      expect(calendarManager.calendars.has('gregorian(medieval-monastery)')).toBe(true);
+      expect(calendarManager.calendars.has('gregorian(custom-hours)')).toBe(true);
 
       // Manually load the external variant file to test the functionality
       const variantFileData = {
@@ -151,8 +153,8 @@ describe('External Calendar Variants System', () => {
       // Apply external variants manually
       calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
 
-      // Should now have core calendar + 4 Star Trek variants (1 + 4 = 5 total)
-      expect(calendarManager.calendars.size).toBe(5);
+      // Should now have core calendars + 4 Star Trek variants (3 + 4 = 7 total)
+      expect(calendarManager.calendars.size).toBe(7);
 
       // Check Star Trek variants
       expect(calendarManager.calendars.has('gregorian(earth-stardate)')).toBe(true);
@@ -273,6 +275,84 @@ describe('External Calendar Variants System', () => {
       expect(vulcanCalendar?.weekdays.length).toBe(7); // Same as base
     });
 
+    it('should apply canonical hours overrides in external variants', async () => {
+      await calendarManager.loadBuiltInCalendars();
+
+      // Test data with canonical hours overrides
+      const variantFileData = {
+        id: 'gregorian-canonical-test-variants',
+        baseCalendar: 'gregorian',
+        variants: {
+          'test-canonical-hours': {
+            name: 'Test Canonical Hours',
+            overrides: {
+              canonicalHours: [
+                {
+                  name: 'Dawn Watch',
+                  startHour: 5,
+                  endHour: 7,
+                  startMinute: 0,
+                  endMinute: 0,
+                  description: 'Early morning watch',
+                },
+                {
+                  name: 'High Noon',
+                  startHour: 11,
+                  endHour: 13,
+                  startMinute: 30,
+                  endMinute: 30,
+                  description: 'Midday period',
+                },
+              ],
+              dateFormats: {
+                canonical: '{{ss-time-display mode="canonical-or-exact"}}',
+              },
+            },
+          },
+        },
+      };
+
+      const baseCalendar = calendarManager.calendars.get('gregorian');
+      expect(baseCalendar).toBeDefined();
+
+      // Base calendar should not have canonical hours
+      expect(baseCalendar?.canonicalHours).toBeUndefined();
+
+      // Apply external variants manually
+      calendarManager['applyExternalVariants'](baseCalendar!, variantFileData);
+
+      const testCalendar = calendarManager.calendars.get('gregorian(test-canonical-hours)');
+      expect(testCalendar).toBeDefined();
+
+      // Verify canonical hours were applied
+      expect(testCalendar?.canonicalHours).toBeDefined();
+      expect(testCalendar?.canonicalHours).toHaveLength(2);
+
+      const dawnWatch = testCalendar?.canonicalHours?.[0];
+      expect(dawnWatch?.name).toBe('Dawn Watch');
+      expect(dawnWatch?.startHour).toBe(5);
+      expect(dawnWatch?.endHour).toBe(7);
+      expect(dawnWatch?.description).toBe('Early morning watch');
+
+      const highNoon = testCalendar?.canonicalHours?.[1];
+      expect(highNoon?.name).toBe('High Noon');
+      expect(highNoon?.startHour).toBe(11);
+      expect(highNoon?.endHour).toBe(13);
+      expect(highNoon?.startMinute).toBe(30);
+      expect(highNoon?.endMinute).toBe(30);
+      expect(highNoon?.description).toBe('Midday period');
+
+      // Verify date formats were also applied
+      expect(testCalendar?.dateFormats?.canonical).toBe(
+        '{{ss-time-display mode="canonical-or-exact"}}'
+      );
+
+      // Verify other calendar properties remain unchanged
+      expect(testCalendar?.months.length).toBe(12);
+      expect(testCalendar?.weekdays.length).toBe(7);
+      expect(testCalendar?.year.currentYear).toBe(baseCalendar?.year.currentYear);
+    });
+
     it('should handle missing base calendar gracefully', async () => {
       // Mock fetch to return 404 for gregorian calendar
       vi.mocked(fetch).mockImplementation(() => {
@@ -289,10 +369,12 @@ describe('External Calendar Variants System', () => {
       // Use the shared mock (no need to override for this test)
       await calendarManager.loadBuiltInCalendars();
 
-      // Should have core calendar only (gregorian = 1 total)
-      // Note: All pack calendars moved to separate packages during extraction
-      expect(calendarManager.calendars.size).toBe(1);
+      // Should have core calendars: gregorian + 2 canonical hours variants = 3 total
+      // Note: External variant calendars create one calendar per variant using parentheses notation
+      expect(calendarManager.calendars.size).toBe(3);
       expect(calendarManager.calendars.has('gregorian')).toBe(true);
+      expect(calendarManager.calendars.has('gregorian(medieval-monastery)')).toBe(true);
+      expect(calendarManager.calendars.has('gregorian(custom-hours)')).toBe(true);
 
       // Test the invalid variant file handling by calling the method directly
       const invalidVariantFileData = {

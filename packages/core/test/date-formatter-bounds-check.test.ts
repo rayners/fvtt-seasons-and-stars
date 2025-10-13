@@ -61,8 +61,6 @@ describe('DateFormatter Array Bounds Check', () => {
     // This test should expose that calculateDayOfYear doesn't handle bounds properly
     // The current implementation will access months[4] which is undefined
     // and could cause issues when trying to read month.days
-    console.log('Actual dayOfYear calculated:', dayOfYear);
-    console.log('Expected: should be handled gracefully, not undefined or NaN');
 
     // The dayOfYear should be a valid number, not NaN or undefined
     expect(dayOfYear).toBeDefined();
@@ -89,7 +87,6 @@ describe('DateFormatter Array Bounds Check', () => {
     const dayOfYear = match ? parseInt(match[1]) : NaN;
 
     // This should expose the issue with negative indices
-    console.log('Negative month dayOfYear:', dayOfYear);
 
     expect(dayOfYear).toBeDefined();
     expect(typeof dayOfYear).toBe('number');
@@ -116,7 +113,6 @@ describe('DateFormatter Array Bounds Check', () => {
     const dayOfYear = match ? parseInt(match[1]) : NaN;
 
     // This should expose the 0-based vs 1-based confusion
-    console.log('Zero month dayOfYear:', dayOfYear);
 
     expect(dayOfYear).toBeDefined();
     expect(typeof dayOfYear).toBe('number');

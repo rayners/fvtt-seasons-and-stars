@@ -1,0 +1,90 @@
+name: Build Validation
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches:
+      - 'release-please--*'
+
+jobs:
+  build-validation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run build
+        run: npm run build
+
+      - name: Verify core module files
+        run: |
+          echo "Checking core module build artifacts..."
+          test -f "dist/core/module.js" || (echo "❌ Missing dist/core/module.js" && exit 1)
+          test -f "dist/core/module.json" || (echo "❌ Missing dist/core/module.json" && exit 1)
+          test -f "dist/core/calendars/index.json" || (echo "❌ Missing dist/core/calendars/index.json" && exit 1)
+          echo "✅ Core module build artifacts verified"
+
+      - name: Verify fantasy pack files
+        run: |
+          echo "Checking fantasy pack build artifacts..."
+          test -f "dist/fantasy-pack/module.json" || (echo "❌ Missing dist/fantasy-pack/module.json" && exit 1)
+          test -f "dist/fantasy-pack/calendars/index.json" || (echo "❌ Missing dist/fantasy-pack/calendars/index.json" && exit 1)
+          echo "✅ Fantasy pack build artifacts verified"
+
+      - name: Verify sci-fi pack files
+        run: |
+          echo "Checking sci-fi pack build artifacts..."
+          test -f "dist/scifi-pack/module.json" || (echo "❌ Missing dist/scifi-pack/module.json" && exit 1)
+          test -f "dist/scifi-pack/calendars/index.json" || (echo "❌ Missing dist/scifi-pack/calendars/index.json" && exit 1)
+          echo "✅ Sci-fi pack build artifacts verified"
+
+      - name: Verify PF2e pack files
+        run: |
+          echo "Checking PF2e pack build artifacts..."
+          test -f "dist/pf2e-pack/module.json" || (echo "❌ Missing dist/pf2e-pack/module.json" && exit 1)
+          test -f "dist/pf2e-pack/pf2e-pack.js" || (echo "❌ Missing dist/pf2e-pack/pf2e-pack.js" && exit 1)
+          test -d "dist/pf2e-pack/calendars" || (echo "❌ Missing dist/pf2e-pack/calendars directory" && exit 1)
+          test -f "dist/pf2e-pack/calendars/index.json" || (echo "❌ Missing dist/pf2e-pack/calendars/index.json" && exit 1)
+          echo "✅ PF2e pack build artifacts verified"
+
+      - name: Verify calendar builder files
+        run: |
+          echo "Checking calendar builder build artifacts..."
+          test -f "dist/custom-calendar-builder/module.json" || (echo "❌ Missing dist/custom-calendar-builder/module.json" && exit 1)
+          test -f "dist/custom-calendar-builder/module.js" || (echo "❌ Missing dist/custom-calendar-builder/module.js" && exit 1)
+          test -d "dist/custom-calendar-builder/styles" || (echo "❌ Missing dist/custom-calendar-builder/styles directory" && exit 1)
+          test -d "dist/custom-calendar-builder/templates" || (echo "❌ Missing dist/custom-calendar-builder/templates directory" && exit 1)
+          echo "✅ Calendar builder build artifacts verified"
+
+      - name: Verify calendar index files exist
+        run: |
+          echo "Checking calendar index files..."
+          for pack in core fantasy-pack scifi-pack pf2e-pack; do
+            calendar_index="packages/$pack/calendars/index.json"
+            test -f "$calendar_index" || (echo "❌ Missing calendar index: $calendar_index" && exit 1)
+            echo "✅ $calendar_index exists"
+          done
+
+      - name: Build summary
+        run: |
+          echo "🎉 Build validation completed successfully!"
+          echo ""
+          echo "Generated artifacts:"
+          find dist -name "*.js" -o -name "*.json" | sort

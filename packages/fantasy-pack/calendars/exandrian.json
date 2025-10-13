@@ -7,6 +7,7 @@
       "setting": "Critical Role"
     }
   },
+  "sources": ["https://criticalrole.fandom.com/wiki/Calendar_of_Exandria"],
 
   "year": {
     "epoch": 0,
