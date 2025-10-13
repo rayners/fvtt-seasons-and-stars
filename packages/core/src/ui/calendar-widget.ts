@@ -146,6 +146,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       phaseIcon: string;
       faIcon: string;
       moonColor?: string;
+      moonColorIndex: number;
     }> = [];
 
     try {
@@ -153,12 +154,13 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       if (engine) {
         const moonPhaseInfo = engine.getMoonPhaseInfo(currentDate);
         if (moonPhaseInfo && moonPhaseInfo.length > 0) {
-          moonPhases = moonPhaseInfo.map((info: MoonPhaseInfo) => ({
+          moonPhases = moonPhaseInfo.map((info: MoonPhaseInfo, index: number) => ({
             moonName: info.moon.name,
             phaseName: info.phase.name,
             phaseIcon: info.phase.icon,
             faIcon: MOON_PHASE_ICON_MAP[info.phase.icon] || 'circle',
             moonColor: sanitizeColor(info.moon.color),
+            moonColorIndex: index,
           }));
         }
       }

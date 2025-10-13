@@ -2,6 +2,8 @@
  * Application-wide constants for Seasons & Stars
  */
 
+import { Logger } from './logger';
+
 // Time-related constants
 export const TIME_CONSTANTS = {
   DEFAULT_SUNRISE_HOUR: 6,
@@ -86,7 +88,7 @@ export function sanitizeColor(color: string | undefined): string | undefined {
     }
   } catch (e) {
     // CSS.supports() may throw in some environments
-    console.warn('CSS.supports() failed for color validation:', color, e);
+    Logger.debug('CSS.supports() failed for color validation:', color, e);
   }
 
   return undefined;
