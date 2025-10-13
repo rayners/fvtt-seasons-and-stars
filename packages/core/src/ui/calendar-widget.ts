@@ -178,7 +178,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       Logger.debug('Failed to get moon phase data for calendar widget', error);
     }
 
-    return Object.assign(context, {
+    const mainContext = Object.assign(context, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
       formattedDate: currentDate.toLongString(),
@@ -205,9 +205,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     }) as MainWidgetContext;
 
     // Cache context for use in _attachPartListeners
-    this.lastRenderContext = context as MainWidgetContext;
+    this.lastRenderContext = mainContext;
 
-    return context;
+    return mainContext;
   }
 
   /**
