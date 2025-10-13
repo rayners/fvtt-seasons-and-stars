@@ -96,7 +96,7 @@ describe('calendar-widget-sidebar template', () => {
     expect(button).toBeTruthy();
     expect(button?.getAttribute('data-action')).toBe('clickSidebarButton');
     expect(button?.getAttribute('data-button-name')).toBe('openNotes');
-    expect(button?.getAttribute('title')).toBe('Open Notes');
+    expect(button?.getAttribute('data-tooltip')).toBe('Open Notes');
   });
 
   it('never renders zero elements (regression test for #344)', () => {
