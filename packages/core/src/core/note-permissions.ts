@@ -3,6 +3,15 @@
  */
 
 /**
+ * Type guard to check if a value is a valid ownership level
+ */
+function isValidOwnershipLevel(level: unknown): level is OwnershipLevel {
+  if (typeof level !== 'number') return false;
+  const validLevels = Object.values(CONST.DOCUMENT_OWNERSHIP_LEVELS) as number[];
+  return validLevels.includes(level);
+}
+
+/**
  * Manages permissions and access control for calendar notes
  */
 export class NotePermissions {
@@ -83,7 +92,7 @@ export class NotePermissions {
   /**
    * Set note ownership permissions
    */
-  async setNoteOwnership(note: JournalEntry, ownership: any): Promise<void> {
+  async setNoteOwnership(note: JournalEntry, ownership: Record<string, number>): Promise<void> {
     await note.update({ ownership });
   }
 
@@ -265,7 +274,7 @@ export class NotePermissions {
   /**
    * Create ownership object for new notes based on settings
    */
-  getDefaultOwnership(creatorId: string): any {
+  getDefaultOwnership(creatorId: string): Record<string, number> {
     const playerVisible = game.settings?.get(
       'seasons-and-stars',
       'defaultPlayerVisible'
@@ -292,7 +301,7 @@ export class NotePermissions {
   /**
    * Validate ownership data
    */
-  validateOwnership(ownership: any): { isValid: boolean; errors: string[] } {
+  validateOwnership(ownership: unknown): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     if (!ownership || typeof ownership !== 'object') {
@@ -300,11 +309,11 @@ export class NotePermissions {
       return { isValid: false, errors };
     }
 
+    const ownershipObj = ownership as Record<string, unknown>;
     // Check default level
-    if (ownership.default !== undefined) {
-      const validLevels = Object.values(CONST.DOCUMENT_OWNERSHIP_LEVELS);
-      if (!validLevels.includes(ownership.default)) {
-        errors.push(`Invalid default ownership level: ${ownership.default}`);
+    if (ownershipObj.default !== undefined) {
+      if (!isValidOwnershipLevel(ownershipObj.default)) {
+        errors.push(`Invalid default ownership level: ${ownershipObj.default}`);
       }
     }
 
@@ -312,8 +321,7 @@ export class NotePermissions {
     for (const [userId, level] of Object.entries(ownership)) {
       if (userId === 'default') continue;
 
-      const validLevels = Object.values(CONST.DOCUMENT_OWNERSHIP_LEVELS) as OwnershipLevel[];
-      if (!validLevels.includes(level as OwnershipLevel)) {
+      if (!isValidOwnershipLevel(level)) {
         errors.push(`Invalid ownership level for user ${userId}: ${level}`);
       }
     }
@@ -324,7 +332,7 @@ export class NotePermissions {
   /**
    * Get permission summary for debugging
    */
-  getPermissionSummary(note: JournalEntry, user?: User): any {
+  getPermissionSummary(note: JournalEntry, user?: User): Record<string, unknown> | null {
     const currentUser = user || game.user;
     if (!currentUser) return null;
 

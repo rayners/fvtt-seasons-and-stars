@@ -5,12 +5,89 @@
  * Core Foundry types are provided by foundry-v13-essentials.d.ts
  */
 
-import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
-import type { SeasonsStarsIntegration } from './bridge-interfaces';
+import type {
+  SeasonsStarsCalendar,
+  CalendarDate,
+  DateFormatOptions,
+  CalendarIntercalary,
+} from './calendar';
+import type { SeasonsStarsIntegration, SidebarButtonRegistryAPI } from './bridge-interfaces';
 import type { LoadResult, ExternalCalendarSource } from '../core/calendar-loader';
+import type { EventsAPI } from '../core/events-api';
+// ValidationResult imported in bridge-interfaces.d.ts to avoid circular dependencies
 
 // Extend the Game interface to include S&S specific properties
 declare global {
+  namespace foundry {
+    namespace applications {
+      namespace api {
+        class ApplicationV2 {
+          constructor(options?: any);
+
+          element?: HTMLElement;
+          position: {
+            top?: number;
+            left?: number;
+            width?: number | string;
+            height?: number | string;
+            scale?: number;
+          };
+          rendered: boolean;
+
+          // Core lifecycle methods
+          render(force?: boolean): Promise<void>;
+          close(options?: any): Promise<any>;
+
+          // Protected lifecycle hooks
+          protected _onRender(context: any, options: any): void;
+          protected _prepareContext(options: any): any;
+          protected _preparePartContext?(
+            partId: string,
+            context: Record<string, unknown>
+          ): Promise<Record<string, unknown>>;
+          protected _attachPartListeners(
+            partId: string,
+            htmlElement: HTMLElement,
+            options: any
+          ): void;
+          protected _onChangeForm?(formConfig: any, event: Event): void;
+
+          // Static properties
+          static DEFAULT_OPTIONS: any;
+          static PARTS: any;
+        }
+
+        function HandlebarsApplicationMixin<T extends typeof ApplicationV2>(BaseApplication: T): T;
+
+        class DialogV2 extends ApplicationV2 {
+          static confirm(config: {
+            window?: { title?: string };
+            content: string;
+            rejectClose?: boolean;
+            modal?: boolean;
+          }): Promise<boolean>;
+        }
+      }
+      namespace ux {
+        class Draggable {
+          constructor(
+            app: any,
+            element: HTMLElement,
+            handle: HTMLElement | false,
+            resizable: boolean | any
+          );
+          activateListeners(): void;
+          _onDragMouseDown(event: MouseEvent): any;
+          _onDragMouseUp(event: MouseEvent): any;
+        }
+      }
+    }
+
+    namespace utils {
+      function mergeObject(original: any, other: any, options?: any): any;
+      function deepClone(obj: any): any;
+    }
+  }
   interface String {
     stripScripts(): string;
   }
@@ -19,8 +96,8 @@ declare global {
     ready: boolean;
     seasonsStars?: {
       api?: SeasonsStarsAPI;
-      manager?: unknown; // CalendarManager interface
-      notes?: unknown; // NotesManager interface
+      manager?: CalendarManagerInterface; // CalendarManager interface
+      notes?: NotesManagerInterface; // NotesManager interface
       categories?: unknown; // Note categories management
       integration?: SeasonsStarsIntegration | null;
       compatibilityManager?: unknown; // Expose for debugging and external access
@@ -28,26 +105,29 @@ declare global {
       resetSeasonsWarningState?: () => void;
       getSeasonsWarningState?: () => boolean;
       setSeasonsWarningState?: (warned: boolean) => void;
+      buttonRegistry?: SidebarButtonRegistryAPI;
     };
   }
 
   interface Window {
     SeasonsStars?: {
-      api: SeasonsStarsAPI;
-      manager: unknown;
-      notes: unknown;
-      integration: SeasonsStarsIntegration | null;
+      api?: SeasonsStarsAPI;
+      manager?: CalendarManagerInterface;
+      notes?: NotesManagerInterface;
+      integration?: SeasonsStarsIntegration | null;
+      buttonRegistry?: SidebarButtonRegistryAPI;
       CalendarWidget?: unknown;
       CalendarMiniWidget?: unknown;
       CalendarGridWidget?: unknown;
       CalendarSelectionDialog?: unknown;
       NoteEditingDialog?: unknown;
+      [key: string]: unknown;
     };
   }
 
   interface Combat {
     id: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }
 }
 
@@ -96,6 +176,9 @@ export interface SeasonsStarsAPI {
   clearExternalCalendarCache(): void;
   // Module Calendar Loading Methods
   loadModuleCalendars(moduleId: string): Promise<LoadResult[]>;
+  validateCalendar(calendarData: unknown): Promise<import('./bridge-interfaces').ValidationResult>;
+  // Events API
+  events: EventsAPI;
 }
 
 // Type guard functions (implementations in type-guards.ts)
@@ -105,12 +188,12 @@ export declare function isNotesManager(obj: unknown): obj is NotesManagerInterfa
 // Calendar Manager interface for type safety
 export interface CalendarManagerInterface {
   getCurrentDate(): CalendarDate | null;
-  setCurrentDate(date: CalendarDate): Promise<boolean>;
+  setCurrentDate(date: CalendarDate): Promise<void>;
   getActiveCalendar(): SeasonsStarsCalendar | null;
   getActiveEngine(): CalendarEngineInterface | null;
   getAllCalendars(): SeasonsStarsCalendar[];
   getCalendar(calendarId: string): SeasonsStarsCalendar | null;
-  getAvailableCalendars(): string[];
+  getAvailableCalendars(): SeasonsStarsCalendar[];
   setActiveCalendar(calendarId: string): Promise<boolean>;
   advanceSeconds(seconds: number): Promise<void>;
   advanceMinutes(minutes: number): Promise<void>;
@@ -128,32 +211,28 @@ export interface CalendarEngineInterface {
   getMonthLength(month: number, year: number): number;
   dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number;
   worldTimeToDate(timestamp: number, worldCreationTimestamp?: number): CalendarDate;
-  getIntercalaryDaysAfterMonth(month: number, year: number): any[];
+  getIntercalaryDaysAfterMonth(month: number, year: number): CalendarIntercalary[];
   addMonths(date: CalendarDate, months: number): CalendarDate;
   addYears(date: CalendarDate, years: number): CalendarDate;
+  getMoonPhaseInfo(date: CalendarDate, moonName?: string): MoonPhaseInfo[];
+  getCurrentMoonPhases?(worldTime?: number): MoonPhaseInfo[];
+  getMoonPhaseAtWorldTime?(worldTime: number, moonName?: string): MoonPhaseInfo[];
 }
 
 // Notes Manager interface for type safety
 export interface NotesManagerInterface {
-  createNote(data: any): Promise<JournalEntry>;
-  updateNote(noteId: string, data: any): Promise<JournalEntry>;
+  createNote(data: unknown): Promise<JournalEntry>;
+  updateNote(noteId: string, data: unknown): Promise<JournalEntry>;
   deleteNote(noteId: string): Promise<void>;
   getNote(noteId: string): Promise<JournalEntry | null>;
   getNotesForDate(date: CalendarDate): Promise<JournalEntry[]>;
   getNotesForDateRange(start: CalendarDate, end: CalendarDate): Promise<JournalEntry[]>;
-  setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void>;
-  getNoteModuleData(noteId: string, moduleId: string): any;
+  setNoteModuleData(noteId: string, moduleId: string, data: unknown): Promise<void>;
+  getNoteModuleData(noteId: string, moduleId: string): unknown;
   canCreateNote(): boolean;
-  getCategories(): any;
-  getPredefinedTags(): string[];
-  parseTagString(tags: string): string[];
-  validateTags(tags: string[]): boolean;
-  getDefaultCategory(): any;
-  getCategory(categoryId: string): any;
-  getAllNotes(): JournalEntry[];
   storage: {
     findNotesByDateSync(date: CalendarDate): JournalEntry[];
     removeNote(noteId: string): Promise<void>;
-    getAllNotes(): JournalEntry[];
+    getAllNotes?(): JournalEntry[];
   };
 }

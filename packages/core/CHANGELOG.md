@@ -1,5 +1,147 @@
 # Changelog
 
+## [0.21.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.4...seasons-and-stars-v0.21.0) (2025-10-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* Moon phase data now includes moonColorIndex field
+
+### Features
+
+* add moon phase icons to mini widget ([#368](https://github.com/rayners/fvtt-seasons-and-stars/issues/368)) ([4db6708](https://github.com/rayners/fvtt-seasons-and-stars/commit/4db67084542f5f5ca12a4119f07e1d94575a5fad))
+
+
+### Bug Fixes
+
+* cache calendar data during onChange to prevent race condition ([#370](https://github.com/rayners/fvtt-seasons-and-stars/issues/370)) ([03ca799](https://github.com/rayners/fvtt-seasons-and-stars/commit/03ca79921bc002325c177c90e88dce8920309bd9))
+* support both 'before' and 'after' for intercalary days ([#362](https://github.com/rayners/fvtt-seasons-and-stars/issues/362)) ([ff362f0](https://github.com/rayners/fvtt-seasons-and-stars/commit/ff362f0085d043369cced6f28717eaec5d6fcedc))
+
+## [0.20.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.3...seasons-and-stars-v0.20.4) (2025-10-12)
+
+
+### Bug Fixes
+
+* prevent active calendar reset on Foundry reload ([#364](https://github.com/rayners/fvtt-seasons-and-stars/issues/364)) ([5881b70](https://github.com/rayners/fvtt-seasons-and-stars/commit/5881b70bf873dfdebddaf41d8c4baaf20b825e73))
+
+## [0.20.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.2...seasons-and-stars-v0.20.3) (2025-10-11)
+
+
+### Bug Fixes
+
+* improve error messages for unexpected properties ([#358](https://github.com/rayners/fvtt-seasons-and-stars/issues/358)) ([30b5941](https://github.com/rayners/fvtt-seasons-and-stars/commit/30b5941f811aaf2ac0ce4dd6cba1977d1fd91789))
+
+## [0.20.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.1...seasons-and-stars-v0.20.2) (2025-10-09)
+
+
+### Bug Fixes
+
+* prevent non-GM permission errors and improve file picker UX ([#353](https://github.com/rayners/fvtt-seasons-and-stars/issues/353)) ([e105075](https://github.com/rayners/fvtt-seasons-and-stars/commit/e105075c1a6ab272ff88015a030fdddedf63bda3))
+
+## [0.20.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.0...seasons-and-stars-v0.20.1) (2025-10-08)
+
+
+### Bug Fixes
+
+* ensure sidebar template part always renders single root element ([#346](https://github.com/rayners/fvtt-seasons-and-stars/issues/346)) ([9177a95](https://github.com/rayners/fvtt-seasons-and-stars/commit/9177a953e4366b7f507adf47cee551d7a22bd0cd))
+
+## [0.20.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.19.0...seasons-and-stars-v0.20.0) (2025-10-08)
+
+
+### Features
+
+* add event occurrence hooks and reference calendar events ([#340](https://github.com/rayners/fvtt-seasons-and-stars/issues/340)) ([54d7403](https://github.com/rayners/fvtt-seasons-and-stars/commit/54d74031b112e395c8fcb58911c149e9eb5a6816))
+* create custom calendar builder package ([#311](https://github.com/rayners/fvtt-seasons-and-stars/issues/311)) ([bf9f11a](https://github.com/rayners/fvtt-seasons-and-stars/commit/bf9f11af21bb6c8e0268c73a2b0ec921e2afbce9))
+* **ui:** implement sidebar button registry system ([#334](https://github.com/rayners/fvtt-seasons-and-stars/issues/334)) ([2c0ddef](https://github.com/rayners/fvtt-seasons-and-stars/commit/2c0ddefd2ed58349faf7e02a212055e87cd1f9b8))
+* **ui:** improve main calendar widget layout and styling ([#339](https://github.com/rayners/fvtt-seasons-and-stars/issues/339)) ([739a9ae](https://github.com/rayners/fvtt-seasons-and-stars/commit/739a9aec8f29de43802c0b1419f7c2907bcd0b9b))
+
+
+### Bug Fixes
+
+* **calendar-builder:** eliminate TypeScript build warnings ([#338](https://github.com/rayners/fvtt-seasons-and-stars/issues/338)) ([718afae](https://github.com/rayners/fvtt-seasons-and-stars/commit/718afae9c69f9956df617e567ca6210a47cf4b02))
+
+## [0.19.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.18.0...seasons-and-stars-v0.19.0) (2025-10-01)
+
+
+### Features
+
+* allow non-GM users to open calendar widgets ([#328](https://github.com/rayners/fvtt-seasons-and-stars/issues/328)) ([4254f39](https://github.com/rayners/fvtt-seasons-and-stars/commit/4254f39f0ce0868af915bbec03aed470238443af))
+
+## [0.18.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.17.1...seasons-and-stars-v0.18.0) (2025-09-27)
+
+
+### Features
+
+* add support for negative leap days ([#304](https://github.com/rayners/fvtt-seasons-and-stars/issues/304)) ([9790c02](https://github.com/rayners/fvtt-seasons-and-stars/commit/9790c02a8cd9465c9df166066db1c4fa7ae3b406))
+* make minimum real time advancement interval configurable ([#296](https://github.com/rayners/fvtt-seasons-and-stars/issues/296)) ([c863ac3](https://github.com/rayners/fvtt-seasons-and-stars/commit/c863ac324c7d581b2c6955e9b54087576a9691d5))
+
+
+### Bug Fixes
+
+* calendar settings dropdown shows only Gregorian instead of full list ([#316](https://github.com/rayners/fvtt-seasons-and-stars/issues/316)) ([1088fa0](https://github.com/rayners/fvtt-seasons-and-stars/commit/1088fa0d009053ddd41c4c4e48f1ac8af59cb0aa))
+* resolve time advancement race condition in widget toggle logic ([#313](https://github.com/rayners/fvtt-seasons-and-stars/issues/313)) ([4e4749d](https://github.com/rayners/fvtt-seasons-and-stars/commit/4e4749d88833156f8ce24ee66408d15d165a582b))
+* **ui:** handle array vs map mismatch in calendar count check ([#315](https://github.com/rayners/fvtt-seasons-and-stars/issues/315)) ([6d61d95](https://github.com/rayners/fvtt-seasons-and-stars/commit/6d61d957a382551ac3da00be086a49f269742610))
+
+## [0.17.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.17.0...seasons-and-stars-v0.17.1) (2025-09-24)
+
+
+### Bug Fixes
+
+* add missing repository metadata to all packages ([#300](https://github.com/rayners/fvtt-seasons-and-stars/issues/300)) ([d7499ef](https://github.com/rayners/fvtt-seasons-and-stars/commit/d7499ef4a6ec5f232118469a56acf8238542b38a))
+
+## [0.17.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.16.0...seasons-and-stars-v0.17.0) (2025-09-23)
+
+
+### Features
+
+* align Golarion leap cycle with lore ([#265](https://github.com/rayners/fvtt-seasons-and-stars/issues/265)) ([5ff3942](https://github.com/rayners/fvtt-seasons-and-stars/commit/5ff3942bc4150dfabe5c94c2dba0ab843e03dc45))
+* **scifi-pack:** add Coriolis calendars for Third Horizon and The Great Dark ([#286](https://github.com/rayners/fvtt-seasons-and-stars/issues/286)) ([2057ead](https://github.com/rayners/fvtt-seasons-and-stars/commit/2057ead6de86d268f68e9d5b2a252741a34fe6f1))
+* verify calendar source availability ([#270](https://github.com/rayners/fvtt-seasons-and-stars/issues/270)) ([50b286a](https://github.com/rayners/fvtt-seasons-and-stars/commit/50b286ac41d4cb0531c01c24be678bb7b2291fa5))
+
+
+### Bug Fixes
+
+* **ui:** mini widget width flexes to match the contents ([#274](https://github.com/rayners/fvtt-seasons-and-stars/issues/274)) ([4d871f5](https://github.com/rayners/fvtt-seasons-and-stars/commit/4d871f5a1a78ddb1f9d9f2a546ec239049a22935))
+
+## [0.16.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.15.0...seasons-and-stars-v0.16.0) (2025-09-20)
+
+
+### Features
+
+* add headless testing architecture with Playwright ([#237](https://github.com/rayners/fvtt-seasons-and-stars/issues/237)) ([8e01b9d](https://github.com/rayners/fvtt-seasons-and-stars/commit/8e01b9de3d7ecdaea52526719d5b36815dd6c061))
+* **core:** add synchronous initialization for improved bridge compatibility ([#259](https://github.com/rayners/fvtt-seasons-and-stars/issues/259)) ([fd1cfb8](https://github.com/rayners/fvtt-seasons-and-stars/commit/fd1cfb8c652070ed21ab9294ea41e2b9c076a246))
+
+
+### Bug Fixes
+
+* add viewport bounds checking to mini calendar widget ([#258](https://github.com/rayners/fvtt-seasons-and-stars/issues/258)) ([1639210](https://github.com/rayners/fvtt-seasons-and-stars/commit/16392102327be001744d649cc668cdc08daeeaa3))
+
+## [0.15.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.14.0...seasons-and-stars-v0.15.0) (2025-09-16)
+
+
+### Features
+
+* **core:** add movable mini widget with pinning ([#251](https://github.com/rayners/fvtt-seasons-and-stars/issues/251)) ([9890ac9](https://github.com/rayners/fvtt-seasons-and-stars/commit/9890ac903517390372738257815101a38e9f465c))
+
+## [0.14.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.13.0...seasons-and-stars-v0.14.0) (2025-09-15)
+
+
+### Features
+
+* **i18n:** update pl.json ([#221](https://github.com/rayners/fvtt-seasons-and-stars/issues/221)) ([efc0a3e](https://github.com/rayners/fvtt-seasons-and-stars/commit/efc0a3ec4c44a2fbb006b7579ad7c98bbc2cf30c))
+
+
+### Bug Fixes
+
+* handle calendar engine creation failures ([#235](https://github.com/rayners/fvtt-seasons-and-stars/issues/235)) ([ada8c0a](https://github.com/rayners/fvtt-seasons-and-stars/commit/ada8c0a395fe21e9dff2d586d4364bb6b31ecc58))
+* hide calendar selector for non-GM users ([#228](https://github.com/rayners/fvtt-seasons-and-stars/issues/228)) ([869e87c](https://github.com/rayners/fvtt-seasons-and-stars/commit/869e87c8cfb9e72868a7f9f95f93c41e7c16dbbd))
+* intercalary day display with -intercalary format scheme ([#247](https://github.com/rayners/fvtt-seasons-and-stars/issues/247)) ([daf8ccc](https://github.com/rayners/fvtt-seasons-and-stars/commit/daf8cccd38e79c11836f393a4109c817b8cb15d4))
+
+
+### Performance Improvements
+
+* increase real time advancement interval to 10 seconds ([#229](https://github.com/rayners/fvtt-seasons-and-stars/issues/229)) ([9629e6f](https://github.com/rayners/fvtt-seasons-and-stars/commit/9629e6f4a5cc3a445e3d7428cee28b8091132dc8))
+
 ## [0.13.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.12.0...seasons-and-stars-v0.13.0) (2025-09-02)
 
 

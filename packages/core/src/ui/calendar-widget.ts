@@ -7,19 +7,19 @@ import { CalendarSelectionDialog } from './calendar-selection-dialog';
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { TimeAdvancementService } from '../core/time-advancement-service';
+import { SidebarButtonRegistry } from './sidebar-button-registry';
+import { loadButtonsFromRegistry } from './sidebar-button-mixin';
+import { MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
+import type { MoonPhaseInfo } from '../types/calendar';
+import type { MainWidgetContext } from '../types/widget-types';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
   private updateInterval: number | null = null;
   private static activeInstance: CalendarWidget | null = null;
-  private sidebarButtons: Array<{
-    name: string;
-    icon: string;
-    tooltip: string;
-    callback: Function;
-  }> = [];
+  private lastRenderContext?: MainWidgetContext;
 
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-widget',
@@ -34,14 +34,13 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       resizable: false,
     },
     position: {
-      width: 280,
+      width: 320,
       height: 'auto' as const,
     },
     actions: {
       openCalendarSelection: CalendarWidget.prototype._onOpenCalendarSelection,
       openDetailedView: CalendarWidget.prototype._onOpenDetailedView,
       advanceDate: CalendarWidget.prototype._onAdvanceDate,
-      openBulkAdvance: CalendarWidget.prototype._onOpenBulkAdvance,
       clickSidebarButton: CalendarWidget.prototype._onClickSidebarButton,
       switchToMini: CalendarWidget.prototype._onSwitchToMini,
       switchToGrid: CalendarWidget.prototype._onSwitchToGrid,
@@ -53,6 +52,14 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     main: {
       id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-widget.hbs',
+    },
+    moonPhases: {
+      id: 'moon-phases',
+      template: 'modules/seasons-and-stars/templates/calendar-widget-moon-phases.hbs',
+    },
+    sidebar: {
+      id: 'sidebar',
+      template: 'modules/seasons-and-stars/templates/calendar-widget-sidebar.hbs',
     },
   };
 
@@ -108,7 +115,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     if (game.user?.isGM) {
       try {
         const timeService = TimeAdvancementService.getInstance();
-        timeAdvancementActive = timeService?.shouldShowPauseButton || false;
+        timeAdvancementActive = timeService?.isActive || false;
 
         const ratio = game.settings?.get('seasons-and-stars', 'timeAdvancementRatio') || 1.0;
         advancementRatioDisplay = `${ratio.toFixed(1)}x speed`;
@@ -134,7 +141,44 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       }
     }
 
-    return Object.assign(context, {
+    // Get moon phase data
+    let moonPhases: Array<{
+      moonName: string;
+      phaseName: string;
+      phaseIcon: string;
+      faIcon: string;
+      moonColor?: string;
+      moonColorIndex: number;
+    }> = [];
+
+    try {
+      const engine = manager.getActiveEngine();
+      if (engine) {
+        const moonPhaseInfo = engine.getMoonPhaseInfo(currentDate);
+        if (moonPhaseInfo && moonPhaseInfo.length > 0) {
+          moonPhases = moonPhaseInfo.map((info: MoonPhaseInfo, index: number) => {
+            const faIcon = MOON_PHASE_ICON_MAP[info.phase.icon];
+            if (!faIcon) {
+              Logger.warn(
+                `Unknown moon phase icon '${info.phase.icon}' for moon '${info.moon.name}', using fallback`
+              );
+            }
+            return {
+              moonName: info.moon.name,
+              phaseName: info.phase.name,
+              phaseIcon: info.phase.icon,
+              faIcon: faIcon || 'circle',
+              moonColor: sanitizeColor(info.moon.color),
+              moonColorIndex: index,
+            };
+          });
+        }
+      }
+    } catch (error) {
+      Logger.debug('Failed to get moon phase data for calendar widget', error);
+    }
+
+    const mainContext = Object.assign(context, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
       formattedDate: currentDate.toLongString(),
@@ -156,7 +200,55 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       playPauseButtonClass: playPauseButtonClass,
       playPauseButtonIcon: playPauseButtonIcon,
       playPauseButtonText: playPauseButtonText,
-      sidebarButtons: this.sidebarButtons, // Include sidebar buttons for template
+      // Moon phase data
+      moonPhases: moonPhases,
+    }) as MainWidgetContext;
+
+    // Cache context for use in _attachPartListeners
+    this.lastRenderContext = mainContext;
+
+    return mainContext;
+  }
+
+  /**
+   * Prepare context for specific parts (sidebar loads buttons from registry)
+   */
+  async _preparePartContext(
+    partId: string,
+    context: Record<string, unknown>
+  ): Promise<Record<string, unknown>> {
+    const baseContext = await super._preparePartContext!(partId, context);
+
+    if (partId === 'sidebar') {
+      const buttons = loadButtonsFromRegistry('main');
+      return { ...baseContext, sidebarButtons: buttons };
+    }
+
+    return baseContext;
+  }
+
+  /**
+   * Apply moon phase colors safely via DOM manipulation
+   * Prevents XSS by injecting CSS custom properties through TypeScript instead of templates
+   * Supports unlimited moons by applying colors directly to elements
+   */
+  private applyMoonPhaseColors(context: MainWidgetContext): void {
+    if (!this.element || !context.moonPhases) return;
+
+    const container = this.element.querySelector('.moon-phases') as HTMLElement;
+    if (!container) return;
+
+    // Set moon count for gap calculation
+    container.style.setProperty('--moon-count', context.moonPhases.length.toString());
+
+    // Apply color to each moon phase element directly (supports unlimited moons)
+    context.moonPhases.forEach((moon, index: number) => {
+      const element = container.querySelector(
+        `.moon-phase[data-moon-index="${index}"]`
+      ) as HTMLElement;
+      if (element && moon.moonColor) {
+        element.style.color = moon.moonColor;
+      }
     });
   }
 
@@ -169,6 +261,11 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     // Register this as the active instance
     CalendarWidget.activeInstance = this;
 
+    // Apply moon phase colors safely if rendering moon phases part
+    if (partId === 'moonPhases' && this.lastRenderContext) {
+      this.applyMoonPhaseColors(this.lastRenderContext);
+    }
+
     // Start auto-update after rendering
     this.startAutoUpdate();
   }
@@ -178,6 +275,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    */
   async _onOpenCalendarSelection(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
+    if (!game.user?.isGM) {
+      return;
+    }
     CalendarSelectionDialog.show();
   }
 
@@ -202,6 +302,11 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    */
   async _onAdvanceDate(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
+
+    if (!game.user?.isGM) {
+      ui.notifications?.warn('Only GMs can advance time');
+      return;
+    }
 
     const amount = parseInt(target.dataset.amount || '0');
     const unit = target.dataset.unit || 'days';
@@ -251,16 +356,6 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   }
 
   /**
-   * Instance action handler for opening bulk advance dialog
-   */
-  async _onOpenBulkAdvance(event: Event, _target: HTMLElement): Promise<void> {
-    event.preventDefault();
-
-    // Show placeholder for now - will implement proper dialog later
-    ui.notifications?.info('Bulk time advancement coming soon!');
-  }
-
-  /**
    * Handle sidebar button clicks
    */
   async _onClickSidebarButton(event: Event, target: HTMLElement): Promise<void> {
@@ -272,8 +367,11 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       return;
     }
 
-    // Find the button in our array and execute its callback
-    const button = this.sidebarButtons.find(btn => btn.name === buttonName);
+    // Find the button in registry and execute its callback
+    const registry = SidebarButtonRegistry.getInstance();
+    const buttons = registry.getForWidget('main');
+    const button = buttons.find(btn => btn.name === buttonName);
+
     if (button && typeof button.callback === 'function') {
       try {
         button.callback();
@@ -291,6 +389,11 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   async _onToggleTimeAdvancement(event: Event, _target?: HTMLElement): Promise<void> {
     event.preventDefault();
 
+    if (!game.user?.isGM) {
+      ui.notifications?.warn('Only GMs can control time advancement');
+      return;
+    }
+
     try {
       const service = TimeAdvancementService.getInstance();
       if (!service) {
@@ -298,7 +401,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         return;
       }
 
-      if (service.shouldShowPauseButton) {
+      // Fix for issue #312: Use isActive instead of shouldShowPauseButton for toggle logic
+      // shouldShowPauseButton is for UI display, not toggle decisions
+      if (service.isActive) {
         service.pause();
         Logger.info('Main widget: Paused time advancement');
       } else {
@@ -461,6 +566,19 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       }
     });
 
+    // Update widget when combat state changes (affects time advancement button state)
+    Hooks.on('combatStart', () => {
+      if (CalendarWidget.activeInstance?.rendered) {
+        CalendarWidget.activeInstance.render();
+      }
+    });
+
+    Hooks.on('deleteCombat', () => {
+      if (CalendarWidget.activeInstance?.rendered) {
+        CalendarWidget.activeInstance.render();
+      }
+    });
+
     // Update widget when settings change (especially quick time buttons)
     Hooks.on('seasons-stars:settingsChanged', (settingName: string) => {
       if (
@@ -470,6 +588,13 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         CalendarWidget.activeInstance?.rendered
       ) {
         CalendarWidget.activeInstance.render();
+      }
+    });
+
+    // Update sidebar when registry buttons change (partial render for performance)
+    Hooks.on('seasons-stars:widgetButtonsChanged', () => {
+      if (CalendarWidget.activeInstance?.rendered) {
+        (CalendarWidget.activeInstance as any).render({ parts: ['sidebar'] });
       }
     });
   }
@@ -516,47 +641,5 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
    */
   static getInstance(): CalendarWidget | null {
     return CalendarWidget.activeInstance;
-  }
-
-  /**
-   * Add a sidebar button for integration with other modules (like Simple Weather)
-   */
-  addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
-    // Check if button already exists
-    const existingButton = this.sidebarButtons.find(btn => btn.name === name);
-    if (existingButton) {
-      Logger.debug(`Button "${name}" already exists in widget`);
-      return;
-    }
-
-    // Store the button
-    this.sidebarButtons.push({ name, icon, tooltip, callback });
-
-    // If rendered, re-render to include the new button
-    if (this.rendered) {
-      this.render();
-    }
-  }
-
-  /**
-   * Remove a sidebar button by name
-   */
-  removeSidebarButton(name: string): void {
-    const index = this.sidebarButtons.findIndex(btn => btn.name === name);
-    if (index !== -1) {
-      this.sidebarButtons.splice(index, 1);
-
-      // Re-render to remove the button
-      if (this.rendered) {
-        this.render();
-      }
-    }
-  }
-
-  /**
-   * Check if a sidebar button exists
-   */
-  hasSidebarButton(name: string): boolean {
-    return this.sidebarButtons.some(btn => btn.name === name);
   }
 }

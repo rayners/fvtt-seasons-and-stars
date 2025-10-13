@@ -10,11 +10,36 @@ export interface ValidationResult {
   warnings: string[];
 }
 
+// AJV error interface for typed error handling
+interface AjvError {
+  keyword: string;
+  instancePath: string;
+  message?: string;
+  params?: Record<string, unknown>;
+}
+
+// AJV validator function type
+interface AjvValidateFunction {
+  (data: unknown): boolean;
+  errors?: AjvError[] | null;
+}
+
+// AJV instance type (using unknown but with type assertions where needed)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AjvInstance = any;
+
 // Lazy-loaded AJV instances to avoid module resolution issues
-let ajvInstance: any = null;
-let validateCalendar: any = null;
-let validateVariants: any = null;
-let validateCollection: any = null;
+let ajvInstance: AjvInstance = null;
+let validateCalendar: AjvValidateFunction = null as unknown as AjvValidateFunction;
+let validateVariants: AjvValidateFunction = null as unknown as AjvValidateFunction;
+let validateCollection: AjvValidateFunction = null as unknown as AjvValidateFunction;
+
+type SourceVerificationOutcome = 'ok' | 'warning' | 'error';
+
+interface SourceVerificationResult {
+  outcome: SourceVerificationOutcome;
+  message?: string;
+}
 
 async function getAjvValidators() {
   if (!ajvInstance) {
@@ -83,9 +108,37 @@ async function getAjvValidators() {
 }
 
 export class CalendarValidator {
+  // Valid root-level calendar properties for case-insensitive matching
+  private static readonly VALID_ROOT_PROPERTIES = [
+    'id',
+    'translations',
+    'sources',
+    'year',
+    'months',
+    'weekdays',
+    'intercalary',
+    'leapYear',
+    'time',
+    'compatibility',
+    'variants',
+    'worldTime',
+    'seasons',
+    'moons',
+    'dateFormats',
+    'canonicalHours',
+    'events',
+    'extensions',
+    'baseCalendar',
+    'name',
+    'description',
+    'author',
+    'version',
+  ];
+
   /**
    * Validate a complete calendar configuration using JSON schema
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static async validate(calendar: any): Promise<ValidationResult> {
     const result: ValidationResult = {
       isValid: true,
@@ -105,14 +158,17 @@ export class CalendarValidator {
       const validators = await getAjvValidators();
 
       // Determine schema type based on structure
-      let validator: any;
-      let schemaType: string;
+      let validator: AjvValidateFunction;
+      let schemaType: 'calendar' | 'variants' | 'collection';
 
-      if (calendar.baseCalendar && calendar.variants) {
+      // Type assertion for calendar structure checks
+      const cal = calendar as Record<string, unknown>;
+
+      if (cal.baseCalendar && cal.variants) {
         // External variants file
         validator = validators.validateVariants;
         schemaType = 'variants';
-      } else if (calendar.calendars && Array.isArray(calendar.calendars)) {
+      } else if (cal.calendars && Array.isArray(cal.calendars)) {
         // Collection index file
         validator = validators.validateCollection;
         schemaType = 'collection';
@@ -126,19 +182,15 @@ export class CalendarValidator {
       const isValid = validator(calendar);
 
       if (!isValid && validator.errors) {
-        // Convert AJV errors to our format
-        for (const error of validator.errors) {
-          const path = error.instancePath ? error.instancePath : 'root';
-          const message = error.message || 'Validation error';
-          result.errors.push(`${path}: ${message}`);
-        }
+        // Convert AJV errors to our format with enhanced messages
+        this.enhanceAjvErrors(validator.errors, calendar, result);
       }
 
       // Add additional custom validations for calendar files
       if (schemaType === 'calendar') {
-        this.validateCalendarSpecific(calendar, result);
+        await this.validateCalendarSpecific(calendar, result);
       } else if (schemaType === 'variants') {
-        this.validateVariantsSpecific(calendar, result);
+        await this.validateVariantsSpecific(calendar, result);
       }
 
       // Add warnings for date formats
@@ -149,13 +201,243 @@ export class CalendarValidator {
     } catch (error) {
       // Fallback to non-schema validation if AJV fails
       console.warn('Schema validation failed, falling back to legacy validation:', error);
-      return this.validateLegacy(calendar);
+      const legacyResult = this.validateLegacy(calendar);
+      await this.validateSourceUrls(calendar, legacyResult);
+      legacyResult.isValid = legacyResult.errors.length === 0;
+      return legacyResult;
     }
+  }
+
+  /**
+   * Enhance AJV errors with helpful suggestions for common mistakes
+   */
+  private static enhanceAjvErrors(
+    ajvErrors: AjvError[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    calendar: any,
+    result: ValidationResult
+  ): void {
+    // Group errors by path to avoid duplicate processing
+    const errorsByPath = new Map<string, AjvError[]>();
+
+    for (const error of ajvErrors) {
+      const path = error.instancePath || 'root';
+      if (!errorsByPath.has(path)) {
+        errorsByPath.set(path, []);
+      }
+      const pathErrors = errorsByPath.get(path);
+      if (pathErrors) {
+        pathErrors.push(error);
+      }
+    }
+
+    // Process each path's errors
+    for (const [path, errors] of errorsByPath) {
+      // Check for additionalProperties errors
+      const additionalPropsErrors = errors.filter(e => e.keyword === 'additionalProperties');
+
+      if (additionalPropsErrors.length > 0 && path === 'root') {
+        // For root-level additional properties, provide enhanced error message
+        const unexpectedProps = this.findUnexpectedProperties(calendar, this.VALID_ROOT_PROPERTIES);
+
+        if (unexpectedProps.length > 0) {
+          const enhancedMessage = this.createEnhancedPropertyError(unexpectedProps);
+          result.errors.push(enhancedMessage);
+        } else {
+          // Fallback to original error if we can't find unexpected properties
+          result.errors.push(`${path}: must NOT have additional properties`);
+        }
+      } else if (additionalPropsErrors.length > 0) {
+        // For nested paths, try to identify the unexpected properties
+        const pathParts = path.split('/').filter(Boolean);
+        const targetObject = this.getObjectAtPath(calendar, pathParts);
+
+        if (targetObject && typeof targetObject === 'object') {
+          // Try to find valid properties for this nested object
+          const validProps = this.getValidPropertiesForPath(path);
+
+          // Only try to identify unexpected properties if we know the valid properties
+          // If validProps is empty, we don't know what's valid, so fallback to generic message
+          if (validProps.length > 0) {
+            const unexpectedProps = this.findUnexpectedProperties(targetObject, validProps);
+
+            if (unexpectedProps.length > 0) {
+              result.errors.push(`${path}: Unexpected properties: ${unexpectedProps.join(', ')}`);
+            } else {
+              result.errors.push(`${path}: must NOT have additional properties`);
+            }
+          } else {
+            // Fallback to generic message when we don't have the valid property list
+            result.errors.push(`${path}: must NOT have additional properties`);
+          }
+        } else {
+          result.errors.push(`${path}: must NOT have additional properties`);
+        }
+      }
+
+      // Add other non-additionalProperties errors
+      for (const error of errors) {
+        if (error.keyword !== 'additionalProperties') {
+          const message = error.message || 'Validation error';
+          result.errors.push(`${path}: ${message}`);
+        }
+      }
+    }
+  }
+
+  /**
+   * Find unexpected properties in an object
+   * A property is unexpected if:
+   * 1. It doesn't match any valid property exactly (case-sensitive), OR
+   * 2. It matches a valid property case-insensitively but not exactly (wrong case)
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private static findUnexpectedProperties(obj: any, validProps: string[]): string[] {
+    if (!obj || typeof obj !== 'object') {
+      return [];
+    }
+
+    const actualProps = Object.keys(obj);
+
+    return actualProps.filter(prop => {
+      // Check for exact match first (case-sensitive)
+      if (validProps.includes(prop)) {
+        return false; // Property is valid with correct case
+      }
+
+      // If no exact match, it's unexpected (whether it's a typo or wrong case)
+      return true;
+    });
+  }
+
+  /**
+   * Create enhanced error message for unexpected properties
+   */
+  private static createEnhancedPropertyError(unexpectedProps: string[]): string {
+    const suggestions: string[] = [];
+
+    for (const prop of unexpectedProps) {
+      const suggestion = this.suggestCorrectProperty(prop, this.VALID_ROOT_PROPERTIES);
+      if (suggestion) {
+        suggestions.push(`'${prop}' (did you mean '${suggestion}'?)`);
+      } else {
+        suggestions.push(`'${prop}'`);
+      }
+    }
+
+    if (suggestions.length === 1) {
+      return `Unexpected property at root: ${suggestions[0]}`;
+    } else {
+      return `Unexpected properties at root: ${suggestions.join(', ')}`;
+    }
+  }
+
+  /**
+   * Suggest the correct property name based on common mistakes
+   */
+  private static suggestCorrectProperty(prop: string, validProps: string[]): string | null {
+    const propLower = prop.toLowerCase();
+
+    // Check for exact case-insensitive match
+    for (const validProp of validProps) {
+      if (validProp.toLowerCase() === propLower) {
+        return validProp;
+      }
+    }
+
+    // Check for Levenshtein distance < 3 for typos
+    let bestMatch: string | null = null;
+    let bestDistance = 3;
+
+    for (const validProp of validProps) {
+      const distance = this.levenshteinDistance(propLower, validProp.toLowerCase());
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestMatch = validProp;
+      }
+    }
+
+    return bestMatch;
+  }
+
+  /**
+   * Calculate Levenshtein distance between two strings
+   */
+  private static levenshteinDistance(str1: string, str2: string): number {
+    const len1 = str1.length;
+    const len2 = str2.length;
+    const matrix: number[][] = [];
+
+    for (let i = 0; i <= len1; i++) {
+      matrix[i] = [i];
+    }
+
+    for (let j = 0; j <= len2; j++) {
+      matrix[0][j] = j;
+    }
+
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+
+    return matrix[len1][len2];
+  }
+
+  /**
+   * Get object at a specific path
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private static getObjectAtPath(obj: any, pathParts: string[]): any {
+    let current = obj;
+    for (const part of pathParts) {
+      if (current && typeof current === 'object') {
+        current = current[part];
+      } else {
+        return null;
+      }
+    }
+    return current;
+  }
+
+  /**
+   * Get valid properties for a specific path (used for nested objects)
+   */
+  private static getValidPropertiesForPath(path: string): string[] {
+    // For common nested paths, return known valid properties
+    if (path.includes('/translations/')) {
+      return ['label', 'description', 'setting', 'yearName'];
+    }
+    if (path.includes('/year')) {
+      return ['epoch', 'currentYear', 'prefix', 'suffix', 'startDay'];
+    }
+    if (path.includes('/leapYear')) {
+      return ['rule', 'interval', 'offset', 'month', 'extraDays'];
+    }
+    if (path.includes('/time')) {
+      return ['hoursInDay', 'minutesInHour', 'secondsInMinute'];
+    }
+    if (path.includes('/months/')) {
+      return ['name', 'length', 'days', 'description', 'abbreviation'];
+    }
+    if (path.includes('/weekdays/')) {
+      return ['name', 'description', 'abbreviation'];
+    }
+
+    // For unknown paths, return empty array (will fall back to generic message)
+    return [];
   }
 
   /**
    * Fallback validation method that doesn't use JSON schemas
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static validateLegacy(calendar: any): ValidationResult {
     const result: ValidationResult = {
       isValid: true,
@@ -199,15 +481,24 @@ export class CalendarValidator {
   /**
    * Additional calendar-specific validations not covered by JSON schema
    */
-  private static validateCalendarSpecific(calendar: any, result: ValidationResult): void {
+
+  private static async validateCalendarSpecific(
+    calendar: any,
+    result: ValidationResult
+  ): Promise<void> {
     // Cross-reference validations for calendar files
     this.validateCrossReferences(calendar, result);
+    await this.validateSourceUrls(calendar, result);
   }
 
   /**
    * Additional variants-specific validations not covered by JSON schema
    */
-  private static validateVariantsSpecific(_calendar: any, _result: ValidationResult): void {
+
+  private static async validateVariantsSpecific(
+    _calendar: any,
+    _result: ValidationResult
+  ): Promise<void> {
     // Add any variants-specific cross-reference validations here
     // Currently, the JSON schema handles most validation
   }
@@ -225,6 +516,7 @@ export class CalendarValidator {
    * - Better to prevent excessive formats at source than manage complex cache eviction
    * - Foundry sessions last 2-4 hours then browser refresh clears cache anyway
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static validateDateFormats(calendar: any, result: ValidationResult): void {
     if (!calendar.dateFormats || typeof calendar.dateFormats !== 'object') {
       return; // dateFormats is optional
@@ -291,6 +583,7 @@ export class CalendarValidator {
   /**
    * Validate cross-references between fields
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static validateCrossReferences(calendar: any, result: ValidationResult): void {
     // Check for unique month names
     if (Array.isArray(calendar.months)) {
@@ -320,6 +613,19 @@ export class CalendarValidator {
         result.errors.push(
           `Leap year month '${calendar.leapYear.month}' does not exist in months list`
         );
+      } else if (calendar.leapYear.extraDays !== undefined) {
+        // Validate that negative leap days don't reduce month below 1 day
+        const targetMonth = calendar.months.find((m: any) => m.name === calendar.leapYear.month);
+        if (targetMonth && calendar.leapYear.extraDays < 0) {
+          const adjustedDays = targetMonth.days + calendar.leapYear.extraDays;
+          if (adjustedDays < 1) {
+            result.warnings.push(
+              `Leap year adjustment of ${calendar.leapYear.extraDays} days would reduce '${
+                calendar.leapYear.month
+              }' to ${adjustedDays} days (will be clamped to 1 day minimum)`
+            );
+          }
+        }
       }
     }
 
@@ -335,6 +641,15 @@ export class CalendarValidator {
             );
           }
         }
+        if (intercalary.before) {
+          const monthExists = calendar.months.some((m: any) => m.name === intercalary.before);
+
+          if (!monthExists) {
+            result.errors.push(
+              `Intercalary day ${index + 1} references non-existent month '${intercalary.before}'`
+            );
+          }
+        }
       });
     }
   }
@@ -342,6 +657,7 @@ export class CalendarValidator {
   /**
    * Validate calendar and provide helpful error messages (synchronous version)
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static validateWithHelp(calendar: any): ValidationResult {
     // Use legacy validation for synchronous operation
     const result = this.validateLegacy(calendar);
@@ -358,6 +674,7 @@ export class CalendarValidator {
   /**
    * Quick validation for just checking if calendar is loadable
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static isValid(calendar: any): boolean {
     return this.validateWithHelp(calendar).isValid;
   }
@@ -365,7 +682,122 @@ export class CalendarValidator {
   /**
    * Get a list of validation errors as strings
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static getErrors(calendar: any): string[] {
     return this.validateWithHelp(calendar).errors;
+  }
+
+  private static shouldVerifySources(): boolean {
+    const envOverride =
+      typeof process !== 'undefined' ? process.env?.SEASONS_AND_STARS_VALIDATE_SOURCES : undefined;
+
+    if (envOverride === 'true') {
+      return true;
+    }
+
+    if (envOverride === 'false') {
+      return false;
+    }
+
+    if (typeof window !== 'undefined') {
+      return false;
+    }
+
+    return typeof process !== 'undefined' && typeof process.versions?.node === 'string';
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private static async validateSourceUrls(calendar: any, result: ValidationResult): Promise<void> {
+    if (!this.shouldVerifySources()) {
+      return;
+    }
+
+    if (!Array.isArray(calendar.sources) || calendar.sources.length === 0) {
+      return;
+    }
+
+    const urlSources = calendar.sources
+      .map((source: any, index: number) => ({ source, index }))
+      .filter(
+        (entry): entry is { source: string; index: number } => typeof entry.source === 'string'
+      );
+
+    if (urlSources.length === 0) {
+      return;
+    }
+
+    const failures: { index: number; url: string; message: string }[] = [];
+    const warningsToRecord: { index: number; url: string; message: string }[] = [];
+
+    for (const { source, index } of urlSources) {
+      const verification = await this.verifySourceUrl(source);
+
+      if (verification.outcome === 'error') {
+        const message = verification.message || 'Unknown error verifying URL';
+        failures.push({ index, url: source, message });
+      } else if (verification.outcome === 'warning' && verification.message) {
+        warningsToRecord.push({ index, url: source, message: verification.message });
+      }
+    }
+
+    failures.forEach(failure => {
+      result.errors.push(
+        `sources[${failure.index}]: Unable to verify URL '${failure.url}' (${failure.message})`
+      );
+    });
+
+    warningsToRecord.forEach(warning => {
+      result.warnings.push(
+        `sources[${warning.index}]: Unable to confirm URL '${warning.url}' (${warning.message})`
+      );
+    });
+  }
+
+  private static async verifySourceUrl(url: string): Promise<SourceVerificationResult> {
+    const requestInit: RequestInit = {
+      method: 'HEAD',
+      redirect: 'follow',
+    };
+
+    const signal = this.createTimeoutSignal(10000);
+    if (signal) {
+      requestInit.signal = signal;
+    }
+
+    try {
+      const response = await fetch(url, requestInit);
+
+      if (response.status >= 200 && response.status < 400) {
+        return { outcome: 'ok' };
+      }
+
+      if (response.status === 405 || response.status === 501) {
+        return { outcome: 'warning', message: `HTTP status ${response.status}` };
+      }
+
+      return { outcome: 'error', message: `HTTP status ${response.status}` };
+    } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        return { outcome: 'warning', message: 'request timed out' };
+      }
+      return { outcome: 'warning', message: error?.message || 'network error' };
+    }
+  }
+
+  private static createTimeoutSignal(timeoutMs: number): AbortSignal | undefined {
+    if (typeof AbortController === 'undefined') {
+      return undefined;
+    }
+
+    if (typeof AbortSignal !== 'undefined' && typeof (AbortSignal as any).timeout === 'function') {
+      return (AbortSignal as any).timeout(timeoutMs);
+    }
+
+    const controller = new AbortController();
+    const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
+    if (typeof (timeoutHandle as any).unref === 'function') {
+      (timeoutHandle as any).unref();
+    }
+    return controller.signal;
   }
 }

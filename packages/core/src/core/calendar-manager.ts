@@ -3,21 +3,69 @@
  */
 
 import type { SeasonsStarsCalendar, CalendarVariant, CalendarSourceInfo } from '../types/calendar';
+import type { CalendarChangeReason, CalendarChangedHookData } from '../types/external-integrations';
 import { CalendarEngine } from './calendar-engine';
+import { EventsManager } from './events-manager';
 import { TimeConverter } from './time-converter';
 import { CalendarValidator } from './calendar-validator';
 import { CalendarDate } from './calendar-date';
 import { CalendarLocalization } from './calendar-localization';
 import { CalendarLoader, type ExternalCalendarSource, type LoadResult } from './calendar-loader';
 import { Logger } from './logger';
+import {
+  saveCalendarDataForSync,
+  clearConflictingCalendarSetting,
+} from '../ui/calendar-file-helpers.js';
 // Calendar list is now loaded dynamically from calendars/index.json
 
 export class CalendarManager {
   public calendars: Map<string, SeasonsStarsCalendar> = new Map();
   public engines: Map<string, CalendarEngine> = new Map();
+  public eventsManagers: Map<string, EventsManager> = new Map();
   private timeConverter: TimeConverter | null = null;
   private activeCalendarId: string | null = null;
   private calendarLoader: CalendarLoader = new CalendarLoader();
+
+  /**
+   * Initialize the calendar manager synchronously from cached data
+   * This method loads only cached calendar data and is used during the init hook
+   * to ensure calendars are available immediately for compatibility bridges
+   */
+  initializeSync(): boolean {
+    Logger.debug('Initializing Calendar Manager synchronously from cached data');
+
+    // Try to load active calendar from cached settings data
+    const savedCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
+    const cachedCalendarData = game.settings?.get(
+      'seasons-and-stars',
+      'activeCalendarData'
+    ) as SeasonsStarsCalendar | null;
+
+    if (savedCalendarId && cachedCalendarData && cachedCalendarData.id === savedCalendarId) {
+      Logger.debug('Loading calendar synchronously from cached data:', savedCalendarId);
+
+      // Load the calendar into the manager
+      const sourceInfo: CalendarSourceInfo = {
+        type: 'builtin',
+        sourceName: 'Seasons & Stars',
+        description: 'Built-in calendar from cached data',
+        icon: 'fa-solid fa-calendar',
+      };
+
+      const success = this.loadCalendar(cachedCalendarData, sourceInfo);
+      if (success) {
+        // Set active calendar synchronously
+        const activateSuccess = this.setActiveCalendarSync(savedCalendarId);
+        if (activateSuccess) {
+          Logger.debug('Successfully initialized calendar synchronously:', savedCalendarId);
+          return true;
+        }
+      }
+    }
+
+    Logger.debug('No cached calendar data available for synchronous initialization');
+    return false;
+  }
 
   /**
    * Initialize the calendar manager
@@ -37,6 +85,10 @@ export class CalendarManager {
 
   /**
    * Complete initialization after settings are registered
+   *
+   * IMPORTANT: During initialization, calendar activation must use saveToSettings: false
+   * to prevent circular update loops. We're loading FROM settings, so writing BACK to
+   * settings would trigger onChange handlers that could reset the calendar state.
    */
   async completeInitialization(): Promise<void> {
     Logger.debug('Completing Calendar Manager initialization');
@@ -52,9 +104,9 @@ export class CalendarManager {
     // Prioritize file-based calendars - if there's a file path, use it regardless of activeCalendar setting
     if (activeCalendarFile && activeCalendarFile.trim() !== '') {
       // Ensure activeCalendar is cleared if it's set (defensive cleanup)
-      if (activeCalendar && activeCalendar.trim() !== '') {
-        Logger.debug('Clearing conflicting activeCalendar setting');
-        await game.settings?.set('seasons-and-stars', 'activeCalendar', '');
+      const clearResult = await clearConflictingCalendarSetting();
+      if (!clearResult.success && clearResult.error) {
+        Logger.error(`Failed to clear conflicting setting during init: ${clearResult.error}`);
       }
       Logger.debug('Loading calendar from file:', activeCalendarFile);
 
@@ -81,6 +133,13 @@ export class CalendarManager {
         if (loadSuccess) {
           // Set it as active using the proper method, but don't save to activeCalendar setting
           await this.setActiveCalendar(result.calendar.id, false);
+
+          // Save the calendar data for other clients to load synchronously
+          const saveResult = await saveCalendarDataForSync(result.calendar);
+          if (!saveResult.success && saveResult.error) {
+            Logger.error(`Failed to save calendar data during init: ${saveResult.error}`);
+          }
+
           Logger.info('Successfully loaded and activated calendar from file:', activeCalendarFile);
           return;
         } else {
@@ -104,14 +163,38 @@ export class CalendarManager {
 
     // Load active calendar from settings
     const savedCalendarId = game.settings?.get('seasons-and-stars', 'activeCalendar') as string;
+    const cachedCalendarData = game.settings?.get(
+      'seasons-and-stars',
+      'activeCalendarData'
+    ) as SeasonsStarsCalendar | null;
 
-    if (savedCalendarId && this.calendars.has(savedCalendarId)) {
-      await this.setActiveCalendar(savedCalendarId);
+    // Try to load from cached calendar data first
+    if (savedCalendarId && cachedCalendarData && cachedCalendarData.id === savedCalendarId) {
+      Logger.debug('Loading calendar from cached data:', savedCalendarId);
+
+      // Load the calendar into the manager if not already present
+      if (!this.calendars.has(savedCalendarId)) {
+        const sourceInfo: CalendarSourceInfo = {
+          type: 'builtin',
+          sourceName: 'Seasons & Stars',
+          description: 'Built-in calendar from cached data',
+          icon: 'fa-solid fa-calendar',
+        };
+        this.loadCalendar(cachedCalendarData, sourceInfo);
+      }
+
+      // Set active calendar without saving to settings during initialization
+      await this.setActiveCalendar(savedCalendarId, false);
+    } else if (savedCalendarId && this.calendars.has(savedCalendarId)) {
+      // Fall back if calendar is already loaded but not cached
+      // Don't save to settings during initialization to avoid triggering onChange handlers
+      await this.setActiveCalendar(savedCalendarId, false);
     } else {
       // Default to first available calendar
       const firstCalendarId = this.calendars.keys().next().value;
       if (firstCalendarId) {
-        await this.setActiveCalendar(firstCalendarId);
+        // Don't save to settings during initialization to avoid triggering onChange handlers
+        await this.setActiveCalendar(firstCalendarId, false);
       }
     }
 
@@ -136,6 +219,28 @@ export class CalendarManager {
       // Fallback to known calendars
       return ['gregorian'];
     }
+  }
+
+  /**
+   * Load built-in calendar definitions synchronously for immediate API availability
+   * Uses Gregorian defaults as fallback to ensure API works immediately
+   */
+  loadBuiltInCalendarsSync(): void {
+    Logger.debug('Loading calendars synchronously - ensuring immediate API availability');
+
+    // For immediate API availability, we need at least one working calendar
+    // Since we can't import synchronously in browser, let's skip the sync approach
+    // and just ensure the async loading happens immediately
+
+    // Start async loading but don't block on it
+    this.loadBuiltInCalendars().catch(error => {
+      Logger.error(
+        'Failed to load calendars asynchronously:',
+        error instanceof Error ? error : new Error(String(error))
+      );
+    });
+
+    Logger.debug('Calendar loading initiated asynchronously');
   }
 
   /**
@@ -216,9 +321,40 @@ export class CalendarManager {
     // Store the base calendar
     this.calendars.set(calendarData.id, calendarData);
 
-    // Create engine for base calendar
-    const engine = new CalendarEngine(calendarData);
-    this.engines.set(calendarData.id, engine);
+    // Create engine for base calendar with error handling
+    let engine: CalendarEngine;
+    try {
+      engine = new CalendarEngine(calendarData);
+      this.engines.set(calendarData.id, engine);
+    } catch (error) {
+      // Remove calendar entry if engine creation fails
+      this.calendars.delete(calendarData.id);
+      Logger.error(
+        `Failed to create calendar engine for ${calendarData.id}:`,
+        error instanceof Error ? error : new Error(String(error))
+      );
+      return false;
+    }
+
+    // Create events manager for this calendar
+    try {
+      const eventsManager = new EventsManager(calendarData, engine);
+      this.eventsManagers.set(calendarData.id, eventsManager);
+
+      // Load world event settings if available
+      if (game.settings) {
+        const worldEvents = game.settings.get('seasons-and-stars', 'worldEvents');
+        if (worldEvents) {
+          eventsManager.setWorldEventSettings(worldEvents);
+        }
+      }
+    } catch (error) {
+      Logger.warn(
+        `Failed to create events manager for ${calendarData.id}:`,
+        error instanceof Error ? error : new Error(String(error))
+      );
+      // Don't fail calendar loading if events manager fails
+    }
 
     // Expand variants if they exist
     if (calendarData.variants) {
@@ -231,11 +367,72 @@ export class CalendarManager {
   }
 
   /**
+   * Set the active calendar synchronously (calendars must already be loaded)
+   */
+  setActiveCalendarSync(calendarId: string): boolean {
+    Logger.debug(`Setting active calendar synchronously: ${calendarId}`);
+
+    // Resolve default variant if setting base calendar with variants
+    const resolvedCalendarId = this.resolveDefaultVariant(calendarId);
+
+    // Check if calendar exists (should be loaded already from init hook)
+    if (!this.calendars.has(resolvedCalendarId)) {
+      Logger.error(`Calendar not found: ${resolvedCalendarId}`);
+      return false;
+    }
+
+    // Get the engine for this calendar
+    const engine = this.engines.get(resolvedCalendarId);
+    if (!engine) {
+      Logger.error(`Engine not found for calendar: ${resolvedCalendarId}`);
+      return false;
+    }
+
+    // Store old calendar ID for hook
+    const oldCalendarId = this.activeCalendarId;
+
+    // Update or create time converter
+    if (this.timeConverter) {
+      this.timeConverter.updateEngine(engine);
+    } else {
+      this.timeConverter = new TimeConverter(engine);
+    }
+
+    // Update active calendar
+    this.activeCalendarId = resolvedCalendarId;
+
+    // Note: Synchronous method doesn't save to settings since world settings
+    // can't be saved during init hook - only the async version saves settings
+
+    // Get calendar data for hook
+    const calendarData = this.calendars.get(resolvedCalendarId);
+
+    // Fire calendar changed event only if calendar actually changed
+    if (oldCalendarId !== resolvedCalendarId) {
+      const hookData: CalendarChangedHookData = {
+        oldCalendarId,
+        newCalendarId: resolvedCalendarId,
+        calendar: calendarData,
+        reason: 'initialization', // Sync method is only used during initialization
+      };
+      Hooks.callAll('seasons-stars:calendarChanged', hookData);
+    }
+
+    Logger.debug(`Active calendar set synchronously: ${resolvedCalendarId}`);
+    return true;
+  }
+
+  /**
    * Set the active calendar
    * @param calendarId The calendar ID to set as active
    * @param saveToSettings Whether to save the calendar ID to settings (default: true)
+   * @param reason Why the calendar is being changed (default: 'settings-sync' during init, 'user-change' after)
    */
-  async setActiveCalendar(calendarId: string, saveToSettings: boolean = true): Promise<boolean> {
+  async setActiveCalendar(
+    calendarId: string,
+    saveToSettings: boolean = true,
+    reason: CalendarChangeReason = 'settings-sync'
+  ): Promise<boolean> {
     // Resolve default variant if setting base calendar with variants
     const resolvedCalendarId = this.resolveDefaultVariant(calendarId);
 
@@ -243,6 +440,9 @@ export class CalendarManager {
       Logger.error(`Calendar not found: ${resolvedCalendarId}`);
       return false;
     }
+
+    // Store old calendar ID for hook
+    const oldCalendarId = this.activeCalendarId;
 
     this.activeCalendarId = resolvedCalendarId;
 
@@ -260,15 +460,32 @@ export class CalendarManager {
     }
 
     // Save to settings only if requested (skip for file-based calendars to avoid mutual exclusion)
-    if (saveToSettings && game.settings) {
+    // Only GMs can save world settings
+    if (saveToSettings && game.settings && game.user?.isGM) {
       await game.settings.set('seasons-and-stars', 'activeCalendar', resolvedCalendarId);
+
+      // Also store the full calendar JSON for synchronous loading
+      const calendarData = this.calendars.get(resolvedCalendarId);
+      if (calendarData) {
+        const saveResult = await saveCalendarDataForSync(calendarData);
+        if (!saveResult.success && saveResult.error) {
+          Logger.error(
+            `Failed to cache calendar data for ${resolvedCalendarId}: ${saveResult.error}`
+          );
+        }
+      }
     }
 
-    // Emit hook for calendar change
-    Hooks.callAll('seasons-stars:calendarChanged', {
-      newCalendarId: resolvedCalendarId,
-      calendar: this.calendars.get(resolvedCalendarId),
-    });
+    // Emit hook for calendar change only if calendar actually changed
+    if (oldCalendarId !== resolvedCalendarId) {
+      const hookData: CalendarChangedHookData = {
+        oldCalendarId,
+        newCalendarId: resolvedCalendarId,
+        calendar: this.calendars.get(resolvedCalendarId),
+        reason,
+      };
+      Hooks.callAll('seasons-stars:calendarChanged', hookData);
+    }
 
     Logger.debug(`Active calendar set to: ${resolvedCalendarId}`);
     return true;
@@ -288,6 +505,14 @@ export class CalendarManager {
   getActiveEngine(): CalendarEngine | null {
     if (!this.activeCalendarId) return null;
     return this.engines.get(this.activeCalendarId) || null;
+  }
+
+  /**
+   * Get the active events manager
+   */
+  getActiveEventsManager(): EventsManager | null {
+    if (!this.activeCalendarId) return null;
+    return this.eventsManagers.get(this.activeCalendarId) || null;
   }
 
   /**
@@ -981,6 +1206,13 @@ export class CalendarManager {
     const module = game.modules.get(moduleId);
     if (!module?.active) {
       Logger.warn(`Module not found or not enabled: ${moduleId}`);
+      return [];
+    }
+
+    // Check if module explicitly states it doesn't provide calendars
+    const providesCalendars = module.flags?.['seasons-and-stars']?.['providesCalendars'];
+    if (providesCalendars === false) {
+      Logger.debug(`Module ${moduleId} explicitly does not provide calendars, skipping`);
       return [];
     }
 

@@ -11,6 +11,11 @@
       "description": "Calendar variants for Star Trek gaming sessions"
     }
   },
+  "sources": [
+    "https://memory-alpha.fandom.com/wiki/Stardate",
+    "https://memory-alpha.fandom.com/wiki/Vulcan_calendar",
+    "https://memory-alpha.fandom.com/wiki/Klingon_calendar"
+  ],
   "variants": {
     "earth-stardate": {
       "name": "Earth Stardate System",

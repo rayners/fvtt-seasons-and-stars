@@ -261,6 +261,14 @@ export class NoteStorage {
    * Generate a date key for indexing (YYYY-MM-DD format)
    */
   private getDateKey(date: ICalendarDate): string {
+    if (
+      !date ||
+      typeof date.year === 'undefined' ||
+      typeof date.month === 'undefined' ||
+      typeof date.day === 'undefined'
+    ) {
+      throw new Error(`Invalid date object passed to getDateKey: ${JSON.stringify(date)}`);
+    }
     const year = date.year.toString().padStart(4, '0');
     const month = date.month.toString().padStart(2, '0');
     const day = date.day.toString().padStart(2, '0');

@@ -38,12 +38,51 @@
               "type": "string",
               "maxLength": 200,
               "description": "Optional description for settings menu"
+            },
+            "yearName": {
+              "type": "string",
+              "maxLength": 100,
+              "description": "Optional custom name for 'year' (e.g., 'Cycle', 'Cycle-Orbit')"
             }
           }
         }
       },
       "additionalProperties": false,
       "description": "Localization data with language codes (e.g., 'en', 'en-US')"
+    },
+    "sources": {
+      "type": "array",
+      "description": "Public URLs or user-supplied bibliographic citations verifying the calendar data",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "format": "uri",
+            "description": "Publicly accessible URL that verifies calendar information"
+          },
+          {
+            "type": "object",
+            "required": ["citation"],
+            "additionalProperties": false,
+            "properties": {
+              "citation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500,
+                "description": "User-supplied bibliographic reference text"
+              },
+              "notes": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "Optional context about how the citation was provided"
+              }
+            },
+            "description": "User-supplied bibliographic citation"
+          }
+        ]
+      }
     },
     "year": {
       "type": "object",
@@ -156,8 +195,18 @@
       "description": "Special days outside the normal calendar structure",
       "items": {
         "type": "object",
-        "required": ["name", "after"],
+        "required": ["name"],
         "additionalProperties": false,
+        "oneOf": [
+          {
+            "required": ["after"],
+            "not": { "required": ["before"] }
+          },
+          {
+            "required": ["before"],
+            "not": { "required": ["after"] }
+          }
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -170,6 +219,12 @@
             "minLength": 1,
             "maxLength": 50,
             "description": "Month name after which this day occurs"
+          },
+          "before": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Month name before which this day occurs"
           },
           "days": {
             "type": "integer",
@@ -221,6 +276,12 @@
           "maximum": 1000,
           "description": "For custom rules: interval between leap years"
         },
+        "offset": {
+          "type": "integer",
+          "minimum": -1000,
+          "maximum": 1000,
+          "description": "Optional year offset applied before interval calculation"
+        },
         "month": {
           "type": "string",
           "minLength": 1,
@@ -229,9 +290,9 @@
         },
         "extraDays": {
           "type": "integer",
-          "minimum": 1,
+          "minimum": -10,
           "maximum": 10,
-          "description": "How many extra days to add"
+          "description": "Number of days to add (positive) or remove (negative) during leap years"
         }
       },
       "allOf": [
@@ -260,6 +321,19 @@
                 "minimum": 1,
                 "maximum": 10,
                 "description": "How many extra days to add"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": ["offset"]
+          },
+          "then": {
+            "properties": {
+              "rule": {
+                "const": "custom",
+                "description": "Offsets are only meaningful for custom interval rules"
               }
             }
           }
@@ -685,6 +759,156 @@
             "type": "string",
             "maxLength": 200,
             "description": "Optional description of the canonical hour"
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "description": "Optional calendar events (holidays, festivals, recurring occasions)",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "recurrence"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Unique identifier for the event (stable, never change after publication)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Display name for the event"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Brief plain text summary for tooltips/previews"
+          },
+          "journalEntryId": {
+            "type": "string",
+            "maxLength": 200,
+            "description": "Optional reference to JournalEntry for rich content"
+          },
+          "recurrence": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": ["type", "month", "day"],
+                "additionalProperties": false,
+                "properties": {
+                  "type": { "const": "fixed" },
+                  "month": { "type": "integer", "minimum": 1 },
+                  "day": { "type": "integer", "minimum": 1 },
+                  "ifDayNotExists": {
+                    "type": "string",
+                    "enum": ["lastDay", "beforeDay", "afterDay"]
+                  }
+                },
+                "description": "Fixed date recurrence (same date each year)"
+              },
+              {
+                "type": "object",
+                "required": ["type", "month", "occurrence", "weekday"],
+                "additionalProperties": false,
+                "properties": {
+                  "type": { "const": "ordinal" },
+                  "month": { "type": "integer", "minimum": 1 },
+                  "occurrence": { "type": "integer", "enum": [1, 2, 3, 4, -1] },
+                  "weekday": { "type": "integer", "minimum": 0 },
+                  "includeIntercalary": { "type": "boolean", "default": false }
+                },
+                "description": "Ordinal recurrence (Nth weekday of month)"
+              },
+              {
+                "type": "object",
+                "required": ["type", "intervalYears", "anchorYear", "month", "day"],
+                "additionalProperties": false,
+                "properties": {
+                  "type": { "const": "interval" },
+                  "intervalYears": { "type": "integer", "minimum": 1 },
+                  "anchorYear": { "type": "integer" },
+                  "month": { "type": "integer", "minimum": 1 },
+                  "day": { "type": "integer", "minimum": 1 },
+                  "ifDayNotExists": {
+                    "type": "string",
+                    "enum": ["lastDay", "beforeDay", "afterDay"]
+                  }
+                },
+                "description": "Interval recurrence (every N years)"
+              }
+            ],
+            "description": "When this event occurs"
+          },
+          "startYear": {
+            "type": "integer",
+            "description": "First year event occurs (omit for all past years)"
+          },
+          "endYear": {
+            "type": "integer",
+            "description": "Last year event occurs (omit for indefinite future)"
+          },
+          "exceptions": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": ["year", "type"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "year": { "type": "integer" },
+                    "type": { "const": "skip" }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": ["year", "type", "moveToMonth", "moveToDay"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "year": { "type": "integer" },
+                    "type": { "const": "move" },
+                    "moveToMonth": { "type": "integer", "minimum": 1 },
+                    "moveToDay": { "type": "integer", "minimum": 1 }
+                  }
+                }
+              ]
+            },
+            "description": "Specific dates to skip/move"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": ["gm-only", "player-visible"],
+            "default": "player-visible",
+            "description": "Event visibility (default: player-visible)"
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "description": "Hex color for calendar display (#RRGGBB)"
+          },
+          "icon": {
+            "type": "string",
+            "maxLength": 100,
+            "description": "CSS icon class (e.g., 'fas fa-star')"
+          },
+          "translations": {
+            "type": "object",
+            "patternProperties": {
+              "^[a-z]{2}(-[A-Z]{2})?$": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "description": { "type": "string", "maxLength": 1000 }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false,
+            "description": "Translations for event name and description"
           }
         }
       }

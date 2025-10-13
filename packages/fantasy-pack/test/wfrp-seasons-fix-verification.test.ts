@@ -76,7 +76,6 @@ describe('WFRP Seasons Fix Verification (Issue #83)', () => {
       });
 
       expect(season).toBeDefined();
-      console.log(`Month ${month}: ${season!.name}`);
     }
   });
 
@@ -88,7 +87,5 @@ describe('WFRP Seasons Fix Verification (Issue #83)', () => {
     const hasValidSeasons = !!(calendar && calendar.seasons && calendar.seasons.length > 0);
 
     expect(hasValidSeasons).toBe(true);
-    console.log('✅ WFRP calendar now passes season validation');
-    console.log('✅ getSeasonInfo() will no longer trigger warning loop');
   });
 });

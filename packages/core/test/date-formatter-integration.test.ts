@@ -160,34 +160,33 @@ describe('DateFormatter Integration Tests', () => {
           readFileSync(eberronPath, 'utf8')
         ) as SeasonsStarsCalendar;
 
-        if (eberronCalendar.dateFormats) {
-          const formatter = new DateFormatter(eberronCalendar);
+        expect(eberronCalendar.dateFormats).toBeDefined();
+        const formatter = new DateFormatter(eberronCalendar);
 
-          // Test a few key formats to ensure they compile and execute
-          const testDate = {
-            year: 998,
-            month: 1,
-            day: 15,
-            weekday: 1,
-            time: { hour: 12, minute: 30, second: 0 },
-          } as CalendarDate;
+        // Test a few key formats to ensure they compile and execute
+        const testDate = {
+          year: 998,
+          month: 1,
+          day: 15,
+          weekday: 1,
+          time: { hour: 12, minute: 30, second: 0 },
+        } as CalendarDate;
 
-          // Test formats that were fixed for syntax
-          expect(() => formatter.formatNamed(testDate, 'week-number')).not.toThrow();
-          expect(() => formatter.formatNamed(testDate, 'historical')).not.toThrow();
-          expect(() => formatter.formatNamed(testDate, 'treaty')).not.toThrow();
+        // Test formats that were fixed for syntax
+        expect(() => formatter.formatNamed(testDate, 'week-number')).not.toThrow();
+        expect(() => formatter.formatNamed(testDate, 'historical')).not.toThrow();
+        expect(() => formatter.formatNamed(testDate, 'treaty')).not.toThrow();
 
-          // Verify the math operations work correctly
-          const weekNumber = formatter.formatNamed(testDate, 'week-number');
-          expect(weekNumber).toContain('Week');
-          expect(weekNumber).toContain('998 YK');
+        // Verify the math operations work correctly
+        const weekNumber = formatter.formatNamed(testDate, 'week-number');
+        expect(weekNumber).toContain('Week');
+        expect(weekNumber).toContain('998 YK');
 
-          const historical = formatter.formatNamed(testDate, 'historical');
-          expect(historical).toContain('104 years'); // 998 - 894
+        const historical = formatter.formatNamed(testDate, 'historical');
+        expect(historical).toContain('104 years'); // 998 - 894
 
-          const treaty = formatter.formatNamed(testDate, 'treaty');
-          expect(treaty).toContain('+2'); // 998 - 996
-        }
+        const treaty = formatter.formatNamed(testDate, 'treaty');
+        expect(treaty).toContain('+2'); // 998 - 996
       } catch (error) {
         throw new Error(`Eberron calendar template validation failed: ${error.message}`);
       }
@@ -207,44 +206,44 @@ describe('DateFormatter Integration Tests', () => {
         );
         const starTrekVariants = JSON.parse(readFileSync(starTrekPath, 'utf8'));
 
-        // Get the Star Trek variant from the variants object
-        const starTrekCalendar = starTrekVariants.variants?.['star-trek-calendar'];
-        if (starTrekCalendar?.overrides?.dateFormats) {
-          // Create a test calendar by merging base Gregorian with Star Trek overrides
-          const gregorianPath = join(__dirname, '..', 'calendars', 'gregorian.json');
-          const baseCalendar = JSON.parse(
-            readFileSync(gregorianPath, 'utf8')
-          ) as SeasonsStarsCalendar;
+        // Get the Federation Standard variant from the variants object
+        const starTrekCalendar = starTrekVariants.variants?.['federation-standard'];
+        expect(starTrekCalendar?.overrides?.dateFormats).toBeDefined();
 
-          // Apply Star Trek overrides
-          const testCalendar = {
-            ...baseCalendar,
-            id: 'star-trek-test',
-            dateFormats: starTrekCalendar.overrides.dateFormats,
-          };
+        // Create a test calendar by merging base Gregorian with Star Trek overrides
+        const gregorianPath = join(__dirname, '..', 'calendars', 'gregorian.json');
+        const baseCalendar = JSON.parse(
+          readFileSync(gregorianPath, 'utf8')
+        ) as SeasonsStarsCalendar;
 
-          const formatter = new DateFormatter(testCalendar);
+        // Apply Star Trek overrides
+        const testCalendar = {
+          ...baseCalendar,
+          id: 'star-trek-test',
+          dateFormats: starTrekCalendar.overrides.dateFormats,
+        };
 
-          const testDate = {
-            year: 2370,
-            month: 1,
-            day: 15,
-            weekday: 1,
-            time: { hour: 12, minute: 30, second: 0 },
-          } as CalendarDate;
+        const formatter = new DateFormatter(testCalendar);
 
-          // Test formats that were fixed for syntax
-          expect(() => formatter.formatNamed(testDate, 'tos-stardate')).not.toThrow();
-          expect(() => formatter.formatNamed(testDate, 'tng-stardate')).not.toThrow();
-          expect(() => formatter.formatNamed(testDate, 'ds9-stardate')).not.toThrow();
+        const testDate = {
+          year: 2370,
+          month: 1,
+          day: 15,
+          weekday: 1,
+          time: { hour: 12, minute: 30, second: 0 },
+        } as CalendarDate;
 
-          // Verify the stardate calculations work
-          const tosStardate = formatter.formatNamed(testDate, 'tos-stardate');
-          expect(tosStardate).toContain('1070.15'); // (2370-1300).15
+        // Test formats that were fixed for syntax
+        expect(() => formatter.formatNamed(testDate, 'tos-stardate')).not.toThrow();
+        expect(() => formatter.formatNamed(testDate, 'tng-stardate')).not.toThrow();
+        expect(() => formatter.formatNamed(testDate, 'ds9-stardate')).not.toThrow();
 
-          const tngStardate = formatter.formatNamed(testDate, 'tng-stardate');
-          expect(tngStardate).toContain('47000.'); // prefix 47 + (2370-2370) + day
-        }
+        // Verify the stardate calculations work
+        const tosStardate = formatter.formatNamed(testDate, 'tos-stardate');
+        expect(tosStardate).toBe('1070.15'); // (2370-1300).15
+
+        const tngStardate = formatter.formatNamed(testDate, 'tng-stardate');
+        expect(tngStardate).toBe('47015.0'); // prefix 47 + dayOfYear 15
       } catch (error) {
         throw new Error(`Star Trek calendar template validation failed: ${error.message}`);
       }
@@ -258,30 +257,32 @@ describe('DateFormatter Integration Tests', () => {
         { filename: 'traveller-imperial.json', pack: 'scifi-pack' },
       ];
 
+      const basePaths: Record<string, string> = {
+        core: join(__dirname, '..', 'calendars'),
+        'fantasy-pack': join(__dirname, '..', '..', '..', 'packages', 'fantasy-pack', 'calendars'),
+        'scifi-pack': join(__dirname, '..', '..', '..', 'packages', 'scifi-pack', 'calendars'),
+      };
+
       calendarFiles.forEach(({ filename, pack }) => {
         try {
-          const calendarPath =
-            pack === 'core'
-              ? join(__dirname, '..', 'calendars', filename)
-              : join(__dirname, '..', '..', '..', 'packages', pack, 'calendars', filename);
+          const calendarPath = join(basePaths[pack], filename);
           const calendar = JSON.parse(readFileSync(calendarPath, 'utf8')) as SeasonsStarsCalendar;
 
-          if (calendar.dateFormats) {
-            Object.entries(calendar.dateFormats).forEach(([formatName, template]) => {
-              if (typeof template === 'string') {
-                try {
-                  // Test that the template can be compiled
-                  Handlebars.compile(template);
-                } catch (compileError) {
-                  throw new Error(
-                    `Template '${formatName}' in ${filename} has syntax error: ${compileError.message}`
-                  );
-                }
+          const dateFormats = calendar.dateFormats ?? {};
+          Object.entries(dateFormats)
+            .filter(([, template]) => typeof template === 'string')
+            .forEach(([formatName, template]) => {
+              try {
+                // Test that the template can be compiled
+                Handlebars.compile(template as string);
+              } catch (compileError) {
+                throw new Error(
+                  `Template '${formatName}' in ${filename} has syntax error: ${(compileError as Error).message}`
+                );
               }
             });
-          }
         } catch (error) {
-          throw new Error(`Calendar ${filename} validation failed: ${error.message}`);
+          throw new Error(`Calendar ${filename} validation failed: ${(error as Error).message}`);
         }
       });
     });

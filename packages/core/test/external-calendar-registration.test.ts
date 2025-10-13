@@ -38,13 +38,10 @@ describe('External Calendar Registration Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     manager = new CalendarManager();
+    hookCallback = undefined;
 
-    // Capture the hook callback when it's called
-    (global.Hooks.callAll as any).mockImplementation((hookName: string, payload: any) => {
-      if (hookName === 'seasons-stars:registerExternalCalendars') {
-        hookCallback = payload;
-      }
-    });
+    // Capture calls to the registration hook without conditional logic
+    (global.Hooks.callAll as any).mockImplementation(() => {});
   });
 
   it('should fire registration hook during initialization', async () => {
@@ -69,6 +66,9 @@ describe('External Calendar Registration Hook', () => {
     vi.spyOn(manager as any, 'completeInitialization').mockResolvedValue(undefined);
 
     await manager.initialize();
+    hookCallback = (global.Hooks.callAll as any).mock.calls.find(
+      ([hookName]: any[]) => hookName === 'seasons-stars:registerExternalCalendars'
+    )[1];
 
     // Ensure we captured the hook callback
     expect(hookCallback).toBeDefined();
@@ -137,6 +137,9 @@ describe('External Calendar Registration Hook', () => {
     vi.spyOn(manager as any, 'completeInitialization').mockResolvedValue(undefined);
 
     await manager.initialize();
+    hookCallback = (global.Hooks.callAll as any).mock.calls.find(
+      ([hookName]: any[]) => hookName === 'seasons-stars:registerExternalCalendars'
+    )[1];
 
     // Test with invalid data (missing id)
     const invalidCalendar = {
@@ -155,6 +158,9 @@ describe('External Calendar Registration Hook', () => {
     vi.spyOn(manager as any, 'completeInitialization').mockResolvedValue(undefined);
 
     await manager.initialize();
+    hookCallback = (global.Hooks.callAll as any).mock.calls.find(
+      ([hookName]: any[]) => hookName === 'seasons-stars:registerExternalCalendars'
+    )[1];
 
     // Mock loadCalendar to return false (validation failure)
     vi.spyOn(manager, 'loadCalendar').mockReturnValue(false);

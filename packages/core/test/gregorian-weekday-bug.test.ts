@@ -221,18 +221,6 @@ describe('Gregorian Calendar Weekday Calculation Bug Fix', () => {
           w => w.name === testCase.expectedWeekday
         );
 
-        console.log(`\nTesting: ${testCase.description}`);
-        console.log(`Date: ${testCase.year}/${testCase.month}/${testCase.day}`);
-        console.log(`Expected: ${testCase.expectedWeekday} (index ${expectedIndex})`);
-        console.log(`Calculated: ${weekdayName} (index ${weekdayIndex})`);
-
-        if (weekdayIndex !== expectedIndex) {
-          const offset = expectedIndex - weekdayIndex;
-          console.log(`❌ MISMATCH: Off by ${offset} positions`);
-        } else {
-          console.log(`✅ CORRECT: Weekday matches expected value`);
-        }
-
         expect(weekdayIndex).toBe(expectedIndex);
         expect(weekdayName).toBe(testCase.expectedWeekday);
       });
@@ -241,8 +229,6 @@ describe('Gregorian Calendar Weekday Calculation Bug Fix', () => {
 
   describe('Edge Case Testing', () => {
     it('should handle month boundaries correctly', () => {
-      console.log('\n=== MONTH BOUNDARY TESTING ===');
-
       // Test end of February in leap year vs non-leap year
       const feb28_2023 = engine.calculateWeekday(2023, 2, 28); // Tuesday
       const mar1_2023 = engine.calculateWeekday(2023, 3, 1); // Wednesday (next day)
@@ -251,21 +237,13 @@ describe('Gregorian Calendar Weekday Calculation Bug Fix', () => {
       const feb29_2024 = engine.calculateWeekday(2024, 2, 29); // Thursday (leap day)
       const mar1_2024 = engine.calculateWeekday(2024, 3, 1); // Friday (day after leap day)
 
-      console.log(`2023 (non-leap): Feb 28 = ${feb28_2023}, Mar 1 = ${mar1_2023}`);
-      console.log(
-        `2024 (leap): Feb 28 = ${feb28_2024}, Feb 29 = ${feb29_2024}, Mar 1 = ${mar1_2024}`
-      );
-
       // Verify weekday progression
       expect((feb28_2023 + 1) % 7).toBe(mar1_2023); // Non-leap year: direct progression
+      expect((feb28_2024 + 1) % 7).toBe(feb29_2024); // Leap year: Feb 28 -> Feb 29
       expect((feb29_2024 + 1) % 7).toBe(mar1_2024); // Leap year: progression after leap day
-
-      console.log('✅ MONTH BOUNDARIES: Correctly handled leap year differences');
     });
 
     it('should handle year boundaries correctly', () => {
-      console.log('\n=== YEAR BOUNDARY TESTING ===');
-
       // Test Dec 31 -> Jan 1 transitions for multiple years
       const yearTransitions = [
         { year: 2023, dec31: 0, jan1: 1 }, // Sunday -> Monday
@@ -277,19 +255,13 @@ describe('Gregorian Calendar Weekday Calculation Bug Fix', () => {
         const dec31 = engine.calculateWeekday(transition.year, 12, 31);
         const jan1 = engine.calculateWeekday(transition.year + 1, 1, 1);
 
-        console.log(`${transition.year}/12/31 -> ${transition.year + 1}/1/1: ${dec31} -> ${jan1}`);
-
         expect(dec31).toBe(transition.dec31);
         expect(jan1).toBe(transition.jan1);
         expect((dec31 + 1) % 7).toBe(jan1); // Should be consecutive weekdays
       });
-
-      console.log('✅ YEAR BOUNDARIES: Correctly handled year transitions');
     });
 
     it('should handle century leap year rules correctly', () => {
-      console.log('\n=== CENTURY LEAP YEAR TESTING ===');
-
       // Test century years: divisible by 100 but not 400 are NOT leap years
       const centuryTests = [
         { year: 1700, isLeap: false, description: 'Not divisible by 400' },
@@ -304,8 +276,6 @@ describe('Gregorian Calendar Weekday Calculation Bug Fix', () => {
         const isLeap = engine.isLeapYear(test.year);
         const yearLength = engine.getYearLength(test.year);
         const expectedLength = test.isLeap ? 366 : 365;
-
-        console.log(`${test.year}: isLeap=${isLeap}, length=${yearLength} (${test.description})`);
 
         expect(isLeap).toBe(test.isLeap);
         expect(yearLength).toBe(expectedLength);
@@ -322,8 +292,6 @@ describe('Gregorian Calendar Weekday Calculation Bug Fix', () => {
           expect((feb28 + 1) % 7).toBe(mar1);
         }
       });
-
-      console.log('✅ CENTURY LEAP YEARS: Correctly handled special leap year rules');
     });
   });
 

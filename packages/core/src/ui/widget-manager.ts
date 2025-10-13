@@ -9,11 +9,11 @@ import { Logger } from '../core/logger';
 
 export type WidgetType = 'main' | 'mini' | 'grid';
 
-export interface WidgetInstance {
+export interface WidgetInstance<T = unknown> {
   show(): Promise<void>;
   hide(): Promise<void>;
   toggle(): Promise<void>;
-  getInstance(): any;
+  getInstance(): T;
   isVisible(): boolean;
 }
 
@@ -143,9 +143,9 @@ export class CalendarWidgetManager {
   /**
    * Get the actual widget instance for direct access
    */
-  static getWidgetInstance(type: WidgetType): any {
+  static getWidgetInstance<T = unknown>(type: WidgetType): T | null {
     const widget = this.getWidget(type);
-    return widget ? widget.getInstance() : null;
+    return widget ? (widget.getInstance() as T) : null;
   }
 
   /**
@@ -189,9 +189,9 @@ export class CalendarWidgetManager {
 /**
  * Widget wrapper class to make any widget compatible with the manager
  */
-export class WidgetWrapper implements WidgetInstance {
+export class WidgetWrapper<T extends object> implements WidgetInstance<T> {
   constructor(
-    private widget: any,
+    private widget: T,
     private showMethod: string = 'render',
     private hideMethod: string = 'close',
     private toggleMethod: string = 'toggle',
@@ -200,20 +200,23 @@ export class WidgetWrapper implements WidgetInstance {
   ) {}
 
   async show(): Promise<void> {
-    if (this.widget && typeof this.widget[this.showMethod] === 'function') {
-      await this.widget[this.showMethod]();
+    const fn = (this.widget as Record<string, unknown>)[this.showMethod];
+    if (typeof fn === 'function') {
+      await (fn as () => Promise<void>).call(this.widget);
     }
   }
 
   async hide(): Promise<void> {
-    if (this.widget && typeof this.widget[this.hideMethod] === 'function') {
-      await this.widget[this.hideMethod]();
+    const fn = (this.widget as Record<string, unknown>)[this.hideMethod];
+    if (typeof fn === 'function') {
+      await (fn as () => Promise<void>).call(this.widget);
     }
   }
 
   async toggle(): Promise<void> {
-    if (this.widget && typeof this.widget[this.toggleMethod] === 'function') {
-      await this.widget[this.toggleMethod]();
+    const fn = (this.widget as Record<string, unknown>)[this.toggleMethod];
+    if (typeof fn === 'function') {
+      await (fn as () => Promise<void>).call(this.widget);
     } else {
       // Fallback toggle implementation
       if (this.isVisible()) {
@@ -224,17 +227,15 @@ export class WidgetWrapper implements WidgetInstance {
     }
   }
 
-  getInstance(): any {
-    if (this.widget && typeof this.widget[this.getInstanceMethod] === 'function') {
-      return this.widget[this.getInstanceMethod]();
+  getInstance(): T {
+    const fn = (this.widget as Record<string, unknown>)[this.getInstanceMethod];
+    if (typeof fn === 'function') {
+      return (fn as () => T).call(this.widget);
     }
     return this.widget;
   }
 
   isVisible(): boolean {
-    if (this.widget && this.isVisibleProperty in this.widget) {
-      return Boolean(this.widget[this.isVisibleProperty]);
-    }
-    return false;
+    return Boolean((this.widget as Record<string, unknown>)[this.isVisibleProperty]);
   }
 }

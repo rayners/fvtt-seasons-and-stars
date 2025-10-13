@@ -63,11 +63,6 @@ describe('Star Trek Variant Manual Test', () => {
     expect(federationCalendar).toBeDefined();
 
     if (federationCalendar) {
-      console.log(
-        'Federation calendar dateFormats:',
-        JSON.stringify(federationCalendar.dateFormats, null, 2)
-      );
-
       // Verify that dateFormats were applied
       expect(federationCalendar.dateFormats).toBeDefined();
       expect(federationCalendar.dateFormats?.widgets?.mini).toBe(

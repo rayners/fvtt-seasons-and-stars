@@ -1,5 +1,5 @@
 {{!-- Calendar Mini Widget Template --}}
-<div class="calendar-mini-content">
+<div class="calendar-mini-content{{#if compactMode}} compact-mode{{/if}}">
   {{#if error}}
     <div class="mini-error">{{error}}</div>
   {{else}}
@@ -7,30 +7,55 @@
       {{#if showDayOfWeek}}
         <div class="mini-weekday">{{weekdayDisplay}}</div>
       {{/if}}
-      <div class="mini-date" data-action="openCalendarSelection" title="{{shortDate}} (Click for larger view, Double-click to change calendar)">
+      <div class="mini-date" data-action="openCalendarSelection" data-tooltip="{{shortDate}} (Click for larger view, Double-click to change calendar)">
         {{shortDate}}{{#if showTime}}<span class="mini-time"> {{timeString}}</span>{{/if}}
       </div>
       {{#if isGM}}
         <div class="mini-play-pause-controls">
-          <button data-action="toggleTimeAdvancement" 
+          <button data-action="toggleTimeAdvancement"
                   class="play-pause-btn {{#if timeAdvancementActive}}active{{/if}}"
-                  title="{{#if timeAdvancementActive}}Pause{{else}}Play{{/if}} time advancement ({{advancementRatioDisplay}})">
+                  data-tooltip="{{#if timeAdvancementActive}}Pause{{else}}Play{{/if}} time advancement ({{advancementRatioDisplay}})">
             <i class="fas fa-{{#if timeAdvancementActive}}pause{{else}}play{{/if}}"></i>
           </button>
         </div>
       {{/if}}
     </div>
-    {{#if showTimeControls}}
-      <div class="mini-time-controls">
-        {{#each (getQuickTimeButtons true)}}
-          <button data-action="advanceTime" 
-                  data-amount="{{this.amount}}" 
-                  data-unit="{{this.unit}}"
-                  class="{{#if (lt this.amount 0)}}rewind{{/if}}"
-                  title="{{#if (lt this.amount 0)}}Go back{{else}}Advance{{/if}} {{this.label}}">
-            <i class="fas fa-{{#if (lt this.amount 0)}}backward{{else}}clock{{/if}}"></i> {{#if (lt this.amount 0)}}{{this.label}}{{else}}+{{this.label}}{{/if}}
-          </button>
-        {{/each}}
+
+    <div data-application-part="moonPhases"></div>
+
+    {{#if (or showTimeControls sidebarButtons.length)}}
+      <div class="mini-footer-row{{#unless showTimeControls}} mini-footer-row--no-quick{{/unless}}">
+        {{#if showTimeControls}}
+          <div class="mini-time-controls">
+            {{#each (getQuickTimeButtons true)}}
+              <button data-action="advanceTime"
+                      data-amount="{{this.amount}}"
+                      data-unit="{{this.unit}}"
+                      class="{{#if (lt this.amount 0)}}rewind{{/if}}"
+                      data-tooltip="{{#if (lt this.amount 0)}}Go back{{else}}Advance{{/if}} {{this.label}}">
+                <i class="fas fa-{{#if (lt this.amount 0)}}backward{{else}}clock{{/if}} fa-fw"></i> {{#if (lt this.amount 0)}}{{this.label}}{{else}}+{{this.label}}{{/if}}
+              </button>
+            {{/each}}
+          </div>
+        {{else}}
+          <div class="mini-time-controls mini-time-controls--empty"></div>
+        {{/if}}
+
+        {{#if sidebarButtons.length}}
+          <div class="mini-sidebar-buttons">
+            {{#each sidebarButtons}}
+              <button
+                type="button"
+                class="mini-sidebar-button"
+                data-tooltip="{{this.tooltip}}"
+                data-action="clickSidebarButton"
+                data-button-name="{{this.name}}"
+              >
+                <i class="{{this.icon}} fa-fw"></i>
+              </button>
+            {{/each}}
+          </div>
+        {{/if}}
       </div>
     {{/if}}
   {{/if}}

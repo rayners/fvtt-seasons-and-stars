@@ -10,6 +10,11 @@ import { CalendarWidgetManager } from '../../src/ui/widget-manager';
 import { CalendarDate } from '../../src/core/calendar-date';
 import { mockStandardCalendar } from '../mocks/calendar-mocks';
 import type { SeasonsStarsCalendar } from '../../src/types/calendar';
+import {
+  addSidebarButton,
+  removeSidebarButton,
+  hasSidebarButton,
+} from '../../src/ui/sidebar-button-mixin';
 
 // Mock TimeAdvancementService
 let mockServiceInstance: any = {
@@ -49,6 +54,21 @@ vi.mock('../../src/ui/calendar-selection-dialog', () => ({
     render: vi.fn(),
   })),
 }));
+
+// Mock foundry.utils and Draggable
+(global as any).foundry = {
+  utils: {
+    mergeObject: (original: any, other: any) => ({ ...original, ...other }),
+  },
+  applications: {
+    ux: {
+      Draggable: vi.fn().mockImplementation(() => ({
+        _onDragMouseDown: vi.fn(),
+        _onDragMouseUp: vi.fn(),
+      })),
+    },
+  },
+};
 
 describe('CalendarMiniWidget', () => {
   let widget: CalendarMiniWidget;
@@ -144,7 +164,7 @@ describe('CalendarMiniWidget', () => {
       mockElement.innerHTML = `
         <div class="calendar-mini-content">
           <div class="mini-header-row">
-            <div class="mini-date" data-action="openCalendarSelection" title="Test Date (Click for larger view, Double-click to change calendar)">
+            <div class="mini-date" data-action="openCalendarSelection" data-tooltip="Test Date (Click for larger view, Double-click to change calendar)">
               Test Date
             </div>
           </div>
@@ -527,28 +547,321 @@ describe('CalendarMiniWidget', () => {
 
     it('should add sidebar button', () => {
       const callback = vi.fn();
-      widget.addSidebarButton('test-button', 'fas fa-cog', 'Test Button', callback);
+      addSidebarButton('mini', {
+        name: 'test-button',
+        icon: 'fas fa-cog',
+        tooltip: 'Test Button',
+        callback,
+      });
 
-      expect(widget.hasSidebarButton('test-button')).toBe(true);
+      expect(hasSidebarButton('mini', 'test-button')).toBe(true);
     });
 
     it('should remove sidebar button', () => {
       const callback = vi.fn();
-      widget.addSidebarButton('test-button', 'fas fa-cog', 'Test Button', callback);
+      addSidebarButton('mini', {
+        name: 'test-button',
+        icon: 'fas fa-cog',
+        tooltip: 'Test Button',
+        callback,
+      });
 
-      expect(widget.hasSidebarButton('test-button')).toBe(true);
+      expect(hasSidebarButton('mini', 'test-button')).toBe(true);
 
-      widget.removeSidebarButton('test-button');
-      expect(widget.hasSidebarButton('test-button')).toBe(false);
+      removeSidebarButton('mini', 'test-button');
+      expect(hasSidebarButton('mini', 'test-button')).toBe(false);
     });
 
     it('should not add duplicate sidebar buttons', () => {
       const callback = vi.fn();
-      widget.addSidebarButton('test-button', 'fas fa-cog', 'Test Button', callback);
-      widget.addSidebarButton('test-button', 'fas fa-star', 'Different Button', callback);
+      addSidebarButton('mini', {
+        name: 'test-button',
+        icon: 'fas fa-cog',
+        tooltip: 'Test Button',
+        callback,
+      });
+      addSidebarButton('mini', {
+        name: 'test-button',
+        icon: 'fas fa-star',
+        tooltip: 'Different Button',
+        callback,
+      });
 
       // Should still only have one button with original settings
-      expect(widget.hasSidebarButton('test-button')).toBe(true);
+      expect(hasSidebarButton('mini', 'test-button')).toBe(true);
+    });
+  });
+
+  describe('Viewport Bounds Checking', () => {
+    beforeEach(() => {
+      global.window = { innerHeight: 768, innerWidth: 1024 } as any;
+    });
+
+    describe('Viewport Bounds Detection', () => {
+      it('should detect when position would be outside top viewport boundary', () => {
+        const position = { top: -50, left: 100 };
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideTop).toBe(true);
+        expect(bounds.outsideBottom).toBe(false);
+        expect(bounds.outsideLeft).toBe(false);
+        expect(bounds.outsideRight).toBe(false);
+      });
+
+      it('should detect when position would be outside bottom viewport boundary', () => {
+        const position = { top: 800, left: 100 };
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideTop).toBe(false);
+        expect(bounds.outsideBottom).toBe(true);
+        expect(bounds.outsideLeft).toBe(false);
+        expect(bounds.outsideRight).toBe(false);
+      });
+
+      it('should detect when position would be outside left viewport boundary', () => {
+        const position = { top: 100, left: -20 };
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideTop).toBe(false);
+        expect(bounds.outsideBottom).toBe(false);
+        expect(bounds.outsideLeft).toBe(true);
+        expect(bounds.outsideRight).toBe(false);
+      });
+
+      it('should detect when position would be outside right viewport boundary', () => {
+        const position = { top: 100, left: 1100 };
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideTop).toBe(false);
+        expect(bounds.outsideBottom).toBe(false);
+        expect(bounds.outsideLeft).toBe(false);
+        expect(bounds.outsideRight).toBe(true);
+      });
+
+      it('should detect when position is within all viewport boundaries', () => {
+        const position = { top: 100, left: 100 };
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideTop).toBe(false);
+        expect(bounds.outsideBottom).toBe(false);
+        expect(bounds.outsideLeft).toBe(false);
+        expect(bounds.outsideRight).toBe(false);
+      });
+
+      it('should account for widget dimensions when checking boundaries', () => {
+        // Widget is estimated at 200px wide and 80px tall
+        const position = { top: 700, left: 900 }; // Would put bottom-right corner outside
+        const bounds = widget.isPositionOutsideViewport(position);
+        expect(bounds.outsideBottom).toBe(true);
+        expect(bounds.outsideRight).toBe(true);
+      });
+    });
+
+    describe('Viewport Bounds Correction', () => {
+      it('should correct position when outside top boundary', () => {
+        const position = { top: -50, left: 100 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBeGreaterThanOrEqual(10); // Minimum padding from edge
+        expect(corrected.left).toBe(100); // Left unchanged
+      });
+
+      it('should correct position when outside bottom boundary', () => {
+        const position = { top: 800, left: 100 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBeLessThanOrEqual(768 - 80 - 10); // viewport - widget height - padding
+        expect(corrected.left).toBe(100); // Left unchanged
+      });
+
+      it('should correct position when outside left boundary', () => {
+        const position = { top: 100, left: -50 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBe(100); // Top unchanged
+        expect(corrected.left).toBeGreaterThanOrEqual(10); // Minimum padding from edge
+      });
+
+      it('should correct position when outside right boundary', () => {
+        const position = { top: 100, left: 1100 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBe(100); // Top unchanged
+        expect(corrected.left).toBeLessThanOrEqual(1024 - 200 - 10); // viewport - widget width - padding
+      });
+
+      it('should correct multiple boundaries simultaneously', () => {
+        const position = { top: -50, left: -50 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBeGreaterThanOrEqual(10);
+        expect(corrected.left).toBeGreaterThanOrEqual(10);
+      });
+
+      it('should not change position when within boundaries', () => {
+        const position = { top: 100, left: 100 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBe(100);
+        expect(corrected.left).toBe(100);
+      });
+
+      it('should handle edge case at exact viewport boundaries', () => {
+        const position = { top: 0, left: 0 };
+        const corrected = widget.correctPositionForViewport(position);
+        expect(corrected.top).toBeGreaterThanOrEqual(10); // Should add padding
+        expect(corrected.left).toBeGreaterThanOrEqual(10); // Should add padding
+      });
+    });
+
+    describe('Fallback Position Strategy', () => {
+      it('should calculate sensible fallback position based on viewport size', () => {
+        const fallback = widget.getFallbackPosition();
+
+        // Should be in lower-left area (typical for UI widgets)
+        expect(fallback.top).toBe(768 - 150); // Bottom offset
+        expect(fallback.left).toBe(20); // Left margin
+      });
+
+      it('should adjust fallback position for small viewports', () => {
+        global.window = { innerHeight: 400, innerWidth: 600 } as any;
+        const fallback = widget.getFallbackPosition();
+
+        // Should still be visible but adjusted for small screen
+        expect(fallback.top).toBe(250); // 400 - 150
+        expect(fallback.left).toBe(20);
+      });
+
+      it('should handle missing window object gracefully', () => {
+        const originalWindow = global.window;
+        (global as any).window = undefined;
+
+        const position = { top: 100, left: 100 };
+        const corrected = widget.correctPositionForViewport(position);
+
+        // Should return original position when window is unavailable
+        expect(corrected).toEqual(position);
+
+        global.window = originalWindow;
+      });
+
+      it('should handle zero-sized viewport', () => {
+        global.window = { innerHeight: 0, innerWidth: 0 } as any;
+
+        const position = { top: 100, left: 100 };
+        const corrected = widget.correctPositionForViewport(position);
+
+        // Should apply minimum positioning
+        expect(corrected.top).toBeGreaterThanOrEqual(0);
+        expect(corrected.left).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle NaN or invalid position values', () => {
+        const position = { top: NaN, left: undefined as any };
+        const corrected = widget.correctPositionForViewport(position);
+
+        // Should return fallback position
+        expect(Number.isFinite(corrected.top)).toBe(true);
+        expect(Number.isFinite(corrected.left)).toBe(true);
+      });
+
+      it('should handle extremely large position values', () => {
+        const position = { top: Number.MAX_SAFE_INTEGER, left: Number.MAX_SAFE_INTEGER };
+        const corrected = widget.correctPositionForViewport(position);
+
+        // Should clamp to viewport
+        expect(corrected.top).toBeLessThan(1000);
+        expect(corrected.left).toBeLessThan(1500);
+      });
+    });
+
+    describe('getMiniDimensions()', () => {
+      it('should return actual dimensions when element exists and has size', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockReturnValue({
+            getBoundingClientRect: vi.fn().mockReturnValue({
+              width: 250,
+              height: 150,
+            }),
+          }),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions).toEqual({ width: 250, height: 150 });
+        expect(mockElement.querySelector).toHaveBeenCalledWith('.calendar-mini-content');
+      });
+
+      it('should use fallback dimensions when element has zero width', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockReturnValue({
+            getBoundingClientRect: vi.fn().mockReturnValue({
+              width: 0,
+              height: 150,
+            }),
+          }),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions.width).toBe(200); // WIDGET_POSITIONING.MINI_WIDGET_WIDTH
+        expect(dimensions.height).toBe(150);
+      });
+
+      it('should use fallback dimensions when element has zero height', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockReturnValue({
+            getBoundingClientRect: vi.fn().mockReturnValue({
+              width: 250,
+              height: 0,
+            }),
+          }),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions.width).toBe(250);
+        expect(dimensions.height).toBe(80); // WIDGET_POSITIONING.MINI_WIDGET_HEIGHT
+      });
+
+      it('should return fallback dimensions when element is null', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockReturnValue(null),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions).toEqual({ width: 200, height: 80 });
+      });
+
+      it('should return fallback dimensions when widget.element is null', () => {
+        widget.element = null;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions).toEqual({ width: 200, height: 80 });
+      });
+
+      it('should handle querySelector errors gracefully', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockImplementation(() => {
+            throw new Error('DOM error');
+          }),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions).toEqual({ width: 200, height: 80 });
+      });
+
+      it('should handle getBoundingClientRect errors gracefully', () => {
+        const mockElement = {
+          querySelector: vi.fn().mockReturnValue({
+            getBoundingClientRect: vi.fn().mockImplementation(() => {
+              throw new Error('Rect error');
+            }),
+          }),
+        };
+        widget.element = mockElement as any;
+
+        const dimensions = (widget as any).getMiniDimensions();
+
+        expect(dimensions).toEqual({ width: 200, height: 80 });
+      });
     });
   });
 });

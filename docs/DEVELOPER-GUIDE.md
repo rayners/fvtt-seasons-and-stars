@@ -266,6 +266,71 @@ Define advanced formats in your calendar JSON:
 }
 ```
 
+### Intercalary Day Formatting
+
+_Added in v0.14.0_
+
+**Automatic `-intercalary` Format Selection**
+
+Seasons & Stars automatically provides specialized formatting for intercalary days (special days outside the normal calendar flow). For any named format, you can define an `-intercalary` variant that will be automatically selected when formatting intercalary dates.
+
+**Format Resolution Priority:**
+
+1. For intercalary dates: `${formatName}-intercalary` (if exists)
+2. Fallback: `${formatName}` (standard format)
+3. For regular dates: Always uses `${formatName}`
+
+**Basic Example:**
+
+```json
+{
+  "dateFormats": {
+    "short": "{{day}} {{month}} {{year}}",
+    "short-intercalary": "{{intercalary}}, {{year}}",
+    "long": "{{weekday}}, {{day}} {{month}} {{year}}",
+    "long-intercalary": "{{intercalary}} ({{year}})",
+    "widgets": {
+      "mini": "{{day}}/{{month}}",
+      "mini-intercalary": "{{intercalary}}",
+      "main": "{{weekday}}, {{day}} {{month}}",
+      "main-intercalary": "{{intercalary}}, {{year}}"
+    }
+  }
+}
+```
+
+**Results:**
+
+- Regular date: `formatter.formatNamed(date, 'short')` → `"15 January 2024"`
+- Intercalary date: `formatter.formatNamed(date, 'short')` → `"Midwinter Festival, 2024"`
+
+**Advanced Intercalary Templates:**
+
+```json
+{
+  "dateFormats": {
+    "formal": "{{weekday}}, the {{day format=\"ordinal\"}} of {{month}}, {{year}}",
+    "formal-intercalary": "{{intercalary}}, observed on the {{day format=\"ordinal\"}} day, {{year}}",
+    "diplomatic": "In the {{year format=\"ordinal\"}} year of the realm, {{month}} {{day}}",
+    "diplomatic-intercalary": "In the {{year format=\"ordinal\"}} year of the realm, the {{intercalary}} observance"
+  }
+}
+```
+
+**Backward Compatibility:**
+
+The traditional `{{#if intercalary}}...{{/if}}` approach continues to work:
+
+```json
+{
+  "dateFormats": {
+    "mixed": "{{#if intercalary}}{{intercalary}} (Special Day){{else}}{{day}} {{month}} {{year}}{{/if}}"
+  }
+}
+```
+
+**When both approaches exist, `-intercalary` formats take precedence**, allowing for cleaner calendar definitions while maintaining compatibility with existing calendars.
+
 ### Calendar Management
 
 #### `getActiveCalendar()`
@@ -301,6 +366,285 @@ Get list of all available calendar IDs.
 const calendars = game.seasonsStars.api.getAvailableCalendars();
 console.log('Available calendars:', calendars);
 // Returns: ['gregorian', 'vale-reckoning', 'custom-calendar']
+```
+
+### Widget Sidebar Buttons
+
+#### `game.seasonsStars.buttonRegistry`
+
+Centralized registry for managing sidebar buttons across all calendar widgets (main, mini, and grid). Buttons registered through this API appear automatically in widget sidebars based on their targeting configuration.
+
+**Register a Button:**
+
+```javascript
+game.seasonsStars.buttonRegistry.register({
+  name: 'weather',
+  icon: 'fas fa-cloud',
+  tooltip: 'Open Weather Panel',
+  callback: () => {
+    // Your button action
+    weatherPanel.render(true);
+  },
+  // Optional: Target specific widgets
+  only: ['main', 'grid'], // Only show on main and grid widgets
+  // Or exclude specific widgets
+  except: ['mini'], // Show everywhere except mini widget
+});
+```
+
+**Remove a Button:**
+
+```javascript
+game.seasonsStars.buttonRegistry.unregister('weather');
+```
+
+**Check Button Registration:**
+
+```javascript
+const isRegistered = game.seasonsStars.buttonRegistry.has('weather');
+const config = game.seasonsStars.buttonRegistry.get('weather');
+```
+
+**Query Buttons:**
+
+```javascript
+// Get all buttons for a specific widget type
+const miniButtons = game.seasonsStars.buttonRegistry.getForWidget('mini');
+
+// Get all registered buttons
+const allButtons = game.seasonsStars.buttonRegistry.getAll();
+
+// Check count
+const count = game.seasonsStars.buttonRegistry.count;
+```
+
+**Button Configuration:**
+
+- `name` (string): Unique identifier for the button
+- `icon` (string): CSS class for button icon (e.g., `'fas fa-cloud'`)
+- `tooltip` (string): Tooltip text shown on hover
+- `callback` (function): Function to execute when button is clicked
+- `only` (array, optional): Array of widget types where button should appear (`['main', 'mini', 'grid']`)
+- `except` (array, optional): Array of widget types where button should NOT appear
+
+**Widget Targeting:**
+
+- Omit both `only` and `except` to show button on all widgets
+- Use `only` to restrict button to specific widgets
+- Use `except` to hide button on specific widgets
+- If both are provided, `only` takes precedence
+
+### Events API
+
+_Added in v0.20.0_
+
+The Events API provides access to calendar events defined in calendar JSON files. Events support fixed dates, ordinal recurrence (Nth weekday of month), and interval recurrence (every N years).
+
+#### `getAllEvents()`
+
+Get all events for the active calendar (filtered by visibility permissions).
+
+```javascript
+const events = game.seasonsStars.api.events.getAllEvents();
+
+// Events array structure
+events.forEach(event => {
+  console.log(`Event: ${event.name}`);
+  console.log(`Recurrence: ${event.recurrence.type}`);
+  console.log(`Visibility: ${event.visibility || 'player-visible'}`);
+});
+```
+
+**Returns:** `CalendarEvent[]` - Only includes events the current user has permission to see
+
+#### `getEventsForDate(year: number, month: number, day: number)`
+
+Get events occurring on a specific date.
+
+```javascript
+// Get events for January 1st, 2024
+const newYearEvents = game.seasonsStars.api.events.getEventsForDate(2024, 1, 1);
+
+newYearEvents.forEach(occurrence => {
+  console.log(`Today is ${occurrence.event.name}!`);
+  if (occurrence.event.description) {
+    console.log(occurrence.event.description);
+  }
+});
+```
+
+**Parameters:**
+
+- `year` (number): The year (e.g., 2024)
+- `month` (number): 1-based month index (1 = first month)
+- `day` (number): 1-based day index (1 = first day)
+
+**Returns:** `CalendarEvent[]` - Array of events occurring on the specified date
+
+#### `getEventById(eventId: string)`
+
+Get a specific event by its ID.
+
+```javascript
+const thanksgiving = game.seasonsStars.api.getEventById('us-thanksgiving');
+
+if (thanksgiving) {
+  console.log(`Event: ${thanksgiving.name}`);
+  console.log(`Description: ${thanksgiving.description}`);
+}
+```
+
+**Returns:** `CalendarEvent | undefined`
+
+#### `addWorldEvent(event: CalendarEvent)`
+
+Add a custom event to the world (not part of calendar definition).
+
+```javascript
+// Add a campaign-specific event
+await game.seasonsStars.api.addWorldEvent({
+  id: 'dragon-attack',
+  name: 'Dragon Attack on Waterdeep',
+  description: 'Anniversary of the great dragon attack',
+  recurrence: {
+    type: 'fixed',
+    month: 6,
+    day: 15,
+  },
+  visibility: 'player-visible',
+  color: '#FF0000',
+  icon: 'fas fa-dragon',
+  startYear: 1492,
+});
+```
+
+**Note:** World events are stored in world settings and persist across sessions.
+
+#### `removeWorldEvent(eventId: string)`
+
+Remove a custom world event.
+
+```javascript
+await game.seasonsStars.api.removeWorldEvent('dragon-attack');
+```
+
+#### `getWorldEvents()`
+
+Get all custom world events.
+
+```javascript
+const worldEvents = game.seasonsStars.api.getWorldEvents();
+console.log(`Custom events in this world: ${worldEvents.length}`);
+```
+
+**Returns:** `CalendarEvent[]`
+
+#### Event Recurrence Types
+
+**Fixed Date Recurrence** - Same date each year:
+
+```javascript
+{
+  type: 'fixed',
+  month: 12,      // December
+  day: 25,        // 25th
+  ifDayNotExists: 'lastDay'  // Optional: fallback if day doesn't exist
+}
+```
+
+**Ordinal Recurrence** - Nth weekday of month:
+
+```javascript
+{
+  type: 'ordinal',
+  month: 11,       // November
+  occurrence: 4,   // 4th occurrence (-1 for last)
+  weekday: 4,      // Thursday (0 = first weekday in calendar)
+  includeIntercalary: false  // Optional: include intercalary days
+}
+```
+
+**Interval Recurrence** - Every N years:
+
+```javascript
+{
+  type: 'interval',
+  intervalYears: 4,   // Every 4 years
+  anchorYear: 2024,   // Reference year
+  month: 7,           // July
+  day: 26            // 26th
+}
+```
+
+#### Event Visibility
+
+Events support two visibility levels:
+
+- `player-visible` (default): Visible to all players
+- `gm-only`: Only visible to GMs
+
+```javascript
+// Check visibility before displaying
+if (event.visibility === 'player-visible' || game.user.isGM) {
+  displayEvent(event);
+}
+```
+
+#### Event Integration Pattern
+
+```javascript
+class EventNotificationModule {
+  constructor() {
+    this.setupEventHandling();
+  }
+
+  setupEventHandling() {
+    // Listen for event occurrences
+    Hooks.on('seasons-stars:eventOccurs', this.onEventOccurs.bind(this));
+
+    // Check for events on module initialization
+    Hooks.on('seasons-stars:ready', () => {
+      const currentDate = game.seasonsStars.api.getCurrentDate();
+      const todaysEvents = game.seasonsStars.api.events.getEventsForDate(
+        currentDate.year,
+        currentDate.month,
+        currentDate.day
+      );
+
+      if (todaysEvents.length > 0) {
+        this.displayEventSummary(todaysEvents);
+      }
+    });
+  }
+
+  onEventOccurs(data) {
+    // Handle event occurrences
+    data.events.forEach(({ event, year, month, day }) => {
+      this.notifyPlayers(event, year, month, day);
+    });
+  }
+
+  notifyPlayers(event, year, month, day) {
+    if (event.visibility === 'player-visible' || game.user.isGM) {
+      ChatMessage.create({
+        content: `<div class="calendar-event">
+          <h3>${event.name}</h3>
+          <p>${event.description || ''}</p>
+        </div>`,
+        whisper:
+          event.visibility === 'gm-only' ? game.users.filter(u => u.isGM).map(u => u.id) : [],
+      });
+    }
+  }
+
+  displayEventSummary(events) {
+    const eventList = events
+      .map(e => `<li>${e.name}${e.description ? `: ${e.description}` : ''}</li>`)
+      .join('');
+
+    ui.notifications.info(`Events today: <ul>${eventList}</ul>`, { permanent: true });
+  }
+}
 ```
 
 ## 📦 Calendar Pack Modules
@@ -469,6 +813,36 @@ if (result.collectionEntry) {
 }
 ```
 
+#### Module Flags (_Added in v0.20.0_)
+
+Modules using the `seasons-and-stars-*` naming pattern can control calendar loading behavior via `module.json` flags:
+
+```json
+{
+  "id": "seasons-and-stars-mymodule",
+  "flags": {
+    "seasons-and-stars": {
+      "providesCalendars": false
+    }
+  }
+}
+```
+
+**Flag Behavior:**
+
+- `providesCalendars: true` (or undefined) - Module is expected to provide calendars (default)
+- `providesCalendars: false` - Module does NOT provide calendars; skip loading attempt
+
+**Use Case:**
+
+Set `providesCalendars: false` when creating a `seasons-and-stars-*` module that is NOT a calendar pack (e.g., integration modules, tools, utilities). This prevents 404 errors from the core module attempting to load `calendars/index.json`.
+
+**Example Modules:**
+
+- Calendar Builder: `"providesCalendars": false` (provides UI tools, not calendars)
+- Fantasy Pack: `"providesCalendars": true` (provides multiple calendars)
+- Simple Calendar Compat: `"providesCalendars": false` (provides integration layer, not calendars)
+
 ### 🔧 External Calendar Loading (Advanced Users Only)
 
 > **⚠️ Developer/Power-User Feature**: The external calendar loading APIs are intended for advanced users, developers, and those comfortable with console-based operations. These features are not documented for general users as they require technical knowledge and may encounter CORS restrictions or other technical issues.
@@ -632,6 +1006,12 @@ await integration.api.advanceDays(1);
 integration.widgets.main?.addSidebarButton('weather', 'fas fa-cloud', 'Weather', () => {
   console.log('Weather button clicked');
 });
+
+// Mini widget supports drag-and-drop positioning
+// Position is automatically saved when users drag the widget
+// Right-click to unpin and return to automatic positioning
+integration.widgets.mini?.show(); // Show mini widget
+integration.widgets.mini?.toggle(); // Toggle mini widget visibility
 
 // Hook system
 integration.hooks.onDateChanged(event => {
@@ -803,6 +1183,84 @@ Hooks.on('seasons-stars:settingsChanged', settingName => {
 });
 ```
 
+#### `seasons-stars:widgetButtonRegistered`
+
+Fired when a sidebar button is registered in the button registry.
+
+```javascript
+Hooks.on('seasons-stars:widgetButtonRegistered', data => {
+  console.log('Button registered:', data.config.name);
+  console.log('Button config:', data.config);
+  console.log('Registry:', data.registry);
+
+  // Track button registration for debugging
+  trackButtonRegistration(data.config);
+});
+```
+
+**Data Structure:**
+
+```typescript
+interface WidgetButtonRegisteredData {
+  config: SidebarButtonConfig;
+  registry: SidebarButtonRegistry;
+}
+```
+
+#### `seasons-stars:widgetButtonUnregistered`
+
+Fired when a sidebar button is removed from the button registry.
+
+```javascript
+Hooks.on('seasons-stars:widgetButtonUnregistered', data => {
+  console.log('Button unregistered:', data.buttonName);
+
+  // Clean up any references to removed button
+  cleanupButtonReferences(data.buttonName);
+});
+```
+
+**Data Structure:**
+
+```typescript
+interface WidgetButtonUnregisteredData {
+  buttonName: string;
+  registry: SidebarButtonRegistry;
+}
+```
+
+#### `seasons-stars:widgetButtonsChanged`
+
+Fired when any change occurs in the button registry (register, update, unregister, or clear operations). Widgets listen to this hook to re-render their sidebar sections.
+
+```javascript
+Hooks.on('seasons-stars:widgetButtonsChanged', data => {
+  console.log('Button registry changed:', data.action);
+
+  if (data.action === 'registered') {
+    console.log('Button added:', data.buttonName);
+  } else if (data.action === 'updated') {
+    console.log('Button updated:', data.buttonName);
+  } else if (data.action === 'unregistered') {
+    console.log('Button removed:', data.buttonName);
+  } else if (data.action === 'cleared') {
+    console.log('All buttons cleared');
+  }
+
+  // Refresh widget displays
+  this.refreshWidgetSidebars();
+});
+```
+
+**Data Structure:**
+
+```typescript
+interface WidgetButtonsChangedData {
+  action: 'registered' | 'updated' | 'unregistered' | 'cleared';
+  buttonName?: string; // Present for 'registered', 'updated', and 'unregistered' actions
+}
+```
+
 #### `seasons-stars:noteCreated`
 
 Fired when a calendar note is created.
@@ -878,22 +1336,160 @@ Hooks.on('seasons-stars:registerExternalCalendars', ({ registerCalendar, manager
 });
 ```
 
+#### `seasons-stars:eventOccurs`
+
+Fired when calendar events occur on the current date. This hook fires when time advances to a date with events AND on startup if the current date has events. Added in v0.20.0.
+
+```javascript
+Hooks.on('seasons-stars:eventOccurs', data => {
+  console.log('Events occurring today:', data.events);
+
+  // Show notification for each event
+  data.events.forEach(({ event, year, month, day }) => {
+    ui.notifications.info(`Today is ${event.name}: ${event.description}`);
+  });
+
+  // Handle startup vs. time advancement
+  if (data.isStartup) {
+    console.log('Events on world startup');
+  } else {
+    console.log('Events triggered by time advancement from', data.previousDate);
+  }
+});
+```
+
+**Data Structure:**
+
+```typescript
+interface EventOccursData {
+  events: Array<{
+    event: CalendarEvent;
+    year: number;
+    month: number;
+    day: number;
+  }>;
+  date: {
+    year: number;
+    month: number;
+    day: number;
+  };
+  isStartup: boolean;
+  previousDate?: {
+    year: number;
+    month: number;
+    day: number;
+  };
+}
+```
+
+**Event Structure:**
+
+```typescript
+interface CalendarEvent {
+  id: string;
+  name: string;
+  description?: string;
+  recurrence: FixedRecurrence | OrdinalRecurrence | IntervalRecurrence;
+  visibility?: 'gm-only' | 'player-visible';
+  color?: string; // Hex color (e.g., "#FF6F00")
+  icon?: string; // Font Awesome icon class
+  journalEntryId?: string;
+  startYear?: number;
+  endYear?: number;
+  exceptions?: Array<{ year: number; month: number; day: number }>;
+  translations?: Record<string, { name: string; description?: string }>;
+}
+```
+
+**Recurrence Types:**
+
+```typescript
+// Fixed date recurrence (same date each year)
+interface FixedRecurrence {
+  type: 'fixed';
+  month: number; // 1-based month index
+  day: number; // 1-based day index
+  ifDayNotExists?: 'lastDay' | 'beforeDay' | 'afterDay';
+}
+
+// Ordinal recurrence (Nth weekday of month)
+interface OrdinalRecurrence {
+  type: 'ordinal';
+  month: number; // 1-based month index
+  occurrence: 1 | 2 | 3 | 4 | -1; // -1 = last occurrence
+  weekday: number; // 0-based weekday index
+  includeIntercalary?: boolean; // Include intercalary days in calculation
+}
+
+// Interval recurrence (every N years)
+interface IntervalRecurrence {
+  type: 'interval';
+  intervalYears: number; // Years between occurrences
+  anchorYear: number; // Reference year for calculation
+  month: number; // 1-based month index
+  day: number; // 1-based day index
+}
+```
+
+**Use Cases:**
+
+```javascript
+// Display event notifications to players
+Hooks.on('seasons-stars:eventOccurs', data => {
+  data.events.forEach(({ event }) => {
+    if (event.visibility === 'player-visible' || game.user.isGM) {
+      ChatMessage.create({
+        content: `<h3>${event.name}</h3><p>${event.description}</p>`,
+        whisper:
+          event.visibility === 'gm-only' ? game.users.filter(u => u.isGM).map(u => u.id) : [],
+      });
+    }
+  });
+});
+
+// Trigger weather changes on specific events
+Hooks.on('seasons-stars:eventOccurs', data => {
+  data.events.forEach(({ event }) => {
+    if (event.id === 'summer-solstice') {
+      weatherModule.setSeasonalWeather('summer');
+    }
+  });
+});
+
+// Create journal entries for GM-only events
+Hooks.on('seasons-stars:eventOccurs', async data => {
+  for (const { event, year, month, day } of data.events) {
+    if (event.visibility === 'gm-only' && !event.journalEntryId) {
+      const entry = await JournalEntry.create({
+        name: `${event.name} - ${year}/${month}/${day}`,
+        content: event.description,
+        ownership: { default: 0, [game.user.id]: 3 },
+      });
+
+      // Store reference for future use
+      event.journalEntryId = entry.id;
+    }
+  }
+});
+```
+
 ### Complete Hook Reference
 
 Here's a complete reference table of all Seasons & Stars hooks:
 
-| Hook Event                                | When Fired               | Data Passed                                | Added  |
-| ----------------------------------------- | ------------------------ | ------------------------------------------ | ------ |
-| `seasons-stars:dateChanged`               | World time changes       | `{newDate, oldTime, newTime, delta}`       | v0.1.0 |
-| `seasons-stars:calendarChanged`           | Active calendar switches | `{newCalendarId, oldCalendarId, calendar}` | v0.1.0 |
-| `seasons-stars:ready`                     | Module fully initialized | `{manager, api}`                           | v0.1.0 |
-| `seasons-stars:timeAdvancementStarted`    | Auto advancement begins  | `ratio (number)`                           | v0.2.0 |
-| `seasons-stars:timeAdvancementPaused`     | Auto advancement stops   | None                                       | v0.2.0 |
-| `seasons-stars:settingsChanged`           | Module setting updated   | `settingName (string)`                     | v0.1.0 |
-| `seasons-stars:noteCreated`               | Calendar note created    | `journalEntry`                             | v0.1.0 |
-| `seasons-stars:noteUpdated`               | Calendar note modified   | `journalEntry`                             | v0.1.0 |
-| `seasons-stars:noteDeleted`               | Calendar note removed    | `noteId (string)`                          | v0.1.0 |
-| `seasons-stars:registerExternalCalendars` | Module initialization    | `{registerCalendar, manager}`              | v0.8.0 |
+| Hook Event                                | When Fired                   | Data Passed                                | Added   |
+| ----------------------------------------- | ---------------------------- | ------------------------------------------ | ------- |
+| `seasons-stars:dateChanged`               | World time changes           | `{newDate, oldTime, newTime, delta}`       | v0.1.0  |
+| `seasons-stars:calendarChanged`           | Active calendar switches     | `{newCalendarId, oldCalendarId, calendar}` | v0.1.0  |
+| `seasons-stars:ready`                     | Module fully initialized     | `{manager, api}`                           | v0.1.0  |
+| `seasons-stars:timeAdvancementStarted`    | Auto advancement begins      | `ratio (number)`                           | v0.2.0  |
+| `seasons-stars:timeAdvancementPaused`     | Auto advancement stops       | None                                       | v0.2.0  |
+| `seasons-stars:settingsChanged`           | Module setting updated       | `settingName (string)`                     | v0.1.0  |
+| `seasons-stars:eventOccurs`               | Events occur on current date | `EventOccursData`                          | v0.20.0 |
+| `seasons-stars:noteCreated`               | Calendar note created        | `journalEntry`                             | v0.1.0  |
+| `seasons-stars:noteUpdated`               | Calendar note modified       | `journalEntry`                             | v0.1.0  |
+| `seasons-stars:noteDeleted`               | Calendar note removed        | `noteId (string)`                          | v0.1.0  |
+| `seasons-stars:registerExternalCalendars` | Module initialization        | `{registerCalendar, manager}`              | v0.8.0  |
 
 ### Hook Integration Best Practices
 
@@ -1061,6 +1657,9 @@ interface CalendarCanonicalHour {
 
 ### Calendar Structure
 
+> The engine substitutes Gregorian defaults and logs a warning when any
+> section is omitted.
+
 ```typescript
 interface SeasonsStarsCalendar {
   id: string;
@@ -1072,35 +1671,98 @@ interface SeasonsStarsCalendar {
     };
   };
 
-  year: {
+  year?: {
     epoch: number; // Starting year for calculations
     currentYear: number; // Default current year
     prefix: string; // Text before year (e.g., "")
     suffix: string; // Text after year (e.g., " CE")
     startDay: number; // Which weekday the epoch starts on
-  };
+  }; // Defaults to Gregorian year if omitted
 
-  months: CalendarMonth[];
-  weekdays: CalendarWeekday[];
-  intercalary: CalendarIntercalary[]; // Special days
+  months?: CalendarMonth[]; // Defaults to Gregorian months
+  weekdays?: CalendarWeekday[]; // Defaults to 7-day week
+  intercalary?: CalendarIntercalary[]; // Defaults to none
 
-  leapYear: {
+  leapYear?: {
     rule: 'none' | 'gregorian' | 'custom';
     interval?: number; // For custom rules
     month?: string; // Which month gets extra days
-    extraDays?: number; // How many extra days
-  };
+    extraDays?: number; // How many days to add (positive) or remove (negative)
+  }; // Defaults to Gregorian; use { rule: 'none' } to disable
 
-  time: {
+  time?: {
     hoursInDay: number; // Usually 24
     minutesInHour: number; // Usually 60
     secondsInMinute: number; // Usually 60
-  };
+  }; // Defaults to 24/60/60
 
   // Optional canonical hours for time period naming (added in v0.8.0)
   canonicalHours?: CalendarCanonicalHour[];
 }
 ```
+
+### Leap Year Configuration
+
+Seasons & Stars supports flexible leap year rules including negative adjustments (removing days rather than adding them).
+
+#### Basic Leap Year Rules
+
+```json
+{
+  "leapYear": {
+    "rule": "gregorian",
+    "month": "February",
+    "extraDays": 1
+  }
+}
+```
+
+#### Negative Leap Days
+
+Added in v0.14.0, calendars can now remove days during leap years:
+
+```json
+{
+  "leapYear": {
+    "rule": "custom",
+    "interval": 4,
+    "month": "Winter Month",
+    "extraDays": -1
+  }
+}
+```
+
+**Negative Leap Day Examples:**
+
+- `extraDays: -1` removes one day from the specified month during leap years
+- `extraDays: -2` removes two days during leap years
+- Range: -10 to +10 days (values beyond this range will show validation warnings)
+
+**Safety Features:**
+
+- Months cannot be reduced below 1 day (automatic clamping)
+- Validation warnings for extreme negative adjustments
+- Engine automatically handles month length calculations with negative adjustments
+
+#### Custom Leap Year Rules
+
+```json
+{
+  "leapYear": {
+    "rule": "custom",
+    "interval": 8,
+    "offset": 4,
+    "month": "Midyear",
+    "extraDays": 2
+  }
+}
+```
+
+**Use Cases for Negative Leap Days:**
+
+- Fantasy calendars where certain years are "shortened" for mystical reasons
+- Historical calendars that occasionally dropped days for astronomical alignment
+- Custom world lore where leap years involve removing unlucky days
 
 ## 🔧 Integration Examples
 

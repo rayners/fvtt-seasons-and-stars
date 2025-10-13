@@ -1,0 +1,19 @@
+name: Trigger Documentation Update
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  trigger-docs-update:
+    runs-on: ubuntu-latest
+    # Only trigger for core module releases (seasons-and-stars), not calendar packs
+    if: startsWith(github.event.release.tag_name, 'seasons-and-stars-v') || startsWith(github.event.release.tag_name, 'v')
+    steps:
+      - name: Trigger documentation update
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          repository: rayners/foundry-docs
+          event-type: update-docs
+          client-payload: '{"module_name": "seasons-and-stars"}'

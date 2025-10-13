@@ -2,7 +2,7 @@
   "id": "seasons-and-stars",
   "title": "Seasons & Stars",
   "description": "Calendar and timekeeping module for Foundry VTT v13+ with clean architecture and generic integration APIs. Features calendar widgets, custom calendar support, and SmallTime integration. Works with Simple Calendar-dependent modules via the Simple Calendar Compatibility Bridge.",
-  "version": "0.13.0",
+  "version": "0.21.0",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -44,6 +44,8 @@
   "url": "https://github.com/rayners/fvtt-seasons-and-stars",
   "manifest": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.json",
   "download": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.zip",
+  "readme": "https://github.com/rayners/fvtt-seasons-and-stars/blob/main/README_FOUNDRY.md",
+  "license": "https://github.com/rayners/fvtt-seasons-and-stars/blob/main/LICENSE",
   "documentation": "https://docs.rayners.dev/seasons-and-stars",
   "bugs": "https://github.com/rayners/fvtt-seasons-and-stars/issues",
   "changelog": "https://github.com/rayners/fvtt-seasons-and-stars/blob/main/CHANGELOG.md",

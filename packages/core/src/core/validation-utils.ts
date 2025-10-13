@@ -17,7 +17,7 @@ export class ValidationUtils {
   /**
    * Validate finite number parameter
    */
-  static validateFiniteNumber(value: any, paramName: string): void {
+  static validateFiniteNumber(value: unknown, paramName: string): void {
     if (typeof value !== 'number' || !isFinite(value)) {
       throw new Error(`${paramName} must be a finite number`);
     }
@@ -26,15 +26,16 @@ export class ValidationUtils {
   /**
    * Validate calendar date object
    */
-  static validateCalendarDate(date: any, paramName: string): void {
+  static validateCalendarDate(date: unknown, paramName: string): void {
     if (!date || typeof date !== 'object') {
       throw new Error(`${paramName} must be a calendar date object`);
     }
 
+    const dateObj = date as Record<string, unknown>;
     if (
-      typeof date.year !== 'number' ||
-      typeof date.month !== 'number' ||
-      typeof date.day !== 'number'
+      typeof dateObj.year !== 'number' ||
+      typeof dateObj.month !== 'number' ||
+      typeof dateObj.day !== 'number'
     ) {
       throw new Error(`${paramName} must have numeric year, month, and day properties`);
     }
@@ -43,7 +44,7 @@ export class ValidationUtils {
   /**
    * Validate string parameter
    */
-  static validateString(value: any, paramName: string, allowEmpty = true): void {
+  static validateString(value: unknown, paramName: string, allowEmpty = true): void {
     if (typeof value !== 'string') {
       throw new Error(`${paramName} must be a string`);
     }

@@ -1,0 +1,94 @@
+{
+  "id": "orlanthi",
+  "translations": {
+    "en": {
+      "label": "Orlanthi Calendar (Glorantha)",
+      "description": "Standard Gloranthan calendar used by the Orlanthi and many other cultures. Divides the 294-day year into five 8-week seasons followed by a two-week Sacred Time.",
+      "setting": "Glorantha"
+    }
+  },
+  "sources": ["https://glorantha.fandom.com/wiki/Orlanthi_Calendar"],
+  "year": {
+    "epoch": 0,
+    "currentYear": 1625,
+    "prefix": "",
+    "suffix": " ST",
+    "startDay": 0
+  },
+  "leapYear": {
+    "rule": "none"
+  },
+  "months": [
+    {
+      "name": "Sea Season",
+      "abbreviation": "Sea",
+      "days": 56,
+      "description": "The season of growth and trade."
+    },
+    {
+      "name": "Fire Season",
+      "abbreviation": "Fir",
+      "days": 56,
+      "description": "The warm season of conflict and campaigning."
+    },
+    {
+      "name": "Earth Season",
+      "abbreviation": "Ear",
+      "days": 56,
+      "description": "The harvest season of plenty."
+    },
+    {
+      "name": "Dark Season",
+      "abbreviation": "Drk",
+      "days": 56,
+      "description": "The cold, dangerous season when spirits walk."
+    },
+    {
+      "name": "Storm Season",
+      "abbreviation": "Sto",
+      "days": 56,
+      "description": "The tempestuous season of winter gales."
+    },
+    {
+      "name": "Sacred Time",
+      "abbreviation": "Sac",
+      "days": 14,
+      "description": "Two weeks of rituals marking year's end and renewal."
+    }
+  ],
+  "weekdays": [
+    {
+      "name": "Freezeday",
+      "abbreviation": "Frz",
+      "description": "First day dedicated to air and cold."
+    },
+    {
+      "name": "Waterday",
+      "abbreviation": "Wat",
+      "description": "Second day honoring water and rivers."
+    },
+    { "name": "Clayday", "abbreviation": "Cla", "description": "Third day of earth and craft." },
+    {
+      "name": "Windsday",
+      "abbreviation": "Win",
+      "description": "Fourth day for storms and change."
+    },
+    {
+      "name": "Fireday",
+      "abbreviation": "Fir",
+      "description": "Fifth day celebrating flame and light."
+    },
+    {
+      "name": "Wildday",
+      "abbreviation": "Wld",
+      "description": "Sixth day tied to beasts and the untamed."
+    },
+    { "name": "Godsday", "abbreviation": "Gds", "description": "Seventh day reserved for worship." }
+  ],
+  "intercalary": [],
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}
