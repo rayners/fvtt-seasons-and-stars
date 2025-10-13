@@ -310,7 +310,6 @@ export class SimpleCalendarConverter {
 
     // Build a mapping from Simple Calendar month array index to S&S month number
     // S&S only counts non-intercalary months
-    const regularMonths = scData.months.filter(m => !m.intercalary);
     const monthIndexToNumber = new Map<number, number>();
     let regularMonthNumber = 1;
     scData.months.forEach((month, idx) => {

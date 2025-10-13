@@ -238,7 +238,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   /**
    * New calendar action
    */
-  async _onNewCalendar(event: Event, target: HTMLElement): Promise<void> {
+  async _onNewCalendar(_event: Event, _target: HTMLElement): Promise<void> {
     const template = {
       id: 'my-custom-calendar',
       translations: {
@@ -300,7 +300,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   /**
    * Open calendar from file action
    */
-  async _onOpenCalendar(event: Event, target: HTMLElement): Promise<void> {
+  async _onOpenCalendar(_event: Event, _target: HTMLElement): Promise<void> {
     try {
       // Check if FilePicker is available
       const FoundryFilePicker = (foundry as any)?.applications?.apps?.FilePicker;
@@ -351,7 +351,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   /**
    * Export JSON to file action
    */
-  async _onExportJson(event: Event, target: HTMLElement): Promise<void> {
+  async _onExportJson(_event: Event, _target: HTMLElement): Promise<void> {
     if (!this.currentJson.trim()) {
       this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_content'), 'warn');
       return;
@@ -380,7 +380,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   /**
    * Import JSON from clipboard or file input
    */
-  async _onImportJson(event: Event, target: HTMLElement): Promise<void> {
+  async _onImportJson(_event: Event, _target: HTMLElement): Promise<void> {
     // Create a temporary file input
     const input = document.createElement('input');
     input.type = 'file';
@@ -517,7 +517,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   /**
    * Validate JSON action
    */
-  async _onValidateJson(event: Event, target: HTMLElement): Promise<void> {
+  async _onValidateJson(_event: Event, _target: HTMLElement): Promise<void> {
     await this._validateCurrentJson();
     this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.validation_complete'));
   }
@@ -525,7 +525,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   /**
    * Clear editor action
    */
-  async _onClearEditor(event: Event, target: HTMLElement): Promise<void> {
+  async _onClearEditor(_event: Event, _target: HTMLElement): Promise<void> {
     try {
       const confirmed = await foundry.applications.api.DialogV2.confirm({
         window: { title: 'Confirm Clear' },
