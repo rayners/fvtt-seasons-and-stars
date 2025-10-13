@@ -40,6 +40,22 @@ vi.mock('../src/ui/base-widget-manager', () => ({
   },
 };
 
+// Mock CSS.supports for color validation in tests
+(global as any).CSS = {
+  supports: vi.fn((property: string, value: string) => {
+    if (property === 'color') {
+      // Accept hex colors and common named colors for testing
+      return (
+        /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(value) ||
+        /^(red|blue|green|yellow|orange|purple|pink|brown|black|white|gray|grey|cyan|magenta|lime|navy|teal|olive|maroon|aqua|fuchsia|silver|gold)$/i.test(
+          value
+        )
+      );
+    }
+    return false;
+  }),
+};
+
 describe('CalendarMiniWidget - Moon Phase Display', () => {
   let widget: CalendarMiniWidget;
   let mockCalendar: SeasonsStarsCalendar;
@@ -154,6 +170,7 @@ describe('CalendarMiniWidget - Moon Phase Display', () => {
       phaseIcon: 'full',
       faIcon: 'circle',
       moonColor: '#ffffff',
+      moonColorIndex: 0,
     });
 
     expect(context.moonPhases[1]).toEqual({
@@ -162,6 +179,7 @@ describe('CalendarMiniWidget - Moon Phase Display', () => {
       phaseIcon: 'first-quarter',
       faIcon: 'adjust',
       moonColor: '#ffaa00',
+      moonColorIndex: 1,
     });
   });
 

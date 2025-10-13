@@ -59,7 +59,7 @@ export const UI_CONSTANTS = {
 } as const;
 
 // Moon phase icon mapping for FontAwesome icons
-export const MOON_PHASE_ICON_MAP: Record<string, string> = {
+export const MOON_PHASE_ICON_MAP = {
   new: 'circle',
   'waxing-crescent': 'moon',
   'first-quarter': 'adjust',
@@ -71,19 +71,22 @@ export const MOON_PHASE_ICON_MAP: Record<string, string> = {
 } as const;
 
 /**
- * Validate and sanitize a color value for safe use in HTML
+ * Validate and sanitize a color value for safe use in CSS
+ * Uses CSS.supports() to validate against the full CSS color specification
  * Returns undefined if the color is invalid
  */
 export function sanitizeColor(color: string | undefined): string | undefined {
   if (!color) return undefined;
 
-  // Only allow hex colors (#RGB, #RRGGBB, #RRGGBBAA) and named CSS colors
-  const hexPattern = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
-  const namedColors =
-    /^(red|blue|green|yellow|orange|purple|pink|brown|black|white|gray|grey|cyan|magenta|lime|navy|teal|olive|maroon|aqua|fuchsia|silver|gold)$/i;
-
-  if (hexPattern.test(color) || namedColors.test(color)) {
-    return color;
+  // Use CSS.supports() for comprehensive color validation
+  // This handles hex, rgb(), rgba(), hsl(), hsla(), named colors, etc.
+  try {
+    if (CSS.supports('color', color)) {
+      return color;
+    }
+  } catch (e) {
+    // CSS.supports() may throw in some environments
+    console.warn('CSS.supports() failed for color validation:', color, e);
   }
 
   return undefined;

@@ -2,13 +2,13 @@
 <div class="mini-moon-phases-container">
   {{#if showMoonPhases}}
     {{#if moonPhases.length}}
-      <div class="mini-moon-phases" style="--moon-count: {{moonPhases.length}};">
+      <div class="mini-moon-phases" style="--moon-count: {{moonPhases.length}}; {{#each moonPhases}}--moon-color-{{this.moonColorIndex}}: {{#if this.moonColor}}{{this.moonColor}}{{else}}currentColor{{/if}}; {{/each}}">
         {{#each moonPhases}}
           <div class="mini-moon-phase"
                role="img"
                aria-label="{{this.moonName}}: {{this.phaseName}}"
                title="{{this.moonName}}: {{this.phaseName}}"
-               {{#if this.moonColor}}style="color: {{this.moonColor}};"{{/if}}>
+               data-moon-index="{{this.moonColorIndex}}">
             <i class="fas fa-{{this.faIcon}} moon-phase-{{this.phaseIcon}}"></i>
           </div>
         {{/each}}

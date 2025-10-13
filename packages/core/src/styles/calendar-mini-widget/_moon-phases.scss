@@ -7,7 +7,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: calc(100% / (var(--moon-count) * 2 + 1));
+    gap: clamp(0.25rem, calc(100% / (var(--moon-count) * 2 + 1)), 1rem);
     padding: 0.3rem 0;
     min-height: 1.5rem;
 
@@ -22,6 +22,18 @@
       width: 1.6rem;
       height: 1.6rem;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+      // Apply color from CSS custom property based on moon index
+      color: var(--moon-color-0, currentColor);
+      &[data-moon-index="1"] { color: var(--moon-color-1, currentColor); }
+      &[data-moon-index="2"] { color: var(--moon-color-2, currentColor); }
+      &[data-moon-index="3"] { color: var(--moon-color-3, currentColor); }
+      &[data-moon-index="4"] { color: var(--moon-color-4, currentColor); }
+      &[data-moon-index="5"] { color: var(--moon-color-5, currentColor); }
+      &[data-moon-index="6"] { color: var(--moon-color-6, currentColor); }
+      &[data-moon-index="7"] { color: var(--moon-color-7, currentColor); }
+      &[data-moon-index="8"] { color: var(--moon-color-8, currentColor); }
+      &[data-moon-index="9"] { color: var(--moon-color-9, currentColor); }
 
       &:hover {
         transform: scale(1.15);
