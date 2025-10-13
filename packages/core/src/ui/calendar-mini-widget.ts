@@ -5,18 +5,53 @@
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
-import { WIDGET_POSITIONING } from '../core/constants';
+import { WIDGET_POSITIONING, MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
 import { TimeAdvancementService } from '../core/time-advancement-service';
-import type { MiniWidgetContext, WidgetRenderOptions, SidebarButton } from '../types/widget-types';
+import { DateFormatter } from '../core/date-formatter';
+import { SidebarButtonRegistry } from './sidebar-button-registry';
+import {
+  addSidebarButton as registerSidebarButton,
+  removeSidebarButton as unregisterSidebarButton,
+  hasSidebarButton as registryHasSidebarButton,
+  loadButtonsFromRegistry,
+} from './sidebar-button-mixin';
+import type { MiniWidgetContext, WidgetRenderOptions } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
+import type { MoonPhaseInfo } from '../types/calendar';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
   private static activeInstance: CalendarMiniWidget | null = null;
   private isClosing: boolean = false;
-  private sidebarButtons: SidebarButton[] = [];
   private hasBeenPositioned: boolean = false;
+
+  constructor(options: any = {}) {
+    // Check if widget is pinned and get saved position
+    const pinned = game.settings?.get('seasons-and-stars', 'miniWidgetPinned');
+    const pos = game.settings?.get('seasons-and-stars', 'miniWidgetPosition') as
+      | { top: number; left: number }
+      | undefined;
+
+    // If pinned and we have a valid position, apply it to options
+    if (
+      pinned &&
+      pos &&
+      typeof pos.top === 'number' &&
+      typeof pos.left === 'number' &&
+      Number.isFinite(pos.top) &&
+      Number.isFinite(pos.left)
+    ) {
+      options = (foundry.utils as any).mergeObject(options, {
+        position: {
+          top: pos.top,
+          left: pos.left,
+        },
+      });
+    }
+
+    super(options);
+  }
 
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-mini-widget',
@@ -29,16 +64,17 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       resizable: false,
     },
     position: {
-      width: 200,
+      width: WIDGET_POSITIONING.MINI_WIDGET_WIDTH,
       height: 'auto' as const,
-      top: -1000, // Start off-screen to minimize flash
-      left: -1000,
+      top: 100, // Start within viewport
+      left: 20,
     },
     actions: {
       advanceTime: CalendarMiniWidget.prototype._onAdvanceTime,
       openCalendarSelection: CalendarMiniWidget.prototype._onOpenCalendarSelection,
       openLargerView: CalendarMiniWidget.prototype._onOpenLargerView,
       toggleTimeAdvancement: CalendarMiniWidget.prototype._onToggleTimeAdvancement,
+      clickSidebarButton: CalendarMiniWidget.prototype._onClickSidebarButton,
     },
   };
 
@@ -46,6 +82,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     main: {
       id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-mini-widget.hbs',
+    },
+    moonPhases: {
+      id: 'moon-phases',
+      template: 'modules/seasons-and-stars/templates/calendar-mini-widget-moon-phases.hbs',
     },
   };
 
@@ -97,11 +137,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       game.settings?.get('seasons-and-stars', 'miniWidgetShowDayOfWeek') || false;
 
     // Get weekday name/abbreviation with enhanced null safety
+    // Don't show weekday for intercalary days that don't count for weekdays
     let weekdayDisplay = '';
     if (
       showDayOfWeek &&
       activeCalendar?.weekdays?.length > 0 &&
-      currentDate.weekday !== undefined
+      currentDate.weekday !== undefined &&
+      currentDate.countsForWeekdays()
     ) {
       const weekdayIndex = currentDate.weekday;
       if (weekdayIndex >= 0 && weekdayIndex < activeCalendar.weekdays.length) {
@@ -130,35 +172,178 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     }
 
+    // Determine if compact mode should be applied based on active features
+    const showTimeControlsValue =
+      (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false);
+    const compactMode = showDayOfWeek && showTimeControlsValue;
+
+    // Check if moon phases should be displayed
+    const showMoonPhases =
+      game.settings?.get('seasons-and-stars', 'miniWidgetShowMoonPhases') ?? true;
+
+    // Get moon phase data if enabled
+    let moonPhases: Array<{
+      moonName: string;
+      phaseName: string;
+      phaseIcon: string;
+      faIcon: string;
+      moonColor?: string;
+      moonColorIndex: number;
+    }> = [];
+
+    if (showMoonPhases) {
+      try {
+        const engine = manager.getActiveEngine();
+        if (engine) {
+          const moonPhaseInfo = engine.getMoonPhaseInfo(currentDate);
+          if (moonPhaseInfo && moonPhaseInfo.length > 0) {
+            moonPhases = moonPhaseInfo.map((info: MoonPhaseInfo, index: number) => {
+              const faIcon = MOON_PHASE_ICON_MAP[info.phase.icon];
+              if (!faIcon) {
+                Logger.warn(
+                  `Unknown moon phase icon '${info.phase.icon}' for moon '${info.moon.name}', using fallback`
+                );
+              }
+              return {
+                moonName: info.moon.name,
+                phaseName: info.phase.name,
+                phaseIcon: info.phase.icon,
+                faIcon: faIcon || 'circle',
+                moonColor: sanitizeColor(info.moon.color),
+                moonColorIndex: index,
+              };
+            });
+          }
+        }
+      } catch (error) {
+        Logger.debug('Failed to get moon phase data for mini widget', error);
+      }
+    }
+
     return Object.assign(context, {
       shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
-      showTimeControls: (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false),
+      showTimeControls: showTimeControlsValue,
       isGM: game.user?.isGM || false,
       showTime: showTime,
-      timeString: showTime && currentDate.time ? this.getShortTimeString(currentDate.time) : '',
+      timeString:
+        showTime && currentDate.time
+          ? this.getTimeDisplayString(currentDate.time, activeCalendar)
+          : '',
       showDayOfWeek: showDayOfWeek,
       weekdayDisplay: weekdayDisplay,
       timeAdvancementActive: timeAdvancementActive,
       advancementRatioDisplay: advancementRatioDisplay,
+      compactMode: compactMode,
       calendar: {
         id: activeCalendar.id || 'unknown',
         label: activeCalendar.label || activeCalendar.name || 'Unknown Calendar',
         description: activeCalendar.description,
       },
-      currentDate: currentDate.toObject(),
+      currentDate: currentDate,
       formattedDate: currentDate.toLongString(),
+      sidebarButtons: loadButtonsFromRegistry('mini'),
+      showMoonPhases: showMoonPhases,
+      moonPhases: moonPhases,
     }) as MiniWidgetContext;
   }
 
   /**
-   * Format time for compact display in mini widget
+   * Format time for compact display in mini widget - supports canonical hours
    */
-  private getShortTimeString(time: { hour: number; minute: number; second: number }): string {
-    // Format as HH:MM for compact display
+  private getTimeDisplayString(
+    time: { hour: number; minute: number; second: number },
+    calendar?: import('../types/calendar').SeasonsStarsCalendar
+  ): string {
+    // Get canonical mode setting
+    const canonicalMode =
+      game.settings?.get('seasons-and-stars', 'miniWidgetCanonicalMode') || 'auto';
+
+    // If exact mode or no calendar, always show exact time
+    if (canonicalMode === 'exact' || !calendar) {
+      return this.formatExactTime(time);
+    }
+
+    // Check for canonical hours
+    const canonicalHours = calendar.canonicalHours;
+    if (!canonicalHours || canonicalHours.length === 0) {
+      return this.formatExactTime(time);
+    }
+
+    // Look for matching canonical hour
+    const canonicalHour = this.findCanonicalHour(canonicalHours, time.hour, time.minute, calendar);
+
+    if (canonicalHour) {
+      // Truncate long names for mini widget space constraints
+      return this.truncateCanonicalName(canonicalHour.name);
+    }
+
+    // No canonical hour found
+    if (canonicalMode === 'canonical') {
+      // Hide time when canonical mode is forced but no canonical hour available
+      return '';
+    }
+
+    // Fallback to exact time for auto mode
+    return this.formatExactTime(time);
+  }
+
+  /**
+   * Format exact time as HH:MM
+   */
+  private formatExactTime(time: { hour: number; minute: number; second: number }): string {
     const hour = time.hour.toString().padStart(2, '0');
     const minute = time.minute.toString().padStart(2, '0');
     return `${hour}:${minute}`;
+  }
+
+  /**
+   * Find canonical hour that matches the given time
+   */
+  private findCanonicalHour(
+    canonicalHours: import('../types/calendar').CalendarCanonicalHour[],
+    hour: number,
+    minute: number,
+    calendar: import('../types/calendar').SeasonsStarsCalendar
+  ): import('../types/calendar').CalendarCanonicalHour | null {
+    // Use DateFormatter's static method for consistency
+    return (DateFormatter as any).findCanonicalHour(canonicalHours, hour, minute, calendar);
+  }
+
+  /**
+   * Truncate canonical hour names for mini widget display
+   */
+  private truncateCanonicalName(name: string): string {
+    // Allow longer names (18 chars) since canonical hours are more meaningful than exact time
+    if (name.length <= 18) {
+      return name;
+    }
+    return name.substring(0, 15) + '...';
+  }
+
+  /**
+   * Apply moon phase colors safely via DOM manipulation
+   * Prevents XSS by injecting CSS custom properties through TypeScript instead of templates
+   * Supports unlimited moons by applying colors directly to elements
+   */
+  private applyMoonPhaseColors(context: MiniWidgetContext): void {
+    if (!this.element || !context.moonPhases) return;
+
+    const container = this.element.querySelector('.mini-moon-phases') as HTMLElement;
+    if (!container) return;
+
+    // Set moon count for gap calculation
+    container.style.setProperty('--moon-count', context.moonPhases.length.toString());
+
+    // Apply color to each moon phase element directly (supports unlimited moons)
+    context.moonPhases.forEach((moon, index: number) => {
+      const element = container.querySelector(
+        `.mini-moon-phase[data-moon-index="${index}"]`
+      ) as HTMLElement;
+      if (element && moon.moonColor) {
+        element.style.color = moon.moonColor;
+      }
+    });
   }
 
   /**
@@ -170,65 +355,53 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Register this as the active instance
     CalendarMiniWidget.activeInstance = this;
 
-    // Apply compact mode if multiple features are active
-    this.applyCompactModeIfNeeded(context);
+    // Apply moon phase colors safely via TypeScript
+    this.applyMoonPhaseColors(context);
+
+    // Fire hook for external integrations (e.g., Simple Calendar Compatibility Bridge)
+    if (this.element) {
+      Hooks.callAll('seasons-stars:renderCalendarWidget', this, this.element, 'mini');
+    }
 
     // Add click handlers for mini-date element
     const miniDateElement = this.element?.querySelector('.mini-date');
     if (miniDateElement) {
-      let clickTimeout: number | null = null;
-      let clickCount = 0;
-
+      // Handle single click
       miniDateElement.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
 
-        clickCount++;
+        Logger.debug('Mini widget: Single click - opening larger view');
+        this._onOpenLargerView(event, miniDateElement as HTMLElement);
+      });
 
-        if (clickCount === 1) {
-          // Single click - wait to see if there's a double click
-          clickTimeout = setTimeout(() => {
-            Logger.debug('Mini widget: Single click - opening calendar selection');
-            this._onOpenCalendarSelection(event, miniDateElement as HTMLElement);
-            clickCount = 0;
-          }, 300) as unknown as number;
-        } else if (clickCount === 2) {
-          // Double click - cancel single click and handle double click
-          if (clickTimeout) {
-            clearTimeout(clickTimeout);
-            clickTimeout = null;
-          }
-          clickCount = 0;
+      // Handle double click (browser automatically handles timing and cancellation)
+      miniDateElement.addEventListener('dblclick', event => {
+        event.preventDefault();
+        event.stopPropagation();
 
-          Logger.debug('Mini widget: Double-click detected, opening larger view');
-          this._onOpenLargerView(event, miniDateElement as HTMLElement);
-        }
+        Logger.debug('Mini widget: Double-click detected, opening calendar selection');
+        this._onOpenCalendarSelection(event, miniDateElement as HTMLElement);
       });
     }
 
-    // Render any existing sidebar buttons
-    this.renderExistingSidebarButtons();
+    this.element?.addEventListener('contextmenu', event => {
+      event.preventDefault();
+      if (game.settings?.get('seasons-and-stars', 'miniWidgetPinned')) {
+        this.unpin();
+      }
+    });
 
-    // Position widget after render (SmallTime approach)
-    this.positionWidget();
-  }
+    const pinned = game.settings?.get('seasons-and-stars', 'miniWidgetPinned');
 
-  /**
-   * Apply compact mode CSS class if multiple features are active to optimize layout
-   */
-  private applyCompactModeIfNeeded(context: MiniWidgetContext): void {
-    if (!this.element) return;
-
-    // Check if we should apply compact mode
-    // Apply when both weekday display and time controls are active
-    const needsCompactMode = context.showDayOfWeek && context.showTimeControls;
-
-    if (needsCompactMode) {
-      this.element.classList.add('compact-mode');
-      Logger.debug('Applied compact mode for tighter layout');
+    if (pinned) {
+      this.applyPinnedPosition();
     } else {
-      this.element.classList.remove('compact-mode');
+      this.positionWidget();
     }
+
+    // Setup dragging after positioning
+    this.setupDragging();
   }
 
   /**
@@ -254,21 +427,116 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       // Check if SmallTime is pinned/docked in DOM or floating
       if (this.isSmallTimeDocked(smallTimeElement)) {
         Logger.debug('Mini widget: SmallTime is docked - using DOM positioning');
-        // SmallTime is docked - use DOM positioning
         this.dockAboveSmallTime(smallTimeElement);
       } else {
         Logger.debug('Mini widget: SmallTime is floating - using fixed positioning');
-        // SmallTime is floating - use fixed positioning
         this.positionAboveSmallTime(smallTimeElement);
       }
-    } else {
+    } else if (document.getElementById('players')) {
       Logger.debug('Mini widget: No SmallTime - docking to player list');
-      // No SmallTime - dock to player list
       this.dockToPlayerList();
+    } else {
+      Logger.debug('Mini widget: No SmallTime or player list - using standalone positioning');
+      this.positionStandalone();
     }
 
     // Mark as positioned to avoid repeated repositioning during time advancement
     this.hasBeenPositioned = true;
+  }
+
+  /**
+   * Apply pinned position styling
+   */
+  private applyPinnedPosition(): void {
+    if (!this.element) return;
+
+    // ApplicationV2 has the position but doesn't automatically apply it to the DOM
+    // We need to manually apply the position from ApplicationV2's position property
+    if (this.position.top !== undefined && this.position.left !== undefined) {
+      this.element.style.position = 'fixed';
+      this.element.style.top = `${this.position.top}px`;
+      this.element.style.left = `${this.position.left}px`;
+    }
+
+    // Apply the visual styling for pinned mode
+    this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
+    this.element.classList.add('standalone-mode');
+    this.element.classList.remove(
+      'docked-mode',
+      'above-smalltime',
+      'below-smalltime',
+      'beside-smalltime'
+    );
+
+    this.hasBeenPositioned = true;
+  }
+
+  /**
+   * Setup dragging using Foundry's built-in Draggable class
+   */
+  private setupDragging(): void {
+    if (!this.element) return;
+
+    // Create a Draggable instance and wrap the drag end method
+    const draggable = new (foundry.applications.ux.Draggable as any)(
+      this, // app
+      this.element, // element (outer)
+      this.element, // handle (drag element - use the whole widget)
+      false // resizable
+    );
+
+    // Store the original drag start method and wrap it
+    const originalOnDragMouseDown = draggable._onDragMouseDown;
+    draggable._onDragMouseDown = function (event: MouseEvent) {
+      // Switch to fixed positioning for free dragging
+      const rect = this.app.element.getBoundingClientRect();
+      this.app.element.style.position = 'fixed';
+      this.app.element.style.top = `${rect.top}px`;
+      this.app.element.style.left = `${rect.left}px`;
+      this.app.element.style.margin = '0';
+
+      return originalOnDragMouseDown.call(this, event);
+    };
+
+    // Store the original drag end method and wrap it
+    const originalOnDragMouseUp = draggable._onDragMouseUp;
+    draggable._onDragMouseUp = async function (event: MouseEvent) {
+      // Call the original method first
+      const result = originalOnDragMouseUp.call(this, event);
+
+      // Apply pinned styling and save position
+      const rect = this.app.element.getBoundingClientRect();
+
+      this.app.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
+      this.app.element.classList.add('standalone-mode');
+      this.app.element.classList.remove(
+        'docked-mode',
+        'above-smalltime',
+        'below-smalltime',
+        'beside-smalltime'
+      );
+
+      await game.settings?.set('seasons-and-stars', 'miniWidgetPinned', true);
+      await game.settings?.set('seasons-and-stars', 'miniWidgetPosition', {
+        top: rect.top,
+        left: rect.left,
+      });
+
+      return result;
+    };
+  }
+
+  /**
+   * Unpin the widget and reset to automatic positioning
+   */
+  private async unpin(): Promise<void> {
+    await game.settings?.set('seasons-and-stars', 'miniWidgetPinned', false);
+    await game.settings?.set('seasons-and-stars', 'miniWidgetPosition', {
+      top: null,
+      left: null,
+    });
+    this.hasBeenPositioned = false;
+    this.positionWidget();
   }
 
   /**
@@ -317,6 +585,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         break;
       case 'openLargerView':
         this._onOpenLargerView(event, actionElement);
+        break;
+      case 'clickSidebarButton':
+        this._onClickSidebarButton(event, actionElement);
         break;
       default:
         Logger.warn(`Unknown action: ${action}`);
@@ -406,6 +677,19 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     });
 
+    // Update widget when combat state changes (affects time advancement button state)
+    Hooks.on('combatStart', () => {
+      if (CalendarMiniWidget.activeInstance?.rendered) {
+        CalendarMiniWidget.activeInstance.render();
+      }
+    });
+
+    Hooks.on('deleteCombat', () => {
+      if (CalendarMiniWidget.activeInstance?.rendered) {
+        CalendarMiniWidget.activeInstance.render();
+      }
+    });
+
     // Update widget when settings change (especially quick time buttons and time display)
     Hooks.on('seasons-stars:settingsChanged', (settingName: string) => {
       if (
@@ -413,10 +697,18 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           settingName === 'miniWidgetQuickTimeButtons' ||
           settingName === 'miniWidgetShowTime' ||
           settingName === 'miniWidgetShowDayOfWeek' ||
+          settingName === 'miniWidgetCanonicalMode' ||
+          settingName === 'miniWidgetShowMoonPhases' ||
           settingName === 'alwaysShowQuickTimeButtons') &&
         CalendarMiniWidget.activeInstance?.rendered
       ) {
         CalendarMiniWidget.activeInstance.render();
+      }
+    });
+
+    Hooks.on('seasons-stars:widgetButtonsChanged', () => {
+      if (CalendarMiniWidget.activeInstance?.rendered) {
+        (CalendarMiniWidget.activeInstance as any).render({ parts: ['main'] });
       }
     });
   }
@@ -479,130 +771,24 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    * Add a sidebar button to the mini widget
    * Provides generic API for integration with other modules via compatibility bridges
    */
-  addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
-    // Check if button already exists
-    const existingButton = this.sidebarButtons.find(btn => btn.name === name);
-    if (existingButton) {
-      Logger.debug(`Button "${name}" already exists in mini widget`);
-      return;
-    }
-
-    // Add to buttons array
-    this.sidebarButtons.push({ name, icon, tooltip, callback });
-    Logger.debug(`Added sidebar button "${name}" to mini widget`);
-
-    // If widget is rendered, add button to DOM immediately
-    if (this.rendered && this.element) {
-      this.renderSidebarButton(name, icon, tooltip, callback);
-    }
+  addSidebarButton(name: string, icon: string, tooltip: string, callback: () => void): void {
+    registerSidebarButton('mini', { name, icon, tooltip, callback });
+    Logger.debug(`Requested sidebar button "${name}" registration for mini widget`);
   }
 
   /**
    * Remove a sidebar button by name
    */
   removeSidebarButton(name: string): void {
-    const index = this.sidebarButtons.findIndex(btn => btn.name === name);
-    if (index !== -1) {
-      this.sidebarButtons.splice(index, 1);
-      Logger.debug(`Removed sidebar button "${name}" from mini widget`);
-
-      // Remove from DOM if rendered
-      if (this.rendered && this.element) {
-        const buttonId = `mini-sidebar-btn-${name.toLowerCase().replace(/\s+/g, '-')}`;
-        const buttonElement = this.element.querySelector(`#${buttonId}`);
-        if (buttonElement) {
-          buttonElement.remove();
-        }
-      }
-    }
+    unregisterSidebarButton('mini', name);
+    Logger.debug(`Requested sidebar button "${name}" removal for mini widget`);
   }
 
   /**
    * Check if a sidebar button exists
    */
   hasSidebarButton(name: string): boolean {
-    return this.sidebarButtons.some(btn => btn.name === name);
-  }
-
-  /**
-   * Render a sidebar button in the mini widget DOM
-   */
-  private renderSidebarButton(
-    name: string,
-    icon: string,
-    tooltip: string,
-    callback: Function
-  ): void {
-    if (!this.element) return;
-
-    const buttonId = `mini-sidebar-btn-${name.toLowerCase().replace(/\s+/g, '-')}`;
-
-    // Don't add if already exists in DOM
-    if (this.element.querySelector(`#${buttonId}`)) {
-      return;
-    }
-
-    // Find or create header area for buttons
-    let headerArea = this.element.querySelector('.mini-widget-header') as HTMLElement;
-    if (!headerArea) {
-      // Create header if it doesn't exist
-      headerArea = document.createElement('div');
-      headerArea.className = 'mini-widget-header';
-      headerArea.style.cssText =
-        'display: flex; justify-content: flex-end; align-items: center; padding: 2px 4px; background: rgba(0,0,0,0.1); border-bottom: 1px solid var(--color-border-light-tertiary);';
-
-      // Insert at the beginning of the widget
-      this.element.insertBefore(headerArea, this.element.firstChild);
-    }
-
-    // Create button element
-    const button = document.createElement('button');
-    button.id = buttonId;
-    button.className = 'mini-sidebar-button';
-    button.title = tooltip;
-    button.innerHTML = `<i class="fas ${icon}"></i>`;
-    button.style.cssText = `
-      background: var(--color-bg-btn, #f0f0f0);
-      border: 1px solid var(--color-border-dark, #999);
-      border-radius: 2px;
-      padding: 2px 4px;
-      margin-left: 2px;
-      cursor: pointer;
-      font-size: 10px;
-      color: var(--color-text-primary, #000);
-      transition: background-color 0.15s ease;
-    `;
-
-    // Add click handler
-    button.addEventListener('click', event => {
-      event.preventDefault();
-      event.stopPropagation();
-      try {
-        callback();
-      } catch (error) {
-        Logger.error(`Error in mini widget sidebar button "${name}"`, error as Error);
-      }
-    });
-
-    // Add hover effects
-    button.addEventListener('mouseenter', () => {
-      button.style.background = 'var(--color-bg-btn-hover, #e0e0e0)';
-    });
-    button.addEventListener('mouseleave', () => {
-      button.style.background = 'var(--color-bg-btn, #f0f0f0)';
-    });
-
-    headerArea.appendChild(button);
-    Logger.debug(`Rendered sidebar button "${name}" in mini widget DOM`);
-  }
-
-  /**
-   * Render all existing sidebar buttons (called after widget render)
-   */
-  private renderExistingSidebarButtons(): void {
-    this.sidebarButtons.forEach(button => {
-      this.renderSidebarButton(button.name, button.icon, button.tooltip, button.callback);
-    });
+    return registryHasSidebarButton('mini', name);
   }
 
   /**
@@ -632,6 +818,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   async _onAdvanceTime(event: Event, target: HTMLElement): Promise<void> {
     event.preventDefault();
+
+    if (!game.user?.isGM) {
+      ui.notifications?.warn('Only GMs can advance time');
+      return;
+    }
 
     const amount = parseInt(target.dataset.amount || '0');
     const unit = target.dataset.unit || 'hours';
@@ -665,6 +856,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   async _onToggleTimeAdvancement(event: Event, _target?: HTMLElement): Promise<void> {
     event.preventDefault();
 
+    if (!game.user?.isGM) {
+      ui.notifications?.warn('Only GMs can control time advancement');
+      return;
+    }
+
     try {
       const service = TimeAdvancementService.getInstance();
       if (!service) {
@@ -672,6 +868,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         return;
       }
 
+      // Fix for issue #312: Use isActive instead of shouldShowPauseButton for toggle logic
+      // shouldShowPauseButton is for UI display, not toggle decisions
       if (service.isActive) {
         service.pause();
         Logger.info('Mini widget: Paused time advancement');
@@ -689,10 +887,53 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Handle sidebar button clicks dispatched from template actions
+   */
+  async _onClickSidebarButton(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    const buttonName = target.dataset.buttonName;
+    console.log('🌟 Sidebar button clicked:', buttonName);
+
+    if (!buttonName) {
+      Logger.warn('Mini widget sidebar button clicked without button name');
+      return;
+    }
+
+    const registry = SidebarButtonRegistry.getInstance();
+    const allButtons = registry.getForWidget('mini');
+    console.log('🌟 All buttons for mini widget:', allButtons);
+
+    const button = allButtons.find(config => config.name === buttonName);
+    console.log('🌟 Found button config:', button);
+
+    if (button && typeof button.callback === 'function') {
+      console.log('🌟 Executing callback for button:', buttonName);
+      try {
+        button.callback();
+        console.log('🌟 Callback executed successfully');
+      } catch (error) {
+        Logger.error(`Error executing mini widget sidebar button "${buttonName}"`, error as Error);
+      }
+    } else {
+      console.log('🌟 Button not found or invalid callback:', {
+        found: !!button,
+        callbackType: typeof button?.callback,
+      });
+      Logger.warn(`Mini widget sidebar button "${buttonName}" not found or has invalid callback`);
+    }
+  }
+
+  /**
    * Handle opening calendar selection dialog
    */
   async _onOpenCalendarSelection(event: Event, _target: HTMLElement): Promise<void> {
     event.preventDefault();
+
+    if (!game.user?.isGM) {
+      ui.notifications?.warn('Only GMs can change the active calendar');
+      return;
+    }
 
     const manager = game.seasonsStars?.manager as CalendarManagerInterface;
     if (!manager) return;
@@ -719,6 +960,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
    */
   private autoPositionRelativeToSmallTime(): void {
     if (this.isClosing) return;
+    if (game.settings?.get('seasons-and-stars', 'miniWidgetPinned')) {
+      this.applyPinnedPosition();
+      return;
+    }
 
     // Reset positioning flag to force repositioning when SmallTime moves
     this.hasBeenPositioned = false;
@@ -769,19 +1014,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     }
 
     // Fallback: Fixed positioning if player list not found
-    let position = { top: 80, left: 20 }; // Default fallback
+    let position = this.getFallbackPosition();
 
-    try {
-      // Fallback: Try to find where player list would typically be
-      // Usually bottom-right area of UI
-      position = {
-        top: window.innerHeight - WIDGET_POSITIONING.STANDALONE_BOTTOM_OFFSET, // Typical player list area
-        left: window.innerWidth - 240, // Typical player list left edge
-      };
-
-      Logger.debug('Player list not found, using typical location', position);
-    } catch (error) {
-      Logger.warn('Error in standalone positioning, using fallback', error);
+    // Check if fallback position is within viewport bounds
+    const bounds = this.isPositionOutsideViewport(position);
+    if (bounds.outsideTop || bounds.outsideBottom || bounds.outsideLeft || bounds.outsideRight) {
+      position = this.correctPositionForViewport(position);
     }
 
     // Apply the fixed position as last resort
@@ -823,8 +1061,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     requestAnimationFrame(() => {
       const smallTimeRect = smallTimeElement.getBoundingClientRect();
 
-      // Use a fixed height estimate instead of getBoundingClientRect() which can be wrong
-      const estimatedMiniHeight = WIDGET_POSITIONING.ESTIMATED_MINI_HEIGHT;
+      const { height: estimatedMiniHeight } = this.getMiniDimensions();
 
       Logger.debug('SmallTime rect', smallTimeRect);
       Logger.debug(`Using estimated mini height: ${estimatedMiniHeight}`);
@@ -859,6 +1096,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           this.element?.classList.add('below-smalltime');
           this.element?.classList.remove('above-smalltime', 'beside-smalltime');
           break;
+      }
+
+      // Check if calculated position would be outside viewport
+      const bounds = this.isPositionOutsideViewport(newPosition);
+      if (bounds.outsideTop || bounds.outsideBottom || bounds.outsideLeft || bounds.outsideRight) {
+        newPosition = this.correctPositionForViewport(newPosition);
       }
 
       Logger.debug('Positioning mini widget at', newPosition);
@@ -1018,10 +1261,125 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Measure the rendered mini widget, with fallbacks to constants
+   */
+  private getMiniDimensions(): { width: number; height: number } {
+    try {
+      const el = this.element?.querySelector?.('.calendar-mini-content') as HTMLElement | null;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        // Guard against 0 width before paint
+        const width = rect.width > 0 ? rect.width : WIDGET_POSITIONING.MINI_WIDGET_WIDTH;
+        const height = rect.height > 0 ? rect.height : WIDGET_POSITIONING.MINI_WIDGET_HEIGHT;
+        return { width, height };
+      }
+    } catch {
+      // Silently handle any errors during element measurement
+    }
+    return {
+      width: WIDGET_POSITIONING.MINI_WIDGET_WIDTH,
+      height: WIDGET_POSITIONING.MINI_WIDGET_HEIGHT,
+    };
+  }
+
+  /**
+   * Check if a position would place the widget outside viewport boundaries
+   */
+  isPositionOutsideViewport(position: { top: number; left: number }): {
+    outsideTop: boolean;
+    outsideBottom: boolean;
+    outsideLeft: boolean;
+    outsideRight: boolean;
+  } {
+    if (!window) {
+      return { outsideTop: false, outsideBottom: false, outsideLeft: false, outsideRight: false };
+    }
+
+    // Use standardized widget dimensions
+    const { width: widgetWidth, height: widgetHeight } = this.getMiniDimensions();
+
+    const viewportHeight = window.innerHeight || 768;
+    const viewportWidth = window.innerWidth || 1024;
+
+    return {
+      outsideTop: position.top < 0,
+      outsideBottom: position.top + widgetHeight > viewportHeight,
+      outsideLeft: position.left < 0,
+      outsideRight: position.left + widgetWidth > viewportWidth,
+    };
+  }
+
+  /**
+   * Correct a position to ensure it stays within viewport boundaries
+   */
+  correctPositionForViewport(position: { top: number; left: number }): {
+    top: number;
+    left: number;
+  } {
+    if (!window) {
+      return position;
+    }
+
+    // Handle invalid values
+    if (!Number.isFinite(position.top) || !Number.isFinite(position.left)) {
+      return this.getFallbackPosition();
+    }
+
+    const padding = WIDGET_POSITIONING.VIEWPORT_PADDING;
+    const { width: widgetWidth, height: widgetHeight } = this.getMiniDimensions();
+
+    const viewportHeight = window.innerHeight || 768;
+    const viewportWidth = window.innerWidth || 1024;
+
+    let correctedTop = position.top;
+    let correctedLeft = position.left;
+
+    // Correct top boundary
+    if (correctedTop < padding) {
+      correctedTop = padding;
+    }
+
+    // Correct bottom boundary
+    if (correctedTop + widgetHeight > viewportHeight - padding) {
+      correctedTop = Math.max(padding, viewportHeight - widgetHeight - padding);
+    }
+
+    // Correct left boundary
+    if (correctedLeft < padding) {
+      correctedLeft = padding;
+    }
+
+    // Correct right boundary
+    if (correctedLeft + widgetWidth > viewportWidth - padding) {
+      correctedLeft = Math.max(padding, viewportWidth - widgetWidth - padding);
+    }
+
+    return { top: correctedTop, left: correctedLeft };
+  }
+
+  /**
+   * Get a sensible fallback position for the widget
+   */
+  getFallbackPosition(): { top: number; left: number } {
+    if (!window) {
+      return { top: 80, left: 20 };
+    }
+
+    const viewportHeight = window.innerHeight || 768;
+
+    // Position in lower-left area, typical for UI widgets
+    return {
+      top: viewportHeight - WIDGET_POSITIONING.STANDALONE_BOTTOM_OFFSET,
+      left: 20,
+    };
+  }
+
+  /**
    * Handle player list expansion/contraction
    */
   private handlePlayerListChange(): void {
     if (this.isClosing) return;
+    if (game.settings?.get('seasons-and-stars', 'miniWidgetPinned')) return;
 
     const playerList = document.getElementById('players');
 
@@ -1048,6 +1406,20 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (!playerList) return;
 
     try {
+      // Check if player list position would put widget outside viewport
+      const playerListRect = playerList.getBoundingClientRect();
+      const testPosition = {
+        top: playerListRect.top - WIDGET_POSITIONING.MINI_WIDGET_HEIGHT,
+        left: playerListRect.left,
+      };
+
+      const bounds = this.isPositionOutsideViewport(testPosition);
+      if (bounds.outsideTop || bounds.outsideLeft) {
+        // Player list position would be outside viewport, using fallback
+        this.positionStandalone();
+        return;
+      }
+
       // Use SmallTime's approach: insert before the player list in the DOM
       // This automatically moves with player list expansion/contraction
       const uiLeft = document.getElementById('ui-left');
@@ -1085,12 +1457,26 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (!this.element) return;
 
     const smallTimeRect = smallTimeElement.getBoundingClientRect();
-    const estimatedMiniHeight = 32;
+    const { height: estimatedMiniHeight } = this.getMiniDimensions();
 
-    // Position above SmallTime
+    // Calculate position above SmallTime
+    let position = {
+      top: smallTimeRect.top - estimatedMiniHeight - 8,
+      left: smallTimeRect.left,
+    };
+
+    // Check if position would be outside viewport
+    const bounds = this.isPositionOutsideViewport(position);
+    if (bounds.outsideTop || bounds.outsideBottom || bounds.outsideLeft || bounds.outsideRight) {
+      // Position above SmallTime would be outside viewport, using fallback
+      position = this.getFallbackPosition();
+      position = this.correctPositionForViewport(position);
+    }
+
+    // Apply position
     this.element.style.position = 'fixed';
-    this.element.style.top = `${smallTimeRect.top - estimatedMiniHeight - 8}px`;
-    this.element.style.left = `${smallTimeRect.left}px`;
+    this.element.style.top = `${position.top}px`;
+    this.element.style.left = `${position.left}px`;
     this.element.style.zIndex = WIDGET_POSITIONING.Z_INDEX.toString();
 
     this.element.classList.add('above-smalltime');

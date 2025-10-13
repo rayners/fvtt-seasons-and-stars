@@ -20,7 +20,7 @@
       "calendar_selection": {
         "title": "📅 Zmiana systemu kalendarza",
         "choose_calendar": "Wybierz swój system kalendarza",
-        "choose_hint": "Wybierz system kalendarza, który będzie używany do wyświetlania dat i śledzenia czasu w twoim świecie. Wpływa to na sposób wyświetlania i obliczania dat w całej grze.",
+        "choose_hint": "Wybierz system kalendarza, który będzie używany do wyświetlania dat i śledzenia czasu w Twoim świecie. Ma to wpływ na sposób wyświetlania i obliczania dat w całej grze. Możesz wybrać jeden z wbudowanych kalendarzy poniżej lub załadować własny plik kalendarza.",
         "select": "Użyj tego kalendarza",
         "cancel": "Zachowaj bieżący stan",
         "switch_to": "Przełącz na {calendar}",
@@ -31,7 +31,19 @@
         "sample_dates": "Przykładowe daty",
         "structure": "Struktura kalendarza",
         "no_calendars": "Brak dostępnych kalendarzy",
-        "no_calendars_hint": "Nie znaleziono plików kalendarza. Upewnij się, że dane kalendarza są prawidłowo zainstalowane."
+        "no_calendars_hint": "Nie znaleziono plików kalendarza. Upewnij się, że dane kalendarza są prawidłowo zainstalowane.",
+        "custom_file": "Plik kalendarza niestandardowego",
+        "custom_file_hint": "Wybierz niestandardowy plik JSON kalendarza z serwera Foundry. Dzięki temu możesz korzystać z kalendarzy, które nie są zawarte w wbudowanej kolekcji.",
+        "browse": "Przeglądaj",
+        "browse_tooltip": "Wybierz niestandardowy plik kalendarza z serwera Foundry",
+        "no_file_selected": "Nie wybrano żadnego pliku niestandardowego",
+        "clear_file": "Wyczyść wybór pliku",
+        "clear": "Wyczyść",
+        "file_active": "Plik kalendarza niestandardowego jest obecnie aktywny",
+        "file_loaded": "Plik kalendarza niestandardowego został załadowany i jest gotowy do użycia",
+        "file_path": "Ścieżka pliku",
+        "status": "Status",
+        "click_to_select": "Kliknij, aby wybrać plik kalendarza"
       },
       "calendar_preview": {
         "title": "Podgląd kalendarza: {calendar}"
@@ -41,6 +53,8 @@
     "settings": {
       "active_calendar": "📅 Aktywny system kalendarza",
       "active_calendar_hint": "Wybór systemu kalendarza używanego do wyświetlania daty i śledzenia czasu. Jest to podstawowe ustawienie służące do konfigurowania kalendarza świata.",
+      "active_calendar_file": "📄 Ścieżka do pliku kalendarza niestandardowego",
+      "active_calendar_file_hint": "Ścieżka do niestandardowego pliku JSON kalendarza na serwerze Foundry. To ustawienie jest zarządzane za pomocą okna dialogowego wyboru kalendarza.",
       "current_date": "Bieżąca data",
       "current_date_hint": "Bieżąca data w grze (zarządzana automatycznie)",
       "default_widget": "🔧 Domyślny widżet kalendarza",
@@ -53,7 +67,8 @@
       "calendar_changed": "Kalendarz został zmieniony na {calendar}"
     },
     "warnings": {
-      "no_calendars_available": "Brak dostępnych kalendarzy do wyboru"
+      "no_calendars_available": "Brak dostępnych kalendarzy do wyboru",
+      "calendar_file_failed": "Nie udało się załadować pliku kalendarza '{path}': {error}"
     },
     "keybindings": {
       "toggle_default_widget": "Przełączanie domyślnego widżetu kalendarza",
@@ -69,7 +84,10 @@
       "invalid_calendar": "Nieprawidłowy format kalendarza",
       "failed_load": "Nie udało się załadować kalendarza: {error}",
       "conversion_failed": "Konwersja kalendarza nie powiodła się: {error}",
-      "manager_not_ready": "Menedżer kalendarza nie jest jeszcze gotowy"
+      "manager_not_ready": "Menedżer kalendarza nie jest jeszcze gotowy",
+      "file_picker_failed": "Nie udało się otworzyć okna dialogowego wyboru plików",
+      "calendar_file_load_failed": "Nie udało się załadować kalendarza z pliku {path}: {error}",
+      "clear_file_failed": "Nie udało się wyczyścić wyboru pliku kalendarza niestandardowego"
     }
   }
 }

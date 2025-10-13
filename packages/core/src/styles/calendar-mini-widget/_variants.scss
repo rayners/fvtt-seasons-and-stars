@@ -1,0 +1,174 @@
+/**
+ * Calendar Mini Widget - Variants and Mode Overrides
+ * Positioning helpers, compact modes, docked mode, and theme compatibility
+ */
+
+.calendar-mini-widget {
+  // Player list expanded state
+  &.player-list-expanded {
+    .calendar-mini-content {
+      z-index: 85 !important;
+      opacity: 0.95;
+      transition: z-index 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+    }
+  }
+
+  // Compact mode when both weekday and time controls are visible
+  &.compact-mode {
+    .calendar-mini-content {
+      padding: 2px 4px;
+
+      .mini-header-row {
+        gap: 0.1rem;
+
+        .mini-weekday {
+          font-size: 0.7em;
+          margin-right: 0.2em;
+          letter-spacing: 0.2px;
+        }
+
+        .mini-date {
+          font-size: 0.95em;
+          padding: 1px 2px;
+        }
+
+        .mini-play-pause-controls .play-pause-btn {
+          min-width: 16px;
+          height: 12px;
+          font-size: 8px;
+          padding: 1px 2px;
+
+          i {
+            font-size: 7px;
+          }
+        }
+      }
+
+      .mini-time-controls {
+        margin-top: 0.15rem;
+        gap: 0.1rem;
+
+        button {
+          padding: 0.1rem 0.25rem;
+          font-size: 0.6rem;
+          border-radius: 2px;
+          flex: 0 0 auto;
+
+          i {
+            font-size: 0.55rem;
+            margin-right: 0.1rem;
+          }
+        }
+      }
+
+      .mini-sidebar-buttons {
+        gap: 0.18rem;
+        margin-left: 0.35rem;
+      }
+    }
+  }
+}
+
+// Positioning helper classes for integration with SmallTime
+.calendar-mini-widget {
+  &.above-smalltime {
+    .calendar-mini-content {
+      margin-bottom: 4px;
+    }
+  }
+
+  &.below-smalltime {
+    .calendar-mini-content {
+      margin-top: 4px;
+    }
+  }
+
+  &.beside-smalltime {
+    .calendar-mini-content {
+      margin-left: 4px;
+      margin-right: 4px;
+    }
+  }
+
+  // Standalone mode (when SmallTime is not available)
+  &.standalone-mode {
+    .calendar-mini-content {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 8px 12px;
+      min-width: 160px;
+
+      .mini-date {
+        font-size: 1.1em;
+      }
+
+      .mini-time-controls {
+        margin-top: 0.5rem;
+
+        button {
+          padding: 0.2rem 0.4rem;
+          font-size: 0.7rem;
+        }
+      }
+    }
+  }
+
+  // Docked mode (positioned in ui-left like SmallTime)
+  &.docked-mode {
+    .calendar-mini-content {
+      width: 200px;
+      border-radius: 3px;
+      background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      padding: 4px 8px;
+      margin: 0;
+
+      .mini-time-controls {
+        margin-top: 0.25rem;
+
+        button {
+          background: linear-gradient(135deg, #10b981, #14b8a6);
+          border-color: #10b981;
+          color: white;
+
+          &:hover {
+            background: linear-gradient(135deg, #059669, #0d9488);
+            border-color: #059669;
+            color: white;
+          }
+
+          &.rewind {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            border-color: #dc2626;
+            color: white;
+
+            &:hover {
+              background: linear-gradient(135deg, #b91c1c, #dc2626);
+              border-color: #b91c1c;
+              color: white;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Ultra-compact mode for tight spaces
+  &.compact {
+    .calendar-mini-content {
+      padding: 4px 8px;
+      font-size: 0.75em;
+      border-radius: 4px;
+    }
+  }
+}
+
+// Foundry theme compatibility
+.system-dnd5e .calendar-mini-widget,
+.system-pf2e .calendar-mini-widget {
+  .calendar-mini-content {
+    background: var(--color-warm-grey);
+    border-color: var(--color-border-dark);
+  }
+}

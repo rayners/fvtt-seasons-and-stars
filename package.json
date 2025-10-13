@@ -9,11 +9,12 @@
     "packages/fantasy-pack",
     "packages/scifi-pack",
     "packages/pf2e-pack",
-    "packages/test-module"
+    "packages/test-module",
+    "packages/custom-calendar-builder"
   ],
   "scripts": {
     "prebuild": "npm run prebuild --workspaces",
-    "build": "npm run build --workspaces",
+    "build": "rm -rf ./dist && npm run build --workspaces",
     "watch": "npm run watch --workspace=packages/core",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint packages/core/src",
@@ -28,8 +29,14 @@
     "test:coverage:junit": "vitest run --coverage --reporter=junit --reporter=default",
     "test:workspaces": "npm run test --workspaces --if-present",
     "test:workspaces:run": "npm run test:run --workspaces --if-present",
+    "test:headless": "playwright test --config packages/core/test-headless/headless-test.config.ts",
+    "test:headless:headed": "playwright test --config packages/core/test-headless/headless-test.config.ts --headed",
+    "test:headless:debug": "playwright test --config packages/core/test-headless/headless-test.config.ts --debug",
+    "test:headless:ui": "playwright test --config packages/core/test-headless/headless-test.config.ts --ui",
+    "test:playwright:core": "playwright test --grep \"@release-core\" --project chromium",
     "prevalidate:calendars": "npm run prebuild --workspaces --if-present",
-    "validate:calendars": "npm run validate:calendars --workspaces --if-present",
+    "validate:calendars": "npm run validate:calendars --workspace=packages/core",
+    "validate:calendars:syntax": "npm run validate:calendars:syntax --workspace=packages/core",
     "prebuild:all": "npm run prebuild --workspaces --if-present",
     "validate": "npm run lint && npm run format:check && npm run typecheck && npm run test:run && npm run validate:calendars && npm run build",
     "prepare": "husky && npm run prebuild --workspaces",
@@ -63,9 +70,10 @@
   "author": "David Raynes",
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^9.32.0",
+    "@playwright/test": "^1.56.0",
+    "eslint": "^9.37.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.1.5",
+    "lint-staged": "^16.2.4",
     "prettier": "^3.5.3"
   }
 }

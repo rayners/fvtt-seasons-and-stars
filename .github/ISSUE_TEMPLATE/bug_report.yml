@@ -33,10 +33,10 @@ body:
       description: Which module is this issue related to?
       options:
         - Core (seasons-and-stars)
+        - Calendar Builder (seasons-and-stars-calendar-builder)
         - PF2e Pack (seasons-and-stars-pf2e)
         - Fantasy Pack (seasons-and-stars-fantasy)
         - Sci-Fi Pack (seasons-and-stars-scifi)
-        - Custom Calendar Editor
         - Multiple modules
         - Unsure
     validations:

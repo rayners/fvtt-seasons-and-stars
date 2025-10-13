@@ -1,0 +1,69 @@
+{
+  "id": "dara-happan",
+  "translations": {
+    "en": {
+      "label": "Dara Happan Calendar (Glorantha)",
+      "description": "Calendar of the Dara Happan people, dividing the year into four 70-day seasons of ten-day weeks followed by a 14-day Sacred Time.",
+      "setting": "Glorantha"
+    }
+  },
+  "sources": ["https://glorantha.fandom.com/wiki/Calendar"],
+  "year": {
+    "epoch": 0,
+    "currentYear": 1625,
+    "prefix": "",
+    "suffix": " ST",
+    "startDay": 0
+  },
+  "leapYear": { "rule": "none" },
+  "months": [
+    {
+      "name": "Youth Season",
+      "abbreviation": "You",
+      "days": 70,
+      "description": "The year's beginning and season of renewal."
+    },
+    {
+      "name": "Sky Season",
+      "abbreviation": "Sky",
+      "days": 70,
+      "description": "Clear skies and high worship."
+    },
+    {
+      "name": "Harvest Season",
+      "abbreviation": "Har",
+      "days": 70,
+      "description": "Time of gathering and plenty."
+    },
+    {
+      "name": "Dying Season",
+      "abbreviation": "Dye",
+      "days": 70,
+      "description": "The waning year and approach of darkness."
+    },
+    {
+      "name": "Sacred Time",
+      "abbreviation": "Sac",
+      "days": 14,
+      "description": "Fourteen days of holy rites closing the year."
+    }
+  ],
+  "weekdays": [
+    { "name": "First Day", "abbreviation": "D1" },
+    { "name": "Second Day", "abbreviation": "D2" },
+    { "name": "Third Day", "abbreviation": "D3" },
+    { "name": "Fourth Day", "abbreviation": "D4" },
+    { "name": "Fifth Day", "abbreviation": "D5" },
+    { "name": "Sixth Day", "abbreviation": "D6" },
+    { "name": "Seventh Day", "abbreviation": "D7" },
+    { "name": "Eighth Day", "abbreviation": "D8" },
+    { "name": "Ninth Day", "abbreviation": "D9" },
+    { "name": "Tenth Day", "abbreviation": "D10" }
+  ],
+  "intercalary": [],
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}

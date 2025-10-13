@@ -9,6 +9,7 @@
  */
 
 import { Logger } from './logger';
+import type { SeasonsStarsCalendar, CalendarDateData } from '../types/calendar';
 
 export interface SystemCompatibilityAdjustment {
   /** Weekday offset to apply (e.g., +5 to shift weekday calculation) */
@@ -53,7 +54,7 @@ export class CompatibilityManager {
 
   private timeSourceRegistry: Map<string, () => number | null> = new Map();
 
-  private dataProviderRegistry: Map<string, Map<string, () => any>> = new Map();
+  private dataProviderRegistry: Map<string, Map<string, () => unknown>> = new Map();
 
   constructor() {
     this.initializeHookSystem();
@@ -142,7 +143,7 @@ export class CompatibilityManager {
    * Get compatibility adjustment for current system and calendar
    */
   getCompatibilityAdjustment(
-    calendar: any,
+    calendar: SeasonsStarsCalendar,
     systemId?: string
   ): SystemCompatibilityAdjustment | null {
     const currentSystemId = systemId || (typeof game !== 'undefined' && game?.system?.id);
@@ -173,7 +174,11 @@ export class CompatibilityManager {
   /**
    * Apply weekday compatibility adjustment
    */
-  applyWeekdayAdjustment(weekday: number, calendar: any, systemId?: string): number {
+  applyWeekdayAdjustment(
+    weekday: number,
+    calendar: SeasonsStarsCalendar,
+    systemId?: string
+  ): number {
     const adjustment = this.getCompatibilityAdjustment(calendar, systemId);
 
     if (adjustment?.weekdayOffset) {
@@ -194,7 +199,11 @@ export class CompatibilityManager {
   /**
    * Apply date formatting adjustments
    */
-  applyDateFormatAdjustment(date: any, calendar: any, systemId?: string): any {
+  applyDateFormatAdjustment(
+    date: CalendarDateData,
+    calendar: SeasonsStarsCalendar,
+    systemId?: string
+  ): CalendarDateData {
     const adjustment = this.getCompatibilityAdjustment(calendar, systemId);
 
     if (adjustment?.dateFormatting) {
@@ -212,7 +221,7 @@ export class CompatibilityManager {
   /**
    * Get debug information about active compatibility adjustments
    */
-  getDebugInfo(calendar: any, systemId?: string): string {
+  getDebugInfo(calendar: SeasonsStarsCalendar, systemId?: string): string {
     const currentSystemId = systemId || game.system?.id;
     const adjustment = this.getCompatibilityAdjustment(calendar, currentSystemId);
 

@@ -7,6 +7,7 @@
       "setting": "Brandon Sanderson's Cosmere - Stormlight Archive"
     }
   },
+  "sources": ["https://stormlightarchive.fandom.com/wiki/Calendar"],
 
   "year": {
     "epoch": 0,
@@ -138,6 +139,17 @@
     "brief": "{{ss-day}}/{{ss-month}}/{{year}}",
     "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, in the year {{year}}",
     "highstorm": "{{year}}.{{month}}.{{ss-week}}.{{ss-day-in-week}} - Week {{ss-week}} of {{ss-month format=\"name\"}}",
+
+    "roshar-intercalary": "{{intercalary}} Day {{ss-day}}, {{year}}",
+    "roshar-simple-intercalary": "{{intercalary}} Day {{ss-day}}, {{year}}",
+    "vorin-intercalary": "{{ss-day format=\"ordinal\"}} day of {{intercalary}}, {{year}}",
+    "short-intercalary": "{{intercalary}} {{ss-day}}",
+    "long-intercalary": "{{intercalary}}, {{ss-day format=\"ordinal\"}} day, {{year}}",
+    "date-intercalary": "{{intercalary}}, {{ss-day format=\"ordinal\"}} day, {{year}}",
+    "datetime-intercalary": "{{intercalary}}, {{ss-day format=\"ordinal\"}} day, {{year}} at {{ss-dateFmt \"time\"}}",
+    "brief-intercalary": "{{intercalary}} {{ss-day}}",
+    "formal-intercalary": "The {{ss-day format=\"ordinal\"}} day of {{intercalary}}, in the year {{year}}",
+    "highstorm-intercalary": "{{intercalary}} Day {{ss-day}} - {{year}}",
     "variants": {
       "alethi": {
         "short": "{{ss-dateFmt \"roshar-simple\"}}",
@@ -151,7 +163,11 @@
     "widgets": {
       "mini": "{{year}}.{{month}}.{{ss-week}}",
       "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day}} {{ss-month format=\"abbr\"}}",
-      "grid": "{{ss-day}}"
+      "grid": "{{ss-day}}",
+
+      "mini-intercalary": "{{intercalary}} {{ss-day}}",
+      "main-intercalary": "{{intercalary}}, {{ss-day format=\"ordinal\"}} day",
+      "grid-intercalary": "{{ss-day}}"
     }
   }
 }

@@ -13,14 +13,52 @@ import type {
 import { CalendarDate } from './calendar-date';
 import { CalendarTimeUtils } from './calendar-time-utils';
 import { compatibilityManager } from './compatibility-manager';
+import { Logger } from './logger';
+import { GREGORIAN_DEFAULTS } from './gregorian-defaults';
 
 export class CalendarEngine {
   private calendar: SeasonsStarsCalendar;
   private calculationCache: Map<string, CalendarCalculation> = new Map();
 
   constructor(calendar: SeasonsStarsCalendar) {
-    this.calendar = calendar;
+    this.calendar = CalendarEngine.applyGregorianDefaults(calendar);
     this.precomputeYearData();
+  }
+
+  private static applyGregorianDefaults(calendar: SeasonsStarsCalendar): SeasonsStarsCalendar {
+    const defaults = GREGORIAN_DEFAULTS;
+
+    const mergedLeapYear =
+      calendar.leapYear === undefined
+        ? defaults.leapYear
+        : calendar.leapYear.rule === 'none'
+          ? { rule: 'none' }
+          : { ...defaults.leapYear, ...calendar.leapYear };
+
+    const merged: SeasonsStarsCalendar = {
+      ...calendar,
+      year: calendar.year === undefined ? defaults.year : { ...defaults.year, ...calendar.year },
+      leapYear: mergedLeapYear,
+      time: calendar.time === undefined ? defaults.time : { ...defaults.time, ...calendar.time },
+      months: calendar.months ?? defaults.months,
+      weekdays: calendar.weekdays ?? defaults.weekdays,
+      intercalary: calendar.intercalary ?? defaults.intercalary,
+    } as SeasonsStarsCalendar;
+
+    if (!calendar.year)
+      Logger.warn(`Calendar ${calendar.id} missing year data; using Gregorian defaults`);
+    if (!calendar.leapYear)
+      Logger.warn(`Calendar ${calendar.id} missing leapYear data; using Gregorian defaults`);
+    if (!calendar.months)
+      Logger.warn(`Calendar ${calendar.id} missing months data; using Gregorian defaults`);
+    if (!calendar.weekdays)
+      Logger.warn(`Calendar ${calendar.id} missing weekdays data; using Gregorian defaults`);
+    if (!calendar.intercalary)
+      Logger.warn(`Calendar ${calendar.id} missing intercalary data; using Gregorian defaults`);
+    if (!calendar.time)
+      Logger.warn(`Calendar ${calendar.id} missing time data; using Gregorian defaults`);
+
+    return merged;
   }
 
   /**
@@ -811,17 +849,28 @@ export class CalendarEngine {
   /**
    * Get month lengths for a specific year (accounting for leap years)
    */
-  private getMonthLengths(year: number): number[] {
+  getMonthLengths(year: number): number[] {
     const monthLengths = this.calendar.months.map(month => month.days);
 
-    // Add leap year days if applicable
-    if (this.isLeapYear(year) && this.calendar.leapYear.month) {
+    // Add or remove leap year days if applicable
+    if (this.isLeapYear(year) && this.calendar.leapYear?.month) {
       const leapMonthIndex = this.calendar.months.findIndex(
-        month => month.name === this.calendar.leapYear.month
+        month => month.name === this.calendar.leapYear!.month
       );
 
       if (leapMonthIndex >= 0) {
-        monthLengths[leapMonthIndex] += this.calendar.leapYear.extraDays || 1;
+        // extraDays can be positive (add days) or negative (remove days)
+        // Default to +1 for backward compatibility
+        const dayAdjustment = this.calendar.leapYear!.extraDays ?? 1;
+        monthLengths[leapMonthIndex] += dayAdjustment;
+
+        // Ensure month length doesn't go below 1
+        if (monthLengths[leapMonthIndex] < 1) {
+          Logger.warn(
+            `Calendar ${this.calendar.id}: Month "${this.calendar.leapYear!.month}" clamped to 1 day (was ${monthLengths[leapMonthIndex]})`
+          );
+          monthLengths[leapMonthIndex] = 1;
+        }
       }
     }
 
@@ -875,8 +924,11 @@ export class CalendarEngine {
   /**
    * Check if a year is a leap year
    */
-  private isLeapYear(year: number): boolean {
-    const { rule, interval } = this.calendar.leapYear;
+  isLeapYear(year: number): boolean {
+    const leapYear = this.calendar.leapYear;
+    if (!leapYear) return false;
+
+    const { rule, interval, offset = 0 } = leapYear;
 
     switch (rule) {
       case 'none':
@@ -885,8 +937,14 @@ export class CalendarEngine {
       case 'gregorian':
         return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 
-      case 'custom':
-        return interval ? year % interval === 0 : false;
+      case 'custom': {
+        if (!interval) return false;
+        const normalizedYear = year - offset;
+        const remainder = normalizedYear % interval;
+        // Check if the year is divisible by the interval.
+        // For negative remainders, we need to normalize them to positive values.
+        return remainder === 0 || (remainder < 0 && remainder + interval === 0);
+      }
 
       default:
         return false;
@@ -985,31 +1043,61 @@ export class CalendarEngine {
         : daysSinceReference +
           Math.ceil(Math.abs(daysSinceReference) / moon.cycleLength) * moon.cycleLength;
 
-    // Calculate position in current cycle
-    const dayInCycle = adjustedDays % moon.cycleLength;
+    // Calculate position in current cycle with tolerance for fractional lengths
+    const cyclePositionRaw =
+      ((adjustedDays % moon.cycleLength) + moon.cycleLength) % moon.cycleLength;
+    const phaseBoundaryTolerance = 1e-6;
 
-    // Find current phase
+    let phaseStart = 0;
     let currentPhaseIndex = 0;
-    let daysIntoPhase = dayInCycle;
 
     for (let i = 0; i < moon.phases.length; i++) {
-      if (daysIntoPhase < moon.phases[i].length) {
+      const phase = moon.phases[i];
+      const phaseEnd = phaseStart + phase.length;
+
+      if (cyclePositionRaw < phaseEnd - phaseBoundaryTolerance || i === moon.phases.length - 1) {
         currentPhaseIndex = i;
         break;
       }
-      daysIntoPhase -= moon.phases[i].length;
+
+      phaseStart = phaseEnd;
     }
 
     const currentPhase = moon.phases[currentPhaseIndex];
-    const daysUntilNext = currentPhase.length - daysIntoPhase;
+    const rawDayInPhase = cyclePositionRaw - phaseStart;
+    const normalizedDayInPhase = Math.max(this.normalizeFractionalValue(rawDayInPhase), 0);
+    const phaseLength = currentPhase.length;
+    const dayInPhaseExact = Math.min(normalizedDayInPhase, phaseLength);
+    const rawDaysUntilNext = phaseLength - dayInPhaseExact;
+    const daysUntilNextExact = Math.max(this.normalizeFractionalValue(rawDaysUntilNext), 0);
+    const phaseProgress =
+      phaseLength > 0 ? Math.min(Math.max(dayInPhaseExact / phaseLength, 0), 1) : 0;
 
     return {
       moon,
       phase: currentPhase,
       phaseIndex: currentPhaseIndex,
-      dayInPhase: Math.floor(daysIntoPhase),
-      daysUntilNext: Math.ceil(daysUntilNext),
+      dayInPhase: Math.floor(dayInPhaseExact),
+      dayInPhaseExact,
+      daysUntilNext: Math.max(Math.ceil(daysUntilNextExact), 0),
+      daysUntilNextExact,
+      phaseProgress,
     };
+  }
+
+  private normalizeFractionalValue(value: number): number {
+    const precision = 1_000_000;
+    const rounded = Math.round(value * precision) / precision;
+
+    if (rounded === 0) {
+      return 0;
+    }
+
+    if (!Number.isFinite(rounded)) {
+      return 0;
+    }
+
+    return rounded;
   }
 
   /**

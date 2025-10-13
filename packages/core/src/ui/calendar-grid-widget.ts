@@ -6,6 +6,13 @@ import { CalendarLocalization } from '../core/calendar-localization';
 import { CalendarWidgetManager } from './widget-manager';
 import { CalendarDate } from '../core/calendar-date';
 import { Logger } from '../core/logger';
+import { SidebarButtonRegistry } from './sidebar-button-registry';
+import {
+  addSidebarButton as registerSidebarButton,
+  removeSidebarButton as unregisterSidebarButton,
+  hasSidebarButton as registryHasSidebarButton,
+  loadButtonsFromRegistry,
+} from './sidebar-button-mixin';
 import type { NoteCategories } from '../core/note-categories';
 import type { CreateNoteData } from '../core/notes-manager';
 import type {
@@ -21,12 +28,6 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 ) {
   private viewDate: ICalendarDate;
   private static activeInstance: CalendarGridWidget | null = null;
-  private sidebarButtons: Array<{
-    name: string;
-    icon: string;
-    tooltip: string;
-    callback: Function;
-  }> = [];
 
   constructor(initialDate?: ICalendarDate) {
     super();
@@ -80,6 +81,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       viewNotes: CalendarGridWidget.prototype._onViewNotes,
       switchToMain: CalendarGridWidget.prototype._onSwitchToMain,
       switchToMini: CalendarGridWidget.prototype._onSwitchToMini,
+      clickSidebarButton: CalendarGridWidget.prototype._onClickSidebarButton,
     },
   };
 
@@ -102,8 +104,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     // Register as active instance
     CalendarGridWidget.activeInstance = this;
 
-    // Render any existing sidebar buttons
-    this.renderExistingSidebarButtons();
+    // Fire hook for external integrations (e.g., Simple Calendar Compatibility Bridge)
+    if (this.element) {
+      Hooks.callAll('seasons-stars:renderCalendarWidget', this, this.element, 'grid');
+    }
   }
 
   /**
@@ -163,6 +167,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         abbreviation: wd.abbreviation,
         description: wd.description,
       })),
+      sidebarButtons: loadButtonsFromRegistry('grid'),
     });
   }
 
@@ -337,6 +342,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         moonColor?: string;
         dayInPhase: number;
         daysUntilNext: number;
+        dayInPhaseExact: number;
+        daysUntilNextExact: number;
+        phaseProgress: number;
       }> = [];
       let primaryMoonPhase: string | undefined;
       let primaryMoonColor: string | undefined;
@@ -353,6 +361,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             moonColor: info.moon.color,
             dayInPhase: info.dayInPhase,
             daysUntilNext: info.daysUntilNext,
+            dayInPhaseExact: info.dayInPhaseExact,
+            daysUntilNextExact: info.daysUntilNextExact,
+            phaseProgress: info.phaseProgress,
           }));
 
           // Set primary moon (first moon) for simple display
@@ -365,12 +376,18 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           if (moonPhaseInfo.length === 1) {
             const moon = moonPhaseInfo[0];
             moonTooltip = `${moon.moon.name}: ${moon.phase.name}`;
-            if (moon.daysUntilNext > 0) {
-              moonTooltip += ` (${moon.daysUntilNext} days until next phase)`;
+            if (moon.daysUntilNextExact > 0) {
+              moonTooltip += ` (${this.formatDaysUntilNext(moon.daysUntilNextExact)} until next phase)`;
             }
           } else {
             moonTooltip = moonPhaseInfo
-              .map(info => `${info.moon.name}: ${info.phase.name}`)
+              .map(info => {
+                const base = `${info.moon.name}: ${info.phase.name}`;
+                if (info.daysUntilNextExact > 0) {
+                  return `${base} (${this.formatDaysUntilNext(info.daysUntilNextExact)} until next phase)`;
+                }
+                return base;
+              })
               .join('\n');
           }
         }
@@ -398,7 +415,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         hasMultipleMoons: hasMultipleMoons,
         // Additional properties for template
         isSelected: isViewDate,
-        isClickable: game.user?.isGM || false,
+        isClickable: true, // Click handler manages GM-only actions vs player info view
         weekday: dayDate.weekday,
         fullDate: `${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
         noteCount: noteCount,
@@ -469,7 +486,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           date: intercalaryDate,
           isToday: isToday,
           isSelected: isViewDate,
-          isClickable: game.user?.isGM || false,
+          isClickable: true, // Click handler manages GM-only actions vs player info view
           isCurrentMonth: true, // Intercalary days are always part of the current month
           isIntercalary: true,
           intercalaryName: intercalary.name,
@@ -501,6 +518,20 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    */
   private formatDateKey(date: ICalendarDate): string {
     return `${date.year}-${date.month.toString().padStart(2, '0')}-${date.day.toString().padStart(2, '0')}`;
+  }
+
+  private formatDaysUntilNext(days: number): string {
+    const safeDays = Math.max(days, 0);
+    const rounded = Math.round(safeDays * 10) / 10;
+    const hasFraction = Math.abs(rounded - Math.trunc(rounded)) > 1e-9;
+    const locale = game.i18n?.lang ?? 'en';
+    const formatter = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: hasFraction ? 1 : 0,
+      maximumFractionDigits: hasFraction ? 1 : 0,
+    });
+    const value = formatter.format(rounded);
+    const unit = Math.abs(rounded - 1) < 1e-9 ? 'day' : 'days';
+    return `${value} ${unit}`;
   }
 
   /**
@@ -656,10 +687,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       return this.showDateInfo(target);
     }
 
-    // Default behavior: set date (GM only)
+    // Default behavior: set date (GM only) or show info (players)
     if (!isGM) {
-      ui.notifications?.warn('Only GMs can change the current date');
-      return;
+      return this.showDateInfo(target);
     }
 
     return this.setCurrentDate(target);
@@ -808,6 +838,32 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     if (currentDate) {
       this.viewDate = currentDate;
       this.render();
+    }
+  }
+
+  /**
+   * Handle sidebar button clicks from template actions
+   */
+  async _onClickSidebarButton(event: Event, target: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    const buttonName = target.dataset.buttonName;
+    if (!buttonName) {
+      Logger.warn('Grid widget sidebar button clicked without button name');
+      return;
+    }
+
+    const registry = SidebarButtonRegistry.getInstance();
+    const button = registry.getForWidget('grid').find(config => config.name === buttonName);
+
+    if (button && typeof button.callback === 'function') {
+      try {
+        button.callback();
+      } catch (error) {
+        Logger.error(`Error executing grid widget sidebar button "${buttonName}"`, error as Error);
+      }
+    } else {
+      Logger.warn(`Grid widget sidebar button "${buttonName}" not found or has invalid callback`);
     }
   }
 
@@ -1678,6 +1734,12 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         CalendarGridWidget.activeInstance.render();
       }
     });
+
+    Hooks.on('seasons-stars:widgetButtonsChanged', () => {
+      if (CalendarGridWidget.activeInstance?.rendered) {
+        (CalendarGridWidget.activeInstance as any).render({ parts: ['main'] });
+      }
+    });
   }
 
   /**
@@ -1729,107 +1791,28 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
    * Provides generic API for integration with other modules
    */
   addSidebarButton(name: string, icon: string, tooltip: string, callback: Function): void {
-    // Check if button already exists
-    const existingButton = this.sidebarButtons.find(btn => btn.name === name);
-    if (existingButton) {
-      Logger.debug(`Button "${name}" already exists in grid widget`);
-      return;
-    }
-
-    // Add to buttons array
-    this.sidebarButtons.push({ name, icon, tooltip, callback });
-    Logger.debug(`Added sidebar button "${name}" to grid widget`);
-
-    // If widget is rendered, add button to DOM immediately
-    if (this.rendered && this.element) {
-      this.renderSidebarButton(name, icon, tooltip, callback);
-    }
+    registerSidebarButton('grid', {
+      name,
+      icon,
+      tooltip,
+      callback: callback as () => void,
+    });
+    Logger.debug(`Requested sidebar button "${name}" registration for grid widget`);
   }
 
   /**
-   * Render a sidebar button in the grid widget header
+   * Remove a sidebar button from the grid widget
    */
-  private renderSidebarButton(
-    name: string,
-    icon: string,
-    tooltip: string,
-    callback: Function
-  ): void {
-    if (!this.element) return;
-
-    const buttonId = `grid-sidebar-btn-${name.toLowerCase().replace(/\s+/g, '-')}`;
-
-    // Don't add if already exists in DOM
-    if (this.element.querySelector(`#${buttonId}`)) {
-      return;
-    }
-
-    // Find window controls area in header
-    let windowControls = this.element.querySelector(
-      '.window-header .window-controls'
-    ) as HTMLElement;
-    if (!windowControls) {
-      // Try to find window header and add controls area
-      const windowHeader = this.element.querySelector('.window-header');
-      if (windowHeader) {
-        windowControls = document.createElement('div');
-        windowControls.className = 'window-controls';
-        windowControls.style.cssText = 'display: flex; align-items: center; margin-left: auto;';
-        windowHeader.appendChild(windowControls);
-      } else {
-        Logger.warn('No window header found for grid widget sidebar button');
-        return;
-      }
-    }
-
-    // Create button element
-    const button = document.createElement('button');
-    button.id = buttonId;
-    button.className = 'grid-sidebar-button';
-    button.title = tooltip;
-    button.innerHTML = `<i class="fas ${icon}"></i>`;
-    button.style.cssText = `
-      background: var(--color-bg-btn, #f0f0f0);
-      border: 1px solid var(--color-border-dark, #999);
-      border-radius: 3px;
-      padding: 4px 6px;
-      margin-left: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      color: var(--color-text-primary, #000);
-      transition: background-color 0.15s ease;
-    `;
-
-    // Add click handler
-    button.addEventListener('click', event => {
-      event.preventDefault();
-      event.stopPropagation();
-      try {
-        callback();
-      } catch (error) {
-        Logger.error(`Error in grid widget sidebar button "${name}"`, error as Error);
-      }
-    });
-
-    // Add hover effects
-    button.addEventListener('mouseenter', () => {
-      button.style.background = 'var(--color-bg-btn-hover, #e0e0e0)';
-    });
-    button.addEventListener('mouseleave', () => {
-      button.style.background = 'var(--color-bg-btn, #f0f0f0)';
-    });
-
-    windowControls.appendChild(button);
-    Logger.debug(`Rendered sidebar button "${name}" in grid widget header`);
+  removeSidebarButton(name: string): void {
+    unregisterSidebarButton('grid', name);
+    Logger.debug(`Requested sidebar button "${name}" removal for grid widget`);
   }
 
   /**
-   * Render all existing sidebar buttons (called after widget render)
+   * Check if sidebar button is registered for grid widget
    */
-  private renderExistingSidebarButtons(): void {
-    this.sidebarButtons.forEach(button => {
-      this.renderSidebarButton(button.name, button.icon, button.tooltip, button.callback);
-    });
+  hasSidebarButton(name: string): boolean {
+    return registryHasSidebarButton('grid', name);
   }
 
   /**

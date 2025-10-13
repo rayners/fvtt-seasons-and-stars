@@ -198,10 +198,6 @@ export class DateFormatter {
 
       // Validate template output - detect malformed templates that produce empty/invalid output
       if (this.isInvalidTemplateOutput(result, template)) {
-        console.debug('[S&S] Template produced invalid output, falling back to basic format:', {
-          template,
-          result,
-        });
         return this.getBasicFormat(date);
       }
 
@@ -223,6 +219,28 @@ export class DateFormatter {
 
   /**
    * Format a date using a named format from calendar dateFormats
+   *
+   * Automatically selects intercalary-specific format variants for intercalary dates:
+   * - For intercalary dates, tries `${formatName}-intercalary` first
+   * - Falls back to regular `${formatName}` if intercalary variant doesn't exist
+   * - Regular dates always use the standard format
+   *
+   * @example
+   * ```typescript
+   * // Calendar dateFormats:
+   * {
+   *   "short": "{{day}} {{month}} {{year}}",
+   *   "short-intercalary": "{{intercalary}}, {{year}}"
+   * }
+   *
+   * // Regular date (15th of January)
+   * formatter.formatNamed(regularDate, 'short')
+   * // Returns: "15 January 2024"
+   *
+   * // Intercalary date (Midwinter Festival)
+   * formatter.formatNamed(intercalaryDate, 'short')
+   * // Returns: "Midwinter Festival, 2024" (uses short-intercalary)
+   * ```
    */
   formatNamed(
     date: ICalendarDate,
@@ -247,6 +265,55 @@ export class DateFormatter {
       return this.getBasicFormat(date);
     }
 
+    // Check for intercalary-specific format first if this is an intercalary date
+    // Note: Empty string is still considered intercalary, null/undefined is not
+    if (date.intercalary !== null && date.intercalary !== undefined) {
+      const intercalaryFormatName = `${formatName}-intercalary`;
+
+      // Avoid infinite recursion when an intercalary format references its base format
+      if (!visited.has(intercalaryFormatName)) {
+        const intercalaryFormat = dateFormats[intercalaryFormatName];
+
+        if (intercalaryFormat) {
+          // Handle intercalary format variants (format as object)
+          if (typeof intercalaryFormat === 'object' && !Array.isArray(intercalaryFormat)) {
+            if (variant && intercalaryFormat[variant]) {
+              const formatString = intercalaryFormat[variant];
+              const formatDisplayName = `${intercalaryFormatName}:${variant}`;
+              const newVisited = new Set(visited);
+              newVisited.add(intercalaryFormatName);
+              return this.formatWithContext(date, formatString, formatDisplayName, newVisited);
+            } else {
+              // Try 'default' or first available for intercalary format
+              const defaultFormat =
+                intercalaryFormat.default || Object.values(intercalaryFormat)[0];
+              if (defaultFormat) {
+                const newVisited = new Set(visited);
+                newVisited.add(intercalaryFormatName);
+                return this.formatWithContext(
+                  date,
+                  defaultFormat,
+                  intercalaryFormatName,
+                  newVisited
+                );
+              }
+            }
+          } else if (typeof intercalaryFormat === 'string') {
+            // Simple string intercalary format
+            const newVisited = new Set(visited);
+            newVisited.add(intercalaryFormatName);
+            return this.formatWithContext(
+              date,
+              intercalaryFormat,
+              intercalaryFormatName,
+              newVisited
+            );
+          }
+        }
+      }
+    }
+
+    // Fall back to regular format lookup if no intercalary format found
     const format = dateFormats[formatName];
 
     if (!format) {
@@ -289,6 +356,28 @@ export class DateFormatter {
 
   /**
    * Format a date using widget-specific format from calendar dateFormats
+   *
+   * Automatically selects intercalary-specific widget format variants for intercalary dates:
+   * - For intercalary dates, tries `${widgetType}-intercalary` first
+   * - Falls back to regular `${widgetType}` if intercalary variant doesn't exist
+   * - Regular dates always use the standard widget format
+   *
+   * @example
+   * ```typescript
+   * // Calendar dateFormats.widgets:
+   * {
+   *   "mini": "{{day}} {{month abbr}}",
+   *   "mini-intercalary": "{{intercalary}}"
+   * }
+   *
+   * // Regular date (15th of January)
+   * formatter.formatWidget(regularDate, 'mini')
+   * // Returns: "15 Jan"
+   *
+   * // Intercalary date (Midwinter Festival)
+   * formatter.formatWidget(intercalaryDate, 'mini')
+   * // Returns: "Midwinter Festival" (uses mini-intercalary)
+   * ```
    */
   formatWidget(date: ICalendarDate, widgetType: 'mini' | 'main' | 'grid'): string {
     const dateFormats = this.calendar.dateFormats;
@@ -297,6 +386,22 @@ export class DateFormatter {
       return this.getBasicFormat(date);
     }
 
+    // Check for intercalary-specific widget format first if this is an intercalary date
+    // Note: Empty string is still considered intercalary, null/undefined is not
+    if (date.intercalary !== null && date.intercalary !== undefined) {
+      const intercalaryWidgetType = `${widgetType}-intercalary` as keyof typeof dateFormats.widgets;
+      const intercalaryWidgetFormat = dateFormats.widgets[intercalaryWidgetType];
+
+      if (intercalaryWidgetFormat) {
+        return this.formatWithContext(
+          date,
+          intercalaryWidgetFormat,
+          `widgets.${intercalaryWidgetType}`
+        );
+      }
+    }
+
+    // Fall back to regular widget format if no intercalary format found
     const widgetFormat = dateFormats.widgets[widgetType];
 
     if (!widgetFormat) {
@@ -386,7 +491,13 @@ export class DateFormatter {
           time?: { hour: number; minute: number; second: number };
         }
   ): string {
-    // For calendars without dateFormats, return a simple format
+    // Handle intercalary days first - they should display the intercalary name, not regular date format
+    // Note: Empty string is still considered intercalary, null/undefined is not
+    if (date.intercalary !== null && date.intercalary !== undefined) {
+      return date.intercalary;
+    }
+
+    // For regular dates, use the standard format
     const monthName = this.getMonthName(date.month);
     const weekdayName = this.getWeekdayName(date.weekday);
     const dayOrdinal = this.addOrdinalSuffix(date.day);
@@ -800,6 +911,62 @@ export class DateFormatter {
         '.0'
       );
     });
+
+    // Time display helper - supports canonical hours with exact time fallback
+    Handlebars.registerHelper('ss-time-display', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // Get the calendar ID and formatter from context
+      const calendarId = options?.data?.root?._calendarId;
+      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
+
+      if (!formatter) {
+        return '[ss-time-display: No formatter available]';
+      }
+
+      // Get current time context
+      const context = options?.data?.root;
+      const hour = context?.hour ?? 0;
+      const minute = context?.minute ?? 0;
+
+      // Get display mode from options or default to auto
+      const mode = options?.hash?.mode || 'canonical-or-exact';
+
+      // Check for canonical hours
+      const canonicalHours = formatter.calendar.canonicalHours;
+
+      if (mode === 'exact' || !canonicalHours || canonicalHours.length === 0) {
+        // Force exact time or no canonical hours available
+        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      }
+
+      if (mode === 'canonical-or-exact' || mode === 'canonical') {
+        // Look for matching canonical hour
+        const canonicalHour = DateFormatter.findCanonicalHour(
+          canonicalHours,
+          hour,
+          minute,
+          formatter.calendar
+        );
+
+        if (canonicalHour) {
+          return canonicalHour.name;
+        }
+
+        // No canonical hour found
+        if (mode === 'canonical') {
+          // Hide time when canonical mode is forced but no canonical hour available
+          return '';
+        }
+
+        // Fallback to exact time for canonical-or-exact mode
+        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      }
+
+      // Default fallback
+      return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    });
   }
 
   /**
@@ -828,6 +995,107 @@ export class DateFormatter {
       default:
         return `${day}th`;
     }
+  }
+
+  /**
+   * Find canonical hour that matches the given time
+   */
+  static findCanonicalHour(
+    canonicalHours: import('../types/calendar').CalendarCanonicalHour[],
+    hour: number,
+    minute: number,
+    calendar: import('../types/calendar').SeasonsStarsCalendar
+  ): import('../types/calendar').CalendarCanonicalHour | null {
+    if (!canonicalHours || canonicalHours.length === 0) {
+      return null;
+    }
+
+    const minutesInHour = calendar.time?.minutesInHour ?? 60;
+
+    for (const canonicalHour of canonicalHours) {
+      const startHour = canonicalHour.startHour;
+      const endHour = canonicalHour.endHour;
+      const startMinute = canonicalHour.startMinute ?? 0;
+      const endMinute = canonicalHour.endMinute ?? 0;
+
+      // Handle same-day time ranges (start < end)
+      if (startHour < endHour || (startHour === endHour && startMinute < endMinute)) {
+        if (
+          DateFormatter.isTimeInRange(
+            hour,
+            minute,
+            startHour,
+            startMinute,
+            endHour,
+            endMinute,
+            minutesInHour
+          )
+        ) {
+          return canonicalHour;
+        }
+      }
+      // Handle midnight wraparound (start > end, e.g., 23:00 to 02:00)
+      else if (startHour > endHour || (startHour === endHour && startMinute > endMinute)) {
+        // Time is after start time OR before end time
+        if (
+          DateFormatter.isTimeAfterOrEqual(hour, minute, startHour, startMinute, minutesInHour) ||
+          DateFormatter.isTimeBeforeOrEqual(hour, minute, endHour, endMinute, minutesInHour)
+        ) {
+          return canonicalHour;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Check if time is within a range (inclusive start, exclusive end)
+   */
+  private static isTimeInRange(
+    hour: number,
+    minute: number,
+    startHour: number,
+    startMinute: number,
+    endHour: number,
+    endMinute: number,
+    minutesInHour: number
+  ): boolean {
+    const timeInMinutes = hour * minutesInHour + minute;
+    const startInMinutes = startHour * minutesInHour + startMinute;
+    const endInMinutes = endHour * minutesInHour + endMinute;
+
+    return timeInMinutes >= startInMinutes && timeInMinutes < endInMinutes;
+  }
+
+  /**
+   * Check if time is after or equal to reference time
+   */
+  private static isTimeAfterOrEqual(
+    hour: number,
+    minute: number,
+    refHour: number,
+    refMinute: number,
+    minutesInHour: number
+  ): boolean {
+    const timeInMinutes = hour * minutesInHour + minute;
+    const refInMinutes = refHour * minutesInHour + refMinute;
+    return timeInMinutes >= refInMinutes;
+  }
+
+  /**
+   * Check if time is before or equal to reference time
+   */
+  private static isTimeBeforeOrEqual(
+    hour: number,
+    minute: number,
+    refHour: number,
+    refMinute: number,
+    minutesInHour: number
+  ): boolean {
+    const timeInMinutes = hour * minutesInHour + minute;
+    const refInMinutes = refHour * minutesInHour + refMinute;
+    return timeInMinutes <= refInMinutes;
   }
 
   /**

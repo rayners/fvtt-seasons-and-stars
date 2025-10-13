@@ -10,8 +10,6 @@ on:
       - 'shared/**'
       - 'package.json'
       - 'rollup.config.*.js'
-      - 'tsconfig.json'
-      - 'vitest.config.ts'
 
 jobs:
   analyze:
@@ -27,10 +25,9 @@ jobs:
           fetch-depth: 0 # Required for bundle size comparison
 
       - name: Core Module Bundle Analysis
-        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
+        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.1
         with:
-          node-version: '20'
-          github-packages: true
+          node-version: '24'
           minimum-change-threshold: 100
           analyze-zip: true
           zip-files: 'module.js module.json templates/ calendars/ styles/ languages/ schemas/ README.md CHANGELOG.md LICENSE'
@@ -38,10 +35,9 @@ jobs:
           label-prefix: 'Core Module'
 
       - name: Fantasy Pack Bundle Analysis
-        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
+        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.1
         with:
-          node-version: '20'
-          github-packages: true
+          node-version: '24'
           minimum-change-threshold: 50
           analyze-zip: true
           zip-files: 'module.json calendars/'
@@ -49,10 +45,9 @@ jobs:
           label-prefix: 'Fantasy Pack'
 
       - name: Sci-Fi Pack Bundle Analysis
-        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
+        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.1
         with:
-          node-version: '20'
-          github-packages: true
+          node-version: '24'
           minimum-change-threshold: 50
           analyze-zip: true
           zip-files: 'module.json calendars/'
@@ -60,10 +55,9 @@ jobs:
           label-prefix: 'Sci-Fi Pack'
 
       - name: PF2e Pack Bundle Analysis
-        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.0
+        uses: rayners/foundry-module-actions/bundle-analysis@v6.0.1
         with:
-          node-version: '20'
-          github-packages: true
+          node-version: '24'
           minimum-change-threshold: 50
           analyze-zip: true
           zip-files: 'pf2e-pack.js module.json calendars/ README.md CHANGELOG.md LICENSE'

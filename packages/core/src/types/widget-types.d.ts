@@ -5,6 +5,8 @@
 
 import type { CalendarDate as ICalendarDate } from './calendar';
 
+export type WidgetType = 'main' | 'mini' | 'grid';
+
 // Base widget context shared by all widgets
 export interface BaseWidgetContext extends Record<string, unknown> {
   calendar: CalendarInfo | null;
@@ -25,6 +27,16 @@ export interface MiniWidgetContext extends BaseWidgetContext {
   weekdayDisplay: string;
   timeAdvancementActive?: boolean;
   advancementRatioDisplay?: string;
+  compactMode: boolean;
+  sidebarButtons: SidebarButton[];
+  showMoonPhases: boolean;
+  moonPhases: Array<{
+    moonName: string;
+    phaseName: string;
+    phaseIcon: string;
+    faIcon: string;
+    moonColor?: string;
+  }>;
 }
 
 // Main widget specific context
@@ -37,6 +49,14 @@ export interface MainWidgetContext extends BaseWidgetContext {
   timeAdvancementActive?: boolean;
   advancementRatioDisplay?: string;
   showTimeControls?: boolean;
+  moonPhases: Array<{
+    moonName: string;
+    phaseName: string;
+    phaseIcon: string;
+    faIcon: string;
+    moonColor?: string;
+    moonColorIndex: number;
+  }>;
 }
 
 // Grid widget specific context
@@ -47,7 +67,8 @@ export interface GridWidgetContext extends BaseWidgetContext {
   monthDescription?: string;
   yearDisplay: string;
   weekdays: WeekdayInfo[];
-  notesForDays: Record<string, any[]>; // Date string -> notes array
+  notesForDays: Record<string, unknown[]>; // Date string -> notes array
+  sidebarButtons: SidebarButton[];
 }
 
 // Widget render options
@@ -81,7 +102,7 @@ export interface WeekData {
 
 // Day data structure
 export interface DayData {
-  day: number;
+  day: number | string;
   isToday: boolean;
   isSelected: boolean;
   isOtherMonth: boolean;
@@ -101,7 +122,12 @@ export interface SidebarButton {
   name: string;
   icon: string;
   tooltip: string;
-  callback: Function;
+  callback: () => void;
+}
+
+export interface SidebarButtonConfig extends SidebarButton {
+  only?: WidgetType[];
+  except?: WidgetType[];
 }
 
 // Scene control types

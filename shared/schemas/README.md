@@ -188,6 +188,10 @@ Add `$schema` property to your JSON files for real-time validation:
 - Dynamic calendar switching validation
 - Historical calendar reform pattern support
 
+## 🤖 AI-Assisted Development
+
+Schema authoring and documentation benefit from Claude (Anthropic's AI assistant) to accelerate boilerplate generation, cross-check validation examples, and flag inconsistencies. I still review and test each schema update manually. For a detailed look at how AI collaboration is structured, see [rayners/dev-context](https://github.com/rayners/dev-context).
+
 ## Schema Versioning
 
 Schemas follow semantic versioning with these guidelines:

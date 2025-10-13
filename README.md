@@ -12,12 +12,14 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Smart Year Navigation**: Click year to jump instantly instead of clicking arrows repeatedly
 - **Convenient Defaults**: Gregorian calendars can initialize with current date/time
 - **Module Integration**: Clean APIs for weather modules and other integrations via compatibility bridges
-- **SmallTime Integration**: Seamless positioning and visual consistency. Time display intelligently hidden when SmallTime is present (configurable)
+- **SmallTime Integration**: Seamless positioning and visual consistency. Time display intelligently hidden when SmallTime is present (configurable). Mini widget provides drag-and-drop positioning with persistent storage.
 - **16 Available Calendars**: Switch between core calendars (Gregorian, Golarion PF2e) and calendar pack collections featuring fantasy calendars (D&D, Critical Role, etc.), sci-fi calendars (Star Trek, Starfinder, Traveller), and custom formats based on official game sources
 - **Calendar Pack Auto-Detection**: Automatically discovers and loads calendar modules following the `seasons-and-stars-*` naming convention - no JavaScript required, just JSON data files
 - **External Calendar Registration**: New hook system (v0.8.0+) allows modules to register calendars programmatically for dynamic calendar loading
 - **Advanced Date Formatting**: Handlebars-based templates with mathematical operations, format embedding, and era-specific calculations (like Star Trek stardates)
+- **Canonical Hours**: Time period naming system for fantasy settings (e.g., "Strange's Bells" for 3-6 AM, medieval monastery hours)
 - **Calendar Variants System**: Cultural and regional calendar variations (e.g., Golarion has Absalom Reckoning, Imperial, Varisian, and Earth Historical variants)
+- **Game Pause Sync**: Automatically pause/resume time advancement when Foundry's game is paused/unpaused with smart multi-source coordination and intuitive single-click button controls
 
 ### ✅ **Notes System (Basic Creation)**
 
@@ -57,7 +59,7 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 
 ### Basic Usage
 
-- **Open Calendar**: Click the calendar button in scene controls
+- **Open Calendar**: Click the calendar button in the journal notes controls (left sidebar)
 - **Change Date**: GMs can click on calendar dates to set world time
 - **Quick Time Controls**: Use the mini widget for rapid time advancement
 - **Calendar Selection**: Switch between different calendar systems anytime
@@ -70,6 +72,11 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **[Migration Guide](./docs/MIGRATION-GUIDE.md)** - Moving from Simple Calendar
 - **[Roadmap](./docs/ROADMAP.md)** - Development timeline and planned features
 - **[Known Issues](./KNOWN-ISSUES.md)** - Current limitations and workarounds
+
+## 💬 Community & Support
+
+- **Discord**: Join the Seasons & Stars community on [discord.gg/tqZnxAdEqE](https://discord.gg/tqZnxAdEqE) for questions, feedback, and playtest coordination.
+- **GitHub**: Report bugs or request features through [Issues](https://github.com/rayners/fvtt-seasons-and-stars/issues) or [Discussions](https://github.com/rayners/fvtt-seasons-and-stars/discussions).
 
 ### Calendar Variants System
 
@@ -199,6 +206,8 @@ This module is developed with the help of AI tools, particularly Claude (Anthrop
 You'll see Claude credited as a co-author in commits because it genuinely contributes to the development process. Transparency matters, and I want to be open about the tools that help make this module possible.
 
 **Learn more**: [How and Why I Use AI in Development](https://www.patreon.com/posts/how-and-why-i-ai-132316710)
+
+Curious about the broader workflow, guardrails, and review process? The companion repository [rayners/dev-context](https://github.com/rayners/dev-context) documents the standards and practices that guide this AI-assisted development approach.
 
 ## 🗺️ Roadmap
 

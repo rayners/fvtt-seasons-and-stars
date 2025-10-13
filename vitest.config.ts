@@ -21,6 +21,7 @@ export default defineConfig({
       include: [
         'packages/core/src/**/*.ts',
         'packages/pf2e-pack/src/**/*.ts',
+        'packages/custom-calendar-builder/src/**/*.ts',
       ],
       exclude: [
         'node_modules/',

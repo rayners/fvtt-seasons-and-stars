@@ -7,6 +7,7 @@ dist/
 # Generated files
 src/generated/
 packages/*/src/generated/
+packages/core/src/core/gregorian-defaults.ts
 
 # Generated calendar index files (rebuilt during build)
 packages/*/calendars/index.json
@@ -16,6 +17,7 @@ test-dialog.html
 
 # Internal documentation (moved to ../local-docs/)
 CLAUDE.md
+!CLAUDE.md
 *-IMPLEMENTATION.md
 PHASE*.md
 BETA-*.md
@@ -60,6 +62,9 @@ pids
 # Coverage directory used by tools like istanbul
 coverage/
 *.lcov
+
+# HTML coverage reports
+html/
 
 # Test reports
 test-report.junit.xml
@@ -127,3 +132,8 @@ test/fixtures/*/node_modules/
 test/fixtures/*/*.zippackages/core/test/fixtures/pf2e-system/
 
 test-results/
+
+# Playwright test artifacts
+playwright-report/
+test-results/
+dev-context

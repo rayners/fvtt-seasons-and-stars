@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.7.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.6.1...seasons-and-stars-fantasy-v0.7.0) (2025-10-08)
+
+
+### Features
+
+* add event occurrence hooks and reference calendar events ([#340](https://github.com/rayners/fvtt-seasons-and-stars/issues/340)) ([54d7403](https://github.com/rayners/fvtt-seasons-and-stars/commit/54d74031b112e395c8fcb58911c149e9eb5a6816))
+
+## [0.6.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.6.0...seasons-and-stars-fantasy-v0.6.1) (2025-09-24)
+
+
+### Bug Fixes
+
+* add missing repository metadata to all packages ([#300](https://github.com/rayners/fvtt-seasons-and-stars/issues/300)) ([d7499ef](https://github.com/rayners/fvtt-seasons-and-stars/commit/d7499ef4a6ec5f232118469a56acf8238542b38a))
+
+## [0.6.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.5.0...seasons-and-stars-fantasy-v0.6.0) (2025-09-23)
+
+
+### Features
+
+* verify calendar source availability ([#270](https://github.com/rayners/fvtt-seasons-and-stars/issues/270)) ([50b286a](https://github.com/rayners/fvtt-seasons-and-stars/commit/50b286ac41d4cb0531c01c24be678bb7b2291fa5))
+
+## [0.5.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.4.0...seasons-and-stars-fantasy-v0.5.0) (2025-09-20)
+
+
+### Features
+
+* add headless testing architecture with Playwright ([#237](https://github.com/rayners/fvtt-seasons-and-stars/issues/237)) ([8e01b9d](https://github.com/rayners/fvtt-seasons-and-stars/commit/8e01b9de3d7ecdaea52526719d5b36815dd6c061))
+
+## [0.4.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.3.0...seasons-and-stars-fantasy-v0.4.0) (2025-09-15)
+
+
+### Features
+
+* **fantasy-pack:** add initial Gloranthan calendars ([#241](https://github.com/rayners/fvtt-seasons-and-stars/issues/241)) ([c42ef9e](https://github.com/rayners/fvtt-seasons-and-stars/commit/c42ef9e0f1f7f717a4f9825238cbb7c49950b7a7))
+
+
+### Bug Fixes
+
+* **fantasy-pack:** correct Symbaroum calendar seasons ([#240](https://github.com/rayners/fvtt-seasons-and-stars/issues/240)) ([0cb3347](https://github.com/rayners/fvtt-seasons-and-stars/commit/0cb33470f2107949d5b9408a2d4b43672790c33e))
+* intercalary day display with -intercalary format scheme ([#247](https://github.com/rayners/fvtt-seasons-and-stars/issues/247)) ([daf8ccc](https://github.com/rayners/fvtt-seasons-and-stars/commit/daf8cccd38e79c11836f393a4109c817b8cb15d4))
+
 ## [0.3.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.2.2...seasons-and-stars-fantasy-v0.3.0) (2025-08-09)
 
 

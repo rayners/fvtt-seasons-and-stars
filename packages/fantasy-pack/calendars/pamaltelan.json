@@ -1,0 +1,50 @@
+{
+  "id": "pamaltelan",
+  "translations": {
+    "en": {
+      "label": "Pamaltelan Calendar (Glorantha)",
+      "description": "Calendar of the Doraddi and southern peoples with four 72-day seasons of six-day weeks and a final Holy Week of six days.",
+      "setting": "Glorantha"
+    }
+  },
+  "sources": ["https://glorantha.fandom.com/wiki/Pamaltelan_Calendar"],
+  "year": {
+    "epoch": 0,
+    "currentYear": 1625,
+    "prefix": "",
+    "suffix": " ST",
+    "startDay": 0
+  },
+  "leapYear": { "rule": "none" },
+  "months": [
+    {
+      "name": "Season One",
+      "abbreviation": "S1",
+      "days": 72,
+      "description": "First season of the Pamaltelan year."
+    },
+    { "name": "Season Two", "abbreviation": "S2", "days": 72, "description": "Second season." },
+    { "name": "Season Three", "abbreviation": "S3", "days": 72, "description": "Third season." },
+    { "name": "Season Four", "abbreviation": "S4", "days": 72, "description": "Fourth season." },
+    {
+      "name": "Holy Week",
+      "abbreviation": "Hol",
+      "days": 6,
+      "description": "Sacred week marking the end of the year."
+    }
+  ],
+  "weekdays": [
+    { "name": "First Day", "abbreviation": "D1" },
+    { "name": "Second Day", "abbreviation": "D2" },
+    { "name": "Third Day", "abbreviation": "D3" },
+    { "name": "Fourth Day", "abbreviation": "D4" },
+    { "name": "Fifth Day", "abbreviation": "D5" },
+    { "name": "Sixth Day", "abbreviation": "D6" }
+  ],
+  "intercalary": [],
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}

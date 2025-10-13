@@ -1,0 +1,186 @@
+{
+  "id": "coriolis-great-dark",
+  "translations": {
+    "en": {
+      "label": "Ship City Standard Calendar (Coriolis: The Great Dark)",
+      "description": "The Ship City Standard calendar used in The Great Dark, based on Old Horizon traditions and updated by the Navigators Guild. Features a 360-day Cycle-Orbit divided into 12 segments dedicated to Old Horizon systems.",
+      "setting": "Coriolis: The Great Dark",
+      "yearName": "Cycle-Orbit"
+    }
+  },
+
+  "year": {
+    "epoch": 0,
+    "currentYear": 500,
+    "prefix": "SO ",
+    "suffix": "",
+    "startDay": 0
+  },
+
+  "leapYear": {
+    "rule": "none"
+  },
+
+  "months": [
+    {
+      "name": "Kua",
+      "abbreviation": "Kua",
+      "days": 30,
+      "description": "The first segment, dedicated to the Kua system from the Old Horizon."
+    },
+    {
+      "name": "Dabaran",
+      "abbreviation": "Dab",
+      "days": 30,
+      "description": "The second segment, dedicated to the Dabaran system, once a center of commerce and trade."
+    },
+    {
+      "name": "Zalos",
+      "abbreviation": "Zal",
+      "days": 30,
+      "description": "The third segment, dedicated to the Zalos system, known for its harsh environments."
+    },
+    {
+      "name": "Algol",
+      "abbreviation": "Alg",
+      "days": 30,
+      "description": "The fourth segment, dedicated to the Algol system, shrouded in mystery and danger."
+    },
+    {
+      "name": "Mira",
+      "abbreviation": "Mir",
+      "days": 30,
+      "description": "The fifth segment, dedicated to the Mira system, once famed for its beauty."
+    },
+    {
+      "name": "Menkar",
+      "abbreviation": "Men",
+      "days": 30,
+      "description": "The sixth segment, dedicated to the Menkar system, home to ancient ruins."
+    },
+    {
+      "name": "Taoan",
+      "abbreviation": "Tao",
+      "days": 30,
+      "description": "The seventh segment, dedicated to the Taoan system, known for technological innovation."
+    },
+    {
+      "name": "Sadaal",
+      "abbreviation": "Sad",
+      "days": 30,
+      "description": "The eighth segment, dedicated to the Sadaal system, once a religious center."
+    },
+    {
+      "name": "Aiwaz",
+      "abbreviation": "Aiw",
+      "days": 30,
+      "description": "The ninth segment, dedicated to the Aiwaz system, mysterious and little-known."
+    },
+    {
+      "name": "Odacon",
+      "abbreviation": "Oda",
+      "days": 30,
+      "description": "The tenth segment, dedicated to the Odacon system, famous for its warrior cultures."
+    },
+    {
+      "name": "Eridani",
+      "abbreviation": "Eri",
+      "days": 30,
+      "description": "The eleventh segment, dedicated to the Eridani system, a hub of learning."
+    },
+    {
+      "name": "Aldebaran",
+      "abbreviation": "Ald",
+      "days": 30,
+      "description": "The twelfth and final segment, dedicated to the Aldebaran system, the legendary origin of humanity's journey."
+    }
+  ],
+
+  "weekdays": [
+    {
+      "name": "Moonday",
+      "abbreviation": "Mo",
+      "description": "The first day of the week, named for the ancient moons of lost worlds."
+    },
+    {
+      "name": "Harrowsday",
+      "abbreviation": "Ha",
+      "description": "The second day of the week, a day of toil and hardship in the Ship City."
+    },
+    {
+      "name": "Marketday",
+      "abbreviation": "Ma",
+      "description": "The third day of the week, when the food markets in the Gardens and Chasm reach their peak activity."
+    },
+    {
+      "name": "Guildsday",
+      "abbreviation": "Gu",
+      "description": "The fourth day of the week, when rare goods are sold in exclusive markets in the Chasm and Turbine Halls."
+    },
+    {
+      "name": "Alumnsday",
+      "abbreviation": "Al",
+      "description": "The fifth day of the week, marking the beginning of the weekend festivities on its eve."
+    },
+    {
+      "name": "Iconsday",
+      "abbreviation": "Ic",
+      "description": "The sixth and final day of the week, devoted to rest, feasting, and honoring the Icons."
+    }
+  ],
+
+  "intercalary": [],
+
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  },
+
+  "extensions": {
+    "seasons-and-stars": {
+      "watches": [
+        {
+          "name": "Morning Watch",
+          "startHour": 0,
+          "endHour": 6,
+          "description": "The first six-hour watch of the day, from midnight to dawn in Ship City Standard time."
+        },
+        {
+          "name": "Day Watch",
+          "startHour": 6,
+          "endHour": 12,
+          "description": "The second six-hour watch, covering the daylight working hours."
+        },
+        {
+          "name": "Evening Watch",
+          "startHour": 12,
+          "endHour": 18,
+          "description": "The third six-hour watch, from noon through the evening hours."
+        },
+        {
+          "name": "Night Watch",
+          "startHour": 18,
+          "endHour": 24,
+          "description": "The fourth and final six-hour watch, covering the night hours until midnight."
+        }
+      ]
+    }
+  },
+
+  "dateFormats": {
+    "standard": "{{ss-day}} {{ss-month format=\"name\"}}, SO {{year}}",
+    "short": "{{ss-month format=\"abbr\"}}.{{ss-day format=\"pad\"}}/{{year}}",
+    "long": "{{ss-weekday format=\"name\"}}, the {{ss-day format=\"ordinal\"}} of {{ss-month format=\"name\"}} in Cycle-Orbit {{year}}",
+    "date": "{{ss-weekday format=\"name\"}}, {{ss-day}} {{ss-month format=\"name\"}}",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}} SCS",
+    "datetime": "{{ss-dateFmt \"date\"}} SO {{year}} at {{ss-dateFmt \"time\"}}",
+    "administrative": "SO {{year}}.{{ss-month format=\"number\"}}.{{ss-day format=\"pad\"}}",
+
+    "widgets": {
+      "mini": "{{ss-month format=\"abbr\"}}.{{ss-day}}/{{year}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day}} {{ss-month format=\"abbr\"}}",
+      "grid": "{{ss-day}}"
+    }
+  }
+}

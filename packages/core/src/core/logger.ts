@@ -9,7 +9,7 @@ export class Logger {
   /**
    * Log debug messages (only shown when debug mode is enabled)
    */
-  static debug(message: string, data?: any): void {
+  static debug(message: string, data?: unknown): void {
     if (this.isDebugEnabled()) {
       console.log(`[S&S] ${message}`, data || '');
     }
@@ -18,14 +18,14 @@ export class Logger {
   /**
    * Log informational messages
    */
-  static info(message: string, data?: any): void {
+  static info(message: string, data?: unknown): void {
     console.log(`[S&S] ${message}`, data || '');
   }
 
   /**
    * Log warning messages
    */
-  static warn(message: string, data?: any): void {
+  static warn(message: string, data?: unknown): void {
     console.warn(`[S&S WARNING] ${message}`, data || '');
     if (this.shouldShowUserNotifications()) {
       ui?.notifications?.warn(`Seasons & Stars: ${message}`);
@@ -94,7 +94,7 @@ export class Logger {
   /**
    * Log API calls for debugging integration issues
    */
-  static api(method: string, params?: any, result?: any): void {
+  static api(method: string, params?: unknown, result?: unknown): void {
     if (this.isDebugEnabled()) {
       console.group(`[S&S API] ${method}`);
       if (params) console.log('Parameters:', params);
@@ -106,7 +106,7 @@ export class Logger {
   /**
    * Log module integration events
    */
-  static integration(event: string, data?: any): void {
+  static integration(event: string, data?: unknown): void {
     if (this.isDebugEnabled()) {
       console.log(`[S&S Integration] ${event}`, data || '');
     }

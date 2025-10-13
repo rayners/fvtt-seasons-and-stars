@@ -8,6 +8,11 @@
     }
   },
 
+  "sources": [
+    "https://www.timeanddate.com/calendar/gregorian-calendar.html",
+    "https://en.wikipedia.org/wiki/Synodic_month"
+  ],
+
   "year": {
     "epoch": 0,
     "currentYear": 2024,
@@ -214,6 +219,164 @@
           "description": "Earth's moon, following a 29.5-day synodic cycle with eight traditional phases"
         }
       }
+    }
+  ],
+
+  "events": [
+    {
+      "id": "new-year",
+      "name": "New Year's Day",
+      "description": "Celebration of the start of the new year",
+      "recurrence": { "type": "fixed", "month": 1, "day": 1 },
+      "visibility": "player-visible",
+      "color": "#4CAF50",
+      "icon": "fas fa-champagne-glasses"
+    },
+    {
+      "id": "valentines-day",
+      "name": "Valentine's Day",
+      "description": "Day of love and affection, celebrated in many Western cultures",
+      "recurrence": { "type": "fixed", "month": 2, "day": 14 },
+      "visibility": "player-visible",
+      "color": "#E91E63",
+      "icon": "fas fa-heart"
+    },
+    {
+      "id": "leap-day",
+      "name": "Leap Day",
+      "description": "Extra day added in leap years to keep the calendar aligned with Earth's orbit",
+      "recurrence": { "type": "fixed", "month": 2, "day": 29 },
+      "visibility": "player-visible",
+      "color": "#2196F3",
+      "icon": "fas fa-calendar-plus"
+    },
+    {
+      "id": "us-independence-day",
+      "name": "Independence Day (US)",
+      "description": "American declaration of independence from Great Britain in 1776",
+      "recurrence": { "type": "fixed", "month": 7, "day": 4 },
+      "startYear": 1776,
+      "visibility": "player-visible",
+      "color": "#FF5722",
+      "icon": "fas fa-flag-usa"
+    },
+    {
+      "id": "guy-fawkes-day",
+      "name": "Guy Fawkes Day",
+      "description": "British celebration commemorating the foiling of the Gunpowder Plot of 1605",
+      "recurrence": { "type": "fixed", "month": 11, "day": 5 },
+      "startYear": 1605,
+      "visibility": "player-visible",
+      "color": "#FF9800",
+      "icon": "fas fa-fire"
+    },
+    {
+      "id": "christmas",
+      "name": "Christmas",
+      "description": "Christian celebration of the birth of Jesus Christ",
+      "recurrence": { "type": "fixed", "month": 12, "day": 25 },
+      "visibility": "player-visible",
+      "color": "#C62828",
+      "icon": "fas fa-tree"
+    },
+    {
+      "id": "us-memorial-day",
+      "name": "Memorial Day (US)",
+      "description": "American day of remembrance for those who died in military service",
+      "recurrence": { "type": "ordinal", "month": 5, "occurrence": -1, "weekday": 1 },
+      "startYear": 1868,
+      "visibility": "player-visible",
+      "color": "#1976D2",
+      "icon": "fas fa-flag"
+    },
+    {
+      "id": "us-labor-day",
+      "name": "Labor Day (US)",
+      "description": "American celebration of workers and the labor movement",
+      "recurrence": { "type": "ordinal", "month": 9, "occurrence": 1, "weekday": 1 },
+      "startYear": 1894,
+      "visibility": "player-visible",
+      "color": "#607D8B",
+      "icon": "fas fa-hammer"
+    },
+    {
+      "id": "us-thanksgiving",
+      "name": "Thanksgiving (US)",
+      "description": "American harvest festival and day of giving thanks",
+      "recurrence": { "type": "ordinal", "month": 11, "occurrence": 4, "weekday": 4 },
+      "startYear": 1863,
+      "visibility": "player-visible",
+      "color": "#FF6F00",
+      "icon": "fas fa-turkey"
+    },
+    {
+      "id": "diwali-2024",
+      "name": "Diwali (approximate)",
+      "description": "Hindu festival of lights celebrating the victory of light over darkness. Note: Actual date varies by lunar calendar; this is an approximation for 2024",
+      "recurrence": { "type": "fixed", "month": 11, "day": 1 },
+      "startYear": 2024,
+      "endYear": 2024,
+      "visibility": "player-visible",
+      "color": "#FFEB3B",
+      "icon": "fas fa-candle-holder"
+    },
+    {
+      "id": "diwali-2025",
+      "name": "Diwali (approximate)",
+      "description": "Hindu festival of lights celebrating the victory of light over darkness. Note: Actual date varies by lunar calendar; this is an approximation for 2025",
+      "recurrence": { "type": "fixed", "month": 10, "day": 20 },
+      "startYear": 2025,
+      "endYear": 2025,
+      "visibility": "player-visible",
+      "color": "#FFEB3B",
+      "icon": "fas fa-candle-holder"
+    },
+    {
+      "id": "easter-2024",
+      "name": "Easter (2024)",
+      "description": "Christian celebration of the resurrection of Jesus Christ. Note: Easter follows a complex lunar calculation; this is the specific date for 2024",
+      "recurrence": { "type": "fixed", "month": 3, "day": 31 },
+      "startYear": 2024,
+      "endYear": 2024,
+      "visibility": "player-visible",
+      "color": "#9C27B0",
+      "icon": "fas fa-cross"
+    },
+    {
+      "id": "easter-2025",
+      "name": "Easter (2025)",
+      "description": "Christian celebration of the resurrection of Jesus Christ. Note: Easter follows a complex lunar calculation; this is the specific date for 2025",
+      "recurrence": { "type": "fixed", "month": 4, "day": 20 },
+      "startYear": 2025,
+      "endYear": 2025,
+      "visibility": "player-visible",
+      "color": "#9C27B0",
+      "icon": "fas fa-cross"
+    },
+    {
+      "id": "summer-olympics-2024",
+      "name": "Summer Olympics Opening (2024)",
+      "description": "Opening ceremony of the Summer Olympic Games in Paris",
+      "recurrence": {
+        "type": "interval",
+        "intervalYears": 4,
+        "anchorYear": 2024,
+        "month": 7,
+        "day": 26
+      },
+      "startYear": 2024,
+      "visibility": "player-visible",
+      "color": "#00BCD4",
+      "icon": "fas fa-medal"
+    },
+    {
+      "id": "gm-planning-day",
+      "name": "GM Planning Session",
+      "description": "Monthly reminder for game masters to plan upcoming sessions",
+      "recurrence": { "type": "ordinal", "month": 1, "occurrence": 1, "weekday": 0 },
+      "visibility": "gm-only",
+      "color": "#9E9E9E",
+      "icon": "fas fa-clipboard-list"
     }
   ]
 }
