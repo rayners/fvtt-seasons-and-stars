@@ -154,14 +154,22 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       if (engine) {
         const moonPhaseInfo = engine.getMoonPhaseInfo(currentDate);
         if (moonPhaseInfo && moonPhaseInfo.length > 0) {
-          moonPhases = moonPhaseInfo.map((info: MoonPhaseInfo, index: number) => ({
-            moonName: info.moon.name,
-            phaseName: info.phase.name,
-            phaseIcon: info.phase.icon,
-            faIcon: MOON_PHASE_ICON_MAP[info.phase.icon] || 'circle',
-            moonColor: sanitizeColor(info.moon.color),
-            moonColorIndex: index,
-          }));
+          moonPhases = moonPhaseInfo.map((info: MoonPhaseInfo, index: number) => {
+            const faIcon = MOON_PHASE_ICON_MAP[info.phase.icon];
+            if (!faIcon) {
+              Logger.warn(
+                `Unknown moon phase icon '${info.phase.icon}' for moon '${info.moon.name}', using fallback`
+              );
+            }
+            return {
+              moonName: info.moon.name,
+              phaseName: info.phase.name,
+              phaseIcon: info.phase.icon,
+              faIcon: faIcon || 'circle',
+              moonColor: sanitizeColor(info.moon.color),
+              moonColorIndex: index,
+            };
+          });
         }
       }
     } catch (error) {
