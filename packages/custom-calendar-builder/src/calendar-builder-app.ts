@@ -420,11 +420,19 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     }
 
     const fileInfo = filename ? ` (${filename})` : '';
+
+    // Check for multiple calendars
+    let multiCalendarNote = '';
+    if ('calendars' in data && Array.isArray(data.calendars) && data.calendars.length > 1) {
+      multiCalendarNote = `<p><em>Note: This file contains ${data.calendars.length} calendars. Only the first calendar will be imported.</em></p>`;
+    }
+
     const confirmed = await foundry.applications.api.DialogV2.confirm({
       window: { title: 'Simple Calendar Format Detected' },
       content: `<p>This file${fileInfo} appears to be in Simple Calendar format.</p>
                 <p>The Calendar Builder can attempt to automatically convert it to Seasons & Stars format,
                 but not all data may translate directly.</p>
+                ${multiCalendarNote}
                 <p><strong>Would you like to attempt automatic conversion?</strong></p>
                 <p><em>Note: If you choose "No", the JSON will be loaded as-is and will not validate correctly.</em></p>`,
       rejectClose: false,

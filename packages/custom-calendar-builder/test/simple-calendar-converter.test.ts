@@ -95,39 +95,39 @@ describe('SimpleCalendarConverter', () => {
     });
 
     it('should generate default ID when both id and name are missing', () => {
-      const scData: SimpleCalendarData = {
+      const scData: Partial<SimpleCalendarData> = {
         months: [],
         weekdays: [],
       };
 
       const converter = new SimpleCalendarConverter();
-      const result = converter.convert(scData);
+      const result = converter.convert(scData as SimpleCalendarData);
 
       expect(result.calendar.id).toBe('imported-calendar');
       expect(result.calendar.translations.en.label).toBe('Imported Calendar');
     });
 
     it('should use filename for ID when both id and name are missing', () => {
-      const scData: SimpleCalendarData = {
+      const scData: Partial<SimpleCalendarData> = {
         months: [],
         weekdays: [],
       };
 
       const converter = new SimpleCalendarConverter();
-      const result = converter.convert(scData, 'harptos.json');
+      const result = converter.convert(scData as SimpleCalendarData, 'harptos.json');
 
       expect(result.calendar.id).toBe('harptos');
       expect(result.calendar.translations.en.label).toBe('Harptos');
     });
 
     it('should capitalize filename for label with proper word separation', () => {
-      const scData: SimpleCalendarData = {
+      const scData: Partial<SimpleCalendarData> = {
         months: [],
         weekdays: [],
       };
 
       const converter = new SimpleCalendarConverter();
-      const result = converter.convert(scData, 'dark-sun.json');
+      const result = converter.convert(scData as SimpleCalendarData, 'dark-sun.json');
 
       expect(result.calendar.id).toBe('dark-sun');
       expect(result.calendar.translations.en.label).toBe('Dark Sun');
@@ -451,6 +451,66 @@ describe('SimpleCalendarConverter', () => {
 
       expect(result.calendar.intercalary[0].countsForWeekdays).toBe(false);
     });
+
+    it('should handle intercalary day at first position using before', () => {
+      const scData: SimpleCalendarData = {
+        id: 'test',
+        name: 'Test',
+        months: [
+          {
+            name: 'NewYear',
+            numberOfDays: 1,
+            intercalary: true,
+          },
+          { name: 'January', numberOfDays: 31 },
+          { name: 'February', numberOfDays: 28 },
+        ],
+        weekdays: [],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(scData);
+
+      expect(result.calendar.intercalary).toHaveLength(1);
+      expect(result.calendar.intercalary[0].name).toBe('NewYear');
+      // Should use 'before' since there's no preceding regular month
+      expect(result.calendar.intercalary[0].before).toBe('January');
+      expect(result.calendar.intercalary[0].after).toBeUndefined();
+    });
+
+    it('should handle intercalary day surrounded by other intercalary days', () => {
+      const scData: SimpleCalendarData = {
+        id: 'test',
+        name: 'Test',
+        months: [
+          { name: 'January', numberOfDays: 31 },
+          {
+            name: 'FirstIntercalary',
+            numberOfDays: 1,
+            intercalary: true,
+          },
+          {
+            name: 'SecondIntercalary',
+            numberOfDays: 1,
+            intercalary: true,
+          },
+          { name: 'February', numberOfDays: 28 },
+        ],
+        weekdays: [],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(scData);
+
+      expect(result.calendar.intercalary).toHaveLength(2);
+
+      const first = result.calendar.intercalary.find((i: any) => i.name === 'FirstIntercalary');
+      expect(first?.after).toBe('January');
+
+      const second = result.calendar.intercalary.find((i: any) => i.name === 'SecondIntercalary');
+      // Should still find January via backwards search
+      expect(second?.after).toBe('January');
+    });
   });
 
   describe('time conversion', () => {
@@ -610,6 +670,60 @@ describe('SimpleCalendarConverter', () => {
       expect(result.warnings).toHaveLength(1);
       expect(result.warnings[0].property).toBe('sunriseTimes/sunsetTimes');
     });
+
+    it('should handle season starting on intercalary month at end of calendar', () => {
+      const scData: SimpleCalendarData = {
+        id: 'test',
+        name: 'Test',
+        months: [
+          { name: 'Month1', numberOfDays: 30 },
+          { name: 'Month2', numberOfDays: 30 },
+          { name: 'EndIntercalary', numberOfDays: 1, intercalary: true },
+        ],
+        weekdays: [],
+        seasons: [
+          { name: 'Winter', startingMonth: 2 }, // Intercalary at end
+        ],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(scData);
+
+      // Should map backwards to Month2 (the last regular month)
+      expect(result.calendar.seasons[0].startMonth).toBe(2);
+      expect(
+        result.warnings.some(
+          (w: any) => w.path.includes('seasons') && w.property === 'startingMonth'
+        )
+      ).toBe(true);
+    });
+
+    it('should handle season starting on intercalary month in middle of calendar', () => {
+      const scData: SimpleCalendarData = {
+        id: 'test',
+        name: 'Test',
+        months: [
+          { name: 'Month1', numberOfDays: 30 },
+          { name: 'MiddleIntercalary', numberOfDays: 1, intercalary: true },
+          { name: 'Month2', numberOfDays: 30 },
+        ],
+        weekdays: [],
+        seasons: [
+          { name: 'Spring', startingMonth: 1 }, // Intercalary in middle
+        ],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(scData);
+
+      // Should map forward to Month2
+      expect(result.calendar.seasons[0].startMonth).toBe(2);
+      expect(
+        result.warnings.some(
+          (w: any) => w.path.includes('seasons') && w.property === 'startingMonth'
+        )
+      ).toBe(true);
+    });
   });
 
   describe('moon conversion', () => {
@@ -696,6 +810,56 @@ describe('SimpleCalendarConverter', () => {
 
       expect(result.warnings).toHaveLength(1);
       expect(result.warnings[0].property).toBe('referenceTime');
+    });
+
+    it('should respect explicit singleDay false even for length 1 phases', () => {
+      const scData: SimpleCalendarData = {
+        id: 'test',
+        name: 'Test',
+        months: [],
+        weekdays: [],
+        moons: [
+          {
+            name: 'Luna',
+            cycleLength: 29.53,
+            phases: [
+              { name: 'New Moon', length: 1, singleDay: false, icon: 'new' },
+              { name: 'Full Moon', length: 1, singleDay: true, icon: 'full' },
+            ],
+          },
+        ],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(scData);
+
+      expect(result.calendar.moons[0].phases[0].singleDay).toBe(false);
+      expect(result.calendar.moons[0].phases[1].singleDay).toBe(true);
+    });
+
+    it('should default singleDay to true for length 1 phases when not specified', () => {
+      const scData: SimpleCalendarData = {
+        id: 'test',
+        name: 'Test',
+        months: [],
+        weekdays: [],
+        moons: [
+          {
+            name: 'Luna',
+            cycleLength: 29.53,
+            phases: [
+              { name: 'New Moon', length: 1, icon: 'new' },
+              { name: 'Waxing', length: 7, icon: 'waxing' },
+            ],
+          },
+        ],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(scData);
+
+      expect(result.calendar.moons[0].phases[0].singleDay).toBe(true);
+      expect(result.calendar.moons[0].phases[1].singleDay).toBe(false);
     });
   });
 

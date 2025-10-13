@@ -228,16 +228,36 @@ export class SimpleCalendarConverter {
         intercalary.description = month.description;
       }
 
-      // Find the previous non-intercalary month
+      // Find the nearest non-intercalary month for positioning
       const monthIndex = scData.months!.indexOf(month);
+      let foundPosition = false;
+
+      // Try searching backwards for a previous non-intercalary month
       if (monthIndex > 0) {
-        // Search backwards for the first non-intercalary month
         for (let i = monthIndex - 1; i >= 0; i--) {
           if (!scData.months![i].intercalary) {
             intercalary.after = scData.months![i].name;
+            foundPosition = true;
             break;
           }
         }
+      }
+
+      // If no previous regular month found, search forward for 'before'
+      if (!foundPosition) {
+        for (let i = monthIndex + 1; i < scData.months!.length; i++) {
+          if (!scData.months![i].intercalary) {
+            intercalary.before = scData.months![i].name;
+            foundPosition = true;
+            break;
+          }
+        }
+      }
+
+      if (!foundPosition) {
+        this.addWarning(`root.intercalary[${index}]`, 'positioning',
+          month.name,
+          'Cannot determine position - no adjacent regular months found');
       }
 
       if (month.numberOfLeapYearDays && month.numberOfLeapYearDays !== month.numberOfDays) {
@@ -305,18 +325,39 @@ export class SimpleCalendarConverter {
       const ssMonthNumber = monthIndexToNumber.get(scMonthIndex);
 
       if (ssMonthNumber === undefined) {
-        this.addWarning(`root.seasons[${index}].startingMonth`, 'startingMonth',
-          scMonthIndex,
-          `Season starts on intercalary month index ${scMonthIndex} - using next regular month`);
-        // Find the next regular month
+        // Season starts on an intercalary month - need to find nearest regular month
+        let foundMonth: number | undefined;
+
+        // Try searching forward first
         for (let i = scMonthIndex + 1; i < (scData.months?.length || 0); i++) {
           const nextMonth = monthIndexToNumber.get(i);
           if (nextMonth !== undefined) {
-            return this.buildSeasonObject(season, nextMonth, index);
+            foundMonth = nextMonth;
+            break;
           }
         }
-        // Fallback to month 1 if we can't find a valid month
-        return this.buildSeasonObject(season, 1, index);
+
+        // If forward search failed, search backwards
+        if (foundMonth === undefined) {
+          for (let i = scMonthIndex - 1; i >= 0; i--) {
+            const prevMonth = monthIndexToNumber.get(i);
+            if (prevMonth !== undefined) {
+              foundMonth = prevMonth;
+              break;
+            }
+          }
+        }
+
+        // Last resort: use first regular month
+        if (foundMonth === undefined) {
+          foundMonth = 1;
+        }
+
+        this.addWarning(`root.seasons[${index}].startingMonth`, 'startingMonth',
+          scMonthIndex,
+          `Season starts on intercalary month index ${scMonthIndex} - mapped to regular month ${foundMonth}`);
+
+        return this.buildSeasonObject(season, foundMonth, index);
       }
 
       return this.buildSeasonObject(season, ssMonthNumber, index);
@@ -375,7 +416,7 @@ export class SimpleCalendarConverter {
         converted.phases = moon.phases.map(phase => ({
           name: phase.name,
           length: phase.length,
-          singleDay: phase.singleDay !== false && phase.length <= 1,
+          singleDay: phase.singleDay !== undefined ? phase.singleDay : phase.length <= 1,
           icon: phase.icon || 'new',
         }));
       }

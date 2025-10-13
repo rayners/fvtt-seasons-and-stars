@@ -398,5 +398,70 @@ describe('CalendarBuilderApp', () => {
 
       expect(consoleSpy).toHaveBeenCalled();
     });
+
+    it('should show multi-calendar warning in dialog', async () => {
+      const scExport = {
+        exportVersion: 2,
+        calendars: [
+          {
+            id: 'calendar1',
+            name: 'First Calendar',
+            months: [],
+            weekdays: [],
+          },
+          {
+            id: 'calendar2',
+            name: 'Second Calendar',
+            months: [],
+            weekdays: [],
+          },
+          {
+            id: 'calendar3',
+            name: 'Third Calendar',
+            months: [],
+            weekdays: [],
+          },
+        ],
+      };
+
+      mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
+      const dialogSpy = vi.spyOn(mockFoundry.applications.api.DialogV2, 'confirm');
+
+      await app['_handleImportedJson'](JSON.stringify(scExport));
+
+      expect(dialogSpy).toHaveBeenCalled();
+      const dialogContent = dialogSpy.mock.calls[0][0].content;
+      expect(dialogContent).toContain('3 calendars');
+      expect(dialogContent).toContain('Only the first calendar will be imported');
+    });
+
+    it('should import first calendar when multiple calendars present', async () => {
+      const scExport = {
+        exportVersion: 2,
+        calendars: [
+          {
+            id: 'first-calendar',
+            name: 'First Calendar',
+            months: [{ name: 'January', numberOfDays: 31 }],
+            weekdays: [{ name: 'Monday' }],
+          },
+          {
+            id: 'second-calendar',
+            name: 'Second Calendar',
+            months: [{ name: 'Month1', numberOfDays: 30 }],
+            weekdays: [{ name: 'Day1' }],
+          },
+        ],
+      };
+
+      mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
+
+      await app['_handleImportedJson'](JSON.stringify(scExport));
+
+      expect(app['currentJson']).toContain('first-calendar');
+      expect(app['currentJson']).toContain('January');
+      expect(app['currentJson']).not.toContain('second-calendar');
+      expect(app['currentJson']).not.toContain('Month1');
+    });
   });
 });
