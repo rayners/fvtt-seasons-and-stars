@@ -32,6 +32,7 @@ import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import { TimeAdvancementService } from './core/time-advancement-service';
 import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
+import { handleCalendarSelection } from './core/calendar-selection-handler';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
 import type {
   ErrorsAndEchoesAPI,
@@ -655,12 +656,7 @@ function registerSettings(): void {
     choices: { gregorian: 'Gregorian Calendar' }, // Basic default, updated later
     onChange: async (value: string) => {
       if (value && value.trim() !== '' && calendarManager) {
-        // Clear file picker calendar when regular calendar is selected (GM only)
-        if (game.user?.isGM) {
-          await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
-        }
-        // Don't save to settings again - we're already in an onChange handler
-        await calendarManager.setActiveCalendar(value, false, 'user-change');
+        await handleCalendarSelection(value, calendarManager);
       }
     },
   });
@@ -1083,12 +1079,7 @@ function registerCalendarSettings(): void {
     choices: choices,
     onChange: async (value: string) => {
       if (value && value.trim() !== '' && calendarManager) {
-        // Clear file picker calendar when regular calendar is selected (GM only)
-        if (game.user?.isGM) {
-          await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
-        }
-        // Don't save to settings again - we're already in an onChange handler
-        await calendarManager.setActiveCalendar(value, false, 'user-change');
+        await handleCalendarSelection(value, calendarManager);
       }
     },
   });
