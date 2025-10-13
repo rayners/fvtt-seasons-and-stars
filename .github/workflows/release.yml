@@ -80,12 +80,12 @@ jobs:
       packages: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Release Core Module
-        uses: rayners/foundry-module-actions/release@v6.0.0
+        uses: rayners/foundry-module-actions/release@v6.0.1
         with:
           node-version: '24'
           build-command: 'npm run build'
@@ -103,12 +103,12 @@ jobs:
       packages: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Release Fantasy Pack
-        uses: rayners/foundry-module-actions/release@v6.0.0
+        uses: rayners/foundry-module-actions/release@v6.0.1
         with:
           node-version: '24'
           build-command: 'npm run build'
@@ -124,12 +124,12 @@ jobs:
       packages: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Release Sci-Fi Pack
-        uses: rayners/foundry-module-actions/release@v6.0.0
+        uses: rayners/foundry-module-actions/release@v6.0.1
         with:
           node-version: '24'
           build-command: 'npm run build'
@@ -145,12 +145,12 @@ jobs:
       packages: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Release PF2e Pack
-        uses: rayners/foundry-module-actions/release@v6.0.0
+        uses: rayners/foundry-module-actions/release@v6.0.1
         with:
           node-version: '24'
           build-command: 'npm run build'
@@ -171,7 +171,7 @@ jobs:
           fetch-depth: 0
 
       - name: Release Calendar Builder
-        uses: rayners/foundry-module-actions/release@v6.0.0
+        uses: rayners/foundry-module-actions/release@v6.0.1
         with:
           node-version: '24'
           build-command: 'npm run build'
