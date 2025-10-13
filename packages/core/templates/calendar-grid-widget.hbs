@@ -10,28 +10,28 @@
     <div class="calendar-grid-header">
       <div class="navigation-controls">
         <div class="month-navigation">
-          <button type="button" class="nav-button" data-action="previousMonth" title="Previous Month">
+          <button type="button" class="nav-button" data-action="previousMonth" data-tooltip="Previous Month">
             <i class="fas fa-chevron-left"></i>
           </button>
           <div class="month-info">
             <div class="month-name">{{monthName}}</div>
             {{#if monthDescription}}
-              <div class="month-description" title="{{monthDescription}}">
+              <div class="month-description" data-tooltip="{{monthDescription}}">
                 <i class="fas fa-info-circle"></i>
               </div>
             {{/if}}
           </div>
-          <button type="button" class="nav-button" data-action="nextMonth" title="Next Month">
+          <button type="button" class="nav-button" data-action="nextMonth" data-tooltip="Next Month">
             <i class="fas fa-chevron-right"></i>
           </button>
         </div>
         
         <div class="year-navigation">
-          <button type="button" class="nav-button" data-action="previousYear" title="Previous Year">
+          <button type="button" class="nav-button" data-action="previousYear" data-tooltip="Previous Year">
             <i class="fas fa-angle-double-left"></i>
           </button>
-          <button type="button" class="year-display clickable" data-action="setYear" title="Click to set year">{{yearDisplay}}</button>
-          <button type="button" class="nav-button" data-action="nextYear" title="Next Year">
+          <button type="button" class="year-display clickable" data-action="setYear" data-tooltip="Click to set year">{{yearDisplay}}</button>
+          <button type="button" class="nav-button" data-action="nextYear" data-tooltip="Next Year">
             <i class="fas fa-angle-double-right"></i>
           </button>
         </div>
@@ -39,10 +39,10 @@
 
       <div class="header-actions">
         <div class="widget-switching-controls">
-          <button type="button" class="widget-switch-btn" data-action="switchToMain" title="Switch to Main Widget">
+          <button type="button" class="widget-switch-btn" data-action="switchToMain" data-tooltip="Switch to Main Widget">
             <i class="fas fa-expand-alt"></i>
           </button>
-          <button type="button" class="widget-switch-btn" data-action="switchToMini" title="Switch to Mini Widget">
+          <button type="button" class="widget-switch-btn" data-action="switchToMini" data-tooltip="Switch to Mini Widget">
             <i class="fas fa-compress-alt"></i>
           </button>
         </div>
@@ -52,7 +52,7 @@
               <button
                 type="button"
                 class="grid-sidebar-button"
-                title="{{this.tooltip}}"
+                data-tooltip="{{this.tooltip}}"
                 data-action="clickSidebarButton"
                 data-button-name="{{this.name}}"
               >
@@ -61,7 +61,7 @@
             {{/each}}
           </div>
         {{/if}}
-        <button type="button" class="today-button" data-action="goToToday" title="Go to current date">
+        <button type="button" class="today-button" data-action="goToToday" data-tooltip="Go to current date">
           <i class="fas fa-crosshairs"></i> Today
         </button>
       </div>
@@ -70,7 +70,7 @@
     {{!-- Weekday Headers --}}
     <div class="weekday-headers" style="--weekday-count: {{weekdays.length}};">
       {{#each weekdays}}
-        <div class="weekday-header" title="{{description}}">
+        <div class="weekday-header" data-tooltip="{{description}}">
           <span class="weekday-name">{{abbreviation}}</span>
         </div>
       {{/each}}
@@ -88,7 +88,7 @@
                      data-action="{{#if isClickable}}selectDate{{/if}}"
                      data-day="{{intercalaryName}}"
                      data-date="{{fullDate}}"
-                     title="{{#if isToday}}Current Date: {{/if}}{{intercalaryName}}{{#if intercalaryDescription}} - {{intercalaryDescription}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
+                     data-tooltip="{{#if isToday}}Current Date: {{/if}}{{intercalaryName}}{{#if intercalaryDescription}} - {{intercalaryDescription}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
                   <span class="intercalary-name">{{intercalaryName}}</span>
                   {{#if intercalaryDescription}}
                     <span class="intercalary-description">{{intercalaryDescription}}</span>
@@ -103,10 +103,10 @@
                      data-day="{{day}}"
                      data-date="{{fullDate}}"
                      data-category="{{primaryCategory}}"
-                     title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteTooltip}}{{/if}}{{#if moonTooltip}} - {{moonTooltip}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
+                     data-tooltip="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteTooltip}}{{/if}}{{#if moonTooltip}} - {{moonTooltip}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
                   <span class="day-number">{{day}}</span>
                   {{#if primaryMoonPhase}}
-                    <div class="moon-indicator" {{#if primaryMoonColor}}style="color: {{primaryMoonColor}}"{{/if}} title="{{moonTooltip}}">
+                    <div class="moon-indicator" {{#if primaryMoonColor}}style="color: {{primaryMoonColor}}"{{/if}} data-tooltip="{{moonTooltip}}">
                       {{#if (eq primaryMoonPhase "new")}}<i class="fas fa-circle moon-phase-new"></i>{{/if}}
                       {{#if (eq primaryMoonPhase "waxing-crescent")}}<i class="fas fa-moon moon-phase-waxing-crescent"></i>{{/if}}
                       {{#if (eq primaryMoonPhase "first-quarter")}}<i class="fas fa-adjust moon-phase-first-quarter"></i>{{/if}}
@@ -136,10 +136,10 @@
                      data-day="{{day}}"
                      data-date="{{fullDate}}"
                      data-category="{{primaryCategory}}"
-                     title="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteTooltip}}{{/if}}{{#if moonTooltip}} - {{moonTooltip}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
+                     data-tooltip="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteTooltip}}{{/if}}{{#if moonTooltip}} - {{moonTooltip}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
                   <span class="day-number">{{day}}</span>
                   {{#if primaryMoonPhase}}
-                    <div class="moon-indicator" {{#if primaryMoonColor}}style="color: {{primaryMoonColor}}"{{/if}} title="{{moonTooltip}}">
+                    <div class="moon-indicator" {{#if primaryMoonColor}}style="color: {{primaryMoonColor}}"{{/if}} data-tooltip="{{moonTooltip}}">
                       {{#if (eq primaryMoonPhase "new")}}<i class="fas fa-circle moon-phase-new"></i>{{/if}}
                       {{#if (eq primaryMoonPhase "waxing-crescent")}}<i class="fas fa-moon moon-phase-waxing-crescent"></i>{{/if}}
                       {{#if (eq primaryMoonPhase "first-quarter")}}<i class="fas fa-adjust moon-phase-first-quarter"></i>{{/if}}
@@ -154,7 +154,7 @@
                     </div>
                   {{/if}}
                   {{#if hasNotes}}
-                    <button type="button" class="note-indicator" data-action="viewNotes" data-day="{{day}}" title="{{noteTooltip}} - Click to view/edit" data-note-count="{{noteCount}}">
+                    <button type="button" class="note-indicator" data-action="viewNotes" data-day="{{day}}" data-tooltip="{{noteTooltip}} - Click to view/edit" data-note-count="{{noteCount}}">
                       {{#if noteMultiple}}
                         <span class="note-count {{categoryClass}}">{{noteCount}}</span>
                       {{else}}
@@ -163,7 +163,7 @@
                     </button>
                   {{/if}}
                   {{#if canCreateNote}}
-                    <button type="button" class="quick-note-btn" data-action="createNote" data-day="{{day}}" title="Create note for this date">
+                    <button type="button" class="quick-note-btn" data-action="createNote" data-day="{{day}}" data-tooltip="Create note for this date">
                       <i class="fas fa-plus"></i>
                     </button>
                   {{/if}}

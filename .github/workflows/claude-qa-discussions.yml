@@ -71,4 +71,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           claude_args: |
             --model claude-sonnet-4-5
-            --allowedTools "Bash(gh api:*),Bash(gh search:*),Read,Write,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"
+            --allowedTools "Bash(gh disc-categories:*),Bash(gh disc-category-discussions:*),Bash(gh disc-comments:*),Bash(gh disc-reply:*),Bash(gh api:*),Bash(gh search:*),Read,Write,WebFetch(domain:foundryvtt.com),WebFetch(domain:foundryvtt.wiki)"

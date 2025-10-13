@@ -1,5 +1,43 @@
 # Changelog
 
+## [0.21.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.4...seasons-and-stars-v0.21.0) (2025-10-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* Moon phase data now includes moonColorIndex field
+
+### Features
+
+* add moon phase icons to mini widget ([#368](https://github.com/rayners/fvtt-seasons-and-stars/issues/368)) ([4db6708](https://github.com/rayners/fvtt-seasons-and-stars/commit/4db67084542f5f5ca12a4119f07e1d94575a5fad))
+
+
+### Bug Fixes
+
+* cache calendar data during onChange to prevent race condition ([#370](https://github.com/rayners/fvtt-seasons-and-stars/issues/370)) ([03ca799](https://github.com/rayners/fvtt-seasons-and-stars/commit/03ca79921bc002325c177c90e88dce8920309bd9))
+* support both 'before' and 'after' for intercalary days ([#362](https://github.com/rayners/fvtt-seasons-and-stars/issues/362)) ([ff362f0](https://github.com/rayners/fvtt-seasons-and-stars/commit/ff362f0085d043369cced6f28717eaec5d6fcedc))
+
+## [0.20.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.3...seasons-and-stars-v0.20.4) (2025-10-12)
+
+
+### Bug Fixes
+
+* prevent active calendar reset on Foundry reload ([#364](https://github.com/rayners/fvtt-seasons-and-stars/issues/364)) ([5881b70](https://github.com/rayners/fvtt-seasons-and-stars/commit/5881b70bf873dfdebddaf41d8c4baaf20b825e73))
+
+## [0.20.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.2...seasons-and-stars-v0.20.3) (2025-10-11)
+
+
+### Bug Fixes
+
+* improve error messages for unexpected properties ([#358](https://github.com/rayners/fvtt-seasons-and-stars/issues/358)) ([30b5941](https://github.com/rayners/fvtt-seasons-and-stars/commit/30b5941f811aaf2ac0ce4dd6cba1977d1fd91789))
+
+## [0.20.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.1...seasons-and-stars-v0.20.2) (2025-10-09)
+
+
+### Bug Fixes
+
+* prevent non-GM permission errors and improve file picker UX ([#353](https://github.com/rayners/fvtt-seasons-and-stars/issues/353)) ([e105075](https://github.com/rayners/fvtt-seasons-and-stars/commit/e105075c1a6ab272ff88015a030fdddedf63bda3))
+
 ## [0.20.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.0...seasons-and-stars-v0.20.1) (2025-10-08)
 
 

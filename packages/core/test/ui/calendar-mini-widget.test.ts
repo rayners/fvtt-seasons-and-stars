@@ -164,7 +164,7 @@ describe('CalendarMiniWidget', () => {
       mockElement.innerHTML = `
         <div class="calendar-mini-content">
           <div class="mini-header-row">
-            <div class="mini-date" data-action="openCalendarSelection" title="Test Date (Click for larger view, Double-click to change calendar)">
+            <div class="mini-date" data-action="openCalendarSelection" data-tooltip="Test Date (Click for larger view, Double-click to change calendar)">
               Test Date
             </div>
           </div>

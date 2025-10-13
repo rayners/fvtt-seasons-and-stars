@@ -1,6 +1,6 @@
 {
   "name": "seasons-and-stars-calendar-builder",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Calendar builder application for creating custom calendars for Seasons & Stars",
   "type": "module",
   "main": "dist/module.js",
@@ -22,7 +22,7 @@
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/jquery": "^3.5.33",
-    "@types/node": "^24.6.2",
+    "@types/node": "^24.7.2",
     "rollup": "^4.24.0",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-livereload": "^2.0.5",

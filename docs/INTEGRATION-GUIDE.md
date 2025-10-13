@@ -367,7 +367,7 @@ The corresponding Handlebars partial iterates the generated buttons:
         class='sidebar-button'
         data-action='clickSidebarButton'
         data-button-name='{{this.name}}'
-        title='{{this.tooltip}}'
+        data-tooltip='{{this.tooltip}}'
       >
         <i class='{{this.icon}}'></i>
         {{this.name}}

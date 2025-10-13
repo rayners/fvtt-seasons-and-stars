@@ -376,6 +376,12 @@ export class NotesManager {
    * Initialize the notes folder if it doesn't exist
    */
   private async initializeNotesFolder(): Promise<void> {
+    // Only GMs can create folders, so skip creation for non-GMs
+    if (!game.user?.isGM) {
+      Logger.debug('Skipping folder creation for non-GM user');
+      return;
+    }
+
     await this.getOrCreateNotesFolder();
   }
 
@@ -396,6 +402,11 @@ export class NotesManager {
     if (existingFolder) {
       this.notesFolderId = existingFolder.id;
       return existingFolder;
+    }
+
+    // Only GMs can create folders
+    if (!game.user?.isGM) {
+      throw new Error('Calendar Notes folder does not exist and only GMs can create it');
     }
 
     // Create new folder
