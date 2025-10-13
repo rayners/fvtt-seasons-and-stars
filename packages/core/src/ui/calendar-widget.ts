@@ -12,12 +12,14 @@ import { loadButtonsFromRegistry } from './sidebar-button-mixin';
 import { MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import type { MoonPhaseInfo } from '../types/calendar';
+import type { MainWidgetContext } from '../types/widget-types';
 
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
   private updateInterval: number | null = null;
   private static activeInstance: CalendarWidget | null = null;
+  private lastRenderContext?: MainWidgetContext;
 
   static DEFAULT_OPTIONS = {
     id: 'seasons-stars-widget',
@@ -200,7 +202,12 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       playPauseButtonText: playPauseButtonText,
       // Moon phase data
       moonPhases: moonPhases,
-    });
+    }) as MainWidgetContext;
+
+    // Cache context for use in _attachPartListeners
+    this.lastRenderContext = context as MainWidgetContext;
+
+    return context;
   }
 
   /**
@@ -223,22 +230,24 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   /**
    * Apply moon phase colors safely via DOM manipulation
    * Prevents XSS by injecting CSS custom properties through TypeScript instead of templates
+   * Supports unlimited moons by applying colors directly to elements
    */
-  private applyMoonPhaseColors(context: any): void {
+  private applyMoonPhaseColors(context: MainWidgetContext): void {
     if (!this.element || !context.moonPhases) return;
 
     const container = this.element.querySelector('.moon-phases') as HTMLElement;
     if (!container) return;
 
-    // Set moon count
+    // Set moon count for gap calculation
     container.style.setProperty('--moon-count', context.moonPhases.length.toString());
 
-    // Set each moon color with stripScripts sanitization
-    context.moonPhases.forEach((moon: any, index: number) => {
-      if (moon.moonColor) {
-        // Use stripScripts for sanitization (already validated by sanitizeColor)
-        const safeColor = (moon.moonColor as string).stripScripts();
-        container.style.setProperty(`--moon-color-${index}`, safeColor);
+    // Apply color to each moon phase element directly (supports unlimited moons)
+    context.moonPhases.forEach((moon, index: number) => {
+      const element = container.querySelector(
+        `.moon-phase[data-moon-index="${index}"]`
+      ) as HTMLElement;
+      if (element && moon.moonColor) {
+        element.style.color = moon.moonColor;
       }
     });
   }
@@ -253,11 +262,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     CalendarWidget.activeInstance = this;
 
     // Apply moon phase colors safely if rendering moon phases part
-    if (partId === 'moonPhases') {
-      // Need to get context - fetch it from the last render
-      this._prepareContext().then(context => {
-        this.applyMoonPhaseColors(context);
-      });
+    if (partId === 'moonPhases' && this.lastRenderContext) {
+      this.applyMoonPhaseColors(this.lastRenderContext);
     }
 
     // Start auto-update after rendering

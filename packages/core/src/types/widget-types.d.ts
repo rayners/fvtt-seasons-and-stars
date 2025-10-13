@@ -49,6 +49,14 @@ export interface MainWidgetContext extends BaseWidgetContext {
   timeAdvancementActive?: boolean;
   advancementRatioDisplay?: string;
   showTimeControls?: boolean;
+  moonPhases: Array<{
+    moonName: string;
+    phaseName: string;
+    phaseIcon: string;
+    faIcon: string;
+    moonColor?: string;
+    moonColorIndex: number;
+  }>;
 }
 
 // Grid widget specific context

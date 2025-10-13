@@ -324,22 +324,24 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   /**
    * Apply moon phase colors safely via DOM manipulation
    * Prevents XSS by injecting CSS custom properties through TypeScript instead of templates
+   * Supports unlimited moons by applying colors directly to elements
    */
-  private applyMoonPhaseColors(context: any): void {
+  private applyMoonPhaseColors(context: MiniWidgetContext): void {
     if (!this.element || !context.moonPhases) return;
 
     const container = this.element.querySelector('.mini-moon-phases') as HTMLElement;
     if (!container) return;
 
-    // Set moon count
+    // Set moon count for gap calculation
     container.style.setProperty('--moon-count', context.moonPhases.length.toString());
 
-    // Set each moon color with stripScripts sanitization
-    context.moonPhases.forEach((moon: any, index: number) => {
-      if (moon.moonColor) {
-        // Use stripScripts for sanitization (already validated by sanitizeColor)
-        const safeColor = (moon.moonColor as string).stripScripts();
-        container.style.setProperty(`--moon-color-${index}`, safeColor);
+    // Apply color to each moon phase element directly (supports unlimited moons)
+    context.moonPhases.forEach((moon, index: number) => {
+      const element = container.querySelector(
+        `.mini-moon-phase[data-moon-index="${index}"]`
+      ) as HTMLElement;
+      if (element && moon.moonColor) {
+        element.style.color = moon.moonColor;
       }
     });
   }
