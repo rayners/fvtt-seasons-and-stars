@@ -93,6 +93,60 @@ describe('SimpleCalendarConverter', () => {
 
       expect(result.calendar.id).toBe('test-calendar-123');
     });
+
+    it('should generate default ID when both id and name are missing', () => {
+      const scData: SimpleCalendarData = {
+        months: [],
+        weekdays: [],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(scData);
+
+      expect(result.calendar.id).toBe('imported-calendar');
+      expect(result.calendar.translations.en.label).toBe('Imported Calendar');
+    });
+
+    it('should use filename for ID when both id and name are missing', () => {
+      const scData: SimpleCalendarData = {
+        months: [],
+        weekdays: [],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(scData, 'harptos.json');
+
+      expect(result.calendar.id).toBe('harptos');
+      expect(result.calendar.translations.en.label).toBe('Harptos');
+    });
+
+    it('should capitalize filename for label with proper word separation', () => {
+      const scData: SimpleCalendarData = {
+        months: [],
+        weekdays: [],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(scData, 'dark-sun.json');
+
+      expect(result.calendar.id).toBe('dark-sun');
+      expect(result.calendar.translations.en.label).toBe('Dark Sun');
+    });
+
+    it('should prefer calendar data over filename', () => {
+      const scData: SimpleCalendarData = {
+        id: 'my-calendar',
+        name: 'My Calendar',
+        months: [],
+        weekdays: [],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(scData, 'ignored.json');
+
+      expect(result.calendar.id).toBe('my-calendar');
+      expect(result.calendar.translations.en.label).toBe('My Calendar');
+    });
   });
 
   describe('year conversion', () => {
@@ -497,17 +551,21 @@ describe('SimpleCalendarConverter', () => {
   });
 
   describe('season conversion', () => {
-    it('should convert seasons', () => {
+    it('should convert seasons with proper month mapping', () => {
       const scData: SimpleCalendarData = {
         id: 'test',
         name: 'Test',
-        months: [],
+        months: [
+          { name: 'January', numberOfDays: 31 },
+          { name: 'February', numberOfDays: 28 },
+          { name: 'March', numberOfDays: 31 },
+        ],
         weekdays: [],
         seasons: [
           {
             name: 'Spring',
             description: 'Season of growth',
-            startingMonth: 2,
+            startingMonth: 2, // March (index 2)
             startingDay: 1,
             icon: 'spring',
             color: '#00FF00',
@@ -522,17 +580,19 @@ describe('SimpleCalendarConverter', () => {
       expect(result.calendar.seasons[0]).toEqual({
         name: 'Spring',
         description: 'Season of growth',
-        startMonth: 3,
+        startMonth: 3, // Month number 3 (March)
+        endMonth: 3,
         icon: 'spring',
-        color: '#00FF00',
       });
+      // Color should generate a warning
+      expect(result.warnings.some((w: any) => w.property === 'color')).toBe(true);
     });
 
     it('should warn about sunrise/sunset times', () => {
       const scData: SimpleCalendarData = {
         id: 'test',
         name: 'Test',
-        months: [],
+        months: [{ name: 'January', numberOfDays: 31 }],
         weekdays: [],
         seasons: [
           {
@@ -659,6 +719,226 @@ describe('SimpleCalendarConverter', () => {
 
       expect(JSON.stringify(result1.calendar)).toBe(JSON.stringify(result2.calendar));
       expect(JSON.stringify(result1.warnings)).toBe(JSON.stringify(result2.warnings));
+    });
+  });
+
+  describe('complex calendar with intercalary days', () => {
+    it('should correctly convert Harptos-style calendar with intercalary months and seasons', () => {
+      const scData: SimpleCalendarData = {
+        id: 'harptos',
+        name: 'Harptos',
+        months: [
+          { name: 'Hammer', numberOfDays: 30, intercalary: false },
+          { name: 'Midwinter', numberOfDays: 1, intercalary: true },
+          { name: 'Alturiak', numberOfDays: 30, intercalary: false },
+          { name: 'Ches', numberOfDays: 30, intercalary: false },
+          { name: 'Tarsakh', numberOfDays: 30, intercalary: false },
+          { name: 'Greengrass', numberOfDays: 1, intercalary: true },
+          { name: 'Mirtul', numberOfDays: 30, intercalary: false },
+          { name: 'Kythorn', numberOfDays: 30, intercalary: false },
+          { name: 'Flamerule', numberOfDays: 30, intercalary: false },
+          { name: 'Midsummer', numberOfDays: 1, intercalary: true },
+          { name: 'Shieldmeet', numberOfDays: 0, numberOfLeapYearDays: 1, intercalary: true },
+          { name: 'Eleasis', numberOfDays: 30, intercalary: false },
+          { name: 'Eleint', numberOfDays: 30, intercalary: false },
+        ],
+        weekdays: [{ name: '1st' }],
+        seasons: [
+          { name: 'Spring', startingMonth: 2 }, // Alturiak (index 2, month #2)
+          { name: 'Summer', startingMonth: 7 }, // Kythorn (index 7, month #6)
+        ],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(scData);
+
+      // Regular months should exclude intercalary
+      expect(result.calendar.months).toHaveLength(9);
+      expect(result.calendar.months[0].name).toBe('Hammer');
+      expect(result.calendar.months[1].name).toBe('Alturiak');
+
+      // Intercalary days should be correctly positioned
+      expect(result.calendar.intercalary).toHaveLength(4);
+
+      const midwinter = result.calendar.intercalary.find((i: any) => i.name === 'Midwinter');
+      expect(midwinter?.after).toBe('Hammer');
+
+      const greengrass = result.calendar.intercalary.find((i: any) => i.name === 'Greengrass');
+      expect(greengrass?.after).toBe('Tarsakh');
+
+      const midsummer = result.calendar.intercalary.find((i: any) => i.name === 'Midsummer');
+      expect(midsummer?.after).toBe('Flamerule');
+
+      const shieldmeet = result.calendar.intercalary.find((i: any) => i.name === 'Shieldmeet');
+      expect(shieldmeet?.after).toBe('Flamerule');
+      expect(shieldmeet?.leapYearOnly).toBe(true);
+      expect(shieldmeet?.days).toBe(1);
+
+      // Seasons should map to correct month numbers
+      expect(result.calendar.seasons).toHaveLength(2);
+      expect(result.calendar.seasons[0].name).toBe('Spring');
+      expect(result.calendar.seasons[0].startMonth).toBe(2); // Alturiak is month #2
+      expect(result.calendar.seasons[1].name).toBe('Summer');
+      expect(result.calendar.seasons[1].startMonth).toBe(6); // Kythorn is month #6
+    });
+  });
+
+  describe('full export format detection', () => {
+    it('should detect and handle full Simple Calendar export with globalConfig and permissions', () => {
+      const fullExport = {
+        exportVersion: 2,
+        globalConfig: {
+          secondsInCombatRound: 6,
+          calendarsSameTimestamp: false,
+          syncCalendars: true,
+          showNotesFolder: true,
+        },
+        permissions: [{ player: false, trustedPlayer: false, assistantGameMaster: false }],
+        calendars: [
+          {
+            id: 'default',
+            name: 'SA',
+            currentDate: { year: 592, month: 6, day: 27, seconds: 39762 },
+            general: {
+              gameWorldTimeIntegration: 'mixed',
+              showClock: true,
+              noteDefaultVisibility: true,
+              postNoteRemindersOnFoundryLoad: true,
+              pf2eSync: false,
+              dateFormat: { date: 'MMMM DD, YYYY', time: 'HH:mm:ss', monthYear: 'MMMM YYYYYYYY' },
+              chatTime: 'MMM DD, YYYY HH:mm',
+              compactViewOptions: { controlLayout: 'full' },
+            },
+            leapYear: {
+              rule: 'none',
+            },
+            months: [
+              { name: 'Hammer', abbreviation: 'Ham', numberOfDays: 30 },
+              { name: 'Alturiak', abbreviation: 'Alt', numberOfDays: 30 },
+            ],
+            weekdays: [
+              { name: 'Sunday', abbreviation: 'Sun' },
+              { name: 'Monday', abbreviation: 'Mon' },
+            ],
+            time: {
+              hoursInDay: 24,
+              minutesInHour: 60,
+              secondsInMinute: 60,
+            },
+          },
+        ],
+        notes: [],
+      };
+
+      expect(SimpleCalendarConverter.isSimpleCalendarFormat(fullExport)).toBe(true);
+    });
+
+    it('should convert calendar from full export format', () => {
+      const fullExport = {
+        exportVersion: 2,
+        globalConfig: {
+          secondsInCombatRound: 6,
+        },
+        calendars: [
+          {
+            id: 'default',
+            name: 'SA',
+            months: [
+              { name: 'Hammer', abbreviation: 'Ham', numberOfDays: 30 },
+              { name: 'Alturiak', abbreviation: 'Alt', numberOfDays: 30 },
+            ],
+            weekdays: [
+              { name: 'Sunday', abbreviation: 'Sun' },
+              { name: 'Monday', abbreviation: 'Mon' },
+            ],
+          },
+        ],
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(fullExport.calendars[0]);
+
+      expect(result.calendar.id).toBe('default');
+      expect(result.calendar.translations.en.label).toBe('SA');
+      expect(result.calendar.months).toHaveLength(2);
+      expect(result.calendar.months[0].name).toBe('Hammer');
+      expect(result.calendar.months[0].days).toBe(30);
+      expect(result.calendar.weekdays).toHaveLength(2);
+    });
+  });
+
+  describe('single calendar wrapper format', () => {
+    it('should detect single calendar wrapped in {"calendar": {...}}', () => {
+      const singleCalendarExport = {
+        calendar: {
+          id: 'harptos',
+          name: 'Harptos Calendar',
+          months: [{ name: 'Hammer', abbreviation: 'Ham', numberOfDays: 30 }],
+          weekdays: [{ name: '1st', abbreviation: '1s' }],
+        },
+      };
+
+      expect(SimpleCalendarConverter.isSimpleCalendarFormat(singleCalendarExport)).toBe(true);
+    });
+
+    it('should detect predefined calendar format with currentDate', () => {
+      const predefinedFormat = {
+        calendar: {
+          currentDate: { year: 1495, month: 0, day: 0 },
+          general: {
+            gameWorldTimeIntegration: 'mixed',
+          },
+          months: [{ name: 'Hammer', numberOfDays: 30 }],
+          weekdays: [{ name: 'Monday' }],
+        },
+      };
+
+      expect(SimpleCalendarConverter.isSimpleCalendarFormat(predefinedFormat)).toBe(true);
+    });
+
+    it('should not detect S&S format as Simple Calendar', () => {
+      const ssSingleCalendar = {
+        calendar: {
+          id: 'test',
+          translations: { en: { label: 'Test' } },
+          year: { epoch: 0 },
+          // S&S format doesn't have currentDate or general
+        },
+      };
+
+      // This should still be detected because it has 'calendar' property
+      // The converter will handle it appropriately
+      expect(SimpleCalendarConverter.isSimpleCalendarFormat(ssSingleCalendar)).toBe(false);
+    });
+
+    it('should convert from single calendar wrapper format', () => {
+      const singleCalendarExport = {
+        calendar: {
+          id: 'harptos',
+          name: 'Harptos',
+          months: [
+            { name: 'Hammer', abbreviation: 'Ham', numberOfDays: 30 },
+            { name: 'Alturiak', abbreviation: 'Alt', numberOfDays: 30 },
+          ],
+          weekdays: [
+            { name: '1st', abbreviation: '1s' },
+            { name: '2nd', abbreviation: '2n' },
+          ],
+          time: {
+            hoursInDay: 24,
+            minutesInHour: 60,
+            secondsInMinute: 60,
+          },
+        },
+      };
+
+      const converter = new SimpleCalendarConverter();
+      const result = converter.convert(singleCalendarExport.calendar);
+
+      expect(result.calendar.id).toBe('harptos');
+      expect(result.calendar.translations.en.label).toBe('Harptos');
+      expect(result.calendar.months).toHaveLength(2);
+      expect(result.calendar.weekdays).toHaveLength(2);
     });
   });
 });

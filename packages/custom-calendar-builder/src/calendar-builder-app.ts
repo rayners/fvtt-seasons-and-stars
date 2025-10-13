@@ -392,7 +392,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
       try {
         const text = await file.text();
-        await this._handleImportedJson(text);
+        await this._handleImportedJson(text, file.name);
       } catch (error) {
         console.error('Import failed:', error);
         this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.invalid_json'), 'error');
@@ -402,10 +402,10 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     input.click();
   }
 
-  private async _handleImportedJson(text: string): Promise<void> {
+  private async _handleImportedJson(text: string, filename?: string): Promise<void> {
     const data = JSON.parse(text);
 
-    if (await this._detectAndHandleSimpleCalendar(data, text)) {
+    if (await this._detectAndHandleSimpleCalendar(data, text, filename)) {
       return;
     }
 
@@ -414,18 +414,19 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
   }
 
-  private async _detectAndHandleSimpleCalendar(data: any, originalText: string): Promise<boolean> {
+  private async _detectAndHandleSimpleCalendar(data: any, originalText: string, filename?: string): Promise<boolean> {
     if (!SimpleCalendarConverter.isSimpleCalendarFormat(data)) {
       return false;
     }
 
+    const fileInfo = filename ? ` (${filename})` : '';
     const confirmed = await foundry.applications.api.DialogV2.confirm({
       window: { title: 'Simple Calendar Format Detected' },
-      content: `<p>This file appears to be in Simple Calendar format.</p>
+      content: `<p>This file${fileInfo} appears to be in Simple Calendar format.</p>
                 <p>The Calendar Builder can attempt to automatically convert it to Seasons & Stars format,
                 but not all data may translate directly.</p>
                 <p><strong>Would you like to attempt automatic conversion?</strong></p>
-                <p class="notification info">If you choose "No", the JSON will be loaded as-is (it will not function correctly).</p>`,
+                <p><em>Note: If you choose "No", the JSON will be loaded as-is and will not validate correctly.</em></p>`,
       rejectClose: false,
       modal: true
     });
@@ -437,22 +438,36 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       return true;
     }
 
-    const scExport = data as SimpleCalendarExport;
+    // Handle different Simple Calendar export formats
+    let calendarToConvert: SimpleCalendarData;
 
-    if (!scExport.calendars || scExport.calendars.length === 0) {
-      this._notify('No calendars found in Simple Calendar export', 'error');
-      return true;
+    // Single calendar wrapped in {"calendar": {...}}
+    if ('calendar' in data && !('calendars' in data)) {
+      const singleCalendarExport = data as { calendar: SimpleCalendarData };
+      calendarToConvert = singleCalendarExport.calendar;
+    }
+    // Full export with calendars array
+    else {
+      const scExport = data as SimpleCalendarExport;
+
+      if (!scExport.calendars || scExport.calendars.length === 0) {
+        this._notify('No calendars found in Simple Calendar export', 'error');
+        return true;
+      }
+
+      calendarToConvert = scExport.calendars.length === 1
+        ? scExport.calendars[0]
+        : await this._selectCalendar(scExport.calendars);
     }
 
-    const calendarToConvert: SimpleCalendarData = scExport.calendars.length === 1
-      ? scExport.calendars[0]
-      : await this._selectCalendar(scExport.calendars);
-
     const converter = new SimpleCalendarConverter();
-    const result = converter.convert(calendarToConvert);
+    const result = converter.convert(calendarToConvert, filename);
 
     this.currentJson = JSON.stringify(result.calendar, null, 2);
     this.render(true);
+
+    // Validate the converted calendar to ensure it's valid current S&S format
+    await this._validateCurrentJson();
 
     if (result.warnings.length > 0) {
       this._reportConversionWarnings(result.warnings);
@@ -469,22 +484,26 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   }
 
   private _reportConversionWarnings(warnings: any[]): void {
-    console.warn('=== Simple Calendar Conversion Warnings ===');
-    console.warn(`Total warnings: ${warnings.length}`);
-    console.warn('');
+    const lines: string[] = [];
+    lines.push('=== Simple Calendar Conversion Warnings ===');
+    lines.push(`Total warnings: ${warnings.length}`);
+    lines.push('');
 
     for (const warning of warnings) {
       const valueStr = typeof warning.value === 'object'
         ? JSON.stringify(warning.value)
         : String(warning.value);
 
-      console.warn(`Property: ${warning.path}.${warning.property}`);
-      console.warn(`  Value: ${valueStr}`);
-      console.warn(`  Reason: ${warning.reason}`);
-      console.warn('');
+      lines.push(`Property: ${warning.path}.${warning.property}`);
+      lines.push(`  Value: ${valueStr}`);
+      lines.push(`  Reason: ${warning.reason}`);
+      lines.push('');
     }
 
-    console.warn('=== End Conversion Warnings ===');
+    lines.push('=== End Conversion Warnings ===');
+
+    // Output as single multiline warning for easy copying
+    console.warn(lines.join('\n'));
   }
 
   /**

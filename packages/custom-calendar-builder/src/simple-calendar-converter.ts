@@ -22,23 +22,40 @@ export class SimpleCalendarConverter {
 
     const obj = data as any;
 
+    // Full export format with exportVersion
     if ('exportVersion' in obj && typeof obj.exportVersion === 'number') {
       return true;
     }
 
+    // Full export format with calendars array
     if ('calendars' in obj && Array.isArray(obj.calendars)) {
       return true;
+    }
+
+    // Single calendar export wrapped in {"calendar": {...}}
+    if ('calendar' in obj && typeof obj.calendar === 'object' && obj.calendar !== null) {
+      const cal = obj.calendar;
+      // Check if it has Simple Calendar structure
+      if ('months' in cal || 'weekdays' in cal || 'currentDate' in cal || 'general' in cal) {
+        return true;
+      }
     }
 
     return false;
   }
 
-  convert(scData: SimpleCalendarData): ConversionResult {
+  convert(scData: SimpleCalendarData, filename?: string): ConversionResult {
     this.warnings = [];
 
+    // Use filename (without extension) as fallback for ID
+    let fallbackId: string | undefined;
+    if (filename) {
+      fallbackId = filename.replace(/\.json$/i, '');
+    }
+
     const calendar: any = {
-      id: this.convertId(scData.id || scData.name),
-      translations: this.convertTranslations(scData),
+      id: this.convertId(scData.id || scData.name || fallbackId),
+      translations: this.convertTranslations(scData, fallbackId),
       year: this.convertYear(scData),
       months: this.convertMonths(scData),
       weekdays: this.convertWeekdays(scData),
@@ -61,14 +78,27 @@ export class SimpleCalendarConverter {
     };
   }
 
-  private convertId(id: string): string {
+  private convertId(id: string | undefined): string {
+    if (!id) {
+      return 'imported-calendar';
+    }
     return id.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/--+/g, '-');
   }
 
-  private convertTranslations(scData: SimpleCalendarData): any {
+  private convertTranslations(scData: SimpleCalendarData, fallbackName?: string): any {
+    // Use fallback name if available, capitalized nicely
+    let label = scData.name;
+    if (!label && fallbackName) {
+      // Convert "harptos" to "Harptos", "dark-sun" to "Dark Sun", etc.
+      label = fallbackName
+        .split(/[-_]/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
+
     return {
       en: {
-        label: scData.name || 'Imported Calendar',
+        label: label || 'Imported Calendar',
         description: scData.description || 'Calendar imported from Simple Calendar',
         setting: 'Imported'
       }
@@ -86,12 +116,12 @@ export class SimpleCalendarConverter {
 
     if (scData.years?.yearNames && scData.years.yearNames.length > 0) {
       this.addWarning('root.years.yearNames', 'yearNames', scData.years.yearNames,
-        'Named year cycles are not supported in S&S format');
+        'Named year cycles are not supported in current S&S format');
     }
 
     if (scData.years?.yearNamingRule) {
       this.addWarning('root.years.yearNamingRule', 'yearNamingRule', scData.years.yearNamingRule,
-        'Year naming rules are not supported in S&S format');
+        'Year naming rules are not supported in current S&S format');
     }
 
     return yearConfig;
@@ -198,16 +228,29 @@ export class SimpleCalendarConverter {
         intercalary.description = month.description;
       }
 
+      // Find the previous non-intercalary month
       const monthIndex = scData.months!.indexOf(month);
       if (monthIndex > 0) {
-        intercalary.after = scData.months![monthIndex - 1].name;
+        // Search backwards for the first non-intercalary month
+        for (let i = monthIndex - 1; i >= 0; i--) {
+          if (!scData.months![i].intercalary) {
+            intercalary.after = scData.months![i].name;
+            break;
+          }
+        }
       }
 
       if (month.numberOfLeapYearDays && month.numberOfLeapYearDays !== month.numberOfDays) {
-        intercalary.leapYearOnly = false;
-        this.addWarning(`root.intercalary[${index}]`, 'numberOfLeapYearDays',
-          month.numberOfLeapYearDays,
-          'Intercalary days with different leap year counts not fully supported');
+        // Handle leap-year-only intercalary days (like Shieldmeet)
+        if (month.numberOfDays === 0 && month.numberOfLeapYearDays > 0) {
+          intercalary.leapYearOnly = true;
+          intercalary.days = month.numberOfLeapYearDays;
+        } else {
+          intercalary.leapYearOnly = false;
+          this.addWarning(`root.intercalary[${index}]`, 'numberOfLeapYearDays',
+            month.numberOfLeapYearDays,
+            'Intercalary days with different leap year counts not fully supported');
+        }
       }
 
       return intercalary;
@@ -223,54 +266,90 @@ export class SimpleCalendarConverter {
 
     if (scData.time?.gameTimeRatio) {
       this.addWarning('root.time.gameTimeRatio', 'gameTimeRatio', scData.time.gameTimeRatio,
-        'Game time ratio is handled by Foundry core, not calendar definitions');
+        'Use Seasons & Stars setting: "Time Advancement Ratio"');
     }
 
     if (scData.time?.unifyGameAndClockPause !== undefined) {
       this.addWarning('root.time.unifyGameAndClockPause', 'unifyGameAndClockPause',
         scData.time.unifyGameAndClockPause,
-        'Clock pause settings are handled by Foundry core, not calendar definitions');
+        'Use Seasons & Stars setting: "Pause Time Advancement When Game Paused"');
     }
 
     if (scData.time?.updateFrequency) {
       this.addWarning('root.time.updateFrequency', 'updateFrequency', scData.time.updateFrequency,
-        'Update frequency is handled by Foundry core, not calendar definitions');
+        'Use Seasons & Stars setting: "Time Advancement Interval"');
     }
 
     return time;
   }
 
   private convertSeasons(scData: SimpleCalendarData): any[] {
-    if (!scData.seasons) {
+    if (!scData.seasons || !scData.months) {
       return [];
     }
 
-    return scData.seasons.map((season, index) => {
-      const converted: any = {
-        name: season.name,
-        startMonth: (season.startingMonth || 0) + 1,
-      };
-
-      if (season.description) {
-        converted.description = season.description;
+    // Build a mapping from Simple Calendar month array index to S&S month number
+    // S&S only counts non-intercalary months
+    const regularMonths = scData.months.filter(m => !m.intercalary);
+    const monthIndexToNumber = new Map<number, number>();
+    let regularMonthNumber = 1;
+    scData.months.forEach((month, idx) => {
+      if (!month.intercalary) {
+        monthIndexToNumber.set(idx, regularMonthNumber);
+        regularMonthNumber++;
       }
-
-      if (season.icon) {
-        converted.icon = season.icon;
-      }
-
-      if (season.color) {
-        converted.color = season.color;
-      }
-
-      if (season.sunriseTimes || season.sunsetTimes) {
-        this.addWarning(`root.seasons[${index}]`, 'sunriseTimes/sunsetTimes',
-          { sunrise: season.sunriseTimes, sunset: season.sunsetTimes },
-          'Sunrise/sunset times are not supported in S&S format');
-      }
-
-      return converted;
     });
+
+    return scData.seasons.map((season, index) => {
+      const scMonthIndex = season.startingMonth || 0;
+      const ssMonthNumber = monthIndexToNumber.get(scMonthIndex);
+
+      if (ssMonthNumber === undefined) {
+        this.addWarning(`root.seasons[${index}].startingMonth`, 'startingMonth',
+          scMonthIndex,
+          `Season starts on intercalary month index ${scMonthIndex} - using next regular month`);
+        // Find the next regular month
+        for (let i = scMonthIndex + 1; i < (scData.months?.length || 0); i++) {
+          const nextMonth = monthIndexToNumber.get(i);
+          if (nextMonth !== undefined) {
+            return this.buildSeasonObject(season, nextMonth, index);
+          }
+        }
+        // Fallback to month 1 if we can't find a valid month
+        return this.buildSeasonObject(season, 1, index);
+      }
+
+      return this.buildSeasonObject(season, ssMonthNumber, index);
+    });
+  }
+
+  private buildSeasonObject(season: any, startMonth: number, index: number): any {
+    const converted: any = {
+      name: season.name,
+      startMonth: startMonth,
+      endMonth: startMonth, // S&S requires endMonth, defaulting to same as start
+    };
+
+    if (season.description) {
+      converted.description = season.description;
+    }
+
+    if (season.icon) {
+      converted.icon = season.icon;
+    }
+
+    if (season.color) {
+      this.addWarning(`root.seasons[${index}].color`, 'color', season.color,
+        'Season colors are not supported in current S&S format');
+    }
+
+    if (season.sunriseTimes || season.sunsetTimes) {
+      this.addWarning(`root.seasons[${index}]`, 'sunriseTimes/sunsetTimes',
+        { sunrise: season.sunriseTimes, sunset: season.sunsetTimes },
+        'Sunrise/sunset times are not supported in current S&S format');
+    }
+
+    return converted;
   }
 
   private convertMoons(scData: SimpleCalendarData): any[] {
