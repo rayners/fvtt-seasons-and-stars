@@ -88,7 +88,7 @@ export function sanitizeColor(color: string | undefined): string | undefined {
     }
   } catch (e) {
     // CSS.supports() may throw in some environments
-    Logger.debug('CSS.supports() failed for color validation:', color, e);
+    Logger.debug(`CSS.supports() failed for color validation: ${color}`, e);
   }
 
   return undefined;
