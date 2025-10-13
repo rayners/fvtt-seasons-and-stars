@@ -6,6 +6,7 @@ A step-by-step guide to creating your own custom calendar for Seasons & Stars.
 
 - [Introduction](#introduction)
 - [Prerequisites](#prerequisites)
+- [Converting from Simple Calendar](#converting-from-simple-calendar)
 - [Understanding JSON](#understanding-json)
 - [Creating Your Calendar](#creating-your-calendar)
   - [Step 1: Empty JSON File](#step-1-empty-json-file)
@@ -53,6 +54,112 @@ The Calendar Builder is recommended because it:
 - Provides real-time feedback
 - Eliminates the need to switch between tools
 - Offers a streamlined import/export workflow
+
+## Converting from Simple Calendar
+
+If you're migrating from Simple Calendar to Seasons & Stars, the Calendar Builder can automatically convert your existing calendar files to the Seasons & Stars format.
+
+### Prerequisites for Conversion
+
+- **Simple Calendar export file**: You need to export your calendar from Simple Calendar first
+- **Custom Calendar Builder**: The conversion feature is built into the Calendar Builder module
+
+### How to Export from Simple Calendar
+
+Before you can convert your calendar, you must export it from Simple Calendar:
+
+1. **Open Simple Calendar** in your Foundry VTT world
+2. **Access Settings** (gear icon in the Simple Calendar interface)
+3. **Navigate to the Calendar Export section**
+4. **Click "Export Calendar"** button
+5. **Save the JSON file** to your computer
+
+**Important:** The exported file must be saved locally before it can be imported and converted. Simple Calendar export files cannot be used directly by Seasons & Stars without conversion.
+
+### Converting the Calendar
+
+Once you have your exported Simple Calendar JSON file:
+
+1. **Open the Calendar Builder** (hammer icon in Seasons & Stars widget)
+2. **Click the "Import" button** (upload icon) in the toolbar
+3. **Select your Simple Calendar export file** from your computer
+4. The Calendar Builder will **automatically detect** the Simple Calendar format
+5. A dialog will appear asking if you want to convert the calendar
+6. **Click "Yes"** to proceed with automatic conversion
+7. The converted calendar will load into the editor
+
+**Screenshot Placeholder:** _[Screenshot showing the Simple Calendar format detection dialog]_
+
+### What Gets Converted
+
+The Calendar Builder conversion handles:
+
+- ✅ **Months**: Regular months with day counts
+- ✅ **Weekdays**: Day names and abbreviations
+- ✅ **Leap years**: Standard leap year rules
+- ✅ **Intercalary days**: Special days outside the normal calendar
+- ✅ **Time configuration**: Hours, minutes, and seconds
+- ✅ **Moons**: Moon phases and cycles
+- ✅ **Seasons**: Seasonal divisions
+- ✅ **Basic metadata**: Calendar name and description
+
+### Conversion Warnings
+
+Some Simple Calendar features don't have direct equivalents in Seasons & Stars. The converter will display warnings for:
+
+- **Named year cycles** - Not currently supported
+- **Sunrise/sunset times** - Not currently supported
+- **Season colors** - Not currently supported
+- **Per-month leap year days** - Seasons & Stars uses a different approach
+- **Game time ratios** - Use Seasons & Stars settings instead
+
+These warnings help you understand what requires manual adjustment after conversion.
+
+### After Conversion
+
+Once converted, you should:
+
+1. **Review the conversion warnings** in the validation panel
+2. **Validate the calendar** to ensure it's correct
+3. **Make any necessary adjustments** based on warnings
+4. **Export the converted calendar** (using the "Export" button)
+5. **Upload to Foundry VTT** and activate it (see [Using Your Custom Calendar](#using-your-custom-calendar))
+
+**Important Workflow Note:** The Calendar Builder converts and validates your calendar but does not automatically apply it to your world. After conversion and any edits:
+
+1. Export the JSON file from the Calendar Builder
+2. Upload it to Foundry VTT via the file picker
+3. Select it in the Calendar Selection Dialog
+
+### Multiple Calendars in Export
+
+If your Simple Calendar export contains multiple calendars:
+
+- The Calendar Builder will detect this and show you a note
+- Only the first calendar will be imported automatically
+- If you need to convert other calendars from the same export, re-import the file and manually edit the JSON to select a different calendar
+
+### Troubleshooting Conversion Issues
+
+**Conversion produces validation errors:**
+
+- Review the conversion warnings panel
+- Check for features that don't have direct equivalents
+- Manually adjust problem areas in the Calendar Builder editor
+- Re-validate after making changes
+
+**Calendar doesn't look right after conversion:**
+
+- Verify the Simple Calendar export was complete
+- Check that all month/weekday names transferred correctly
+- Review intercalary day positioning
+- Test with multiple dates to identify issues
+
+**Calendar Builder doesn't detect Simple Calendar format:**
+
+- Ensure you exported from Simple Calendar (not copied partial data)
+- Verify the file is valid JSON using JSONLint
+- Check that the export includes the required Simple Calendar structure
 
 ## Understanding JSON
 
