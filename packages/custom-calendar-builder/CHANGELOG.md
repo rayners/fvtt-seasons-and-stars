@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-calendar-builder-v0.2.4...seasons-and-stars-calendar-builder-v0.3.0) (2025-10-13)
+
+
+### Features
+
+* **calendar-builder:** add Simple Calendar import with edge case handling ([#371](https://github.com/rayners/fvtt-seasons-and-stars/issues/371)) ([0b0744c](https://github.com/rayners/fvtt-seasons-and-stars/commit/0b0744c6eb5c8955330564830aa57c5758b4d8c2))
+
 ## [0.2.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-calendar-builder-v0.1.0...seasons-and-stars-calendar-builder-v0.2.4) (2025-10-08)
 
 
