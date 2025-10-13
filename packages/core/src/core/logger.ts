@@ -24,9 +24,18 @@ export class Logger {
 
   /**
    * Log warning messages
+   *
+   * IMPORTANT: When an Error object is provided, it's placed first so that
+   * Errors & Echoes can capture it through its console.warn patch.
    */
   static warn(message: string, data?: unknown): void {
-    console.warn(`[S&S WARNING] ${message}`, data || '');
+    // If data is an Error, put it first for E&E compatibility
+    if (data instanceof Error) {
+      console.warn(data, `[S&S WARNING] ${message}`);
+    } else {
+      console.warn(`[S&S WARNING] ${message}`, data || '');
+    }
+
     if (this.shouldShowUserNotifications()) {
       ui?.notifications?.warn(`Seasons & Stars: ${message}`);
     }
@@ -34,9 +43,18 @@ export class Logger {
 
   /**
    * Log error messages with user notification
+   *
+   * IMPORTANT: Error object is placed first so that Errors & Echoes can
+   * capture it through its console.error patch for automatic error reporting.
    */
   static error(message: string, error?: Error): void {
-    console.error(`[S&S ERROR] ${message}`, error || '');
+    // Put error first for E&E compatibility - it only captures if Error is first arg
+    if (error) {
+      console.error(error, `[S&S ERROR] ${message}`);
+    } else {
+      console.error(`[S&S ERROR] ${message}`);
+    }
+
     if (this.shouldShowUserNotifications()) {
       ui?.notifications?.error(`Seasons & Stars: ${message}`);
     }
@@ -44,9 +62,18 @@ export class Logger {
 
   /**
    * Log critical errors that require immediate user attention
+   *
+   * IMPORTANT: Error object is placed first so that Errors & Echoes can
+   * capture it through its console.error patch for automatic error reporting.
    */
   static critical(message: string, error?: Error): void {
-    console.error(`[S&S CRITICAL] ${message}`, error || '');
+    // Put error first for E&E compatibility - it only captures if Error is first arg
+    if (error) {
+      console.error(error, `[S&S CRITICAL] ${message}`);
+    } else {
+      console.error(`[S&S CRITICAL] ${message}`);
+    }
+
     // Always show critical errors regardless of settings
     ui?.notifications?.error(`Seasons & Stars: ${message}`);
   }
