@@ -213,6 +213,29 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   }
 
   /**
+   * Apply moon phase colors safely via DOM manipulation
+   * Prevents XSS by injecting CSS custom properties through TypeScript instead of templates
+   */
+  private applyMoonPhaseColors(context: any): void {
+    if (!this.element || !context.moonPhases) return;
+
+    const container = this.element.querySelector('.moon-phases') as HTMLElement;
+    if (!container) return;
+
+    // Set moon count
+    container.style.setProperty('--moon-count', context.moonPhases.length.toString());
+
+    // Set each moon color with stripScripts sanitization
+    context.moonPhases.forEach((moon: any, index: number) => {
+      if (moon.moonColor) {
+        // Use stripScripts for sanitization (already validated by sanitizeColor)
+        const safeColor = (moon.moonColor as string).stripScripts();
+        container.style.setProperty(`--moon-color-${index}`, safeColor);
+      }
+    });
+  }
+
+  /**
    * Attach event listeners to rendered parts
    */
   _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
@@ -220,6 +243,14 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
 
     // Register this as the active instance
     CalendarWidget.activeInstance = this;
+
+    // Apply moon phase colors safely if rendering moon phases part
+    if (partId === 'moonPhases') {
+      // Need to get context - fetch it from the last render
+      this._prepareContext().then(context => {
+        this.applyMoonPhaseColors(context);
+      });
+    }
 
     // Start auto-update after rendering
     this.startAutoUpdate();

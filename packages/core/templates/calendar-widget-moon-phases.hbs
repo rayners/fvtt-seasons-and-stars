@@ -1,6 +1,6 @@
 <div class="moon-phases-container">
   {{#if moonPhases.length}}
-    <div class="moon-phases" style="--moon-count: {{moonPhases.length}}; {{#each moonPhases}}--moon-color-{{this.moonColorIndex}}: {{#if this.moonColor}}{{this.moonColor}}{{else}}currentColor{{/if}}; {{/each}}">
+    <div class="moon-phases">
       {{#each moonPhases}}
         <div class="moon-phase"
              role="img"

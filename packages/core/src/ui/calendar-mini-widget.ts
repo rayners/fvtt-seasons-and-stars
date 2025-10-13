@@ -314,6 +314,29 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Apply moon phase colors safely via DOM manipulation
+   * Prevents XSS by injecting CSS custom properties through TypeScript instead of templates
+   */
+  private applyMoonPhaseColors(context: any): void {
+    if (!this.element || !context.moonPhases) return;
+
+    const container = this.element.querySelector('.mini-moon-phases') as HTMLElement;
+    if (!container) return;
+
+    // Set moon count
+    container.style.setProperty('--moon-count', context.moonPhases.length.toString());
+
+    // Set each moon color with stripScripts sanitization
+    context.moonPhases.forEach((moon: any, index: number) => {
+      if (moon.moonColor) {
+        // Use stripScripts for sanitization (already validated by sanitizeColor)
+        const safeColor = (moon.moonColor as string).stripScripts();
+        container.style.setProperty(`--moon-color-${index}`, safeColor);
+      }
+    });
+  }
+
+  /**
    * Simple post-render positioning like SmallTime
    */
   async _onRender(context: any, options: any): Promise<void> {
@@ -321,6 +344,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Register this as the active instance
     CalendarMiniWidget.activeInstance = this;
+
+    // Apply moon phase colors safely via TypeScript
+    this.applyMoonPhaseColors(context);
 
     // Fire hook for external integrations (e.g., Simple Calendar Compatibility Bridge)
     if (this.element) {
