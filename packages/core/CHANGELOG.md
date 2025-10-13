@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.21.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.4...seasons-and-stars-v0.21.0) (2025-10-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* Moon phase data now includes moonColorIndex field
+
+### Features
+
+* add moon phase icons to mini widget ([#368](https://github.com/rayners/fvtt-seasons-and-stars/issues/368)) ([4db6708](https://github.com/rayners/fvtt-seasons-and-stars/commit/4db67084542f5f5ca12a4119f07e1d94575a5fad))
+
+
+### Bug Fixes
+
+* cache calendar data during onChange to prevent race condition ([#370](https://github.com/rayners/fvtt-seasons-and-stars/issues/370)) ([03ca799](https://github.com/rayners/fvtt-seasons-and-stars/commit/03ca79921bc002325c177c90e88dce8920309bd9))
+* support both 'before' and 'after' for intercalary days ([#362](https://github.com/rayners/fvtt-seasons-and-stars/issues/362)) ([ff362f0](https://github.com/rayners/fvtt-seasons-and-stars/commit/ff362f0085d043369cced6f28717eaec5d6fcedc))
+
 ## [0.20.4](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.3...seasons-and-stars-v0.20.4) (2025-10-12)
 
 
