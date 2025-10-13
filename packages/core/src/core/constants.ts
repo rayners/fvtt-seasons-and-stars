@@ -2,6 +2,8 @@
  * Application-wide constants for Seasons & Stars
  */
 
+import { Logger } from './logger';
+
 // Time-related constants
 export const TIME_CONSTANTS = {
   DEFAULT_SUNRISE_HOUR: 6,
@@ -57,3 +59,37 @@ export const UI_CONSTANTS = {
   NOTIFICATION_DURATION: 5000,
   DEFAULT_QUICK_TIME_BUTTONS: [-15, 15, 30, 60, 240],
 } as const;
+
+// Moon phase icon mapping for FontAwesome icons
+export const MOON_PHASE_ICON_MAP = {
+  new: 'circle',
+  'waxing-crescent': 'moon',
+  'first-quarter': 'adjust',
+  'waxing-gibbous': 'circle',
+  full: 'circle',
+  'waning-gibbous': 'circle',
+  'last-quarter': 'adjust',
+  'waning-crescent': 'moon',
+} as const;
+
+/**
+ * Validate and sanitize a color value for safe use in CSS
+ * Uses CSS.supports() to validate against the full CSS color specification
+ * Returns undefined if the color is invalid
+ */
+export function sanitizeColor(color: string | undefined): string | undefined {
+  if (!color) return undefined;
+
+  // Use CSS.supports() for comprehensive color validation
+  // This handles hex, rgb(), rgba(), hsl(), hsla(), named colors, etc.
+  try {
+    if (CSS.supports('color', color)) {
+      return color;
+    }
+  } catch (e) {
+    // CSS.supports() may throw in some environments
+    Logger.debug(`CSS.supports() failed for color validation: ${color}`, e);
+  }
+
+  return undefined;
+}

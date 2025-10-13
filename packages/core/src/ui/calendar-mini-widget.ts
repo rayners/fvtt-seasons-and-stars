@@ -5,7 +5,7 @@
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
-import { WIDGET_POSITIONING } from '../core/constants';
+import { WIDGET_POSITIONING, MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
 import { TimeAdvancementService } from '../core/time-advancement-service';
 import { DateFormatter } from '../core/date-formatter';
 import { SidebarButtonRegistry } from './sidebar-button-registry';
@@ -17,6 +17,7 @@ import {
 } from './sidebar-button-mixin';
 import type { MiniWidgetContext, WidgetRenderOptions } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
+import type { MoonPhaseInfo } from '../types/calendar';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -81,6 +82,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     main: {
       id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-mini-widget.hbs',
+    },
+    moonPhases: {
+      id: 'moon-phases',
+      template: 'modules/seasons-and-stars/templates/calendar-mini-widget-moon-phases.hbs',
     },
   };
 
@@ -172,6 +177,49 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false);
     const compactMode = showDayOfWeek && showTimeControlsValue;
 
+    // Check if moon phases should be displayed
+    const showMoonPhases =
+      game.settings?.get('seasons-and-stars', 'miniWidgetShowMoonPhases') ?? true;
+
+    // Get moon phase data if enabled
+    let moonPhases: Array<{
+      moonName: string;
+      phaseName: string;
+      phaseIcon: string;
+      faIcon: string;
+      moonColor?: string;
+      moonColorIndex: number;
+    }> = [];
+
+    if (showMoonPhases) {
+      try {
+        const engine = manager.getActiveEngine();
+        if (engine) {
+          const moonPhaseInfo = engine.getMoonPhaseInfo(currentDate);
+          if (moonPhaseInfo && moonPhaseInfo.length > 0) {
+            moonPhases = moonPhaseInfo.map((info: MoonPhaseInfo, index: number) => {
+              const faIcon = MOON_PHASE_ICON_MAP[info.phase.icon];
+              if (!faIcon) {
+                Logger.warn(
+                  `Unknown moon phase icon '${info.phase.icon}' for moon '${info.moon.name}', using fallback`
+                );
+              }
+              return {
+                moonName: info.moon.name,
+                phaseName: info.phase.name,
+                phaseIcon: info.phase.icon,
+                faIcon: faIcon || 'circle',
+                moonColor: sanitizeColor(info.moon.color),
+                moonColorIndex: index,
+              };
+            });
+          }
+        }
+      } catch (error) {
+        Logger.debug('Failed to get moon phase data for mini widget', error);
+      }
+    }
+
     return Object.assign(context, {
       shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
@@ -192,9 +240,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         label: activeCalendar.label || activeCalendar.name || 'Unknown Calendar',
         description: activeCalendar.description,
       },
-      currentDate: currentDate.toObject(),
+      currentDate: currentDate,
       formattedDate: currentDate.toLongString(),
       sidebarButtons: loadButtonsFromRegistry('mini'),
+      showMoonPhases: showMoonPhases,
+      moonPhases: moonPhases,
     }) as MiniWidgetContext;
   }
 
@@ -272,6 +322,31 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Apply moon phase colors safely via DOM manipulation
+   * Prevents XSS by injecting CSS custom properties through TypeScript instead of templates
+   * Supports unlimited moons by applying colors directly to elements
+   */
+  private applyMoonPhaseColors(context: MiniWidgetContext): void {
+    if (!this.element || !context.moonPhases) return;
+
+    const container = this.element.querySelector('.mini-moon-phases') as HTMLElement;
+    if (!container) return;
+
+    // Set moon count for gap calculation
+    container.style.setProperty('--moon-count', context.moonPhases.length.toString());
+
+    // Apply color to each moon phase element directly (supports unlimited moons)
+    context.moonPhases.forEach((moon, index: number) => {
+      const element = container.querySelector(
+        `.mini-moon-phase[data-moon-index="${index}"]`
+      ) as HTMLElement;
+      if (element && moon.moonColor) {
+        element.style.color = moon.moonColor;
+      }
+    });
+  }
+
+  /**
    * Simple post-render positioning like SmallTime
    */
   async _onRender(context: any, options: any): Promise<void> {
@@ -279,6 +354,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Register this as the active instance
     CalendarMiniWidget.activeInstance = this;
+
+    // Apply moon phase colors safely via TypeScript
+    this.applyMoonPhaseColors(context);
 
     // Fire hook for external integrations (e.g., Simple Calendar Compatibility Bridge)
     if (this.element) {
@@ -620,6 +698,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           settingName === 'miniWidgetShowTime' ||
           settingName === 'miniWidgetShowDayOfWeek' ||
           settingName === 'miniWidgetCanonicalMode' ||
+          settingName === 'miniWidgetShowMoonPhases' ||
           settingName === 'alwaysShowQuickTimeButtons') &&
         CalendarMiniWidget.activeInstance?.rendered
       ) {

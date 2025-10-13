@@ -244,6 +244,9 @@ export interface ExtendedCalendarManager {
   clearCaches?(): void;
 }
 
+// Import types from calendar.d.ts
+import type { CalendarDate, MoonPhaseInfo } from './calendar';
+
 // Calendar Engine interface for recurring notes
 export interface CalendarEngineInterface {
   getCalendar(): unknown;
@@ -264,9 +267,9 @@ export interface CalendarEngineInterface {
   };
   // Moon phase methods
   getAllMoons?(date?: unknown): unknown[];
-  getMoonPhaseInfo?(date: unknown, moonName?: string): unknown[];
-  getCurrentMoonPhases?(worldTime?: number): unknown[];
-  getMoonPhaseAtWorldTime?(worldTime: number): unknown[];
+  getMoonPhaseInfo(date: CalendarDate, moonName?: string): MoonPhaseInfo[];
+  getCurrentMoonPhases?(worldTime?: number): MoonPhaseInfo[];
+  getMoonPhaseAtWorldTime?(worldTime: number, moonName?: string): MoonPhaseInfo[];
 }
 
 // Calendar grid day object for UI widgets

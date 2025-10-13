@@ -803,6 +803,18 @@ function registerSettings(): void {
     },
   });
 
+  game.settings.register('seasons-and-stars', 'miniWidgetShowMoonPhases', {
+    name: 'Display Moon Phases in Mini Widget',
+    hint: 'Show moon phase icons for all moons in the current calendar below the date',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowMoonPhases');
+    },
+  });
+
   game.settings.register('seasons-and-stars', 'defaultWidget', {
     name: 'SEASONS_STARS.settings.default_widget',
     hint: 'SEASONS_STARS.settings.default_widget_hint',
