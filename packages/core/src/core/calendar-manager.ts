@@ -509,10 +509,45 @@ export class CalendarManager {
 
   /**
    * Get the active events manager
+   * Creates the EventsManager on-demand if it doesn't exist
    */
   getActiveEventsManager(): EventsManager | null {
     if (!this.activeCalendarId) return null;
-    return this.eventsManagers.get(this.activeCalendarId) || null;
+
+    // Return existing EventsManager if available
+    const existing = this.eventsManagers.get(this.activeCalendarId);
+    if (existing) return existing;
+
+    // Create EventsManager on-demand if calendar and engine exist
+    const calendar = this.calendars.get(this.activeCalendarId);
+    const engine = this.engines.get(this.activeCalendarId);
+
+    if (!calendar || !engine) {
+      return null;
+    }
+
+    // Create EventsManager lazily
+    Logger.debug(`Creating EventsManager on-demand for ${this.activeCalendarId}`);
+    try {
+      const eventsManager = new EventsManager(calendar, engine);
+      this.eventsManagers.set(this.activeCalendarId, eventsManager);
+
+      // Load world event settings if available
+      if (game.settings) {
+        const worldEvents = game.settings.get('seasons-and-stars', 'worldEvents');
+        if (worldEvents) {
+          eventsManager.setWorldEventSettings(worldEvents);
+        }
+      }
+
+      return eventsManager;
+    } catch (error) {
+      Logger.warn(
+        `Failed to create EventsManager on-demand for ${this.activeCalendarId}:`,
+        error instanceof Error ? error : new Error(String(error))
+      );
+      return null;
+    }
   }
 
   /**
