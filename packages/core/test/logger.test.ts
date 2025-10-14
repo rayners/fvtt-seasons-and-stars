@@ -155,7 +155,8 @@ describe('Logger', () => {
 
       Logger.error('Error message', testError);
 
-      expect(mockConsole.error).toHaveBeenCalledWith('[S&S ERROR] Error message', testError);
+      // Error object comes first for E&E compatibility
+      expect(mockConsole.error).toHaveBeenCalledWith(testError, '[S&S ERROR] Error message');
       expect(mockUI.notifications.error).toHaveBeenCalledWith('Seasons & Stars: Error message');
     });
 
@@ -166,7 +167,8 @@ describe('Logger', () => {
 
       expect(mockConsole.log).toHaveBeenCalledWith('[S&S] Message with no data', '');
       expect(mockConsole.warn).toHaveBeenCalledWith('[S&S WARNING] Warning with no data', '');
-      expect(mockConsole.error).toHaveBeenCalledWith('[S&S ERROR] Error with no data', '');
+      // When no error object provided, just the message is logged
+      expect(mockConsole.error).toHaveBeenCalledWith('[S&S ERROR] Error with no data');
     });
   });
 
@@ -180,9 +182,10 @@ describe('Logger', () => {
 
       Logger.critical('Critical error occurred', criticalError);
 
+      // Error object comes first for E&E compatibility
       expect(mockConsole.error).toHaveBeenCalledWith(
-        '[S&S CRITICAL] Critical error occurred',
-        criticalError
+        criticalError,
+        '[S&S CRITICAL] Critical error occurred'
       );
       expect(mockUI.notifications.error).toHaveBeenCalledWith(
         'Seasons & Stars: Critical error occurred'

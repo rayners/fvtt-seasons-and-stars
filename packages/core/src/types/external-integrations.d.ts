@@ -244,6 +244,9 @@ export interface ExtendedCalendarManager {
   clearCaches?(): void;
 }
 
+// Import types from calendar.d.ts
+import type { CalendarDate, MoonPhaseInfo } from './calendar';
+
 // Calendar Engine interface for recurring notes
 export interface CalendarEngineInterface {
   getCalendar(): unknown;
@@ -264,9 +267,9 @@ export interface CalendarEngineInterface {
   };
   // Moon phase methods
   getAllMoons?(date?: unknown): unknown[];
-  getMoonPhaseInfo?(date: unknown, moonName?: string): unknown[];
-  getCurrentMoonPhases?(worldTime?: number): unknown[];
-  getMoonPhaseAtWorldTime?(worldTime: number): unknown[];
+  getMoonPhaseInfo(date: CalendarDate, moonName?: string): MoonPhaseInfo[];
+  getCurrentMoonPhases?(worldTime?: number): MoonPhaseInfo[];
+  getMoonPhaseAtWorldTime?(worldTime: number, moonName?: string): MoonPhaseInfo[];
 }
 
 // Calendar grid day object for UI widgets
@@ -299,4 +302,30 @@ export interface CalendarDayData {
   primaryMoonColor?: string; // Color for the primary/first moon
   moonTooltip?: string; // Tooltip text for moon phases
   hasMultipleMoons?: boolean; // True if more than one moon
+}
+
+// Hook Payload Types
+// These define the data structures passed to Seasons & Stars hook callbacks
+
+/**
+ * Reason for calendar change
+ * - initialization: Calendar being set during module initialization (silent, no notifications)
+ * - user-change: User actively switching calendars (should show notifications)
+ * - settings-sync: Calendar synced from settings or file load
+ */
+export type CalendarChangeReason = 'initialization' | 'user-change' | 'settings-sync';
+
+/**
+ * Payload for seasons-stars:calendarChanged hook
+ * Fired when the active calendar changes
+ */
+export interface CalendarChangedHookData {
+  /** Previous calendar ID, null if this is initial setup */
+  oldCalendarId: string | null;
+  /** New active calendar ID */
+  newCalendarId: string;
+  /** Full calendar data for the new calendar */
+  calendar: unknown;
+  /** Reason for the calendar change */
+  reason: CalendarChangeReason;
 }

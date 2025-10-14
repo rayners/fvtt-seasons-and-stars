@@ -32,6 +32,7 @@ import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import { TimeAdvancementService } from './core/time-advancement-service';
 import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
+import { handleCalendarSelection } from './core/calendar-selection-handler';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
 import type {
   ErrorsAndEchoesAPI,
@@ -655,12 +656,7 @@ function registerSettings(): void {
     choices: { gregorian: 'Gregorian Calendar' }, // Basic default, updated later
     onChange: async (value: string) => {
       if (value && value.trim() !== '' && calendarManager) {
-        // Clear file picker calendar when regular calendar is selected (GM only)
-        if (game.user?.isGM) {
-          await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
-        }
-        // Don't save to settings again - we're already in an onChange handler
-        await calendarManager.setActiveCalendar(value, false);
+        await handleCalendarSelection(value, calendarManager);
       }
     },
   });
@@ -804,6 +800,30 @@ function registerSettings(): void {
     default: 'auto',
     onChange: () => {
       Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetCanonicalMode');
+    },
+  });
+
+  game.settings.register('seasons-and-stars', 'miniWidgetShowMoonPhases', {
+    name: 'Display Moon Phases in Mini Widget',
+    hint: 'Show moon phase icons for all moons in the current calendar below the date',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowMoonPhases');
+    },
+  });
+
+  game.settings.register('seasons-and-stars', 'miniWidgetShowExtensions', {
+    name: 'Display Extension Buttons in Mini Widget',
+    hint: 'Show extension buttons added by other modules in the mini widget footer',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowExtensions');
     },
   });
 
@@ -1083,12 +1103,7 @@ function registerCalendarSettings(): void {
     choices: choices,
     onChange: async (value: string) => {
       if (value && value.trim() !== '' && calendarManager) {
-        // Clear file picker calendar when regular calendar is selected (GM only)
-        if (game.user?.isGM) {
-          await game.settings.set('seasons-and-stars', 'activeCalendarFile', '');
-        }
-        // Don't save to settings again - we're already in an onChange handler
-        await calendarManager.setActiveCalendar(value, false);
+        await handleCalendarSelection(value, calendarManager);
       }
     },
   });
@@ -1548,7 +1563,8 @@ export function setupAPI(): void {
           throw error;
         }
 
-        await calendarManager.setActiveCalendar(calendarId);
+        // API calls are typically user-initiated (macros, scripts, console commands)
+        await calendarManager.setActiveCalendar(calendarId, true, 'user-change');
         Logger.api('setActiveCalendar', { calendarId }, 'success');
       } catch (error) {
         Logger.error(

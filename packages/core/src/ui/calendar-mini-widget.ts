@@ -5,7 +5,7 @@
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
-import { WIDGET_POSITIONING } from '../core/constants';
+import { WIDGET_POSITIONING, MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
 import { TimeAdvancementService } from '../core/time-advancement-service';
 import { DateFormatter } from '../core/date-formatter';
 import { SidebarButtonRegistry } from './sidebar-button-registry';
@@ -17,6 +17,7 @@ import {
 } from './sidebar-button-mixin';
 import type { MiniWidgetContext, WidgetRenderOptions } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
+import type { MoonPhaseInfo } from '../types/calendar';
 
 export class CalendarMiniWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -24,6 +25,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   private static activeInstance: CalendarMiniWidget | null = null;
   private isClosing: boolean = false;
   private hasBeenPositioned: boolean = false;
+  private _contextMenuCreated: boolean = false;
 
   constructor(options: any = {}) {
     // Check if widget is pinned and get saved position
@@ -81,6 +83,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     main: {
       id: 'main',
       template: 'modules/seasons-and-stars/templates/calendar-mini-widget.hbs',
+    },
+    moonPhases: {
+      id: 'moon-phases',
+      template: 'modules/seasons-and-stars/templates/calendar-mini-widget-moon-phases.hbs',
     },
   };
 
@@ -148,6 +154,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     }
 
     // Check the always show quick time buttons setting
+    // This setting controls whether to show time controls even when SmallTime is present
     const alwaysShowQuickTimeButtons =
       game.settings?.get('seasons-and-stars', 'alwaysShowQuickTimeButtons') || false;
 
@@ -167,10 +174,63 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     }
 
-    // Determine if compact mode should be applied based on active features
+    // Show time controls if:
+    // 1. alwaysShowQuickTimeButtons setting is enabled, OR
+    // 2. SmallTime is not available (fallback behavior)
+    // AND user is GM
     const showTimeControlsValue =
-      (!hasSmallTime || alwaysShowQuickTimeButtons) && (game.user?.isGM || false);
+      (alwaysShowQuickTimeButtons || !hasSmallTime) && (game.user?.isGM || false);
     const compactMode = showDayOfWeek && showTimeControlsValue;
+
+    // Check if moon phases should be displayed
+    const showMoonPhases =
+      game.settings?.get('seasons-and-stars', 'miniWidgetShowMoonPhases') ?? true;
+
+    // Check if extension buttons should be displayed
+    const showExtensions =
+      game.settings?.get('seasons-and-stars', 'miniWidgetShowExtensions') ?? true;
+
+    // Get moon phase data if enabled
+    let moonPhases: Array<{
+      moonName: string;
+      phaseName: string;
+      phaseIcon: string;
+      faIcon: string;
+      moonColor?: string;
+      moonColorIndex: number;
+    }> = [];
+
+    if (showMoonPhases) {
+      try {
+        const engine = manager.getActiveEngine();
+        if (engine) {
+          const moonPhaseInfo = engine.getMoonPhaseInfo(currentDate);
+          if (moonPhaseInfo && moonPhaseInfo.length > 0) {
+            moonPhases = moonPhaseInfo.map((info: MoonPhaseInfo, index: number) => {
+              const faIcon = MOON_PHASE_ICON_MAP[info.phase.icon];
+              if (!faIcon) {
+                Logger.warn(
+                  `Unknown moon phase icon '${info.phase.icon}' for moon '${info.moon.name}', using fallback`
+                );
+              }
+              return {
+                moonName: info.moon.name,
+                phaseName: info.phase.name,
+                phaseIcon: info.phase.icon,
+                faIcon: faIcon || 'circle',
+                moonColor: sanitizeColor(info.moon.color),
+                moonColorIndex: index,
+              };
+            });
+          }
+        }
+      } catch (error) {
+        Logger.debug('Failed to get moon phase data for mini widget', error);
+      }
+    }
+
+    // Load sidebar buttons and filter based on showExtensions setting
+    const sidebarButtons = showExtensions ? loadButtonsFromRegistry('mini') : [];
 
     return Object.assign(context, {
       shortDate: currentDate.toShortString(),
@@ -192,9 +252,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         label: activeCalendar.label || activeCalendar.name || 'Unknown Calendar',
         description: activeCalendar.description,
       },
-      currentDate: currentDate.toObject(),
+      currentDate: currentDate,
       formattedDate: currentDate.toLongString(),
-      sidebarButtons: loadButtonsFromRegistry('mini'),
+      sidebarButtons: sidebarButtons,
+      showMoonPhases: showMoonPhases,
+      moonPhases: moonPhases,
     }) as MiniWidgetContext;
   }
 
@@ -272,6 +334,31 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Apply moon phase colors safely via DOM manipulation
+   * Prevents XSS by injecting CSS custom properties through TypeScript instead of templates
+   * Supports unlimited moons by applying colors directly to elements
+   */
+  private applyMoonPhaseColors(context: MiniWidgetContext): void {
+    if (!this.element || !context.moonPhases) return;
+
+    const container = this.element.querySelector('.mini-moon-phases') as HTMLElement;
+    if (!container) return;
+
+    // Set moon count for gap calculation
+    container.style.setProperty('--moon-count', context.moonPhases.length.toString());
+
+    // Apply color to each moon phase element directly (supports unlimited moons)
+    context.moonPhases.forEach((moon, index: number) => {
+      const element = container.querySelector(
+        `.mini-moon-phase[data-moon-index="${index}"]`
+      ) as HTMLElement;
+      if (element && moon.moonColor) {
+        element.style.color = moon.moonColor;
+      }
+    });
+  }
+
+  /**
    * Simple post-render positioning like SmallTime
    */
   async _onRender(context: any, options: any): Promise<void> {
@@ -279,6 +366,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // Register this as the active instance
     CalendarMiniWidget.activeInstance = this;
+
+    // Apply moon phase colors safely via TypeScript
+    this.applyMoonPhaseColors(context);
 
     // Fire hook for external integrations (e.g., Simple Calendar Compatibility Bridge)
     if (this.element) {
@@ -307,23 +397,28 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       });
     }
 
-    this.element?.addEventListener('contextmenu', event => {
-      event.preventDefault();
-      if (game.settings?.get('seasons-and-stars', 'miniWidgetPinned')) {
-        this.unpin();
-      }
-    });
-
     const pinned = game.settings?.get('seasons-and-stars', 'miniWidgetPinned');
 
+    // Only apply positioning if not yet positioned
+    // This prevents the widget from moving when just re-rendering for display changes
     if (pinned) {
       this.applyPinnedPosition();
-    } else {
+    } else if (!this.hasBeenPositioned) {
       this.positionWidget();
     }
 
     // Setup dragging after positioning
     this.setupDragging();
+
+    // Setup context menu for display options (create once, fire-and-forget)
+    // Use _createContextMenu with handler function that returns menu items
+    if (!this._contextMenuCreated) {
+      (this as any)._createContextMenu(
+        this._getContextMenuItems.bind(this),
+        `.calendar-mini-content`
+      );
+      this._contextMenuCreated = true;
+    }
   }
 
   /**
@@ -462,6 +557,112 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Get context menu items for display options
+   * Uses toggle pattern - callbacks read current state when executed
+   * Only shows options relevant to the current user
+   */
+  private _getContextMenuItems(): ContextMenuEntry[] {
+    const isGM = game.user?.isGM || false;
+    const menuItems: ContextMenuEntry[] = [];
+
+    // Universal options - available to all users
+    menuItems.push(
+      {
+        name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_time'),
+        icon: '<i class="fas fa-clock"></i>',
+        callback: async () => {
+          // Read current state when clicked, not when menu was created
+          const currentValue = Boolean(
+            game.settings?.get('seasons-and-stars', 'miniWidgetShowTime')
+          );
+          await game.settings?.set('seasons-and-stars', 'miniWidgetShowTime', !currentValue);
+          await this.render();
+        },
+      },
+      {
+        name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_weekday'),
+        icon: '<i class="fas fa-calendar-day"></i>',
+        callback: async () => {
+          const currentValue = Boolean(
+            game.settings?.get('seasons-and-stars', 'miniWidgetShowDayOfWeek')
+          );
+          await game.settings?.set('seasons-and-stars', 'miniWidgetShowDayOfWeek', !currentValue);
+          await this.render();
+        },
+      },
+      {
+        name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_moon_phases'),
+        icon: '<i class="fas fa-moon"></i>',
+        callback: async () => {
+          const currentValue =
+            game.settings?.get('seasons-and-stars', 'miniWidgetShowMoonPhases') !== false;
+          await game.settings?.set('seasons-and-stars', 'miniWidgetShowMoonPhases', !currentValue);
+          await this.render();
+        },
+      }
+    );
+
+    // GM-only options - only show to GMs since these features are GM-only
+    if (isGM) {
+      menuItems.push({
+        name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_time_controls'),
+        icon: '<i class="fas fa-forward"></i>',
+        callback: async () => {
+          const currentValue = Boolean(
+            game.settings?.get('seasons-and-stars', 'alwaysShowQuickTimeButtons')
+          );
+          await game.settings?.set(
+            'seasons-and-stars',
+            'alwaysShowQuickTimeButtons',
+            !currentValue
+          );
+          await this.render();
+        },
+      });
+    }
+
+    // Extension buttons - only show if there are actually extensions registered
+    const hasExtensions = SidebarButtonRegistry.getInstance().getForWidget('mini').length > 0;
+    if (hasExtensions) {
+      menuItems.push({
+        name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_extensions'),
+        icon: '<i class="fas fa-puzzle-piece"></i>',
+        callback: async () => {
+          const currentValue =
+            game.settings?.get('seasons-and-stars', 'miniWidgetShowExtensions') !== false;
+          await game.settings?.set('seasons-and-stars', 'miniWidgetShowExtensions', !currentValue);
+          await this.render();
+        },
+      });
+    }
+
+    // Pin option - available to all users
+    menuItems.push({
+      name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_pin'),
+      icon: '<i class="fas fa-thumbtack"></i>',
+      callback: async () => {
+        const currentValue = Boolean(game.settings?.get('seasons-and-stars', 'miniWidgetPinned'));
+        if (currentValue) {
+          await this.unpin();
+        } else {
+          // To pin, we need to capture current position and set it
+          const rect = this.element?.getBoundingClientRect();
+          if (rect) {
+            await game.settings?.set('seasons-and-stars', 'miniWidgetPinned', true);
+            await game.settings?.set('seasons-and-stars', 'miniWidgetPosition', {
+              top: rect.top,
+              left: rect.left,
+            });
+            await this.applyPinnedPosition();
+          }
+        }
+      },
+    });
+
+    return menuItems;
+  }
+
+  /**
    * Attach event listeners to rendered parts
    */
   _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
@@ -574,7 +775,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       delete (this as any)._playerListObserver;
     }
 
-    // Reset closing flag and positioning state
+    // Reset state flags
+    this._contextMenuCreated = false;
     this.isClosing = false;
     this.hasBeenPositioned = false;
 
@@ -620,6 +822,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           settingName === 'miniWidgetShowTime' ||
           settingName === 'miniWidgetShowDayOfWeek' ||
           settingName === 'miniWidgetCanonicalMode' ||
+          settingName === 'miniWidgetShowMoonPhases' ||
+          settingName === 'miniWidgetShowExtensions' ||
           settingName === 'alwaysShowQuickTimeButtons') &&
         CalendarMiniWidget.activeInstance?.rendered
       ) {

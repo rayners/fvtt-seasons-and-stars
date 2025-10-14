@@ -55,12 +55,47 @@ vi.mock('../../src/ui/calendar-selection-dialog', () => ({
   })),
 }));
 
+// Mock Hooks
+(global as any).Hooks = {
+  callAll: vi.fn(),
+  on: vi.fn(),
+};
+
 // Mock foundry.utils and Draggable
 (global as any).foundry = {
   utils: {
     mergeObject: (original: any, other: any) => ({ ...original, ...other }),
   },
   applications: {
+    api: {
+      HandlebarsApplicationMixin: (base: any) => {
+        return class extends base {
+          _createContextMenu(getItems: () => any[], _selector: string) {
+            // Fire-and-forget context menu creation - just call the function to test it
+            const items = getItems();
+            return items; // Return for testing purposes
+          }
+        };
+      },
+      ApplicationV2: class {
+        position: any = {};
+        element: any = null;
+        rendered: boolean = false;
+        async render() {
+          this.rendered = true;
+          return this;
+        }
+        async close() {
+          this.rendered = false;
+          return this;
+        }
+        async _prepareContext(_options: any) {
+          return {};
+        }
+        _onRender(_context: any, _options: any) {}
+        _attachPartListeners(_partId: string, _htmlElement: HTMLElement, _options: any) {}
+      },
+    },
     ux: {
       Draggable: vi.fn().mockImplementation(() => ({
         _onDragMouseDown: vi.fn(),
@@ -135,6 +170,9 @@ describe('CalendarMiniWidget', () => {
         get: vi.fn((module: string, key: string) => mockSettings.get(`${module}.${key}`)),
       },
       user: { isGM: true },
+      i18n: {
+        localize: vi.fn((key: string) => key), // Simple passthrough for tests
+      },
       seasonsStars: {
         manager: {
           getActiveCalendar: vi.fn().mockReturnValue(mockCalendar),
@@ -164,7 +202,7 @@ describe('CalendarMiniWidget', () => {
       mockElement.innerHTML = `
         <div class="calendar-mini-content">
           <div class="mini-header-row">
-            <div class="mini-date" data-action="openCalendarSelection" title="Test Date (Click for larger view, Double-click to change calendar)">
+            <div class="mini-date" data-action="openCalendarSelection" data-tooltip="Test Date (Click for larger view, Double-click to change calendar)">
               Test Date
             </div>
           </div>
@@ -173,6 +211,15 @@ describe('CalendarMiniWidget', () => {
 
       // Set up the widget's element
       (renderedWidget as any).element = mockElement;
+
+      // Mock _createContextMenu on the instance to prevent errors
+      (renderedWidget as any)._createContextMenu = vi.fn(
+        (getItems: () => any[], _selector: string) => {
+          // Call getItems to exercise the context menu logic
+          const items = getItems();
+          return items;
+        }
+      );
 
       // Trigger the actual _onRender method to set up click handlers
       await renderedWidget._onRender({}, {});

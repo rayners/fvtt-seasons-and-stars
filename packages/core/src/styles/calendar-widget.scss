@@ -158,6 +158,72 @@
       }
 
     }
+
+    // Moon phases row
+    .moon-phases {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: clamp(0.25rem, calc(100% / (var(--moon-count) * 2 + 1)), 1rem);
+      padding: 0.3rem 0;
+      margin-top: 0.5rem;
+      min-height: 1.5rem;
+
+      .moon-phase {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: help;
+        transition: all 0.15s ease;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
+        width: 1.6rem;
+        height: 1.6rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+        // Color is applied directly via CSS custom properties in TypeScript
+        // This supports unlimited moons without hardcoded indices
+
+        &:hover {
+          transform: scale(1.15);
+          background: rgba(0, 0, 0, 0.4);
+        }
+
+        i {
+          font-size: 1rem;
+          line-height: 1;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+
+          &.moon-phase-new {
+            opacity: 0.4;
+          }
+
+          &.moon-phase-waxing-crescent,
+          &.moon-phase-waning-crescent {
+            transform: rotate(90deg);
+          }
+
+          &.moon-phase-first-quarter {
+            // fa-adjust is already vertical by default - no rotation needed
+            transform: none;
+          }
+
+          &.moon-phase-last-quarter {
+            // Flip fa-adjust horizontally for last quarter (left half lit)
+            transform: scaleX(-1);
+          }
+
+          &.moon-phase-waxing-gibbous,
+          &.moon-phase-waning-gibbous {
+            opacity: 0.9;
+          }
+
+          &.moon-phase-full {
+            opacity: 1;
+          }
+        }
+      }
+    }
   }
 
   // Calendar controls (GM only)

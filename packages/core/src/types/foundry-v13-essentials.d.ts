@@ -391,6 +391,18 @@ declare class ApplicationV2<
   ): void;
   protected _onClose(options: ApplicationV2.CloseOptions): Promise<void>;
   protected _onChangeForm(formConfig: any, event: Event): void;
+  protected _createContextMenu(
+    handler: () => ContextMenuEntry[],
+    selector: string,
+    options?: {
+      container?: HTMLElement;
+      hookName?: string;
+      parentClassHooks?: boolean;
+    }
+  ): ContextMenu | null;
+
+  // Position property
+  position: ApplicationV2.Position;
 }
 
 declare namespace ApplicationV2 {
@@ -707,6 +719,40 @@ declare global {
 }
 
 // =============================================================================
+// CONTEXT MENU SYSTEM
+// =============================================================================
+
+declare global {
+  /**
+   * Context menu entry configuration
+   */
+  interface ContextMenuEntry {
+    name: string;
+    icon?: string;
+    callback?: (target: HTMLElement) => void | Promise<void>;
+    condition?: (target: HTMLElement) => boolean;
+    group?: string;
+  }
+
+  /**
+   * Context menu class for creating right-click menus
+   */
+  class ContextMenu {
+    constructor(
+      container: HTMLElement,
+      selector: string,
+      menuItems: ContextMenuEntry[],
+      options?: {
+        hookName?: string;
+      }
+    );
+
+    close(): void;
+    render(target: HTMLElement): void;
+  }
+}
+
+// =============================================================================
 // FOUNDRY NAMESPACE
 // =============================================================================
 
@@ -720,6 +766,10 @@ interface FoundryNamespace {
       ) => T & {
         new (...args: any[]): ApplicationV2 & HandlebarsApplicationMixin;
       };
+    };
+    ux: {
+      ContextMenu: typeof ContextMenu;
+      Draggable: any;
     };
   };
   utils: {

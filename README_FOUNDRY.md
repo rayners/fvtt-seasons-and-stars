@@ -20,7 +20,7 @@ Seasons & Stars provides calendar and timekeeping functionality for Foundry VTT 
 ### **Calendar Interface**
 
 - **Main Calendar**: Monthly view with navigation controls
-- **Mini Widget**: Compact display that works alongside SmallTime
+- **Customizable Mini Widget**: Compact display with right-click context menu for toggling display options (time, weekday, moon phases, time controls, extension buttons), plus drag-and-drop positioning with pin/unpin functionality
 - **Clean Design**: Minimal interface that integrates with Foundry themes
 
 ### **Calendar Systems**

@@ -1,0 +1,15 @@
+<div class="moon-phases-container">
+  {{#if moonPhases.length}}
+    <div class="moon-phases">
+      {{#each moonPhases}}
+        <div class="moon-phase"
+             role="img"
+             aria-label="{{this.moonName}}: {{this.phaseName}}"
+             data-tooltip="{{this.moonName}}: {{this.phaseName}}"
+             data-moon-index="{{this.moonColorIndex}}">
+          <i class="fas fa-{{this.faIcon}} moon-phase-{{this.phaseIcon}}"></i>
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+</div>
