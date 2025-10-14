@@ -8,6 +8,7 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 
 - **Modern UI**: Clean, responsive calendar interface with ApplicationV2 architecture
 - **Multiple Calendar Views**: Full calendar widget, compact mini widget, and monthly grid view
+- **Customizable Mini Widget**: Right-click context menu for toggling display options (time, weekday, moon phases, controls, extensions), plus drag-and-drop positioning with pin/unpin functionality
 - **Configurable Quick Time Buttons**: Customizable time advancement buttons with live preview and smart mini widget selection
 - **Smart Year Navigation**: Click year to jump instantly instead of clicking arrows repeatedly
 - **Convenient Defaults**: Gregorian calendars can initialize with current date/time
