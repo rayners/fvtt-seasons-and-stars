@@ -136,14 +136,18 @@ describe('CalendarBuilderApp', () => {
 
     it('should have correct default options', () => {
       expect(CalendarBuilderApp.DEFAULT_OPTIONS.id).toBe('calendar-builder-app');
-      expect(CalendarBuilderApp.DEFAULT_OPTIONS.classes).toEqual(['calendar-builder']);
-      expect(CalendarBuilderApp.DEFAULT_OPTIONS.position.width).toBe(800);
-      expect(CalendarBuilderApp.DEFAULT_OPTIONS.position.height).toBe(600);
+      expect(CalendarBuilderApp.DEFAULT_OPTIONS.classes).toEqual([
+        'calendar-builder',
+        'standard-form',
+      ]);
+      expect(CalendarBuilderApp.DEFAULT_OPTIONS.position.width).toBe(1000);
+      expect(CalendarBuilderApp.DEFAULT_OPTIONS.position.height).toBe(700);
     });
 
     it('should have the correct template parts', () => {
-      expect(CalendarBuilderApp.PARTS.main.template).toBe(
-        'modules/seasons-and-stars-calendar-builder/templates/calendar-builder.hbs'
+      expect(CalendarBuilderApp.PARTS.toolbar).toBeDefined();
+      expect(CalendarBuilderApp.PARTS.toolbar.template).toBe(
+        'modules/seasons-and-stars-calendar-builder/templates/parts/toolbar.hbs'
       );
     });
   });

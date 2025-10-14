@@ -1,5 +1,9 @@
 <section class="tab scrollable {{tab.cssClass}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
-  {{> coming-soon-banner}}
+  {{!-- Warning banner for non-functional mockup tabs --}}
+  <div class="notification warning" style="margin-bottom: 1rem;">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Coming Soon:</strong> This tab is a visual mockup only. Forms do not save or modify calendar data yet. Use the <strong>Editor</strong> tab for functional JSON editing.
+  </div>
 
   <div class="form-group">
     <label>Intercalary Days</label>
