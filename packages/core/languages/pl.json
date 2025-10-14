@@ -88,6 +88,16 @@
       "file_picker_failed": "Nie udało się otworzyć okna dialogowego wyboru plików",
       "calendar_file_load_failed": "Nie udało się załadować kalendarza z pliku {path}: {error}",
       "clear_file_failed": "Nie udało się wyczyścić wyboru pliku kalendarza niestandardowego"
+    },
+    "mini_widget": {
+      "context_menu": {
+        "toggle_time": "Przełącz czas",
+        "toggle_weekday": "Przełącz dzień tygodnia",
+        "toggle_moon_phases": "Przełącz fazy księżyca",
+        "toggle_time_controls": "Przełącz sterowanie czasem",
+        "toggle_extensions": "Przełącz przyciski rozszerzeń",
+        "toggle_pin": "Przełącz przypinanie"
+      }
     }
   }
 }
