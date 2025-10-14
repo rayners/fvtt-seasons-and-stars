@@ -55,6 +55,42 @@
   font-size: 24px;
 }
 
+/* Warning banner for mockup tabs - more specific selector to override Foundry */
+.calendar-builder.standard-form section.tab.scrollable .notification.warning {
+  display: block;
+  padding: 12px 16px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  color: #856404;
+  font-size: 14px;
+  line-height: 1.5;
+  text-shadow: none;
+}
+
+/* Use Foundry's icon, style the pseudo-element */
+.calendar-builder.standard-form section.tab.scrollable .notification.warning::before {
+  margin-right: 8px;
+  color: #ffc107;
+}
+
+/* Hide the manual icon in HTML since Foundry provides one */
+.calendar-builder.standard-form section.tab.scrollable .notification.warning i.fa-exclamation-triangle {
+  display: none;
+}
+
+/* Remove text shadow from strong tags */
+.calendar-builder.standard-form section.tab.scrollable .notification.warning strong {
+  text-shadow: none;
+}
+
+/* Dark theme warning banner */
+body.theme-dark .calendar-builder.standard-form section.tab.scrollable .notification.warning {
+  background: #3d3416;
+  border-color: #ffc107;
+  color: #ffd93d;
+}
+
 /* Toolbar */
 .calendar-builder-toolbar {
   display: flex;
