@@ -88,6 +88,16 @@
       "file_picker_failed": "Failed to open file picker dialog",
       "calendar_file_load_failed": "Failed to load calendar from file {path}: {error}",
       "clear_file_failed": "Failed to clear custom calendar file selection"
+    },
+    "mini_widget": {
+      "context_menu": {
+        "toggle_time": "Toggle Time",
+        "toggle_weekday": "Toggle Weekday",
+        "toggle_moon_phases": "Toggle Moon Phases",
+        "toggle_time_controls": "Toggle Time Controls",
+        "toggle_extensions": "Toggle Extension Buttons",
+        "toggle_pin": "Toggle Pin"
+      }
     }
   }
 }

@@ -14,6 +14,11 @@
       white-space: nowrap;
       position: relative;
 
+      // Reserve space for play/pause controls when they're present
+      &:has(.mini-play-pause-controls) {
+        padding-right: 24px; // Width of play/pause button + small buffer
+      }
+
       .mini-weekday {
         color: rgba(255, 255, 255, 0.85);
         font-size: 0.75em;
@@ -40,6 +45,8 @@
         user-select: none;
         min-width: 100px;
         min-height: 16px;
+        flex: 1;
+        max-width: 100%;
 
         &:hover {
           background: rgba(255, 255, 255, 0.1);

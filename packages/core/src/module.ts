@@ -815,6 +815,18 @@ function registerSettings(): void {
     },
   });
 
+  game.settings.register('seasons-and-stars', 'miniWidgetShowExtensions', {
+    name: 'Display Extension Buttons in Mini Widget',
+    hint: 'Show extension buttons added by other modules in the mini widget footer',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowExtensions');
+    },
+  });
+
   game.settings.register('seasons-and-stars', 'defaultWidget', {
     name: 'SEASONS_STARS.settings.default_widget',
     hint: 'SEASONS_STARS.settings.default_widget_hint',
