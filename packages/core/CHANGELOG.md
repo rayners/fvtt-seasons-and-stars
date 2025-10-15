@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.22.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.21.0...seasons-and-stars-v0.22.0) (2025-10-15)
+
+
+### Features
+
+* add context menu for display options ([#383](https://github.com/rayners/fvtt-seasons-and-stars/issues/383)) ([933277d](https://github.com/rayners/fvtt-seasons-and-stars/commit/933277d073617e842215de72acaf25603e931f23))
+* **i18n:** update pl.json ([#384](https://github.com/rayners/fvtt-seasons-and-stars/issues/384)) ([b2c1487](https://github.com/rayners/fvtt-seasons-and-stars/commit/b2c1487a9147cccb82e85d5636a8bea8d0e90fa6))
+* migrate to Foundry native tooltips ([#378](https://github.com/rayners/fvtt-seasons-and-stars/issues/378)) ([5d67d48](https://github.com/rayners/fvtt-seasons-and-stars/commit/5d67d482d14e0d1106911345689ce51332039b4e))
+
+
+### Bug Fixes
+
+* implement lazy initialization for EventsManager to prevent warnings during time advancement ([#380](https://github.com/rayners/fvtt-seasons-and-stars/issues/380)) ([d1a5676](https://github.com/rayners/fvtt-seasons-and-stars/commit/d1a5676e99161bded5a06780cc938ef658c790bd))
+* put Error object first for Errors & Echoes compatibility ([#382](https://github.com/rayners/fvtt-seasons-and-stars/issues/382)) ([52c8d82](https://github.com/rayners/fvtt-seasons-and-stars/commit/52c8d82d07b0f78ed4b438dfd1b42840a23a955e))
+
 ## [0.21.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.20.4...seasons-and-stars-v0.21.0) (2025-10-13)
 
 
