@@ -1,0 +1,36 @@
+<section class="tab scrollable {{tab.cssClass}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+  {{!-- Warning banner for non-functional mockup tabs --}}
+  <div class="notification warning" style="margin-bottom: 1rem;">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Coming Soon:</strong> This tab is a visual mockup only. Forms do not save or modify calendar data yet. Use the <strong>Editor</strong> tab for functional JSON editing.
+  </div>
+
+  <div class="form-group">
+    <label>Seasons</label>
+    <div class="form-fields">
+      <button type="button" class="button" disabled>
+        <i class="fas fa-plus"></i> Add Season
+      </button>
+    </div>
+    <p class="hint">Define the seasons in your world's year</p>
+  </div>
+
+  <fieldset>
+    <legend>Season Configuration</legend>
+    <p class="hint" style="margin-bottom: 1rem;">
+      Seasons can be tied to specific date ranges, solstices/equinoxes, or custom patterns. Each season can have
+      associated weather patterns, cultural significance, and visual themes.
+    </p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Season List (Coming Soon)</legend>
+    <p class="hint" style="margin-bottom: 1rem;">Each season will have: Name, Start Date, Duration, Color/Theme, Weather Patterns, and optional cultural/agricultural significance</p>
+
+    <div style="padding: 2rem; text-align: center; color: var(--color-text-dark-secondary); background: var(--color-bg-option); border-radius: 4px; border: 1px dashed var(--color-border-light-tertiary);">
+      <i class="fas fa-leaf fa-3x" style="margin-bottom: 1rem; opacity: 0.5;"></i>
+      <p style="margin: 0;">Season editor coming soon</p>
+      <p style="margin: 0.5rem 0 0 0; font-size: 0.9em;">You'll be able to define seasonal cycles and their characteristics</p>
+    </div>
+  </fieldset>
+</section>

@@ -1,0 +1,23 @@
+<!-- Toolbar -->
+<div class="calendar-builder-toolbar">
+  <button type="button" data-action="newCalendar" class="button" data-tooltip="{{localize 'CALENDAR_BUILDER.app.buttons.new'}}">
+    <i class="fas fa-file"></i> {{localize 'CALENDAR_BUILDER.app.buttons.new'}}
+  </button>
+  <button type="button" data-action="openCalendar" class="button" data-tooltip="{{localize 'CALENDAR_BUILDER.app.buttons.open'}}">
+    <i class="fas fa-folder-open"></i> {{localize 'CALENDAR_BUILDER.app.buttons.open'}}
+  </button>
+  <button type="button" data-action="importJson" class="button" data-tooltip="{{localize 'CALENDAR_BUILDER.app.buttons.import'}}">
+    <i class="fas fa-upload"></i> {{localize 'CALENDAR_BUILDER.app.buttons.import'}}
+  </button>
+  <div class="separator"></div>
+  <button type="button" data-action="exportJson" class="button" data-tooltip="{{localize 'CALENDAR_BUILDER.app.buttons.export'}}" {{#unless hasContent}}disabled{{/unless}}>
+    <i class="fas fa-download"></i> {{localize 'CALENDAR_BUILDER.app.buttons.export'}}
+  </button>
+  <div class="separator"></div>
+  <button type="button" data-action="validateJson" class="button" data-tooltip="{{localize 'CALENDAR_BUILDER.app.buttons.validate'}}" {{#unless hasContent}}disabled{{/unless}}>
+    <i class="fas fa-check"></i> {{localize 'CALENDAR_BUILDER.app.buttons.validate'}}
+  </button>
+  <button type="button" data-action="clearEditor" class="button danger" data-tooltip="{{localize 'CALENDAR_BUILDER.app.buttons.clear'}}" {{#unless hasContent}}disabled{{/unless}}>
+    <i class="fas fa-trash"></i> {{localize 'CALENDAR_BUILDER.app.buttons.clear'}}
+  </button>
+</div>

@@ -1,0 +1,99 @@
+<section class="tab scrollable {{tab.cssClass}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
+  {{!-- Warning banner for non-functional mockup tabs --}}
+  <div class="notification warning" style="margin-bottom: 1rem;">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Coming Soon:</strong> This tab is a visual mockup only. Forms do not save or modify calendar data yet. Use the <strong>Editor</strong> tab for functional JSON editing.
+  </div>
+
+  <div class="form-group">
+    <label for="calendar-id">Calendar ID</label>
+    <div class="form-fields">
+      <input type="text" name="id" id="calendar-id" placeholder="my-custom-calendar" />
+    </div>
+    <p class="hint">Unique identifier (lowercase, no spaces)</p>
+  </div>
+
+  <div class="form-group">
+    <label for="calendar-name">Calendar Name</label>
+    <div class="form-fields">
+      <input type="text" name="translations.en.label" id="calendar-name" placeholder="My Custom Calendar" />
+    </div>
+    <p class="hint">Display name for your calendar</p>
+  </div>
+
+  <div class="form-group">
+    <label for="calendar-description">Description</label>
+    <div class="form-fields">
+      <textarea name="translations.en.description" id="calendar-description" rows="2" placeholder="A custom calendar for my world"></textarea>
+    </div>
+    <p class="hint">Brief description of your calendar system</p>
+  </div>
+
+  <div class="form-group">
+    <label for="calendar-setting">Setting/Genre</label>
+    <div class="form-fields">
+      <input type="text" name="translations.en.setting" id="calendar-setting" placeholder="Generic" />
+    </div>
+    <p class="hint">The world setting or genre this calendar is designed for</p>
+  </div>
+
+  <fieldset>
+    <legend>Year Configuration</legend>
+
+    <div class="form-group">
+      <label for="year-epoch">Epoch</label>
+      <div class="form-fields">
+        <input type="number" name="year.epoch" id="year-epoch" value="0" />
+      </div>
+      <p class="hint">Year zero reference point</p>
+    </div>
+
+    <div class="form-group">
+      <label for="year-current">Current Year</label>
+      <div class="form-fields">
+        <input type="number" name="year.currentYear" id="year-current" value="1" />
+      </div>
+      <p class="hint">Starting year for your world</p>
+    </div>
+
+    <div class="form-group">
+      <label for="year-prefix">Year Prefix</label>
+      <div class="form-fields">
+        <input type="text" name="year.prefix" id="year-prefix" placeholder="Year" />
+      </div>
+      <p class="hint">Text to display before the year number (e.g., "Year")</p>
+    </div>
+
+    <div class="form-group">
+      <label for="year-suffix">Year Suffix</label>
+      <div class="form-fields">
+        <input type="text" name="year.suffix" id="year-suffix" placeholder="AD" />
+      </div>
+      <p class="hint">Text to display after the year number (e.g., "AD", "CE")</p>
+    </div>
+
+    <div class="form-group">
+      <label for="year-start-day">Starting Weekday</label>
+      <div class="form-fields">
+        <select name="year.startDay" id="year-start-day">
+          <option value="0">Sunday</option>
+          <option value="1">Monday</option>
+          <option value="2">Tuesday</option>
+          <option value="3">Wednesday</option>
+          <option value="4">Thursday</option>
+          <option value="5">Friday</option>
+          <option value="6">Saturday</option>
+        </select>
+      </div>
+      <p class="hint">Which day of the week the calendar year begins on</p>
+    </div>
+  </fieldset>
+
+  <div class="form-group">
+    <label for="calendar-sources">Sources</label>
+    <div class="form-fields">
+      <textarea name="sources" id="calendar-sources" rows="2" placeholder="https://example.com/reference"></textarea>
+    </div>
+    <p class="hint">Reference URLs (one per line)</p>
+  </div>
+</section>
