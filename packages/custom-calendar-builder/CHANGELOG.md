@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-calendar-builder-v0.3.0...seasons-and-stars-calendar-builder-v0.4.0) (2025-10-15)
+
+
+### Features
+
+* **calendar-builder:** add tabbed interface with form mockups ([#359](https://github.com/rayners/fvtt-seasons-and-stars/issues/359)) ([6e234d8](https://github.com/rayners/fvtt-seasons-and-stars/commit/6e234d89b1b49768daee94636f1cb5dde0ceaeb9))
+* migrate to Foundry native tooltips ([#378](https://github.com/rayners/fvtt-seasons-and-stars/issues/378)) ([5d67d48](https://github.com/rayners/fvtt-seasons-and-stars/commit/5d67d482d14e0d1106911345689ce51332039b4e))
+
 ## [0.3.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-calendar-builder-v0.2.4...seasons-and-stars-calendar-builder-v0.3.0) (2025-10-13)
 
 
