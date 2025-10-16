@@ -2061,6 +2061,59 @@ export function setupAPI(): void {
      * ```
      */
     events: new EventsAPI(() => calendarManager.getActiveEventsManager()),
+
+    /**
+     * Calendar Builder API - programmatic access to Calendar Builder
+     *
+     * Provides methods for importing calendar JSON from external sources into the Calendar Builder.
+     * Useful for compatibility modules to trigger calendar imports from their own data sources.
+     *
+     * @example Import calendar from external source
+     * ```javascript
+     * // Import a calendar JSON string (e.g., from Simple Calendar settings)
+     * const calendarJson = '{"id": "custom", "translations": {...}, ...}';
+     * await game.seasonsStars.api.calendarBuilder.importJson(calendarJson, 'simple-calendar');
+     * ```
+     */
+    calendarBuilder: {
+      /**
+       * Import calendar JSON into Calendar Builder
+       * Opens the Calendar Builder and loads the provided JSON for editing
+       *
+       * @param jsonString - The calendar JSON string to import
+       * @param source - The source of the import (e.g., 'simple-calendar', 'external')
+       * @returns Promise that resolves when import is complete
+       * @throws {Error} If JSON is invalid or Calendar Builder fails to load
+       */
+      importJson: async (jsonString: string, source?: string): Promise<void> => {
+        return APIWrapper.wrapAPIMethod(
+          'calendarBuilder.importJson',
+          { hasJson: !!jsonString, source },
+          () => {
+            if (!jsonString || typeof jsonString !== 'string') {
+              throw new Error('JSON string is required');
+            }
+          },
+          async () => {
+            // Access Calendar Builder through window global (it's a separate module)
+            const CalendarBuilderApp = (window as any).SeasonsStarsCalendarBuilder
+              ?.CalendarBuilderApp;
+
+            if (!CalendarBuilderApp) {
+              throw new Error(
+                'Calendar Builder module not loaded. Please enable the Calendar Builder module to use import functionality.'
+              );
+            }
+
+            // Get or create Calendar Builder instance
+            const builderApp = new CalendarBuilderApp();
+
+            // Import the JSON
+            await builderApp.importFromExternal(jsonString, source || 'external');
+          }
+        );
+      },
+    },
   };
 
   // Expose API to global game object

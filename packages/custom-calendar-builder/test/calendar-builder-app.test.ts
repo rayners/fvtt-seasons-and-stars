@@ -296,6 +296,57 @@ describe('CalendarBuilderApp', () => {
     });
   });
 
+  describe('External Import API', () => {
+    it('should have importFromExternal method', () => {
+      expect(typeof app.importFromExternal).toBe('function');
+    });
+
+    it('should import JSON from external source', async () => {
+      const testJson =
+        '{"id": "external-calendar", "translations": {}, "months": [], "weekdays": []}';
+
+      await app.importFromExternal(testJson, 'test-source');
+
+      expect(app['currentJson']).toBe(testJson);
+    });
+
+    it('should render app after import if not already rendered', async () => {
+      const renderSpy = vi.spyOn(app, 'render');
+      app.rendered = false;
+
+      const testJson = '{"id": "test", "translations": {}, "months": [], "weekdays": []}';
+      await app.importFromExternal(testJson, 'test-source');
+
+      expect(renderSpy).toHaveBeenCalledWith(true);
+    });
+
+    it('should not render app if already rendered', async () => {
+      const renderSpy = vi.spyOn(app, 'render');
+      app.rendered = true;
+
+      const testJson = '{"id": "test", "translations": {}, "months": [], "weekdays": []}';
+      await app.importFromExternal(testJson, 'test-source');
+
+      expect(renderSpy).not.toHaveBeenCalled();
+    });
+
+    it('should trigger validation after import', async () => {
+      const validateSpy = vi.spyOn(app as any, '_validateCurrentJson');
+
+      const testJson = '{"id": "test", "translations": {}, "months": [], "weekdays": []}';
+      await app.importFromExternal(testJson, 'test-source');
+
+      expect(validateSpy).toHaveBeenCalled();
+    });
+
+    it('should show notification on successful import', async () => {
+      const testJson = '{"id": "test", "translations": {}, "months": [], "weekdays": []}';
+      await app.importFromExternal(testJson, 'test-source');
+
+      expect(mockUI.notifications.info).toHaveBeenCalled();
+    });
+  });
+
   describe('Simple Calendar import', () => {
     it('should detect Simple Calendar format', async () => {
       const scExport = {
@@ -466,6 +517,191 @@ describe('CalendarBuilderApp', () => {
       expect(app['currentJson']).toContain('January');
       expect(app['currentJson']).not.toContain('second-calendar');
       expect(app['currentJson']).not.toContain('Month1');
+    });
+
+    describe('Compat module converter preference', () => {
+      it('should use compat module converter when available', async () => {
+        const scData = {
+          id: 'test',
+          name: 'Test Calendar',
+          months: [{ name: 'January', numberOfDays: 31, intercalary: false }],
+          weekdays: [{ name: 'Monday' }],
+        };
+
+        const mockCompatConverter = {
+          convert: vi.fn().mockReturnValue({
+            calendar: {
+              id: 'compat-converted',
+              translations: { en: { label: 'Compat Converted' } },
+              months: [{ name: 'January', days: 31 }],
+              weekdays: [{ name: 'Monday' }],
+            },
+            warnings: [],
+          }),
+        };
+
+        // Mock compat module with converter
+        const mockGameWithCompat = {
+          ...(globalThis as any).game,
+          modules: {
+            get: vi.fn((moduleId: string) => {
+              if (moduleId === 'foundryvtt-simple-calendar-compat') {
+                return {
+                  active: true,
+                  api: {
+                    getConverter: vi.fn().mockReturnValue(mockCompatConverter),
+                  },
+                };
+              }
+              return { active: true };
+            }),
+          },
+        };
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithCompat });
+
+        mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
+
+        await app['_handleImportedJson'](JSON.stringify({ calendar: scData }));
+
+        expect(mockCompatConverter.convert).toHaveBeenCalledWith(scData, undefined);
+        expect(app['currentJson']).toContain('compat-converted');
+      });
+
+      it('should fall back to builtin converter when compat module not installed', async () => {
+        const scData = {
+          id: 'test-calendar',
+          name: 'Test Calendar',
+          months: [{ name: 'January', numberOfDays: 31, intercalary: false }],
+          weekdays: [{ name: 'Monday' }],
+        };
+
+        // Mock game without compat module
+        const mockGameWithoutCompat = {
+          ...(globalThis as any).game,
+          modules: {
+            get: vi.fn((moduleId: string) => {
+              if (moduleId === 'foundryvtt-simple-calendar-compat') {
+                return undefined;
+              }
+              return { active: true };
+            }),
+          },
+        };
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithoutCompat });
+
+        mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
+
+        await app['_handleImportedJson'](JSON.stringify({ calendar: scData }));
+
+        // Should use builtin converter - verify by checking the result
+        expect(app['currentJson']).toContain('test-calendar');
+        expect(app['currentJson']).toContain('January');
+      });
+
+      it('should fall back to builtin converter when compat module inactive', async () => {
+        const scData = {
+          id: 'test-calendar',
+          name: 'Test Calendar',
+          months: [{ name: 'January', numberOfDays: 31, intercalary: false }],
+          weekdays: [{ name: 'Monday' }],
+        };
+
+        // Mock compat module but inactive
+        const mockGameWithInactiveCompat = {
+          ...(globalThis as any).game,
+          modules: {
+            get: vi.fn((moduleId: string) => {
+              if (moduleId === 'foundryvtt-simple-calendar-compat') {
+                return { active: false };
+              }
+              return { active: true };
+            }),
+          },
+        };
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithInactiveCompat });
+
+        mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
+
+        await app['_handleImportedJson'](JSON.stringify({ calendar: scData }));
+
+        // Should use builtin converter
+        expect(app['currentJson']).toContain('test-calendar');
+      });
+
+      it('should fall back to builtin converter when compat module has no converter API', async () => {
+        const scData = {
+          id: 'test-calendar',
+          name: 'Test Calendar',
+          months: [{ name: 'January', numberOfDays: 31, intercalary: false }],
+          weekdays: [{ name: 'Monday' }],
+        };
+
+        // Mock compat module without getConverter API
+        const mockGameWithCompatNoAPI = {
+          ...(globalThis as any).game,
+          modules: {
+            get: vi.fn((moduleId: string) => {
+              if (moduleId === 'foundryvtt-simple-calendar-compat') {
+                return {
+                  active: true,
+                  api: {}, // No getConverter method
+                };
+              }
+              return { active: true };
+            }),
+          },
+        };
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithCompatNoAPI });
+
+        mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
+
+        await app['_handleImportedJson'](JSON.stringify({ calendar: scData }));
+
+        // Should use builtin converter
+        expect(app['currentJson']).toContain('test-calendar');
+      });
+
+      it('should handle errors from compat module converter gracefully', async () => {
+        const scData = {
+          id: 'test',
+          name: 'Test Calendar',
+          months: [{ name: 'January', numberOfDays: 31, intercalary: false }],
+          weekdays: [{ name: 'Monday' }],
+        };
+
+        const mockCompatConverter = {
+          convert: vi.fn().mockImplementation(() => {
+            throw new Error('Compat converter error');
+          }),
+        };
+
+        // Mock compat module with failing converter
+        const mockGameWithFailingCompat = {
+          ...(globalThis as any).game,
+          modules: {
+            get: vi.fn((moduleId: string) => {
+              if (moduleId === 'foundryvtt-simple-calendar-compat') {
+                return {
+                  active: true,
+                  api: {
+                    getConverter: vi.fn().mockReturnValue(mockCompatConverter),
+                  },
+                };
+              }
+              return { active: true };
+            }),
+          },
+        };
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithFailingCompat });
+
+        mockFoundry.applications.api.DialogV2.confirm = vi.fn().mockResolvedValue(true);
+
+        await app['_handleImportedJson'](JSON.stringify({ calendar: scData }));
+
+        // Should fall back to builtin converter after compat error
+        expect(app['currentJson']).toContain('test');
+        expect(mockUI.notifications.warn).toHaveBeenCalled();
+      });
     });
   });
 });
