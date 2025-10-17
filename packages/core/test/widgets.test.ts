@@ -160,6 +160,7 @@ describe('CalendarGridWidget Note Permission Filtering', () => {
             getMonthLength: vi.fn(() => 30),
             calculateWeekday: vi.fn(() => 0),
             getIntercalaryDaysAfterMonth: vi.fn(() => []),
+            getIntercalaryDaysBeforeMonth: vi.fn(() => []),
           })),
           getActiveCalendar: vi.fn(() => ({
             months: [{ name: 'January', description: 'First month' }],

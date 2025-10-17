@@ -212,6 +212,7 @@ export interface CalendarEngineInterface {
   dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number;
   worldTimeToDate(timestamp: number, worldCreationTimestamp?: number): CalendarDate;
   getIntercalaryDaysAfterMonth(month: number, year: number): CalendarIntercalary[];
+  getIntercalaryDaysBeforeMonth(month: number, year: number): CalendarIntercalary[];
   addMonths(date: CalendarDate, months: number): CalendarDate;
   addYears(date: CalendarDate, years: number): CalendarDate;
   getMoonPhaseInfo(date: CalendarDate, moonName?: string): MoonPhaseInfo[];

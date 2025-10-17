@@ -294,6 +294,54 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       });
     }
 
+    // Add intercalary days that come BEFORE this month as separate full-width rows
+    const intercalaryDaysBefore = engine.getIntercalaryDaysBeforeMonth(
+      viewDate.year,
+      viewDate.month
+    );
+    for (const intercalary of intercalaryDaysBefore) {
+      // Find the month that this intercalary day comes before
+      const beforeMonthIndex = calendar.months.findIndex(m => m.name === intercalary.before);
+      const intercalaryMonth = beforeMonthIndex >= 0 ? beforeMonthIndex + 1 : viewDate.month;
+
+      const intercalaryDateData = {
+        year: viewDate.year,
+        month: intercalaryMonth, // Use the month it comes before (1-based)
+        day: 1, // Intercalary days don't have regular day numbers
+        weekday: 0, // Intercalary days don't have weekdays
+        time: { hour: 0, minute: 0, second: 0 },
+        intercalary: intercalary.name,
+      };
+      const intercalaryDate = new CalendarDate(intercalaryDateData, calendar);
+
+      const isToday = this.isSameIntercalaryDate(intercalaryDate, currentDate);
+      const isViewDate = this.isSameIntercalaryDate(intercalaryDate, viewDate);
+
+      // Create intercalary day row as full-width cell
+      const intercalaryRow = [
+        {
+          day: intercalary.name,
+          date: intercalaryDate,
+          isToday: isToday,
+          isSelected: isViewDate,
+          isClickable: true, // Click handler manages GM-only actions vs player info view
+          isCurrentMonth: true, // Intercalary days are always part of the current month
+          isIntercalary: true,
+          intercalaryName: intercalary.name,
+          intercalaryDescription: intercalary.description,
+          fullDate: `${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${intercalary.name}`,
+          hasNotes: false, // TODO: Add intercalary note support in future
+          noteCount: 0,
+          categoryClass: '',
+          primaryCategory: 'general',
+          noteTooltip: '',
+          canCreateNote: this.canCreateNote(),
+        },
+      ];
+
+      weeks.push(intercalaryRow);
+    }
+
     // Fill in the days of the month
     for (let day = 1; day <= monthLength; day++) {
       const dayDateData = {
@@ -459,9 +507,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       weeks.push(currentWeek);
     }
 
-    // Add intercalary days as separate full-width rows
-    const intercalaryDays = engine.getIntercalaryDaysAfterMonth(viewDate.year, viewDate.month);
-    for (const intercalary of intercalaryDays) {
+    // Add intercalary days that come AFTER this month as separate full-width rows
+    const intercalaryDaysAfter = engine.getIntercalaryDaysAfterMonth(viewDate.year, viewDate.month);
+    for (const intercalary of intercalaryDaysAfter) {
       // Find the month that this intercalary day comes after
       const afterMonthIndex = calendar.months.findIndex(m => m.name === intercalary.after);
       const intercalaryMonth = afterMonthIndex >= 0 ? afterMonthIndex + 1 : viewDate.month;
@@ -509,7 +557,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       totalDays: monthLength,
       monthName: monthInfo.name,
       monthDescription: monthInfo.description,
-      intercalaryDays: intercalaryDays,
+      intercalaryDays: [...intercalaryDaysBefore, ...intercalaryDaysAfter],
     };
   }
 
