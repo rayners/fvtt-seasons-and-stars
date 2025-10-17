@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.22.0...seasons-and-stars-v0.22.1) (2025-10-17)
+
+
+### Bug Fixes
+
+* **core:** add intercalary property to template context for Handlebars ([#388](https://github.com/rayners/fvtt-seasons-and-stars/issues/388)) ([2511b67](https://github.com/rayners/fvtt-seasons-and-stars/commit/2511b67e9bec185fa380a0a76a1c32544018bfd6))
+
 ## [0.22.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.21.0...seasons-and-stars-v0.22.0) (2025-10-15)
 
 
