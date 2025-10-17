@@ -432,6 +432,7 @@ export class DateFormatter {
       month: date.month,
       day: date.day,
       weekday: date.weekday,
+      intercalary: date.intercalary,
       hour: date.time?.hour,
       minute: date.time?.minute,
       second: date.time?.second,
