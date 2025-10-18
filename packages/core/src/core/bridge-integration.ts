@@ -439,12 +439,14 @@ class IntegrationAPI {
     }
 
     const month = date.month;
+    const day = date.day;
 
     for (const season of calendar.seasons) {
       const startMonth = season.startMonth;
       const endMonth = season.endMonth ?? season.startMonth;
+      const startDay = season.startDay ?? 1;
 
-      if (this.isMonthInSeason(month, startMonth, endMonth)) {
+      if (this.isDateInSeason(month, day, startMonth, startDay, endMonth, calendar, season)) {
         return {
           name: season.name,
           icon: season.icon || this.getDefaultSeasonIcon(season.name),
@@ -456,11 +458,45 @@ class IntegrationAPI {
     return this.getDefaultSeasonInfo(month);
   }
 
-  private isMonthInSeason(month: number, startMonth: number, endMonth: number): boolean {
+  /**
+   * Check if a date falls within a season's range
+   * Handles year-crossing seasons (e.g., Winter from December to February where endMonth < startMonth)
+   * Month indices are assumed to be 1-based as per calendar schema requirements.
+   * @param month - The month to check (1-based index)
+   * @param day - The day to check (1-based index)
+   * @param startMonth - Season's starting month (1-based index)
+   * @param startDay - Season's starting day (1-based index, defaults to 1)
+   * @param endMonth - Season's ending month (1-based index)
+   * @param _calendar - Calendar definition (reserved for future endDay support)
+   * @param _season - Season definition (reserved for future endDay support)
+   */
+  private isDateInSeason(
+    month: number,
+    day: number,
+    startMonth: number,
+    startDay: number,
+    endMonth: number,
+    _calendar: SeasonsStarsCalendar,
+    _season: any
+  ): boolean {
     if (startMonth <= endMonth) {
-      return month >= startMonth && month <= endMonth;
+      if (month < startMonth || month > endMonth) {
+        return false;
+      }
+      if (month === startMonth && day < startDay) {
+        return false;
+      }
+      return true;
     } else {
-      return month >= startMonth || month <= endMonth;
+      if (month >= startMonth) {
+        if (month === startMonth && day < startDay) {
+          return false;
+        }
+        return true;
+      } else if (month <= endMonth) {
+        return true;
+      }
+      return false;
     }
   }
 
