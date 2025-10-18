@@ -429,10 +429,42 @@ class IntegrationAPI {
     };
   }
 
-  getSeasonInfo(date: CalendarDate, _calendarId?: string): SeasonInfo {
-    // Default seasonal calculation - can be enhanced with calendar-specific data
+  getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo {
+    const calendar = calendarId
+      ? this.manager.getCalendar(calendarId)
+      : this.manager.getActiveCalendar();
+
+    if (!calendar || !calendar.seasons || calendar.seasons.length === 0) {
+      return this.getDefaultSeasonInfo(date.month);
+    }
+
     const month = date.month;
 
+    for (const season of calendar.seasons) {
+      const startMonth = season.startMonth;
+      const endMonth = season.endMonth ?? season.startMonth;
+
+      if (this.isMonthInSeason(month, startMonth, endMonth)) {
+        return {
+          name: season.name,
+          icon: season.icon || this.getDefaultSeasonIcon(season.name),
+          description: season.description,
+        };
+      }
+    }
+
+    return this.getDefaultSeasonInfo(month);
+  }
+
+  private isMonthInSeason(month: number, startMonth: number, endMonth: number): boolean {
+    if (startMonth <= endMonth) {
+      return month >= startMonth && month <= endMonth;
+    } else {
+      return month >= startMonth || month <= endMonth;
+    }
+  }
+
+  private getDefaultSeasonInfo(month: number): SeasonInfo {
     if (month >= 3 && month <= 5) {
       return { name: 'Spring', icon: 'spring' };
     } else if (month >= 6 && month <= 8) {
@@ -442,6 +474,15 @@ class IntegrationAPI {
     } else {
       return { name: 'Winter', icon: 'winter' };
     }
+  }
+
+  private getDefaultSeasonIcon(seasonName: string): string {
+    const lowerName = seasonName.toLowerCase();
+    if (lowerName.includes('spring')) return 'spring';
+    if (lowerName.includes('summer')) return 'summer';
+    if (lowerName.includes('autumn') || lowerName.includes('fall')) return 'fall';
+    if (lowerName.includes('winter')) return 'winter';
+    return 'spring';
   }
 
   get notes(): SeasonsStarsNotesAPI {
