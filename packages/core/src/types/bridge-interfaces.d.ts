@@ -63,6 +63,11 @@ export interface SeasonsStarsAPI {
   advanceMonths(months: number): Promise<void>;
   advanceYears(years: number): Promise<void>;
   validateCalendar(calendarData: unknown): Promise<ValidationResult>;
+
+  // Calendar Builder API
+  calendarBuilder: {
+    importJson(jsonString: string, source?: string): Promise<void>;
+  };
 }
 
 export interface SeasonsStarsWidgets {
