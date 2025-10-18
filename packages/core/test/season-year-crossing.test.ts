@@ -5,11 +5,16 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SeasonsStarsIntegration } from '../src/core/bridge-integration';
+import type { CalendarSeason } from '../src/types/calendar';
+
+interface MockMonth {
+  days: number;
+}
 
 interface MockCalendar {
   id: string;
-  seasons?: any[];
-  months?: any[];
+  seasons?: CalendarSeason[];
+  months?: MockMonth[];
 }
 
 interface MockCalendarManager {
@@ -17,12 +22,33 @@ interface MockCalendarManager {
   getCalendar: (id?: string) => MockCalendar | undefined;
 }
 
+interface MockDate {
+  month: number;
+  day: number;
+}
+
+function resetSingleton(): void {
+  // Reset the singleton instance for testing
+
+  (SeasonsStarsIntegration as any).instance = null;
+}
+
+function createIntegration(manager: MockCalendarManager): SeasonsStarsIntegration {
+  // Create integration instance with mock manager
+
+  return new (SeasonsStarsIntegration as any)(manager);
+}
+
+function createDate(month: number, day: number): MockDate {
+  return { month, day };
+}
+
 describe('Season Info with Year-Crossing Support', () => {
   let integration: SeasonsStarsIntegration;
   let mockCalendarManager: MockCalendarManager;
 
   beforeEach(() => {
-    (SeasonsStarsIntegration as any).instance = null;
+    resetSingleton();
   });
 
   it('should handle calendars with no seasons defined', () => {
@@ -34,9 +60,9 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const winterDate = { month: 12, day: 25 } as any;
+    const winterDate = createDate(12, 25);
     const seasonInfo = integration.api.getSeasonInfo(winterDate);
 
     expect(seasonInfo.name).toBe('Winter');
@@ -57,14 +83,14 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const springDate = { month: 4, day: 15 } as any;
+    const springDate = createDate(4, 15);
     const springInfo = integration.api.getSeasonInfo(springDate);
     expect(springInfo.name).toBe('Spring');
     expect(springInfo.icon).toBe('spring');
 
-    const summerDate = { month: 7, day: 1 } as any;
+    const summerDate = createDate(7, 1);
     const summerInfo = integration.api.getSeasonInfo(summerDate);
     expect(summerInfo.name).toBe('Summer');
     expect(summerInfo.icon).toBe('summer');
@@ -84,24 +110,24 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const decemberDate = { month: 12, day: 25 } as any;
+    const decemberDate = createDate(12, 25);
     const decemberInfo = integration.api.getSeasonInfo(decemberDate);
     expect(decemberInfo.name).toBe('Winter');
     expect(decemberInfo.icon).toBe('winter');
 
-    const januaryDate = { month: 1, day: 15 } as any;
+    const januaryDate = createDate(1, 15);
     const januaryInfo = integration.api.getSeasonInfo(januaryDate);
     expect(januaryInfo.name).toBe('Winter');
     expect(januaryInfo.icon).toBe('winter');
 
-    const februaryDate = { month: 2, day: 28 } as any;
+    const februaryDate = createDate(2, 28);
     const februaryInfo = integration.api.getSeasonInfo(februaryDate);
     expect(februaryInfo.name).toBe('Winter');
     expect(februaryInfo.icon).toBe('winter');
 
-    const marchDate = { month: 3, day: 1 } as any;
+    const marchDate = createDate(3, 1);
     const marchInfo = integration.api.getSeasonInfo(marchDate);
     expect(marchInfo.name).toBe('Spring');
   });
@@ -120,21 +146,21 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const month10 = { month: 10, day: 1 } as any;
+    const month10 = createDate(10, 1);
     expect(integration.api.getSeasonInfo(month10).name).toBe('Winter');
 
-    const month11 = { month: 11, day: 15 } as any;
+    const month11 = createDate(11, 15);
     expect(integration.api.getSeasonInfo(month11).name).toBe('Winter');
 
-    const month12 = { month: 12, day: 31 } as any;
+    const month12 = createDate(12, 31);
     expect(integration.api.getSeasonInfo(month12).name).toBe('Winter');
 
-    const month1 = { month: 1, day: 20 } as any;
+    const month1 = createDate(1, 20);
     expect(integration.api.getSeasonInfo(month1).name).toBe('Winter');
 
-    const month2 = { month: 2, day: 1 } as any;
+    const month2 = createDate(2, 1);
     expect(integration.api.getSeasonInfo(month2).name).toBe('Spring');
   });
 
@@ -155,9 +181,9 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const winterDate = { month: 1, day: 15 } as any;
+    const winterDate = createDate(1, 15);
     const seasonInfo = integration.api.getSeasonInfo(winterDate);
 
     expect(seasonInfo.description).toBe('The harsh season of survival');
@@ -172,9 +198,9 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const winterDate = { month: 1, day: 15 } as any;
+    const winterDate = createDate(1, 15);
     const seasonInfo = integration.api.getSeasonInfo(winterDate);
 
     expect(seasonInfo.icon).toBe('winter');
@@ -189,13 +215,13 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const julyDate = { month: 7, day: 15 } as any;
+    const julyDate = createDate(7, 15);
     const seasonInfo = integration.api.getSeasonInfo(julyDate);
     expect(seasonInfo.name).toBe('Monsoon');
 
-    const augustDate = { month: 8, day: 1 } as any;
+    const augustDate = createDate(8, 1);
     const fallbackInfo = integration.api.getSeasonInfo(augustDate);
     expect(fallbackInfo.name).not.toBe('Monsoon');
   });
@@ -216,9 +242,9 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: (id?: string) => (id === 'calendar2' ? calendar2 : calendar1),
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const date = { month: 5, day: 15 } as any;
+    const date = createDate(5, 15);
 
     const defaultInfo = integration.api.getSeasonInfo(date);
     expect(defaultInfo.name).toBe('Season1');
@@ -239,11 +265,11 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    expect(integration.api.getSeasonInfo({ month: 3, day: 31 } as any).name).toBe('Season A');
-    expect(integration.api.getSeasonInfo({ month: 4, day: 1 } as any).name).toBe('Season B');
-    expect(integration.api.getSeasonInfo({ month: 6, day: 30 } as any).name).toBe('Season B');
+    expect(integration.api.getSeasonInfo(createDate(3, 31)).name).toBe('Season A');
+    expect(integration.api.getSeasonInfo(createDate(4, 1)).name).toBe('Season B');
+    expect(integration.api.getSeasonInfo(createDate(6, 30)).name).toBe('Season B');
   });
 
   it('should fallback to default seasons for months not covered by definitions', () => {
@@ -255,12 +281,12 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const summerDate = { month: 7, day: 15 } as any;
+    const summerDate = createDate(7, 15);
     expect(integration.api.getSeasonInfo(summerDate).name).toBe('Only Summer');
 
-    const winterDate = { month: 12, day: 25 } as any;
+    const winterDate = createDate(12, 25);
     const fallbackInfo = integration.api.getSeasonInfo(winterDate);
     expect(fallbackInfo.name).toBe('Winter');
   });
@@ -279,13 +305,13 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const nov = { month: 11, day: 15 } as any;
+    const nov = createDate(11, 15);
     const novInfo = integration.api.getSeasonInfo(nov);
     expect(novInfo.name).toBe('Late Year');
 
-    const jan = { month: 1, day: 5 } as any;
+    const jan = createDate(1, 5);
     const janInfo = integration.api.getSeasonInfo(jan);
     expect(janInfo.name).toBe('Early Year');
   });
@@ -316,21 +342,21 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const beforeSpring = { month: 3, day: 14 } as any;
+    const beforeSpring = createDate(3, 14);
     expect(integration.api.getSeasonInfo(beforeSpring).name).toBe('Spring');
 
-    const startOfSpring = { month: 3, day: 15 } as any;
+    const startOfSpring = createDate(3, 15);
     expect(integration.api.getSeasonInfo(startOfSpring).name).toBe('Vernal');
 
-    const midSpring = { month: 4, day: 20 } as any;
+    const midSpring = createDate(4, 20);
     expect(integration.api.getSeasonInfo(midSpring).name).toBe('Vernal');
 
-    const beforeSummer = { month: 6, day: 14 } as any;
+    const beforeSummer = createDate(6, 14);
     expect(integration.api.getSeasonInfo(beforeSummer).name).toBe('Summer');
 
-    const startOfSummer = { month: 6, day: 15 } as any;
+    const startOfSummer = createDate(6, 15);
     expect(integration.api.getSeasonInfo(startOfSummer).name).toBe('Estival');
   });
 
@@ -360,24 +386,24 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const beforeWinter = { month: 12, day: 14 } as any;
+    const beforeWinter = createDate(12, 14);
     expect(integration.api.getSeasonInfo(beforeWinter).name).toBe('Winter');
 
-    const startOfWinter = { month: 12, day: 15 } as any;
+    const startOfWinter = createDate(12, 15);
     expect(integration.api.getSeasonInfo(startOfWinter).name).toBe('Frost');
 
-    const lateDecember = { month: 12, day: 31 } as any;
+    const lateDecember = createDate(12, 31);
     expect(integration.api.getSeasonInfo(lateDecember).name).toBe('Frost');
 
-    const january = { month: 1, day: 15 } as any;
+    const january = createDate(1, 15);
     expect(integration.api.getSeasonInfo(january).name).toBe('Frost');
 
-    const endOfWinter = { month: 2, day: 28 } as any;
+    const endOfWinter = createDate(2, 28);
     expect(integration.api.getSeasonInfo(endOfWinter).name).toBe('Frost');
 
-    const startOfSpring = { month: 3, day: 1 } as any;
+    const startOfSpring = createDate(3, 1);
     expect(integration.api.getSeasonInfo(startOfSpring).name).toBe('Bloom');
   });
 
@@ -391,9 +417,9 @@ describe('Season Info with Year-Crossing Support', () => {
       getCalendar: () => undefined,
     };
 
-    integration = new (SeasonsStarsIntegration as any)(mockCalendarManager);
+    integration = createIntegration(mockCalendarManager);
 
-    const firstDay = { month: 3, day: 1 } as any;
+    const firstDay = createDate(3, 1);
     expect(integration.api.getSeasonInfo(firstDay).name).toBe('Spring');
   });
 });

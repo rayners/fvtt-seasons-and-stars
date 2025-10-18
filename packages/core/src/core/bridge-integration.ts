@@ -9,6 +9,7 @@ import type {
   CalendarDate,
   CalendarDateData,
   SeasonsStarsCalendar,
+  CalendarSeason,
   DateFormatOptions,
 } from '../types/calendar';
 import { CalendarDate as CalendarDateClass } from './calendar-date';
@@ -477,7 +478,7 @@ class IntegrationAPI {
     startDay: number,
     endMonth: number,
     _calendar: SeasonsStarsCalendar,
-    _season: any
+    _season: CalendarSeason
   ): boolean {
     if (startMonth <= endMonth) {
       if (month < startMonth || month > endMonth) {
