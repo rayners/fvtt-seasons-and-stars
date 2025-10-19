@@ -18,6 +18,7 @@ import type { CreateNoteData } from '../core/notes-manager';
 import type {
   CalendarDate as ICalendarDate,
   CalendarDateData,
+  CalendarIntercalary,
   SeasonsStarsCalendar,
 } from '../types/calendar';
 import type { CalendarDayData } from '../types/external-integrations';
@@ -294,6 +295,20 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       });
     }
 
+    // Add intercalary days that come BEFORE this month as separate full-width rows
+    const intercalaryDaysBefore = engine.getIntercalaryDaysBeforeMonth(
+      viewDate.year,
+      viewDate.month
+    );
+    const beforeRows = this.createIntercalaryRows(
+      intercalaryDaysBefore,
+      'before',
+      calendar,
+      viewDate,
+      currentDate
+    );
+    weeks.push(...beforeRows);
+
     // Fill in the days of the month
     for (let day = 1; day <= monthLength; day++) {
       const dayDateData = {
@@ -459,18 +474,67 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       weeks.push(currentWeek);
     }
 
-    // Add intercalary days as separate full-width rows
-    const intercalaryDays = engine.getIntercalaryDaysAfterMonth(viewDate.year, viewDate.month);
+    // Add intercalary days that come AFTER this month as separate full-width rows
+    const intercalaryDaysAfter = engine.getIntercalaryDaysAfterMonth(viewDate.year, viewDate.month);
+    const afterRows = this.createIntercalaryRows(
+      intercalaryDaysAfter,
+      'after',
+      calendar,
+      viewDate,
+      currentDate
+    );
+    weeks.push(...afterRows);
+
+    return {
+      weeks: weeks,
+      totalDays: monthLength,
+      monthName: monthInfo.name,
+      monthDescription: monthInfo.description,
+      intercalaryDays: [...intercalaryDaysBefore, ...intercalaryDaysAfter],
+    };
+  }
+
+  /**
+   * Create intercalary day rows for calendar grid
+   *
+   * Generates calendar grid rows for intercalary days that occur before or after
+   * specific months. Intercalary days are extra days outside the regular month
+   * structure (e.g., leap days, festival days).
+   *
+   * @param intercalaryDays - Array of intercalary day definitions from calendar
+   * @param position - Whether these are 'before' or 'after' intercalary days
+   * @param calendar - The calendar definition containing month information
+   * @param viewDate - The currently viewed date in the calendar widget
+   * @param currentDate - The actual current date for highlighting
+   * @returns Array of calendar rows, each containing a single intercalary day
+   */
+  private createIntercalaryRows(
+    intercalaryDays: CalendarIntercalary[],
+    position: 'before' | 'after',
+    calendar: SeasonsStarsCalendar,
+    viewDate: ICalendarDate,
+    currentDate: ICalendarDate
+  ): Array<Array<CalendarDayData>> {
+    const rows: Array<Array<CalendarDayData>> = [];
+
     for (const intercalary of intercalaryDays) {
-      // Find the month that this intercalary day comes after
-      const afterMonthIndex = calendar.months.findIndex(m => m.name === intercalary.after);
-      const intercalaryMonth = afterMonthIndex >= 0 ? afterMonthIndex + 1 : viewDate.month;
+      const monthRefName = position === 'before' ? intercalary.before : intercalary.after;
+
+      // Validate that the intercalary day has the expected property
+      if (!monthRefName) {
+        Logger.warn(
+          `Intercalary day "${intercalary.name}" missing ${position} property - skipping`
+        );
+        continue;
+      }
+      const monthIndex = calendar.months.findIndex(m => m.name === monthRefName);
+      const intercalaryMonth = monthIndex >= 0 ? monthIndex + 1 : viewDate.month;
 
       const intercalaryDateData = {
         year: viewDate.year,
-        month: intercalaryMonth, // Use the month it comes after (1-based)
-        day: 1, // Intercalary days don't have regular day numbers
-        weekday: 0, // Intercalary days don't have weekdays
+        month: intercalaryMonth,
+        day: 1,
+        weekday: 0,
         time: { hour: 0, minute: 0, second: 0 },
         intercalary: intercalary.name,
       };
@@ -479,20 +543,19 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       const isToday = this.isSameIntercalaryDate(intercalaryDate, currentDate);
       const isViewDate = this.isSameIntercalaryDate(intercalaryDate, viewDate);
 
-      // Create intercalary day row as full-width cell
       const intercalaryRow = [
         {
           day: intercalary.name,
           date: intercalaryDate,
           isToday: isToday,
           isSelected: isViewDate,
-          isClickable: true, // Click handler manages GM-only actions vs player info view
-          isCurrentMonth: true, // Intercalary days are always part of the current month
+          isClickable: true,
+          isCurrentMonth: true,
           isIntercalary: true,
           intercalaryName: intercalary.name,
           intercalaryDescription: intercalary.description,
           fullDate: `${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${intercalary.name}`,
-          hasNotes: false, // TODO: Add intercalary note support in future
+          hasNotes: false,
           noteCount: 0,
           categoryClass: '',
           primaryCategory: 'general',
@@ -501,16 +564,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         },
       ];
 
-      weeks.push(intercalaryRow);
+      rows.push(intercalaryRow);
     }
 
-    return {
-      weeks: weeks,
-      totalDays: monthLength,
-      monthName: monthInfo.name,
-      monthDescription: monthInfo.description,
-      intercalaryDays: intercalaryDays,
-    };
+    return rows;
   }
 
   /**

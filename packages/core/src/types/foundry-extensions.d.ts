@@ -211,7 +211,8 @@ export interface CalendarEngineInterface {
   getMonthLength(month: number, year: number): number;
   dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number;
   worldTimeToDate(timestamp: number, worldCreationTimestamp?: number): CalendarDate;
-  getIntercalaryDaysAfterMonth(month: number, year: number): CalendarIntercalary[];
+  getIntercalaryDaysAfterMonth(year: number, month: number): CalendarIntercalary[];
+  getIntercalaryDaysBeforeMonth(year: number, month: number): CalendarIntercalary[];
   addMonths(date: CalendarDate, months: number): CalendarDate;
   addYears(date: CalendarDate, years: number): CalendarDate;
   getMoonPhaseInfo(date: CalendarDate, moonName?: string): MoonPhaseInfo[];
