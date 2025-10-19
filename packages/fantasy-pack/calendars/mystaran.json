@@ -1,0 +1,175 @@
+{
+  "id": "mystaran",
+  "translations": {
+    "en": {
+      "label": "Mystaran Calendar (Karameikan Calendar)",
+      "description": "The calendar system used in the D&D Mystara campaign setting and the Known World from the BECMI era. Features twelve 28-day months with seven-day weeks, following the Thyatian dating system.",
+      "setting": "D&D Mystara / Known World"
+    }
+  },
+  "sources": ["https://mystarakaramekioscampaign.fandom.com/wiki/The_Karameikan_Calendar"],
+
+  "year": {
+    "epoch": 0,
+    "currentYear": 1012,
+    "prefix": "",
+    "suffix": " AC",
+    "startDay": 0
+  },
+
+  "leapYear": {
+    "rule": "none"
+  },
+
+  "months": [
+    {
+      "name": "Nuwmont",
+      "abbreviation": "Nuw",
+      "days": 28,
+      "description": "Second month of winter. The new year begins with celebrations and the winter cold holds the land in its grip."
+    },
+    {
+      "name": "Vatermont",
+      "abbreviation": "Vat",
+      "days": 28,
+      "description": "Second month of winter. The rainy season begins in early Vatermont, bringing moisture that prepares the land for spring."
+    },
+    {
+      "name": "Thaumont",
+      "abbreviation": "Tha",
+      "days": 28,
+      "description": "First month of spring. The rainy season continues through late Thaumont as winter gives way to warmer weather."
+    },
+    {
+      "name": "Flaurmont",
+      "abbreviation": "Fla",
+      "days": 28,
+      "description": "Second month of spring. The land comes alive with flowers and new growth as the weather warms."
+    },
+    {
+      "name": "Yarthmont",
+      "abbreviation": "Yar",
+      "days": 28,
+      "description": "Third month of spring. Late spring brings pleasant weather and preparation for the coming summer heat."
+    },
+    {
+      "name": "Klarmont",
+      "abbreviation": "Kla",
+      "days": 28,
+      "description": "First month of summer. The first day of Klarmont marks the official beginning of summer with celebrations."
+    },
+    {
+      "name": "Felmont",
+      "abbreviation": "Fel",
+      "days": 28,
+      "description": "Second month of summer. Mid-summer brings warmth tempered by ocean breezes and mountain barriers."
+    },
+    {
+      "name": "Fyrmont",
+      "abbreviation": "Fyr",
+      "days": 28,
+      "description": "Third month of summer. Late summer continues with mild weather due to the region's favorable geography."
+    },
+    {
+      "name": "Ambyrmont",
+      "abbreviation": "Amb",
+      "days": 28,
+      "description": "First month of autumn. The first day of Ambyrmont marks the official beginning of autumn and harvest season."
+    },
+    {
+      "name": "Sviftmont",
+      "abbreviation": "Svi",
+      "days": 28,
+      "description": "Second month of autumn. The 28th of Sviftmont celebrates the King's Birthday with festivities throughout the realm."
+    },
+    {
+      "name": "Eirmont",
+      "abbreviation": "Eir",
+      "days": 28,
+      "description": "Third month of autumn. Late autumn brings cooler weather as winter approaches."
+    },
+    {
+      "name": "Kaldmont",
+      "abbreviation": "Kal",
+      "days": 28,
+      "description": "First month of winter. The year ends with the Day of Dread on the 28th, when magic fails worldwide and dark forces stir."
+    }
+  ],
+
+  "weekdays": [
+    {
+      "name": "Lunadain",
+      "abbreviation": "Lun",
+      "description": "First day of the week, associated with the moon and new beginnings"
+    },
+    {
+      "name": "Gromdain",
+      "abbreviation": "Gro",
+      "description": "Second day of the week, a common day for labor and commerce"
+    },
+    {
+      "name": "Tserdain",
+      "abbreviation": "Tse",
+      "description": "Third day of the week, often devoted to trade and markets"
+    },
+    {
+      "name": "Moldain",
+      "abbreviation": "Mol",
+      "description": "Fourth day of the week, the middle day often used for important business"
+    },
+    {
+      "name": "Nytdain",
+      "abbreviation": "Nyt",
+      "description": "Fifth day of the week, associated with evening activities and gatherings"
+    },
+    {
+      "name": "Loshdain",
+      "abbreviation": "Los",
+      "description": "Sixth day of the week, often devoted to learning and preparation"
+    },
+    {
+      "name": "Soladain",
+      "abbreviation": "Sol",
+      "description": "Seventh day of the week, associated with the sun and traditionally a day of rest"
+    }
+  ],
+
+  "intercalary": [],
+
+  "seasons": [
+    {
+      "name": "Winter",
+      "startMonth": 11,
+      "endMonth": 1,
+      "icon": "winter",
+      "description": "The cold season tempered by ocean breezes and mountain barriers that moderate Karameikos's climate."
+    },
+    {
+      "name": "Spring",
+      "startMonth": 2,
+      "endMonth": 4,
+      "icon": "spring",
+      "description": "The season of renewal, marked by the rainy season from early Vatermont to late Thaumont."
+    },
+    {
+      "name": "Summer",
+      "startMonth": 5,
+      "endMonth": 7,
+      "icon": "summer",
+      "description": "The warm season beginning on 1 Klarmont, with mild temperatures thanks to favorable geography."
+    },
+    {
+      "name": "Autumn",
+      "startMonth": 8,
+      "endMonth": 10,
+      "icon": "fall",
+      "description": "The harvest season beginning on 1 Ambyrmont, culminating in the Day of Dread on the final day of the year."
+    }
+  ],
+
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  }
+}
