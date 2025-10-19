@@ -179,9 +179,19 @@ export type CalendarIntercalary = {
 export interface CalendarSeason {
   name: string;
   description?: string;
+  /** Season's starting month (1-based index) */
   startMonth: number;
+  /** Season's starting day within startMonth (1-based, defaults to 1) */
   startDay?: number;
+  /** Season's ending month (1-based index) */
   endMonth?: number;
+  /**
+   * Season's ending day within endMonth (1-based).
+   * If endDay exceeds the days in endMonth, the season extends into subsequent months.
+   * Example: endMonth=2, endDay=30 on a 28-day February extends to March 2.
+   * A console warning will be logged when overflow occurs.
+   * Use with caution as overflow behavior may be unexpected for calendar authors.
+   */
   endDay?: number;
   icon?: string;
   color?: string;

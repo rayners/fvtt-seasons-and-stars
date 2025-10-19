@@ -485,6 +485,10 @@ class IntegrationAPI {
     calendar: SeasonsStarsCalendar,
     season: CalendarSeason
   ): boolean {
+    // Detect year-crossing BEFORE overflow calculation to prevent false negatives
+    // Year-crossing occurs when startMonth > endMonth (e.g., Dec=12 to Feb=2)
+    const isYearCrossing = startMonth > endMonth;
+
     // Calculate effective end day, handling overflow
     const endDayRaw = season.endDay;
     let effectiveEndMonth = endMonth;
@@ -504,9 +508,11 @@ class IntegrationAPI {
         effectiveEndMonth = endMonth;
 
         // Advance through months until we consume all remaining days
-        while (remainingDays > 0 && effectiveEndMonth < calendar.months.length) {
+        // Use calendar.months?.length ?? 12 as upper bound to prevent infinite loop
+        const totalMonths = calendar.months?.length ?? 12;
+        while (remainingDays > 0 && effectiveEndMonth < totalMonths) {
           effectiveEndMonth++;
-          const nextMonthDays = calendar.months[effectiveEndMonth - 1]?.days ?? 30;
+          const nextMonthDays = calendar.months?.[effectiveEndMonth - 1]?.days ?? 30;
           if (remainingDays <= nextMonthDays) {
             effectiveEndDay = remainingDays;
             remainingDays = 0;
@@ -517,15 +523,16 @@ class IntegrationAPI {
 
         // If we've run out of months, wrap to the end of the last month
         if (remainingDays > 0) {
-          effectiveEndDay = calendar.months[calendar.months.length - 1]?.days ?? 31;
+          effectiveEndDay = calendar.months?.[calendar.months.length - 1]?.days ?? 31;
         }
       } else {
         effectiveEndDay = endDayRaw;
       }
     }
 
-    if (startMonth <= effectiveEndMonth) {
+    if (!isYearCrossing) {
       // Regular season (not year-crossing)
+      // Use effectiveEndMonth/effectiveEndDay for boundary checks to account for overflow
       if (month < startMonth || month > effectiveEndMonth) {
         return false;
       }
@@ -537,7 +544,8 @@ class IntegrationAPI {
       }
       return true;
     } else {
-      // Year-crossing season
+      // Year-crossing season (e.g., Winter: Dec-Feb where Dec=12, Feb=2)
+      // Use effectiveEndMonth/effectiveEndDay for boundary checks to account for overflow
       if (month >= startMonth) {
         if (month === startMonth && day < startDay) {
           return false;
