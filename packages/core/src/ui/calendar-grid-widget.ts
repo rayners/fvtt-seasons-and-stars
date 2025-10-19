@@ -18,6 +18,7 @@ import type { CreateNoteData } from '../core/notes-manager';
 import type {
   CalendarDate as ICalendarDate,
   CalendarDateData,
+  CalendarIntercalary,
   SeasonsStarsCalendar,
 } from '../types/calendar';
 import type { CalendarDayData } from '../types/external-integrations';
@@ -495,9 +496,20 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
   /**
    * Create intercalary day rows for calendar grid
+   *
+   * Generates calendar grid rows for intercalary days that occur before or after
+   * specific months. Intercalary days are extra days outside the regular month
+   * structure (e.g., leap days, festival days).
+   *
+   * @param intercalaryDays - Array of intercalary day definitions from calendar
+   * @param position - Whether these are 'before' or 'after' intercalary days
+   * @param calendar - The calendar definition containing month information
+   * @param viewDate - The currently viewed date in the calendar widget
+   * @param currentDate - The actual current date for highlighting
+   * @returns Array of calendar rows, each containing a single intercalary day
    */
   private createIntercalaryRows(
-    intercalaryDays: Array<any>,
+    intercalaryDays: CalendarIntercalary[],
     position: 'before' | 'after',
     calendar: SeasonsStarsCalendar,
     viewDate: ICalendarDate,
@@ -507,6 +519,14 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
     for (const intercalary of intercalaryDays) {
       const monthRefName = position === 'before' ? intercalary.before : intercalary.after;
+
+      // Validate that the intercalary day has the expected property
+      if (!monthRefName) {
+        Logger.warn(
+          `Intercalary day "${intercalary.name}" missing ${position} property - skipping`
+        );
+        continue;
+      }
       const monthIndex = calendar.months.findIndex(m => m.name === monthRefName);
       const intercalaryMonth = monthIndex >= 0 ? monthIndex + 1 : viewDate.month;
 
