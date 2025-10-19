@@ -463,13 +463,18 @@ class IntegrationAPI {
    * Check if a date falls within a season's range
    * Handles year-crossing seasons (e.g., Winter from December to February where endMonth < startMonth)
    * Month indices are assumed to be 1-based as per calendar schema requirements.
+   *
+   * Note: endDay values that exceed the number of days in endMonth are handled by
+   * calculating overflow into subsequent months (e.g., February 30 → March 2 on non-leap years).
+   * A warning is logged when boundary overflow occurs.
+   *
    * @param month - The month to check (1-based index)
    * @param day - The day to check (1-based index)
    * @param startMonth - Season's starting month (1-based index)
    * @param startDay - Season's starting day (1-based index, defaults to 1)
    * @param endMonth - Season's ending month (1-based index)
-   * @param _calendar - Calendar definition (reserved for future endDay support)
-   * @param _season - Season definition (reserved for future endDay support)
+   * @param calendar - Calendar definition (for month day counts)
+   * @param season - Season definition (for endDay support)
    */
   private isDateInSeason(
     month: number,
@@ -477,24 +482,71 @@ class IntegrationAPI {
     startMonth: number,
     startDay: number,
     endMonth: number,
-    _calendar: SeasonsStarsCalendar,
-    _season: CalendarSeason
+    calendar: SeasonsStarsCalendar,
+    season: CalendarSeason
   ): boolean {
-    if (startMonth <= endMonth) {
-      if (month < startMonth || month > endMonth) {
+    // Calculate effective end day, handling overflow
+    const endDayRaw = season.endDay;
+    let effectiveEndMonth = endMonth;
+    let effectiveEndDay: number = calendar.months?.[endMonth - 1]?.days ?? 31;
+
+    if (endDayRaw !== undefined) {
+      const daysInEndMonth = calendar.months?.[endMonth - 1]?.days;
+      if (daysInEndMonth && endDayRaw > daysInEndMonth) {
+        // endDay exceeds month boundaries - calculate overflow
+        console.warn(
+          `Season "${season.name}" has endDay=${endDayRaw} which exceeds the ${daysInEndMonth} days in month ${endMonth}. ` +
+            `Season will extend into subsequent month(s).`
+        );
+
+        // Calculate overflow: how many days beyond the end month
+        let remainingDays = endDayRaw - daysInEndMonth;
+        effectiveEndMonth = endMonth;
+
+        // Advance through months until we consume all remaining days
+        while (remainingDays > 0 && effectiveEndMonth < calendar.months.length) {
+          effectiveEndMonth++;
+          const nextMonthDays = calendar.months[effectiveEndMonth - 1]?.days ?? 30;
+          if (remainingDays <= nextMonthDays) {
+            effectiveEndDay = remainingDays;
+            remainingDays = 0;
+          } else {
+            remainingDays -= nextMonthDays;
+          }
+        }
+
+        // If we've run out of months, wrap to the end of the last month
+        if (remainingDays > 0) {
+          effectiveEndDay = calendar.months[calendar.months.length - 1]?.days ?? 31;
+        }
+      } else {
+        effectiveEndDay = endDayRaw;
+      }
+    }
+
+    if (startMonth <= effectiveEndMonth) {
+      // Regular season (not year-crossing)
+      if (month < startMonth || month > effectiveEndMonth) {
         return false;
       }
       if (month === startMonth && day < startDay) {
         return false;
       }
+      if (month === effectiveEndMonth && day > effectiveEndDay) {
+        return false;
+      }
       return true;
     } else {
+      // Year-crossing season
       if (month >= startMonth) {
         if (month === startMonth && day < startDay) {
           return false;
         }
         return true;
-      } else if (month <= endMonth) {
+      } else if (month <= effectiveEndMonth) {
+        if (month === effectiveEndMonth && day > effectiveEndDay) {
+          return false;
+        }
         return true;
       }
       return false;

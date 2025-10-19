@@ -422,4 +422,230 @@ describe('Season Info with Year-Crossing Support', () => {
     const firstDay = createDate(3, 1);
     expect(integration.api.getSeasonInfo(firstDay).name).toBe('Spring');
   });
+
+  it('should handle seasons with endDay for mid-month boundaries', () => {
+    mockCalendarManager = {
+      getActiveCalendar: () => ({
+        id: 'endday-seasons',
+        seasons: [
+          {
+            name: 'Early Spring',
+            startMonth: 3,
+            startDay: 1,
+            endMonth: 4,
+            endDay: 15,
+            icon: 'spring',
+          },
+          {
+            name: 'Late Spring',
+            startMonth: 4,
+            startDay: 16,
+            endMonth: 5,
+            endDay: 31,
+            icon: 'spring',
+          },
+        ],
+        months: [
+          { days: 31 },
+          { days: 28 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+        ],
+      }),
+      getCalendar: () => undefined,
+    };
+
+    integration = createIntegration(mockCalendarManager);
+
+    // Early Spring: March 1 - April 15
+    const earlyMarch = createDate(3, 15);
+    expect(integration.api.getSeasonInfo(earlyMarch).name).toBe('Early Spring');
+
+    const endOfEarlySpring = createDate(4, 15);
+    expect(integration.api.getSeasonInfo(endOfEarlySpring).name).toBe('Early Spring');
+
+    // Late Spring: April 16 - May 31
+    const startOfLateSpring = createDate(4, 16);
+    expect(integration.api.getSeasonInfo(startOfLateSpring).name).toBe('Late Spring');
+
+    const endOfLateSpring = createDate(5, 31);
+    expect(integration.api.getSeasonInfo(endOfLateSpring).name).toBe('Late Spring');
+
+    // After late spring
+    const afterSpring = createDate(6, 1);
+    expect(integration.api.getSeasonInfo(afterSpring).name).toBe('Summer');
+  });
+
+  it('should handle endDay overflow into next month', () => {
+    // Mock console.warn to verify warning is logged
+    const originalWarn = console.warn;
+    const warnings: string[] = [];
+    console.warn = (msg: string) => warnings.push(msg);
+
+    mockCalendarManager = {
+      getActiveCalendar: () => ({
+        id: 'overflow-endday',
+        seasons: [
+          // February has 28 days, endDay=30 should overflow to March 2
+          { name: 'Winter Extended', startMonth: 1, endMonth: 2, endDay: 30, icon: 'winter' },
+        ],
+        months: [
+          { days: 31 },
+          { days: 28 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+        ],
+      }),
+      getCalendar: () => undefined,
+    };
+
+    integration = createIntegration(mockCalendarManager);
+
+    // Season should extend to March 2 (28 days in Feb + 2 days overflow)
+    const endOfFebruary = createDate(2, 28);
+    expect(integration.api.getSeasonInfo(endOfFebruary).name).toBe('Winter Extended');
+
+    const march1 = createDate(3, 1);
+    expect(integration.api.getSeasonInfo(march1).name).toBe('Winter Extended');
+
+    const march2 = createDate(3, 2);
+    expect(integration.api.getSeasonInfo(march2).name).toBe('Winter Extended');
+
+    const march3 = createDate(3, 3);
+    expect(integration.api.getSeasonInfo(march3).name).toBe('Spring');
+
+    // Verify warning was logged
+    expect(warnings.length).toBeGreaterThan(0);
+    expect(warnings[0]).toContain('Winter Extended');
+    expect(warnings[0]).toContain('endDay=30');
+    expect(warnings[0]).toContain('28 days in month 2');
+
+    // Restore console.warn
+    console.warn = originalWarn;
+  });
+
+  it('should handle endDay in year-crossing seasons', () => {
+    mockCalendarManager = {
+      getActiveCalendar: () => ({
+        id: 'year-crossing-endday',
+        seasons: [
+          // Winter from Dec 15 to Feb 15
+          {
+            name: 'Deep Winter',
+            startMonth: 12,
+            startDay: 15,
+            endMonth: 2,
+            endDay: 15,
+            icon: 'winter',
+          },
+        ],
+        months: [
+          { days: 31 },
+          { days: 28 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+        ],
+      }),
+      getCalendar: () => undefined,
+    };
+
+    integration = createIntegration(mockCalendarManager);
+
+    // Before season starts
+    const earlyDecember = createDate(12, 14);
+    expect(integration.api.getSeasonInfo(earlyDecember).name).toBe('Winter');
+
+    // Season start
+    const startWinter = createDate(12, 15);
+    expect(integration.api.getSeasonInfo(startWinter).name).toBe('Deep Winter');
+
+    // During year crossing
+    const january = createDate(1, 20);
+    expect(integration.api.getSeasonInfo(january).name).toBe('Deep Winter');
+
+    // End of season
+    const endWinter = createDate(2, 15);
+    expect(integration.api.getSeasonInfo(endWinter).name).toBe('Deep Winter');
+
+    // After season
+    const afterWinter = createDate(2, 16);
+    expect(integration.api.getSeasonInfo(afterWinter).name).toBe('Winter');
+  });
+
+  it('should handle extreme endDay overflow across multiple months', () => {
+    const originalWarn = console.warn;
+    const warnings: string[] = [];
+    console.warn = (msg: string) => warnings.push(msg);
+
+    mockCalendarManager = {
+      getActiveCalendar: () => ({
+        id: 'extreme-overflow',
+        seasons: [
+          // January (31 days) with endDay=65 should overflow to early March
+          { name: 'Long Season', startMonth: 1, endMonth: 1, endDay: 65, icon: 'special' },
+        ],
+        months: [
+          { days: 31 },
+          { days: 28 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+        ],
+      }),
+      getCalendar: () => undefined,
+    };
+
+    integration = createIntegration(mockCalendarManager);
+
+    // 65 days from Jan 1: 31 days (Jan) + 28 days (Feb) + 6 days (Mar) = March 6
+    const january = createDate(1, 31);
+    expect(integration.api.getSeasonInfo(january).name).toBe('Long Season');
+
+    const february = createDate(2, 15);
+    expect(integration.api.getSeasonInfo(february).name).toBe('Long Season');
+
+    const earlyMarch = createDate(3, 6);
+    expect(integration.api.getSeasonInfo(earlyMarch).name).toBe('Long Season');
+
+    const afterSeason = createDate(3, 7);
+    expect(integration.api.getSeasonInfo(afterSeason).name).toBe('Spring');
+
+    // Verify warning
+    expect(warnings.length).toBeGreaterThan(0);
+    expect(warnings[0]).toContain('Long Season');
+    expect(warnings[0]).toContain('endDay=65');
+
+    console.warn = originalWarn;
+  });
 });
