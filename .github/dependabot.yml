@@ -61,7 +61,7 @@ updates:
       - "rayners"
     commit-message:
       prefix: "chore(actions)"
-      include: "scope"
+      include: ""
     labels:
       - "github-actions"
       - "automated"
