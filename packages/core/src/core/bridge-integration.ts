@@ -9,6 +9,7 @@ import type {
   CalendarDate,
   CalendarDateData,
   SeasonsStarsCalendar,
+  CalendarSeason,
   DateFormatOptions,
 } from '../types/calendar';
 import { CalendarDate as CalendarDateClass } from './calendar-date';
@@ -429,10 +430,138 @@ class IntegrationAPI {
     };
   }
 
-  getSeasonInfo(date: CalendarDate, _calendarId?: string): SeasonInfo {
-    // Default seasonal calculation - can be enhanced with calendar-specific data
-    const month = date.month;
+  getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo {
+    const calendar = calendarId
+      ? this.manager.getCalendar(calendarId)
+      : this.manager.getActiveCalendar();
 
+    if (!calendar || !calendar.seasons || calendar.seasons.length === 0) {
+      return this.getDefaultSeasonInfo(date.month);
+    }
+
+    const month = date.month;
+    const day = date.day;
+
+    for (const season of calendar.seasons) {
+      const startMonth = season.startMonth;
+      const endMonth = season.endMonth ?? season.startMonth;
+      const startDay = season.startDay ?? 1;
+
+      if (this.isDateInSeason(month, day, startMonth, startDay, endMonth, calendar, season)) {
+        return {
+          name: season.name,
+          icon: season.icon || this.getDefaultSeasonIcon(season.name),
+          description: season.description,
+        };
+      }
+    }
+
+    return this.getDefaultSeasonInfo(month);
+  }
+
+  /**
+   * Check if a date falls within a season's range
+   * Handles year-crossing seasons (e.g., Winter from December to February where endMonth < startMonth)
+   * Month indices are assumed to be 1-based as per calendar schema requirements.
+   *
+   * Note: endDay values that exceed the number of days in endMonth are handled by
+   * calculating overflow into subsequent months (e.g., February 30 → March 2 on non-leap years).
+   * A warning is logged when boundary overflow occurs.
+   *
+   * @param month - The month to check (1-based index)
+   * @param day - The day to check (1-based index)
+   * @param startMonth - Season's starting month (1-based index)
+   * @param startDay - Season's starting day (1-based index, defaults to 1)
+   * @param endMonth - Season's ending month (1-based index)
+   * @param calendar - Calendar definition (for month day counts)
+   * @param season - Season definition (for endDay support)
+   */
+  private isDateInSeason(
+    month: number,
+    day: number,
+    startMonth: number,
+    startDay: number,
+    endMonth: number,
+    calendar: SeasonsStarsCalendar,
+    season: CalendarSeason
+  ): boolean {
+    // Detect year-crossing BEFORE overflow calculation to prevent false negatives
+    // Year-crossing occurs when startMonth > endMonth (e.g., Dec=12 to Feb=2)
+    const isYearCrossing = startMonth > endMonth;
+
+    // Calculate effective end day, handling overflow
+    const endDayRaw = season.endDay;
+    let effectiveEndMonth = endMonth;
+    let effectiveEndDay: number = calendar.months?.[endMonth - 1]?.days ?? 31;
+
+    if (endDayRaw !== undefined) {
+      const daysInEndMonth = calendar.months?.[endMonth - 1]?.days;
+      if (daysInEndMonth && endDayRaw > daysInEndMonth) {
+        // endDay exceeds month boundaries - calculate overflow
+        console.warn(
+          `Season "${season.name}" has endDay=${endDayRaw} which exceeds the ${daysInEndMonth} days in month ${endMonth}. ` +
+            `Season will extend into subsequent month(s).`
+        );
+
+        // Calculate overflow: how many days beyond the end month
+        let remainingDays = endDayRaw - daysInEndMonth;
+        effectiveEndMonth = endMonth;
+
+        // Advance through months until we consume all remaining days
+        // Use calendar.months?.length ?? 12 as upper bound to prevent infinite loop
+        const totalMonths = calendar.months?.length ?? 12;
+        while (remainingDays > 0 && effectiveEndMonth < totalMonths) {
+          effectiveEndMonth++;
+          const nextMonthDays = calendar.months?.[effectiveEndMonth - 1]?.days ?? 30;
+          if (remainingDays <= nextMonthDays) {
+            effectiveEndDay = remainingDays;
+            remainingDays = 0;
+          } else {
+            remainingDays -= nextMonthDays;
+          }
+        }
+
+        // If we've run out of months, wrap to the end of the last month
+        if (remainingDays > 0) {
+          effectiveEndDay = calendar.months?.[calendar.months.length - 1]?.days ?? 31;
+        }
+      } else {
+        effectiveEndDay = endDayRaw;
+      }
+    }
+
+    if (!isYearCrossing) {
+      // Regular season (not year-crossing)
+      // Use effectiveEndMonth/effectiveEndDay for boundary checks to account for overflow
+      if (month < startMonth || month > effectiveEndMonth) {
+        return false;
+      }
+      if (month === startMonth && day < startDay) {
+        return false;
+      }
+      if (month === effectiveEndMonth && day > effectiveEndDay) {
+        return false;
+      }
+      return true;
+    } else {
+      // Year-crossing season (e.g., Winter: Dec-Feb where Dec=12, Feb=2)
+      // Use effectiveEndMonth/effectiveEndDay for boundary checks to account for overflow
+      if (month >= startMonth) {
+        if (month === startMonth && day < startDay) {
+          return false;
+        }
+        return true;
+      } else if (month <= effectiveEndMonth) {
+        if (month === effectiveEndMonth && day > effectiveEndDay) {
+          return false;
+        }
+        return true;
+      }
+      return false;
+    }
+  }
+
+  private getDefaultSeasonInfo(month: number): SeasonInfo {
     if (month >= 3 && month <= 5) {
       return { name: 'Spring', icon: 'spring' };
     } else if (month >= 6 && month <= 8) {
@@ -442,6 +571,15 @@ class IntegrationAPI {
     } else {
       return { name: 'Winter', icon: 'winter' };
     }
+  }
+
+  private getDefaultSeasonIcon(seasonName: string): string {
+    const lowerName = seasonName.toLowerCase();
+    if (lowerName.includes('spring')) return 'spring';
+    if (lowerName.includes('summer')) return 'summer';
+    if (lowerName.includes('autumn') || lowerName.includes('fall')) return 'fall';
+    if (lowerName.includes('winter')) return 'winter';
+    return 'spring';
   }
 
   get notes(): SeasonsStarsNotesAPI {
