@@ -582,10 +582,20 @@
             "minimum": 1,
             "description": "Starting month of the season (1-based)"
           },
+          "startDay": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Starting day of the season within startMonth (1-based, defaults to 1 if not specified)"
+          },
           "endMonth": {
             "type": "integer",
             "minimum": 1,
             "description": "Ending month of the season (1-based)"
+          },
+          "endDay": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Ending day of the season within endMonth (1-based, defaults to last day of month if not specified)"
           },
           "icon": {
             "type": "string",
