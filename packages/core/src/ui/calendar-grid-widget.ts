@@ -1151,6 +1151,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         </form>
       `;
 
+      // Store document click handler for cleanup
+      let documentClickHandler: ((e: MouseEvent) => void) | null = null;
+
       const dialog = new foundry.applications.api.DialogV2({
         window: {
           title: 'Create Note',
@@ -1208,30 +1211,35 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           width: 600,
         },
         render: (event: Event, html: HTMLElement) => {
-          const $html = $(html);
+          // Tag suggestions
+          html.querySelectorAll('.tag-suggestion').forEach(suggestion => {
+            suggestion.addEventListener('click', function (this: HTMLElement) {
+              const tag = this.dataset.tag;
+              const tagsInput = html.querySelector('input[name="tags"]') as HTMLInputElement;
+              const currentTags = tagsInput.value;
 
-          $html.find('.tag-suggestion').on('click', function () {
-            const tag = $(this).data('tag');
-            const tagsInput = $html.find('input[name="tags"]');
-            const currentTags = tagsInput.val() as string;
-
-            if (currentTags) {
-              tagsInput.val(currentTags + ', ' + tag);
-            } else {
-              tagsInput.val(tag);
-            }
-            tagsInput.trigger('input');
+              if (currentTags) {
+                tagsInput.value = currentTags + ', ' + tag;
+              } else {
+                tagsInput.value = tag || '';
+              }
+              tagsInput.dispatchEvent(new Event('input'));
+            });
           });
 
-          $html.find('.category-select').on('change', function () {
-            const selectedCat = categories.getCategory($(this).val() as string);
+          // Category select
+          const categorySelect = html.querySelector('.category-select') as HTMLSelectElement;
+          categorySelect.addEventListener('change', function () {
+            const selectedCat = categories.getCategory(this.value);
             if (selectedCat) {
-              $(this).css('border-left', `4px solid ${selectedCat.color}`);
+              this.style.borderLeft = `4px solid ${selectedCat.color}`;
             }
           });
 
-          const tagsInput = $html.find('input[name="tags"]');
-          const autocompleteDropdown = $html.find('.tag-autocomplete-dropdown');
+          const tagsInput = html.querySelector('input[name="tags"]') as HTMLInputElement;
+          const autocompleteDropdown = html.querySelector(
+            '.tag-autocomplete-dropdown'
+          ) as HTMLElement;
           let selectedIndex = -1;
 
           function matchTag(
@@ -1278,9 +1286,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             afterCursor: string;
             currentTag: string;
           } {
-            const inputElement = tagsInput[0] as HTMLInputElement;
-            const cursorPos = inputElement.selectionStart || 0;
-            const fullText = tagsInput.val() as string;
+            const cursorPos = tagsInput.selectionStart || 0;
+            const fullText = tagsInput.value;
             const beforeCursor = fullText.substring(0, cursorPos);
             const afterCursor = fullText.substring(cursorPos);
 
@@ -1292,7 +1299,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
           function showAutocomplete(searchTerm: string) {
             if (searchTerm.length < 1) {
-              autocompleteDropdown.hide();
+              autocompleteDropdown.style.display = 'none';
               return;
             }
 
@@ -1306,7 +1313,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             });
 
             if (matches.length === 0) {
-              autocompleteDropdown.hide();
+              autocompleteDropdown.style.display = 'none';
               return;
             }
 
@@ -1319,7 +1326,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               )
               .join('');
 
-            autocompleteDropdown.html(dropdownHtml).show();
+            autocompleteDropdown.innerHTML = dropdownHtml;
+            autocompleteDropdown.style.display = 'block';
             selectedIndex = -1;
           }
 
@@ -1335,61 +1343,76 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               (context.afterCursor.startsWith(',') ? '' : ', ') +
               context.afterCursor;
 
-            tagsInput.val(newValue.replace(/,\\s*$/, ''));
-            autocompleteDropdown.hide();
+            tagsInput.value = newValue.replace(/,\s*$/, '');
+            autocompleteDropdown.style.display = 'none';
             tagsInput.focus();
           }
 
-          tagsInput.on('input', function () {
+          tagsInput.addEventListener('input', function () {
             const context = getCurrentTypingContext();
             showAutocomplete(context.currentTag);
           });
 
-          tagsInput.on('keydown', function (e) {
-            const dropdown = autocompleteDropdown;
-            const items = dropdown.find('.tag-autocomplete-item');
+          tagsInput.addEventListener('keydown', function (e: KeyboardEvent) {
+            const items = Array.from(
+              autocompleteDropdown.querySelectorAll('.tag-autocomplete-item')
+            ) as HTMLElement[];
 
-            if (!dropdown.is(':visible') || items.length === 0) return;
+            if (autocompleteDropdown.style.display === 'none' || items.length === 0) return;
 
             switch (e.keyCode) {
-              case 38:
+              case 38: // Up arrow
                 e.preventDefault();
                 selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
                 break;
-              case 40:
+              case 40: // Down arrow
                 e.preventDefault();
                 selectedIndex = selectedIndex >= items.length - 1 ? 0 : selectedIndex + 1;
                 break;
-              case 13:
+              case 13: // Enter
                 e.preventDefault();
                 if (selectedIndex >= 0) {
-                  const selectedTag = items.eq(selectedIndex).data('tag');
-                  insertTag(selectedTag);
+                  const selectedTag = items[selectedIndex].dataset.tag;
+                  if (selectedTag) insertTag(selectedTag);
                 }
                 return;
-              case 27:
-                dropdown.hide();
+              case 27: // Escape
+                autocompleteDropdown.style.display = 'none';
                 return;
             }
 
-            items.removeClass('selected');
+            items.forEach(item => item.classList.remove('selected'));
             if (selectedIndex >= 0) {
-              items.eq(selectedIndex).addClass('selected');
+              items[selectedIndex].classList.add('selected');
             }
           });
 
-          autocompleteDropdown.on('click', '.tag-autocomplete-item', function () {
-            const tagToInsert = $(this).data('tag');
-            insertTag(tagToInsert);
-          });
-
-          $(document).on('click', function (e) {
-            if (!$(e.target).closest('.tag-autocomplete').length) {
-              autocompleteDropdown.hide();
+          autocompleteDropdown.addEventListener('click', function (e) {
+            const target = (e.target as HTMLElement).closest('.tag-autocomplete-item');
+            if (target) {
+              const tagToInsert = (target as HTMLElement).dataset.tag;
+              if (tagToInsert) insertTag(tagToInsert);
             }
           });
 
-          $html.find('.category-select').trigger('change');
+          // Initialize document click handler for autocomplete
+          documentClickHandler = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest('.tag-autocomplete')) {
+              autocompleteDropdown.style.display = 'none';
+            }
+          };
+          document.addEventListener('click', documentClickHandler);
+
+          // Trigger initial category select change to set border color
+          categorySelect.dispatchEvent(new Event('change'));
+        },
+        close: () => {
+          // Clean up event listeners when dialog closes
+          if (documentClickHandler) {
+            document.removeEventListener('click', documentClickHandler);
+            documentClickHandler = null;
+          }
         },
       });
 
@@ -1512,14 +1535,15 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         ],
         default: 'cancel',
         render: (event: Event, html: HTMLElement) => {
-          const $html = $(html);
-          $html.find('.note-item').on('click', function () {
-            const noteIndex = parseInt($(this).data('index'));
-            const note = notes[noteIndex];
-            if (note && note.sheet) {
-              (note.sheet as any).render(true);
-            }
-            resolve();
+          html.querySelectorAll('.note-item').forEach(item => {
+            item.addEventListener('click', function (this: HTMLElement) {
+              const noteIndex = parseInt(this.dataset.index || '0');
+              const note = notes[noteIndex];
+              if (note && note.sheet) {
+                (note.sheet as any).render(true);
+              }
+              resolve();
+            });
           });
         },
       });
