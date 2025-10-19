@@ -648,4 +648,87 @@ describe('Season Info with Year-Crossing Support', () => {
 
     console.warn = originalWarn;
   });
+
+  it('should handle year-crossing season with endDay overflow', () => {
+    const originalWarn = console.warn;
+    const warnings: string[] = [];
+    console.warn = (msg: string) => warnings.push(msg);
+
+    mockCalendarManager = {
+      getActiveCalendar: () => ({
+        id: 'year-crossing-overflow',
+        seasons: [
+          // Winter from Nov 15 to Jan 35 (overflow into Feb)
+          // Jan has 31 days, so endDay=35 extends to Feb 4
+          {
+            name: 'Extended Winter',
+            startMonth: 11,
+            startDay: 15,
+            endMonth: 1,
+            endDay: 35,
+            icon: 'winter',
+          },
+        ],
+        months: [
+          { days: 31 },
+          { days: 28 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+          { days: 30 },
+          { days: 31 },
+        ],
+      }),
+      getCalendar: () => undefined,
+    };
+
+    integration = createIntegration(mockCalendarManager);
+
+    // Before season starts
+    const earlyNovember = createDate(11, 14);
+    expect(integration.api.getSeasonInfo(earlyNovember).name).toBe('Fall');
+
+    // Season start in November
+    const startWinter = createDate(11, 15);
+    expect(integration.api.getSeasonInfo(startWinter).name).toBe('Extended Winter');
+
+    // Late November
+    const lateNovember = createDate(11, 30);
+    expect(integration.api.getSeasonInfo(lateNovember).name).toBe('Extended Winter');
+
+    // December (during year crossing)
+    const december = createDate(12, 20);
+    expect(integration.api.getSeasonInfo(december).name).toBe('Extended Winter');
+
+    // January (full month)
+    const earlyJanuary = createDate(1, 1);
+    expect(integration.api.getSeasonInfo(earlyJanuary).name).toBe('Extended Winter');
+
+    const lateJanuary = createDate(1, 31);
+    expect(integration.api.getSeasonInfo(lateJanuary).name).toBe('Extended Winter');
+
+    // February (overflow portion: days 1-4)
+    const feb1 = createDate(2, 1);
+    expect(integration.api.getSeasonInfo(feb1).name).toBe('Extended Winter');
+
+    const feb4 = createDate(2, 4);
+    expect(integration.api.getSeasonInfo(feb4).name).toBe('Extended Winter');
+
+    // After season ends
+    const afterWinter = createDate(2, 5);
+    expect(integration.api.getSeasonInfo(afterWinter).name).toBe('Winter');
+
+    // Verify overflow warning was logged
+    expect(warnings.length).toBeGreaterThan(0);
+    expect(warnings[0]).toContain('Extended Winter');
+    expect(warnings[0]).toContain('endDay=35');
+    expect(warnings[0]).toContain('31 days in month 1');
+
+    console.warn = originalWarn;
+  });
 });
