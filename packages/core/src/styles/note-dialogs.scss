@@ -1,0 +1,213 @@
+/* Note Dialog Styles */
+
+/* Create Note Form */
+.seasons-stars-note-form {
+  max-width: 600px;
+  font-family: var(--font-primary);
+  overflow: visible;
+
+  .note-dialog-date {
+    text-align: center;
+    margin-bottom: 16px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    font-weight: 600;
+    color: var(--color-text-dark-primary);
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .form-group.half-width {
+    flex: 1;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: var(--color-text-dark-primary);
+    font-size: 13px;
+  }
+
+  input[type="text"],
+  textarea,
+  select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--color-border-dark);
+    border-radius: 4px;
+    background: var(--color-bg-option);
+    color: var(--color-text-dark-primary);
+    font-size: 13px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    line-height: 1.4;
+    min-height: 36px;
+  }
+
+  select {
+    padding: 6px 10px;
+    height: auto;
+    min-height: 34px;
+  }
+
+  input[type="text"]:focus,
+  textarea:focus,
+  select:focus {
+    border-color: var(--color-border-highlight);
+    box-shadow: 0 0 0 2px rgba(var(--color-shadow-highlight), 0.2);
+    outline: none;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .tag-suggestions {
+    margin-top: 6px;
+    max-height: 80px;
+    overflow-y: auto;
+    border: 1px solid var(--color-border-light);
+    border-radius: 4px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.1);
+
+    small {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--color-text-dark-secondary);
+      font-weight: 600;
+      font-size: 11px;
+    }
+  }
+
+  .tag-suggestion {
+    display: inline-block;
+    background: var(--color-bg-btn);
+    border: 1px solid var(--color-border-dark);
+    border-radius: 12px;
+    padding: 4px 10px;
+    margin: 2px 4px 2px 0;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    user-select: none;
+
+    &:hover {
+      background: var(--color-bg-btn-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .tag-autocomplete {
+    position: relative;
+  }
+
+  .tag-autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-bg-option);
+    border: 1px solid var(--color-border-dark);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 120px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+  }
+
+  .tag-autocomplete-item {
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    border-bottom: 1px solid var(--color-border-light);
+    transition: background-color 0.15s ease;
+
+    &:hover,
+    &.selected {
+      background: var(--color-bg-btn-hover);
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .tag-match {
+      font-weight: 600;
+      color: var(--color-text-highlight);
+    }
+  }
+
+  .category-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 12px;
+    padding-right: 30px !important;
+    vertical-align: top;
+  }
+
+  input[type="checkbox"] {
+    margin-right: 6px;
+  }
+}
+
+/* Notes Selection Dialog */
+.notes-selection {
+  max-width: 500px;
+
+  .note-item {
+    border: 1px solid var(--color-border-light);
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    background: rgba(255, 255, 255, 0.02);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--color-border-highlight);
+    }
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  .note-category {
+    font-size: 11px;
+    background: var(--color-bg-btn);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--color-text-light-heading);
+  }
+
+  .note-preview {
+    font-size: 12px;
+    color: var(--color-text-dark-secondary);
+    font-style: italic;
+  }
+}

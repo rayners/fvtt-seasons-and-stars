@@ -1065,7 +1065,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         const yearPrefix = activeCalendar.year?.prefix || '';
         const yearSuffix = activeCalendar.year?.suffix || '';
         dateDisplayStr = `${safeDate.day} ${monthName}, ${yearPrefix}${safeDate.year}${yearSuffix}`;
-        calendarInfo = `<div style="text-align: center; margin-bottom: 16px; padding: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; font-weight: 600; color: var(--color-text-dark-primary);">${dateDisplayStr}</div>`;
+        calendarInfo = `<div class="note-dialog-date">${dateDisplayStr}</div>`;
       }
 
       const availableCategories = categories.getCategories();
@@ -1109,143 +1109,6 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       const allAvailableTags = Array.from(new Set([...predefinedTags, ...existingTags]));
 
       const content = `
-        <style>
-          .seasons-stars-note-form {
-            max-width: 600px;
-            font-family: var(--font-primary);
-            overflow: visible;
-          }
-          .seasons-stars-note-form .form-group {
-            margin-bottom: 16px;
-          }
-          .seasons-stars-note-form .form-row {
-            display: flex;
-            gap: 12px;
-          }
-          .seasons-stars-note-form .form-group.half-width {
-            flex: 1;
-          }
-          .seasons-stars-note-form label {
-            display: block;
-            margin-bottom: 4px;
-            font-weight: 600;
-            color: var(--color-text-dark-primary);
-            font-size: 13px;
-          }
-          .seasons-stars-note-form input[type="text"],
-          .seasons-stars-note-form textarea,
-          .seasons-stars-note-form select {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid var(--color-border-dark);
-            border-radius: 4px;
-            background: var(--color-bg-option);
-            color: var(--color-text-dark-primary);
-            font-size: 13px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            line-height: 1.4;
-            min-height: 36px;
-          }
-          .seasons-stars-note-form select {
-            padding: 6px 10px;
-            height: auto;
-            min-height: 34px;
-          }
-          .seasons-stars-note-form input[type="text"]:focus,
-          .seasons-stars-note-form textarea:focus,
-          .seasons-stars-note-form select:focus {
-            border-color: var(--color-border-highlight);
-            box-shadow: 0 0 0 2px rgba(var(--color-shadow-highlight), 0.2);
-            outline: none;
-          }
-          .seasons-stars-note-form textarea {
-            resize: vertical;
-            min-height: 80px;
-          }
-          .seasons-stars-note-form .tag-suggestions {
-            margin-top: 6px;
-            max-height: 80px;
-            overflow-y: auto;
-            border: 1px solid var(--color-border-light);
-            border-radius: 4px;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.1);
-          }
-          .seasons-stars-note-form .tag-suggestions small {
-            display: block;
-            margin-bottom: 6px;
-            color: var(--color-text-dark-secondary);
-            font-weight: 600;
-            font-size: 11px;
-          }
-          .seasons-stars-note-form .tag-suggestion {
-            display: inline-block;
-            background: var(--color-bg-btn);
-            border: 1px solid var(--color-border-dark);
-            border-radius: 12px;
-            padding: 4px 10px;
-            margin: 2px 4px 2px 0;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            user-select: none;
-          }
-          .seasons-stars-note-form .tag-suggestion:hover {
-            background: var(--color-bg-btn-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-          }
-          .seasons-stars-note-form .tag-autocomplete {
-            position: relative;
-          }
-          .seasons-stars-note-form .tag-autocomplete-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--color-bg-option);
-            border: 1px solid var(--color-border-dark);
-            border-top: none;
-            border-radius: 0 0 4px 4px;
-            max-height: 120px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-          }
-          .seasons-stars-note-form .tag-autocomplete-item {
-            padding: 6px 10px;
-            cursor: pointer;
-            font-size: 12px;
-            border-bottom: 1px solid var(--color-border-light);
-            transition: background-color 0.15s ease;
-          }
-          .seasons-stars-note-form .tag-autocomplete-item:hover,
-          .seasons-stars-note-form .tag-autocomplete-item.selected {
-            background: var(--color-bg-btn-hover);
-          }
-          .seasons-stars-note-form .tag-autocomplete-item:last-child {
-            border-bottom: none;
-          }
-          .seasons-stars-note-form .tag-autocomplete-item .tag-match {
-            font-weight: 600;
-            color: var(--color-text-highlight);
-          }
-          .seasons-stars-note-form .category-select {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 8px center;
-            background-size: 12px;
-            padding-right: 30px !important;
-            vertical-align: top;
-          }
-          .seasons-stars-note-form input[type="checkbox"] {
-            margin-right: 6px;
-          }
-        </style>
         <form class="seasons-stars-note-form">
           ${calendarInfo}
 
@@ -1627,45 +1490,6 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       .join('');
 
     const content = `
-      <style>
-        .notes-selection {
-          max-width: 500px;
-        }
-        .note-item {
-          border: 1px solid var(--color-border-light);
-          border-radius: 4px;
-          padding: 10px;
-          margin-bottom: 8px;
-          cursor: pointer;
-          transition: background-color 0.2s ease;
-          background: rgba(255, 255, 255, 0.02);
-        }
-        .note-item:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: var(--color-border-highlight);
-        }
-        .note-item:last-child {
-          margin-bottom: 0;
-        }
-        .note-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 4px;
-        }
-        .note-category {
-          font-size: 11px;
-          background: var(--color-bg-btn);
-          padding: 2px 6px;
-          border-radius: 3px;
-          color: var(--color-text-light-heading);
-        }
-        .note-preview {
-          font-size: 12px;
-          color: var(--color-text-dark-secondary);
-          font-style: italic;
-        }
-      </style>
       <div class="notes-selection">
         <p>Select a note to view/edit:</p>
         ${notesList}
