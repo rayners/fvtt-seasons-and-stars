@@ -738,7 +738,7 @@ export class CalendarManager {
    * Set current date using active calendar
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async setCurrentDate(date: any): Promise<void> {
+  async setCurrentDate(date: CalendarDate | CalendarDateData): Promise<void> {
     if (!this.timeConverter) {
       throw new Error('No active calendar set');
     }
@@ -750,7 +750,13 @@ export class CalendarManager {
    * Get debug information
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getDebugInfo(): any {
+  getDebugInfo(): {
+    currentCalendar: string;
+    currentDate: CalendarDate;
+    worldTime: number;
+    availableCalendars: string[];
+    calendarData: SeasonsStarsCalendar;
+  } {
     return {
       activeCalendarId: this.activeCalendarId,
       availableCalendars: this.getAvailableCalendars(),
@@ -762,10 +768,8 @@ export class CalendarManager {
   /**
    * Validate all loaded calendars
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validateAllCalendars(): { [calendarId: string]: any } {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const results: { [calendarId: string]: any } = {};
+  validateAllCalendars(): { [calendarId: string]: ValidationResult } {
+    const results: { [calendarId: string]: ValidationResult } = {};
 
     for (const [calendarId, calendar] of this.calendars.entries()) {
       results[calendarId] = CalendarValidator.validateWithHelp(calendar);
@@ -983,7 +987,7 @@ export class CalendarManager {
    * Validate external variant file structure
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private validateExternalVariantFile(data: any): boolean {
+  private validateExternalVariantFile(data: unknown): boolean {
     return (
       data &&
       typeof data === 'object' &&
@@ -998,7 +1002,7 @@ export class CalendarManager {
    * Apply external variants to a base calendar
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private applyExternalVariants(baseCalendar: SeasonsStarsCalendar, variantFileData: any): void {
+  private applyExternalVariants(baseCalendar: SeasonsStarsCalendar, variantFileData: unknown): void {
     for (const [variantId, variant] of Object.entries(variantFileData.variants)) {
       const variantCalendar = this.applyVariantOverrides(
         baseCalendar,

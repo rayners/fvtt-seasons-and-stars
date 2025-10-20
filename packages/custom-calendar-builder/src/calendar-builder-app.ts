@@ -6,12 +6,13 @@
 
 import { SimpleCalendarConverter } from './simple-calendar-converter';
 import type { SimpleCalendarExport, SimpleCalendarData } from './simple-calendar-types';
+import type { ValidationResult } from '@seasons-stars/core/types/bridge-interfaces';
 
 export class CalendarBuilderApp extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
   private currentJson: string = '';
-  private lastValidationResult: any = null;
+  private lastValidationResult: ValidationResult | null = null;
   private validationTimeout: number | null = null;
   private validationSequence: number = 0;
 
@@ -23,7 +24,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   }
 
   /** @override */
-  async close(options?: any): Promise<this> {
+  async close(options?: Record<string, unknown>): Promise<this> {
     // Clean up validation timeout
     if (this.validationTimeout) {
       clearTimeout(this.validationTimeout);
@@ -140,7 +141,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   }
 
   /** @override */
-  async _preparePartContext(partId: string, context: any): Promise<any> {
+  async _preparePartContext(partId: string, context: Record<string, unknown>): Promise<Record<string, unknown>> {
     // Start with a copy of the context
     const partContext = { ...context };
 
@@ -158,7 +159,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   }
 
   /** @override */
-  _attachPartListeners(partId: string, htmlElement: HTMLElement, options: any): void {
+  _attachPartListeners(partId: string, htmlElement: HTMLElement, options: Record<string, unknown>): void {
     super._attachPartListeners(partId, htmlElement, options);
 
     // Update validation results display for editor part
@@ -167,7 +168,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     }
   }
 
-  protected override _onChangeForm(formConfig: any, event: Event): void {
+  protected override _onChangeForm(formConfig: Record<string, unknown>, event: Event): void {
     super._onChangeForm?.(formConfig, event);
 
     // Update current JSON from the CodeMirror element
@@ -291,7 +292,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   /**
    * Basic JSON structure validation fallback
    */
-  private _basicValidation(data: any): any {
+  private _basicValidation(data: unknown): { isValid: boolean; errors: string[]; warnings: string[] } {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -497,7 +498,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
   }
 
-  private async _detectAndHandleSimpleCalendar(data: any, originalText: string, filename?: string): Promise<boolean> {
+  private async _detectAndHandleSimpleCalendar(data: unknown, originalText: string, filename?: string): Promise<boolean> {
     if (!SimpleCalendarConverter.isSimpleCalendarFormat(data)) {
       return false;
     }
@@ -574,7 +575,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     return calendars[0];
   }
 
-  private _reportConversionWarnings(warnings: any[]): void {
+  private _reportConversionWarnings(warnings: { path: string; property: string; value: unknown; reason: string }[]): void {
     const lines: string[] = [];
     lines.push('=== Simple Calendar Conversion Warnings ===');
     lines.push(`Total warnings: ${warnings.length}`);

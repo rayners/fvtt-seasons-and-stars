@@ -138,8 +138,7 @@ export class CalendarValidator {
   /**
    * Validate a complete calendar configuration using JSON schema
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static async validate(calendar: any): Promise<ValidationResult> {
+  static async validate(calendar: unknown): Promise<ValidationResult> {
     const result: ValidationResult = {
       isValid: true,
       errors: [],
@@ -292,7 +291,7 @@ export class CalendarValidator {
    * 2. It matches a valid property case-insensitively but not exactly (wrong case)
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static findUnexpectedProperties(obj: any, validProps: string[]): string[] {
+  private static findUnexpectedProperties(obj: unknown, validProps: string[]): string[] {
     if (!obj || typeof obj !== 'object') {
       return [];
     }
@@ -394,7 +393,7 @@ export class CalendarValidator {
    * Get object at a specific path
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static getObjectAtPath(obj: any, pathParts: string[]): any {
+  private static getObjectAtPath(obj: unknown, pathParts: string[]): unknown {
     let current = obj;
     for (const part of pathParts) {
       if (current && typeof current === 'object') {
@@ -438,7 +437,7 @@ export class CalendarValidator {
    * Fallback validation method that doesn't use JSON schemas
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static validateLegacy(calendar: any): ValidationResult {
+  private static validateLegacy(calendar: unknown): ValidationResult {
     const result: ValidationResult = {
       isValid: true,
       errors: [],
@@ -496,7 +495,7 @@ export class CalendarValidator {
    */
 
   private static async validateVariantsSpecific(
-    _calendar: any,
+    _calendar: unknown,
     _result: ValidationResult
   ): Promise<void> {
     // Add any variants-specific cross-reference validations here
@@ -517,7 +516,7 @@ export class CalendarValidator {
    * - Foundry sessions last 2-4 hours then browser refresh clears cache anyway
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static validateDateFormats(calendar: any, result: ValidationResult): void {
+  private static validateDateFormats(calendar: unknown, result: ValidationResult): void {
     if (!calendar.dateFormats || typeof calendar.dateFormats !== 'object') {
       return; // dateFormats is optional
     }
@@ -584,7 +583,7 @@ export class CalendarValidator {
    * Validate cross-references between fields
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static validateCrossReferences(calendar: any, result: ValidationResult): void {
+  private static validateCrossReferences(calendar: unknown, result: ValidationResult): void {
     // Check for unique month names
     if (Array.isArray(calendar.months)) {
       const monthNames = calendar.months.map((m: any) => m.name).filter(Boolean);
@@ -658,7 +657,7 @@ export class CalendarValidator {
    * Validate calendar and provide helpful error messages (synchronous version)
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static validateWithHelp(calendar: any): ValidationResult {
+  static validateWithHelp(calendar: unknown): ValidationResult {
     // Use legacy validation for synchronous operation
     const result = this.validateLegacy(calendar);
 
@@ -675,7 +674,7 @@ export class CalendarValidator {
    * Quick validation for just checking if calendar is loadable
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static isValid(calendar: any): boolean {
+  static isValid(calendar: unknown): boolean {
     return this.validateWithHelp(calendar).isValid;
   }
 
@@ -683,7 +682,7 @@ export class CalendarValidator {
    * Get a list of validation errors as strings
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static getErrors(calendar: any): string[] {
+  static getErrors(calendar: unknown): string[] {
     return this.validateWithHelp(calendar).errors;
   }
 
@@ -707,7 +706,7 @@ export class CalendarValidator {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private static async validateSourceUrls(calendar: any, result: ValidationResult): Promise<void> {
+  private static async validateSourceUrls(calendar: unknown, result: ValidationResult): Promise<void> {
     if (!this.shouldVerifySources()) {
       return;
     }

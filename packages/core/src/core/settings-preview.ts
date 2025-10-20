@@ -5,6 +5,7 @@
 import { Logger } from './logger';
 import { parseQuickTimeButtons, formatTimeButton, getQuickTimeButtons } from './quick-time-buttons';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
+import type { SeasonsStarsCalendar } from '../types/calendar';
 
 // Module-level state (replaces static class properties)
 let previewContainer: HTMLElement | null = null;
@@ -16,7 +17,7 @@ let previewContainer: HTMLElement | null = null;
  */
 export function registerSettingsPreviewHooks(): void {
   // Hook into settings config rendering
-  Hooks.on('renderSettingsConfig', (app: any, html: HTMLElement) => {
+  Hooks.on('renderSettingsConfig', (_app: unknown, html: HTMLElement) => {
     Logger.debug('Settings config rendered, attempting to enhance settings');
     enhanceButtonSettingsWithUnifiedPreview(html);
   });
@@ -47,7 +48,7 @@ function enhanceButtonSettingsWithUnifiedPreview(html: HTMLElement): void {
     createPreviewContainer(referenceInput);
 
     // Debounced update function that handles both inputs
-    const debouncedUnifiedUpdate = (foundry.utils as any).debounce(() => {
+    const debouncedUnifiedUpdate = (foundry.utils as { debounce: (fn: () => void, delay: number) => () => void }).debounce(() => {
       updateUnifiedPreview(quickTimeInput?.value || '', miniWidgetInput?.value || '');
     }, 300);
 
@@ -148,7 +149,7 @@ function updateUnifiedPreview(mainValue: string, miniValue: string): void {
  */
 function showButtonPreview(
   inputButtons: number[],
-  calendar: any,
+  calendar: SeasonsStarsCalendar | undefined,
   mainSetting: string,
   miniSetting: string | null
 ): void {
@@ -268,7 +269,7 @@ function updateMiniWidgetNoteWithUpdatedLogic(
 /**
  * Render button preview HTML for a set of buttons (legacy function for backwards compatibility)
  */
-function renderButtonPreview(buttons: number[], calendar: any): string {
+function renderButtonPreview(buttons: number[], calendar: SeasonsStarsCalendar | undefined): string {
   if (buttons.length === 0) {
     return '<span style="font-style: italic; color: var(--color-text-dark-secondary); font-size: 0.8rem;">No buttons to display</span>';
   }
