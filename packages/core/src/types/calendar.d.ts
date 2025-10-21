@@ -509,6 +509,9 @@ export interface EventTranslation {
  * rules. They can be defined in calendar JSON files or added/overridden at
  * the world level by the GM.
  *
+ * Events support multi-day durations and specific start times within a day.
+ * An event "occurs" on a date if any part of its duration overlaps that date.
+ *
  * @example
  * // Basic fixed date event
  * {
@@ -521,15 +524,28 @@ export interface EventTranslation {
  * }
  *
  * @example
- * // Event with journal entry and year range
+ * // Multi-day event with start time
  * {
  *   id: 'winter-festival',
  *   name: 'Winter Festival',
- *   description: 'Annual celebration of the winter solstice',
- *   journalEntryId: '@JournalEntry[Winter Festival]',
+ *   description: 'Three-day celebration starting at noon',
  *   recurrence: { type: 'fixed', month: 12, day: 21 },
- *   startYear: 100,
+ *   startTime: '12:00:00',
+ *   length: '3d',
  *   visibility: 'player-visible'
+ * }
+ *
+ * @example
+ * // Momentary event (eclipse)
+ * {
+ *   id: 'solar-eclipse-2024',
+ *   name: 'Solar Eclipse',
+ *   description: 'Total solar eclipse visible at 2:40 PM',
+ *   recurrence: { type: 'fixed', month: 4, day: 8 },
+ *   startTime: '14:40:00',
+ *   length: '0s',
+ *   startYear: 2024,
+ *   endYear: 2024
  * }
  */
 export interface CalendarEvent {
@@ -543,6 +559,27 @@ export interface CalendarEvent {
   journalEntryId?: string;
   /** When this event occurs */
   recurrence: RecurrenceRule;
+  /**
+   * Time of day when the event starts
+   * Format: "hh", "hh:mm", or "hh:mm:ss" (digits can exceed two)
+   * Defaults to "00:00:00" (start of day)
+   * @example "14:30:00" // 2:30 PM
+   * @example "9" // 9 AM
+   * @example "23:45" // 11:45 PM
+   */
+  startTime?: string;
+  /**
+   * Duration of the event in quick time notation
+   * Format: "<number><unit>" where unit is s (seconds), m (minutes), h (hours), d (days), w (weeks)
+   * Must be >= 0 (zero-duration events represent specific moments)
+   * Defaults to "1d" (one day)
+   * @example "1d" // One day (default)
+   * @example "3d" // Three days
+   * @example "2h" // Two hours
+   * @example "30m" // Thirty minutes
+   * @example "0s" // Momentary event (instant)
+   */
+  length?: string;
   /** First year event occurs (omit for all past years) */
   startYear?: number;
   /** Last year event occurs (omit for indefinite future) */

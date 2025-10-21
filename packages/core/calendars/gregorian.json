@@ -355,8 +355,8 @@
     },
     {
       "id": "summer-olympics-2024",
-      "name": "Summer Olympics Opening (2024)",
-      "description": "Opening ceremony of the Summer Olympic Games in Paris",
+      "name": "Summer Olympics (2024)",
+      "description": "Summer Olympic Games in Paris - a 16-day international sporting event",
       "recurrence": {
         "type": "interval",
         "intervalYears": 4,
@@ -364,6 +364,8 @@
         "month": 7,
         "day": 26
       },
+      "startTime": "20:00:00",
+      "length": "16d",
       "startYear": 2024,
       "visibility": "player-visible",
       "color": "#00BCD4",

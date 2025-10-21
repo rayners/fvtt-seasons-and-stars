@@ -853,6 +853,18 @@
             ],
             "description": "When this event occurs"
           },
+          "startTime": {
+            "type": "string",
+            "pattern": "^\\d+(?::\\d+(?::\\d+)?)?$",
+            "default": "00:00:00",
+            "description": "Time of day when the event starts (format: hh, hh:mm, or hh:mm:ss). Defaults to 00:00:00."
+          },
+          "length": {
+            "type": "string",
+            "pattern": "^\\d+[smhdw]$",
+            "default": "1d",
+            "description": "Duration of the event in quick time notation (format: <number><unit> where unit is s/m/h/d/w). Must be >= 0. Defaults to 1d."
+          },
           "startYear": {
             "type": "integer",
             "description": "First year event occurs (omit for all past years)"
