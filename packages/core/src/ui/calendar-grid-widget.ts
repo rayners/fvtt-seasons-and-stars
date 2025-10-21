@@ -1151,8 +1151,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         </form>
       `;
 
-      // Store document click handler for cleanup
-      let documentClickHandler: ((e: MouseEvent) => void) | null = null;
+      const abortController = new AbortController();
 
       const dialog = new foundry.applications.api.DialogV2({
         window: {
@@ -1165,7 +1164,11 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             action: 'create',
             icon: 'fas fa-plus',
             label: 'Create Note',
-            callback: async (event: Event, button: HTMLElement, html: HTMLElement) => {
+            callback: async (
+              event: Event,
+              button: HTMLElement,
+              html: HTMLElement
+            ): Promise<void> => {
               const form = html.querySelector('form') as HTMLFormElement;
               const formData = new FormData(form);
 
@@ -1203,14 +1206,14 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             action: 'cancel',
             icon: 'fas fa-times',
             label: 'Cancel',
-            callback: () => resolve(null),
+            callback: (): void => resolve(null),
           },
         ],
         default: 'create',
         position: {
           width: 600,
         },
-        render: (event: Event, html: HTMLElement) => {
+        render: (event: Event, html: HTMLElement): void => {
           // Tag suggestions
           html.querySelectorAll('.tag-suggestion').forEach(suggestion => {
             suggestion.addEventListener('click', function (this: HTMLElement) {
@@ -1360,23 +1363,23 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
             if (autocompleteDropdown.style.display === 'none' || items.length === 0) return;
 
-            switch (e.keyCode) {
-              case 38: // Up arrow
+            switch (e.key) {
+              case 'ArrowUp':
                 e.preventDefault();
                 selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
                 break;
-              case 40: // Down arrow
+              case 'ArrowDown':
                 e.preventDefault();
                 selectedIndex = selectedIndex >= items.length - 1 ? 0 : selectedIndex + 1;
                 break;
-              case 13: // Enter
+              case 'Enter':
                 e.preventDefault();
                 if (selectedIndex >= 0) {
                   const selectedTag = items[selectedIndex].dataset.tag;
                   if (selectedTag) insertTag(selectedTag);
                 }
                 return;
-              case 27: // Escape
+              case 'Escape':
                 autocompleteDropdown.style.display = 'none';
                 return;
             }
@@ -1396,23 +1399,22 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           });
 
           // Initialize document click handler for autocomplete
-          documentClickHandler = (e: MouseEvent) => {
+          const documentClickHandler = (e: MouseEvent): void => {
             const target = e.target as HTMLElement;
             if (!target.closest('.tag-autocomplete')) {
               autocompleteDropdown.style.display = 'none';
             }
           };
-          document.addEventListener('click', documentClickHandler);
+          document.addEventListener('click', documentClickHandler, {
+            signal: abortController.signal,
+          });
 
           // Trigger initial category select change to set border color
           categorySelect.dispatchEvent(new Event('change'));
         },
-        close: () => {
+        close: (): void => {
           // Clean up event listeners when dialog closes
-          if (documentClickHandler) {
-            document.removeEventListener('click', documentClickHandler);
-            documentClickHandler = null;
-          }
+          abortController.abort();
         },
       });
 
@@ -1530,17 +1532,18 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             action: 'cancel',
             icon: 'fas fa-times',
             label: 'Cancel',
-            callback: () => resolve(),
+            callback: (): void => resolve(),
           },
         ],
         default: 'cancel',
-        render: (event: Event, html: HTMLElement) => {
+        render: (event: Event, html: HTMLElement): void => {
           html.querySelectorAll('.note-item').forEach(item => {
             item.addEventListener('click', function (this: HTMLElement) {
               const noteIndex = parseInt(this.dataset.index || '0');
               const note = notes[noteIndex];
               if (note && note.sheet) {
                 (note.sheet as any).render(true);
+                dialog.close();
               }
               resolve();
             });

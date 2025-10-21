@@ -62,7 +62,7 @@
   textarea:focus,
   select:focus {
     border-color: var(--color-border-highlight);
-    box-shadow: 0 0 0 2px rgba(var(--color-shadow-highlight), 0.2);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-shadow-highlight) 20%, transparent);
     outline: none;
   }
 
@@ -158,7 +158,7 @@
     background-repeat: no-repeat;
     background-position: right 8px center;
     background-size: 12px;
-    padding-right: 30px !important;
+    padding-right: 30px;
     vertical-align: top;
   }
 
