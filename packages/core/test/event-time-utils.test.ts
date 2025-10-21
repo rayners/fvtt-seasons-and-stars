@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseEventStartTime, parseEventLength } from '../src/core/event-time-utils';
+import { parseEventStartTime, parseEventDuration } from '../src/core/event-time-utils';
 
 describe('parseEventStartTime', () => {
   describe('valid formats', () => {
@@ -90,90 +90,90 @@ describe('parseEventStartTime', () => {
   });
 });
 
-describe('parseEventLength', () => {
+describe('parseEventDuration', () => {
   describe('valid formats', () => {
     it('should parse seconds', () => {
-      expect(parseEventLength('0s')).toEqual({ seconds: 0 });
-      expect(parseEventLength('30s')).toEqual({ seconds: 30 });
-      expect(parseEventLength('3600s')).toEqual({ seconds: 3600 });
+      expect(parseEventDuration('0s')).toEqual({ seconds: 0 });
+      expect(parseEventDuration('30s')).toEqual({ seconds: 30 });
+      expect(parseEventDuration('3600s')).toEqual({ seconds: 3600 });
     });
 
     it('should parse minutes', () => {
-      expect(parseEventLength('1m')).toEqual({ seconds: 60 });
-      expect(parseEventLength('15m')).toEqual({ seconds: 15 * 60 });
-      expect(parseEventLength('60m')).toEqual({ seconds: 60 * 60 });
+      expect(parseEventDuration('1m')).toEqual({ seconds: 60 });
+      expect(parseEventDuration('15m')).toEqual({ seconds: 15 * 60 });
+      expect(parseEventDuration('60m')).toEqual({ seconds: 60 * 60 });
     });
 
     it('should parse hours', () => {
-      expect(parseEventLength('1h')).toEqual({ seconds: 60 * 60 });
-      expect(parseEventLength('2h')).toEqual({ seconds: 2 * 60 * 60 });
-      expect(parseEventLength('24h')).toEqual({ seconds: 24 * 60 * 60 });
+      expect(parseEventDuration('1h')).toEqual({ seconds: 60 * 60 });
+      expect(parseEventDuration('2h')).toEqual({ seconds: 2 * 60 * 60 });
+      expect(parseEventDuration('24h')).toEqual({ seconds: 24 * 60 * 60 });
     });
 
     it('should parse days', () => {
-      expect(parseEventLength('1d')).toEqual({ seconds: 24 * 60 * 60 });
-      expect(parseEventLength('3d')).toEqual({ seconds: 3 * 24 * 60 * 60 });
-      expect(parseEventLength('7d')).toEqual({ seconds: 7 * 24 * 60 * 60 });
+      expect(parseEventDuration('1d')).toEqual({ seconds: 24 * 60 * 60 });
+      expect(parseEventDuration('3d')).toEqual({ seconds: 3 * 24 * 60 * 60 });
+      expect(parseEventDuration('7d')).toEqual({ seconds: 7 * 24 * 60 * 60 });
     });
 
     it('should parse weeks', () => {
-      expect(parseEventLength('1w')).toEqual({ seconds: 7 * 24 * 60 * 60 });
-      expect(parseEventLength('2w')).toEqual({ seconds: 2 * 7 * 24 * 60 * 60 });
+      expect(parseEventDuration('1w')).toEqual({ seconds: 7 * 24 * 60 * 60 });
+      expect(parseEventDuration('2w')).toEqual({ seconds: 2 * 7 * 24 * 60 * 60 });
     });
 
     it('should handle custom calendar time units', () => {
-      expect(parseEventLength('1d', 10, 100, 100)).toEqual({ seconds: 10 * 100 * 100 });
-      expect(parseEventLength('1h', 10, 100, 100)).toEqual({ seconds: 100 * 100 });
-      expect(parseEventLength('1m', 10, 100, 100)).toEqual({ seconds: 100 });
-      expect(parseEventLength('1w', 10, 100, 100, 5)).toEqual({ seconds: 5 * 10 * 100 * 100 });
+      expect(parseEventDuration('1d', 10, 100, 100)).toEqual({ seconds: 10 * 100 * 100 });
+      expect(parseEventDuration('1h', 10, 100, 100)).toEqual({ seconds: 100 * 100 });
+      expect(parseEventDuration('1m', 10, 100, 100)).toEqual({ seconds: 100 });
+      expect(parseEventDuration('1w', 10, 100, 100, 5)).toEqual({ seconds: 5 * 10 * 100 * 100 });
     });
 
     it('should trim whitespace', () => {
-      expect(parseEventLength('  3d  ')).toEqual({ seconds: 3 * 24 * 60 * 60 });
-      expect(parseEventLength(' 2h ')).toEqual({ seconds: 2 * 60 * 60 });
+      expect(parseEventDuration('  3d  ')).toEqual({ seconds: 3 * 24 * 60 * 60 });
+      expect(parseEventDuration(' 2h ')).toEqual({ seconds: 2 * 60 * 60 });
     });
   });
 
   describe('default values', () => {
     it('should return 1 day for undefined', () => {
-      expect(parseEventLength(undefined)).toEqual({ seconds: 24 * 60 * 60 });
+      expect(parseEventDuration(undefined)).toEqual({ seconds: 24 * 60 * 60 });
     });
 
     it('should return 1 day for empty string', () => {
-      expect(parseEventLength('')).toEqual({ seconds: 24 * 60 * 60 });
+      expect(parseEventDuration('')).toEqual({ seconds: 24 * 60 * 60 });
     });
 
     it('should return 1 day for whitespace-only', () => {
-      expect(parseEventLength('   ')).toEqual({ seconds: 24 * 60 * 60 });
+      expect(parseEventDuration('   ')).toEqual({ seconds: 24 * 60 * 60 });
     });
   });
 
   describe('invalid formats', () => {
     it('should handle invalid format and return default', () => {
-      expect(parseEventLength('abc')).toEqual({ seconds: 24 * 60 * 60 });
-      expect(parseEventLength('12')).toEqual({ seconds: 24 * 60 * 60 });
-      expect(parseEventLength('12x')).toEqual({ seconds: 24 * 60 * 60 });
-      expect(parseEventLength('12.5d')).toEqual({ seconds: 24 * 60 * 60 });
+      expect(parseEventDuration('abc')).toEqual({ seconds: 24 * 60 * 60 });
+      expect(parseEventDuration('12')).toEqual({ seconds: 24 * 60 * 60 });
+      expect(parseEventDuration('12x')).toEqual({ seconds: 24 * 60 * 60 });
+      expect(parseEventDuration('12.5d')).toEqual({ seconds: 24 * 60 * 60 });
     });
 
     it('should handle negative values', () => {
-      expect(parseEventLength('-1d')).toEqual({ seconds: 24 * 60 * 60 });
-      expect(parseEventLength('-5h')).toEqual({ seconds: 24 * 60 * 60 });
+      expect(parseEventDuration('-1d')).toEqual({ seconds: 24 * 60 * 60 });
+      expect(parseEventDuration('-5h')).toEqual({ seconds: 24 * 60 * 60 });
     });
   });
 
   describe('edge cases', () => {
     it('should handle zero-duration events', () => {
-      expect(parseEventLength('0s')).toEqual({ seconds: 0 });
-      expect(parseEventLength('0m')).toEqual({ seconds: 0 });
-      expect(parseEventLength('0h')).toEqual({ seconds: 0 });
-      expect(parseEventLength('0d')).toEqual({ seconds: 0 });
-      expect(parseEventLength('0w')).toEqual({ seconds: 0 });
+      expect(parseEventDuration('0s')).toEqual({ seconds: 0 });
+      expect(parseEventDuration('0m')).toEqual({ seconds: 0 });
+      expect(parseEventDuration('0h')).toEqual({ seconds: 0 });
+      expect(parseEventDuration('0d')).toEqual({ seconds: 0 });
+      expect(parseEventDuration('0w')).toEqual({ seconds: 0 });
     });
 
     it('should handle large durations', () => {
-      expect(parseEventLength('365d')).toEqual({ seconds: 365 * 24 * 60 * 60 });
-      expect(parseEventLength('52w')).toEqual({ seconds: 52 * 7 * 24 * 60 * 60 });
+      expect(parseEventDuration('365d')).toEqual({ seconds: 365 * 24 * 60 * 60 });
+      expect(parseEventDuration('52w')).toEqual({ seconds: 52 * 7 * 24 * 60 * 60 });
     });
   });
 });

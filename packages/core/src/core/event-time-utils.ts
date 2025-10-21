@@ -56,22 +56,22 @@ export function parseEventStartTime(
   return { hour, minute, second };
 }
 
-export function parseEventLength(
-  length: string | undefined,
+export function parseEventDuration(
+  duration: string | undefined,
   calendarHoursPerDay = 24,
   calendarMinutesPerHour = 60,
   calendarSecondsPerMinute = 60,
   calendarDaysPerWeek = 7
 ): ParsedEventDuration {
-  if (!length || typeof length !== 'string') {
+  if (!duration || typeof duration !== 'string') {
     return { seconds: calendarHoursPerDay * calendarMinutesPerHour * calendarSecondsPerMinute };
   }
 
-  const trimmed = length.trim();
+  const trimmed = duration.trim();
 
   const match = trimmed.match(/^(\d+)([smhdw])$/);
   if (!match) {
-    Logger.warn(`Invalid event length format: "${length}", using 1d`);
+    Logger.warn(`Invalid event duration format: "${duration}", using 1d`);
     return { seconds: calendarHoursPerDay * calendarMinutesPerHour * calendarSecondsPerMinute };
   }
 
@@ -79,7 +79,7 @@ export function parseEventLength(
   const unit = match[2];
 
   if (!Number.isFinite(amount) || amount < 0) {
-    Logger.warn(`Invalid amount in event length: "${length}", using 1d`);
+    Logger.warn(`Invalid amount in event duration: "${duration}", using 1d`);
     return { seconds: calendarHoursPerDay * calendarMinutesPerHour * calendarSecondsPerMinute };
   }
 
@@ -100,7 +100,7 @@ export function parseEventLength(
     case 'w':
       return { seconds: amount * secondsPerWeek };
     default:
-      Logger.warn(`Unknown unit in event length: "${length}", using 1d`);
+      Logger.warn(`Unknown unit in event duration: "${duration}", using 1d`);
       return { seconds: secondsPerDay };
   }
 }

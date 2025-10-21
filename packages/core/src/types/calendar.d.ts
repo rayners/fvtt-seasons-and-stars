@@ -543,7 +543,7 @@ export interface EventTranslation {
  *   description: 'Total solar eclipse visible at 2:40 PM',
  *   recurrence: { type: 'fixed', month: 4, day: 8 },
  *   startTime: '14:40:00',
- *   length: '0s',
+ *   duration: '0s',
  *   startYear: 2024,
  *   endYear: 2024
  * }
@@ -579,7 +579,7 @@ export interface CalendarEvent {
    * @example "30m" // Thirty minutes
    * @example "0s" // Momentary event (instant)
    */
-  length?: string;
+  duration?: string;
   /** First year event occurs (omit for all past years) */
   startYear?: number;
   /** Last year event occurs (omit for indefinite future) */

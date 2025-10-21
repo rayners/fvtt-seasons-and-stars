@@ -859,7 +859,7 @@
             "default": "00:00:00",
             "description": "Time of day when the event starts (format: hh, hh:mm, or hh:mm:ss). Defaults to 00:00:00."
           },
-          "length": {
+          "duration": {
             "type": "string",
             "pattern": "^\\d+[smhdw]$",
             "default": "1d",
