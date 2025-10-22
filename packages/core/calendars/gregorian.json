@@ -379,6 +379,19 @@
       "visibility": "gm-only",
       "color": "#9E9E9E",
       "icon": "fas fa-clipboard-list"
+    },
+    {
+      "id": "solar-eclipse-2024",
+      "name": "Total Solar Eclipse - Totality",
+      "description": "The moment of totality during the total solar eclipse crossing North America on April 8, 2024. An instantaneous astronomical event.",
+      "recurrence": { "type": "fixed", "month": 4, "day": 8 },
+      "startTime": "18:17:00",
+      "duration": "0s",
+      "startYear": 2024,
+      "endYear": 2024,
+      "visibility": "player-visible",
+      "color": "#1A237E",
+      "icon": "fas fa-moon"
     }
   ]
 }
