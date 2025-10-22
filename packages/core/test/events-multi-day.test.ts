@@ -278,5 +278,29 @@ describe('EventsManager - Multi-day Events', () => {
       const yearBoundary = events.find(e => e.event.id === 'year-boundary-event');
       expect(yearBoundary).toBeDefined();
     });
+
+    it('should not return duplicate events when event spans multiple years in range', () => {
+      const events = eventsManager.getEventsInRange(2024, 12, 1, 2025, 1, 31);
+      const yearBoundaryEvents = events.filter(e => e.event.id === 'year-boundary-event');
+      expect(yearBoundaryEvents).toHaveLength(1);
+    });
+
+    it('should include events starting in previous year that overlap range start', () => {
+      const events = eventsManager.getEventsInRange(2025, 1, 1, 2025, 1, 5);
+      const yearBoundary = events.find(e => e.event.id === 'year-boundary-event');
+      expect(yearBoundary).toBeDefined();
+      expect(yearBoundary?.year).toBe(2024);
+      expect(yearBoundary?.month).toBe(12);
+      expect(yearBoundary?.day).toBe(30);
+    });
+
+    it('should include events starting in previous year for February queries', () => {
+      const events = eventsManager.getEventsInRange(2025, 2, 1, 2025, 2, 5);
+      const jan30Event = events.find(e => e.event.id === 'month-boundary-event');
+      expect(jan30Event).toBeDefined();
+      expect(jan30Event?.year).toBe(2025);
+      expect(jan30Event?.month).toBe(1);
+      expect(jan30Event?.day).toBe(30);
+    });
   });
 });

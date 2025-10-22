@@ -166,6 +166,7 @@ export class EventsManager {
   ): EventOccurrence[] {
     const allEvents = this.getAllEvents();
     const result: EventOccurrence[] = [];
+    const seenEventIds = new Set<string>();
 
     const rangeStartDate = new CalendarDate(
       {
@@ -196,9 +197,12 @@ export class EventsManager {
     const rangeStartWorldTime = this.calendarEngine.dateToWorldTime(rangeStartDate);
     const rangeEndWorldTime = this.calendarEngine.dateToWorldTime(rangeEndDate);
 
-    // Iterate through each year in range
-    for (let year = startYear; year <= endYear; year++) {
+    // Include previous year to catch events that start before the range but extend into it
+    for (let year = startYear - 1; year <= endYear; year++) {
       for (const event of allEvents) {
+        // Skip if we've already added this event (prevents duplicates for multi-year events)
+        if (seenEventIds.has(event.id)) continue;
+
         // Check year range
         if (event.startYear && year < event.startYear) continue;
         if (event.endYear && year > event.endYear) continue;
@@ -240,6 +244,7 @@ export class EventsManager {
             month: finalMonth,
             day: finalDay,
           });
+          seenEventIds.add(event.id);
         }
       }
     }
