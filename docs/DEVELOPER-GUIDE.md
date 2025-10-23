@@ -511,6 +511,8 @@ await game.seasonsStars.api.addWorldEvent({
     month: 6,
     day: 15,
   },
+  startTime: '14:30', // 2:30 PM
+  duration: '1d', // One day event
   visibility: 'player-visible',
   color: '#FF0000',
   icon: 'fas fa-dragon',
@@ -589,6 +591,62 @@ if (event.visibility === 'player-visible' || game.user.isGM) {
   displayEvent(event);
 }
 ```
+
+#### Event Time and Duration
+
+_Added in v0.21.0_
+
+Events support precise start times and durations for multi-day events, sub-day events, and instantaneous moments.
+
+**Start Time Format**: `"hh"`, `"hh:mm"`, or `"hh:mm:ss"` (default: `"00:00:00"`)
+
+**Duration Format**: `"<number><unit>"` where unit is `s` (seconds), `m` (minutes), `h` (hours), `d` (days), or `w` (weeks)`(default:`"1d"`)
+
+```javascript
+// Multi-day event (festival lasting one week)
+await game.seasonsStars.api.addWorldEvent({
+  id: 'harvest-festival',
+  name: 'Harvest Festival',
+  startTime: '00:00:00',
+  duration: '7d',
+  recurrence: { type: 'fixed', month: 9, day: 1 },
+});
+
+// Sub-day event (2-hour ceremony)
+await game.seasonsStars.api.addWorldEvent({
+  id: 'morning-ceremony',
+  name: 'Morning Ceremony',
+  startTime: '9:00',
+  duration: '2h',
+  recurrence: { type: 'fixed', month: 1, day: 1 },
+});
+
+// Instantaneous event (precise moment)
+await game.seasonsStars.api.addWorldEvent({
+  id: 'solar-eclipse',
+  name: 'Solar Eclipse',
+  startTime: '12:34:56',
+  duration: '0s',
+  recurrence: { type: 'fixed', month: 8, day: 21 },
+});
+
+// Check if multi-day event is active on a specific date
+const events = game.seasonsStars.api.events.getEventsForDate(2024, 8, 5);
+events.forEach(event => {
+  console.log(`${event.name} (started ${event.startTime}, duration ${event.duration})`);
+});
+```
+
+**Multi-Day Event Behavior:**
+
+- Events with `duration` > 1 day appear on all dates they span
+- `getEventsForDate()` returns events that started on previous dates but are still active
+- Events crossing month or year boundaries are handled correctly
+
+**Time Configuration:**
+
+- Start times respect the calendar's time configuration (`hoursPerDay`, `minutesPerHour`, `secondsPerMinute`)
+- For a calendar with 10-hour days, `startTime: "9"` means the 9th hour of that calendar's day
 
 #### Event Integration Pattern
 
@@ -1390,6 +1448,8 @@ interface CalendarEvent {
   name: string;
   description?: string;
   recurrence: FixedRecurrence | OrdinalRecurrence | IntervalRecurrence;
+  startTime?: string; // Time of day (format: "hh", "hh:mm", "hh:mm:ss", default: "00:00:00")
+  duration?: string; // Event duration (format: "<number><s|m|h|d|w>", default: "1d")
   visibility?: 'gm-only' | 'player-visible';
   color?: string; // Hex color (e.g., "#FF6F00")
   icon?: string; // Font Awesome icon class

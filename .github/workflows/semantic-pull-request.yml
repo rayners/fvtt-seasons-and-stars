@@ -63,4 +63,6 @@ jobs:
             golarion
             monorepo
             i18n
+            actions
+            events
 

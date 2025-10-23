@@ -6,7 +6,9 @@
  */
 
 import type { CalendarEngine } from './calendar-engine';
+import { CalendarDate } from './calendar-date';
 import { EventRecurrenceCalculator } from './event-recurrence-calculator';
+import { parseEventStartTime, parseEventDuration } from './event-time-utils';
 import type {
   SeasonsStarsCalendar,
   CalendarEvent,
@@ -82,6 +84,7 @@ export class EventsManager {
   getEventsForDate(year: number, month: number, day: number): EventOccurrence[] {
     const allEvents = this.getAllEvents();
     const result: EventOccurrence[] = [];
+    const seenEventIds = new Set<string>();
 
     // Check which years could have events on this date
     const yearsToCheck = [year];
@@ -108,38 +111,34 @@ export class EventsManager {
         // Calculate actual occurrence year (may be offset by yearOffset)
         const occurrenceYear = checkYear + (occurrence.yearOffset || 0);
 
-        // Check if this occurrence matches the requested date
-        if (occurrence.month === month && occurrence.day === day && occurrenceYear === year) {
-          // Check exceptions (use the check year, not the occurrence year)
-          if (event.exceptions) {
-            const exception = event.exceptions.find(ex => ex.year === checkYear);
-            if (exception) {
-              if (exception.type === 'skip') {
-                continue; // Skip this occurrence
-              } else if (exception.type === 'move') {
-                // Check if moved to this date
-                if (exception.moveToMonth !== month || exception.moveToDay !== day) {
-                  continue; // Moved to different date
-                }
-              }
+        let finalMonth = occurrence.month;
+        let finalDay = occurrence.day;
+        const finalYear = occurrenceYear;
+        let shouldSkip = false;
+
+        // Check exceptions (use the check year, not the occurrence year)
+        if (event.exceptions) {
+          const exception = event.exceptions.find(ex => ex.year === checkYear);
+          if (exception) {
+            if (exception.type === 'skip') {
+              shouldSkip = true;
+            } else if (exception.type === 'move') {
+              finalMonth = exception.moveToMonth;
+              finalDay = exception.moveToDay;
             }
           }
-
-          result.push({ event, year, month, day });
-          break; // Found match for this event, don't check other years
         }
-      }
 
-      // Check if moved TO this date (exception handling)
-      if (event.exceptions) {
-        const exception = event.exceptions.find(ex => ex.year === year);
+        if (shouldSkip) continue;
+
+        // Check if the event overlaps with the requested date (handles multi-day events)
         if (
-          exception &&
-          exception.type === 'move' &&
-          exception.moveToMonth === month &&
-          exception.moveToDay === day
+          this.doesEventOverlapDate(event, finalYear, finalMonth, finalDay, year, month, day) &&
+          !seenEventIds.has(event.id)
         ) {
-          result.push({ event, year, month, day });
+          result.push({ event, year: finalYear, month: finalMonth, day: finalDay });
+          seenEventIds.add(event.id);
+          break; // Found match for this event, don't check other years
         }
       }
     }
@@ -167,10 +166,43 @@ export class EventsManager {
   ): EventOccurrence[] {
     const allEvents = this.getAllEvents();
     const result: EventOccurrence[] = [];
+    const seenEventIds = new Set<string>();
 
-    // Iterate through each year in range
-    for (let year = startYear; year <= endYear; year++) {
+    const rangeStartDate = new CalendarDate(
+      {
+        year: startYear,
+        month: startMonth,
+        day: startDay,
+        weekday: 0,
+        time: { hour: 0, minute: 0, second: 0 },
+      },
+      this.calendar
+    );
+
+    const rangeEndDate = new CalendarDate(
+      {
+        year: endYear,
+        month: endMonth,
+        day: endDay,
+        weekday: 0,
+        time: {
+          hour: this.calendar.time.hoursInDay - 1,
+          minute: this.calendar.time.minutesInHour - 1,
+          second: this.calendar.time.secondsInMinute - 1,
+        },
+      },
+      this.calendar
+    );
+
+    const rangeStartWorldTime = this.calendarEngine.dateToWorldTime(rangeStartDate);
+    const rangeEndWorldTime = this.calendarEngine.dateToWorldTime(rangeEndDate);
+
+    // Include previous year to catch events that start before the range but extend into it
+    for (let year = startYear - 1; year <= endYear; year++) {
       for (const event of allEvents) {
+        // Skip if we've already added this event (prevents duplicates for multi-year events)
+        if (seenEventIds.has(event.id)) continue;
+
         // Check year range
         if (event.startYear && year < event.startYear) continue;
         if (event.endYear && year > event.endYear) continue;
@@ -196,26 +228,23 @@ export class EventsManager {
           }
         }
 
-        // Check if in range
-        if (
-          this.isDateInRange(
-            year,
-            finalMonth,
-            finalDay,
-            startYear,
-            startMonth,
-            startDay,
-            endYear,
-            endMonth,
-            endDay
-          )
-        ) {
+        // Calculate event time range
+        const { startWorldTime, endWorldTime } = this.calculateEventTimeRange(
+          event,
+          year,
+          finalMonth,
+          finalDay
+        );
+
+        // Check if event time range overlaps with the requested date range
+        if (startWorldTime <= rangeEndWorldTime && endWorldTime >= rangeStartWorldTime) {
           result.push({
             event,
             year,
             month: finalMonth,
             day: finalDay,
           });
+          seenEventIds.add(event.id);
         }
       }
     }
@@ -326,5 +355,108 @@ export class EventsManager {
     const end = endYear * 10000 + endMonth * 100 + endDay;
 
     return date >= start && date <= end;
+  }
+
+  /**
+   * Calculate the start and end worldTime for an event occurrence
+   */
+  private calculateEventTimeRange(
+    event: CalendarEvent,
+    year: number,
+    month: number,
+    day: number
+  ): { startWorldTime: number; endWorldTime: number } {
+    const parsedStartTime = parseEventStartTime(
+      event.startTime,
+      this.calendar.time.hoursInDay,
+      this.calendar.time.minutesInHour,
+      this.calendar.time.secondsInMinute
+    );
+
+    const parsedDuration = parseEventDuration(
+      event.duration,
+      this.calendar.time.hoursInDay,
+      this.calendar.time.minutesInHour,
+      this.calendar.time.secondsInMinute,
+      this.calendar.weekdays?.length || 7
+    );
+
+    const startDate = new CalendarDate(
+      {
+        year,
+        month,
+        day,
+        weekday: 0,
+        time: {
+          hour: parsedStartTime.hour,
+          minute: parsedStartTime.minute,
+          second: parsedStartTime.second,
+        },
+      },
+      this.calendar
+    );
+
+    const startWorldTime = this.calendarEngine.dateToWorldTime(startDate);
+    let endWorldTime = startWorldTime + parsedDuration.seconds;
+
+    // For non-zero durations, subtract 1 second to keep the event within
+    // the intended calendar days (e.g., "1d" means the event is active
+    // during that single day, not extending into the next day at 00:00:00)
+    if (parsedDuration.seconds > 0) {
+      endWorldTime = endWorldTime - 1;
+    }
+
+    return { startWorldTime, endWorldTime };
+  }
+
+  /**
+   * Check if a specific date overlaps with an event's duration
+   */
+  private doesEventOverlapDate(
+    event: CalendarEvent,
+    eventOccurrenceYear: number,
+    eventOccurrenceMonth: number,
+    eventOccurrenceDay: number,
+    checkYear: number,
+    checkMonth: number,
+    checkDay: number
+  ): boolean {
+    const { startWorldTime, endWorldTime } = this.calculateEventTimeRange(
+      event,
+      eventOccurrenceYear,
+      eventOccurrenceMonth,
+      eventOccurrenceDay
+    );
+
+    const dayStartDate = new CalendarDate(
+      {
+        year: checkYear,
+        month: checkMonth,
+        day: checkDay,
+        weekday: 0,
+        time: { hour: 0, minute: 0, second: 0 },
+      },
+      this.calendar
+    );
+
+    const dayEndDate = new CalendarDate(
+      {
+        year: checkYear,
+        month: checkMonth,
+        day: checkDay,
+        weekday: 0,
+        time: {
+          hour: this.calendar.time.hoursInDay - 1,
+          minute: this.calendar.time.minutesInHour - 1,
+          second: this.calendar.time.secondsInMinute - 1,
+        },
+      },
+      this.calendar
+    );
+
+    const dayStartWorldTime = this.calendarEngine.dateToWorldTime(dayStartDate);
+    const dayEndWorldTime = this.calendarEngine.dateToWorldTime(dayEndDate);
+
+    return startWorldTime <= dayEndWorldTime && endWorldTime >= dayStartWorldTime;
   }
 }

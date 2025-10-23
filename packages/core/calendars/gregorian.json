@@ -355,8 +355,8 @@
     },
     {
       "id": "summer-olympics-2024",
-      "name": "Summer Olympics Opening (2024)",
-      "description": "Opening ceremony of the Summer Olympic Games in Paris",
+      "name": "Summer Olympics (2024)",
+      "description": "Summer Olympic Games in Paris - a 16-day international sporting event",
       "recurrence": {
         "type": "interval",
         "intervalYears": 4,
@@ -364,6 +364,8 @@
         "month": 7,
         "day": 26
       },
+      "startTime": "20:00:00",
+      "duration": "16d",
       "startYear": 2024,
       "visibility": "player-visible",
       "color": "#00BCD4",
@@ -377,6 +379,19 @@
       "visibility": "gm-only",
       "color": "#9E9E9E",
       "icon": "fas fa-clipboard-list"
+    },
+    {
+      "id": "solar-eclipse-2024",
+      "name": "Total Solar Eclipse - Totality",
+      "description": "The moment of totality during the total solar eclipse crossing North America on April 8, 2024. An instantaneous astronomical event.",
+      "recurrence": { "type": "fixed", "month": 4, "day": 8 },
+      "startTime": "18:17:00",
+      "duration": "0s",
+      "startYear": 2024,
+      "endYear": 2024,
+      "visibility": "player-visible",
+      "color": "#1A237E",
+      "icon": "fas fa-moon"
     }
   ]
 }
