@@ -8,6 +8,11 @@ import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../src/ui/calendar-grid-widget';
 import { mockStandardCalendar, mockStandardDate } from './mocks/calendar-mocks';
 
+// Mock Foundry's stripScripts method
+String.prototype.stripScripts = function () {
+  return this.toString();
+};
+
 // Mock Foundry globals
 globalThis.game = {
   user: { isGM: true },
@@ -170,6 +175,9 @@ describe('CalendarGridWidget Note Permission Filtering', () => {
             ],
           })),
           getCurrentDate: vi.fn(() => ({ year: 2024, month: 1, day: 1 })),
+          getActiveEventsManager: vi.fn(() => ({
+            getEventsForDate: vi.fn(() => []),
+          })),
         },
         notes: mockNotesManager,
       },

@@ -282,6 +282,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     const weeks: Array<Array<CalendarDayData>> = [];
     let currentWeek: Array<CalendarDayData> = [];
 
+    // Get events manager once for the entire month (performance optimization)
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+    const eventsManager = manager?.getActiveEventsManager();
+
     // Fill in empty cells before month starts
     const startWeekday = firstDay.weekday || 0;
     for (let i = 0; i < startWeekday; i++) {
@@ -338,8 +342,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       }
 
       // Get calendar events for this date
-      const manager = game.seasonsStars?.manager as CalendarManagerInterface;
-      const eventsManager = manager?.getActiveEventsManager?.();
+      // Note: When multiple events exist on a date, only the first event's icon/color is displayed
+      // to maintain visual clarity. The tooltip shows all events.
       const calendarEvents =
         eventsManager?.getEventsForDate(viewDate.year, viewDate.month, day) || [];
       const hasEvents = calendarEvents.length > 0;
