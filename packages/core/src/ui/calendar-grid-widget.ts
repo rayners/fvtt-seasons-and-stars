@@ -1239,11 +1239,11 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             icon: 'fas fa-plus',
             label: 'Create Note',
             callback: async (
-              event: Event,
-              button: HTMLElement,
-              html: HTMLElement
+              _event: Event,
+              _button: HTMLElement,
+              _html: HTMLElement
             ): Promise<void> => {
-              const form = html.querySelector('form') as HTMLFormElement;
+              const form = dialog.element?.querySelector('form') as HTMLFormElement;
               const formData = new FormData(form);
 
               const title = formData.get('title') as string;
