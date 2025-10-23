@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.7.0...seasons-and-stars-fantasy-v0.8.0) (2025-10-23)
+
+
+### Features
+
+* **fantasy-pack:** add Mystaran/Karameikan calendar ([#393](https://github.com/rayners/fvtt-seasons-and-stars/issues/393)) ([2190424](https://github.com/rayners/fvtt-seasons-and-stars/commit/219042472a5ac44c13d26c138c5951f736e1392f))
+
 ## [0.7.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.6.1...seasons-and-stars-fantasy-v0.7.0) (2025-10-08)
 
 

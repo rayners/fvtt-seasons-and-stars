@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.23.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.22.1...seasons-and-stars-v0.23.0) (2025-10-23)
+
+
+### Features
+
+* **core:** add support for seasons crossing year boundaries ([#395](https://github.com/rayners/fvtt-seasons-and-stars/issues/395)) ([bf44b6d](https://github.com/rayners/fvtt-seasons-and-stars/commit/bf44b6d6987c946f921f1fce9097b8f233063e1d))
+* **events:** add multi-day event support ([#411](https://github.com/rayners/fvtt-seasons-and-stars/issues/411)) ([2d51304](https://github.com/rayners/fvtt-seasons-and-stars/commit/2d51304c6a36f074167456da71fd0ea188e8553c))
+* **ui:** modernize grid widget design and add event indicators ([#413](https://github.com/rayners/fvtt-seasons-and-stars/issues/413)) ([ef0d47d](https://github.com/rayners/fvtt-seasons-and-stars/commit/ef0d47d3852767d1b9fc6d960a9e7662e69a0e6d))
+
+
+### Bug Fixes
+
+* display intercalary days with 'before' property in grid widget ([#397](https://github.com/rayners/fvtt-seasons-and-stars/issues/397)) ([a7f7152](https://github.com/rayners/fvtt-seasons-and-stars/commit/a7f7152f833b5f7a72af1d899e9d138720b967f1))
+
 ## [0.22.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.22.0...seasons-and-stars-v0.22.1) (2025-10-17)
 
 
