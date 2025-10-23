@@ -98,12 +98,12 @@
             {{else}}
               {{!-- Fallback for single regular days (shouldn't happen) --}}
               <div class="calendar-week">
-                <div class="calendar-day {{#if isToday}}today{{/if}} {{#if isSelected}}selected{{/if}} {{#if isClickable}}clickable{{/if}} {{#if hasNotes}}has-notes {{categoryClass}}{{/if}}"
+                <div class="calendar-day {{#if isToday}}today{{/if}} {{#if isSelected}}selected{{/if}} {{#if isClickable}}clickable{{/if}} {{#if hasNotes}}has-notes {{categoryClass}}{{/if}} {{#if hasEvents}}has-events{{/if}}"
                      data-action="{{#if isClickable}}selectDate{{/if}}"
                      data-day="{{day}}"
                      data-date="{{fullDate}}"
                      data-category="{{primaryCategory}}"
-                     data-tooltip="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteTooltip}}{{/if}}{{#if moonTooltip}} - {{moonTooltip}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
+                     data-tooltip-html="{{combinedTooltip}}">
                   <span class="day-number">{{day}}</span>
                   {{#if primaryMoonPhase}}
                     <div class="moon-indicator" {{#if primaryMoonColor}}style="color: {{primaryMoonColor}}"{{/if}} data-tooltip="{{moonTooltip}}">
@@ -120,6 +120,14 @@
                       {{/if}}
                     </div>
                   {{/if}}
+                  {{#if hasEvents}}
+                    <div class="event-indicator" {{#if eventColor}}style="color: {{eventColor}}"{{/if}} data-tooltip="{{eventTooltip}}">
+                      <i class="{{#if eventIcon}}{{eventIcon}}{{else}}fas fa-calendar-day{{/if}}"></i>
+                      {{#if (gt eventCount 1)}}
+                        <span class="event-count">{{eventCount}}</span>
+                      {{/if}}
+                    </div>
+                  {{/if}}
                 </div>
               </div>
             {{/if}}
@@ -131,12 +139,12 @@
               {{#if isEmpty}}
                 <div class="calendar-day empty"></div>
               {{else}}
-                <div class="calendar-day {{#if isToday}}today{{/if}} {{#if isSelected}}selected{{/if}} {{#if isClickable}}clickable{{/if}} {{#if hasNotes}}has-notes {{categoryClass}}{{/if}}"
+                <div class="calendar-day {{#if isToday}}today{{/if}} {{#if isSelected}}selected{{/if}} {{#if isClickable}}clickable{{/if}} {{#if hasNotes}}has-notes {{categoryClass}}{{/if}} {{#if hasEvents}}has-events{{/if}}"
                      data-action="{{#if isClickable}}selectDate{{/if}}"
                      data-day="{{day}}"
                      data-date="{{fullDate}}"
                      data-category="{{primaryCategory}}"
-                     data-tooltip="{{#if isToday}}Current Date: {{/if}}{{fullDate}}{{#if hasNotes}} - {{noteTooltip}}{{/if}}{{#if moonTooltip}} - {{moonTooltip}}{{/if}}{{#if isClickable}} (Click to set date){{/if}}">
+                     data-tooltip-html="{{combinedTooltip}}">
                   <span class="day-number">{{day}}</span>
                   {{#if primaryMoonPhase}}
                     <div class="moon-indicator" {{#if primaryMoonColor}}style="color: {{primaryMoonColor}}"{{/if}} data-tooltip="{{moonTooltip}}">
@@ -150,6 +158,14 @@
                       {{#if (eq primaryMoonPhase "waning-crescent")}}<i class="fas fa-moon moon-phase-waning-crescent"></i>{{/if}}
                       {{#if hasMultipleMoons}}
                         <span class="multiple-moons-indicator">+</span>
+                      {{/if}}
+                    </div>
+                  {{/if}}
+                  {{#if hasEvents}}
+                    <div class="event-indicator" {{#if eventColor}}style="color: {{eventColor}}"{{/if}} data-tooltip="{{eventTooltip}}">
+                      <i class="{{#if eventIcon}}{{eventIcon}}{{else}}fas fa-calendar-day{{/if}}"></i>
+                      {{#if (gt eventCount 1)}}
+                        <span class="event-count">{{eventCount}}</span>
                       {{/if}}
                     </div>
                   {{/if}}

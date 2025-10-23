@@ -337,16 +337,30 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         }
       }
 
-      // Create enhanced tooltip with note details
-      let noteTooltip = '';
+      // Get calendar events for this date
+      const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+      const eventsManager = manager?.getActiveEventsManager?.();
+      const calendarEvents =
+        eventsManager?.getEventsForDate(viewDate.year, viewDate.month, day) || [];
+      const hasEvents = calendarEvents.length > 0;
+
+      // Create enhanced tooltip with note details (HTML format)
+      let noteTooltipHtml = '';
       if (hasNotes && noteData) {
         const notesList = noteData.notes
           .map(note => {
             const tagText = note.tags.length > 0 ? ` [${note.tags.join(', ')}]` : '';
-            return `${note.title}${tagText}`;
+            return `<div>${note.title}${tagText}</div>`;
           })
-          .join('\n');
-        noteTooltip = `${noteCount} note(s) (${noteData.primaryCategory}):\n${notesList}`;
+          .join('');
+        noteTooltipHtml = `<strong>${noteCount} note(s) (${noteData.primaryCategory}):</strong>${notesList}`;
+      }
+
+      // Create event tooltip (HTML format)
+      let eventTooltipHtml = '';
+      if (hasEvents) {
+        const eventsList = calendarEvents.map(event => `<div>${event.event.name}</div>`).join('');
+        eventTooltipHtml = `<strong>${calendarEvents.length} event(s):</strong>${eventsList}`;
       }
 
       // Calculate moon phases for this day
@@ -387,7 +401,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           primaryMoonColor = primaryMoon.moon.color;
           hasMultipleMoons = moonPhaseInfo.length > 1;
 
-          // Create moon tooltip
+          // Create moon tooltip (HTML format)
           if (moonPhaseInfo.length === 1) {
             const moon = moonPhaseInfo[0];
             moonTooltip = `${moon.moon.name}: ${moon.phase.name}`;
@@ -395,21 +409,56 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               moonTooltip += ` (${this.formatDaysUntilNext(moon.daysUntilNextExact)} until next phase)`;
             }
           } else {
-            moonTooltip = moonPhaseInfo
+            const moonList = moonPhaseInfo
               .map(info => {
                 const base = `${info.moon.name}: ${info.phase.name}`;
                 if (info.daysUntilNextExact > 0) {
-                  return `${base} (${this.formatDaysUntilNext(info.daysUntilNextExact)} until next phase)`;
+                  return `<div>${base} (${this.formatDaysUntilNext(info.daysUntilNextExact)} until next phase)</div>`;
                 }
-                return base;
+                return `<div>${base}</div>`;
               })
-              .join('\n');
+              .join('');
+            moonTooltip = moonList;
           }
         }
       } catch (error) {
         // Silently handle moon calculation errors to avoid breaking calendar display
         console.debug('Error calculating moon phases for date:', dayDate, error);
       }
+
+      // Build combined HTML tooltip
+      const tooltipParts: string[] = [];
+
+      // Add date
+      if (isToday) {
+        tooltipParts.push(
+          `<strong>Current Date:</strong> ${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+        );
+      } else {
+        tooltipParts.push(
+          `${viewDate.year}-${viewDate.month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
+        );
+      }
+
+      // Add events
+      if (eventTooltipHtml) {
+        tooltipParts.push(eventTooltipHtml);
+      }
+
+      // Add notes
+      if (noteTooltipHtml) {
+        tooltipParts.push(noteTooltipHtml);
+      }
+
+      // Add moon phases
+      if (moonTooltip) {
+        tooltipParts.push(moonTooltip);
+      }
+
+      // Add click instruction (all days are clickable)
+      tooltipParts.push('<em>(Click to set date)</em>');
+
+      const combinedTooltip = tooltipParts.join('<br>');
 
       currentWeek.push({
         day: day,
@@ -428,6 +477,12 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         primaryMoonColor: primaryMoonColor,
         moonTooltip: moonTooltip,
         hasMultipleMoons: hasMultipleMoons,
+        // Calendar event properties
+        hasEvents: hasEvents,
+        eventCount: calendarEvents.length,
+        eventTooltip: eventTooltipHtml,
+        eventIcon: calendarEvents[0]?.event.icon,
+        eventColor: calendarEvents[0]?.event.color,
         // Additional properties for template
         isSelected: isViewDate,
         isClickable: true, // Click handler manages GM-only actions vs player info view
@@ -437,7 +492,8 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         noteMultiple: noteCount > 1,
         categoryClass: categoryClass,
         primaryCategory: noteData?.primaryCategory || 'general',
-        noteTooltip: noteTooltip,
+        noteTooltip: noteTooltipHtml,
+        combinedTooltip: combinedTooltip,
         canCreateNote: this.canCreateNote(),
       } as CalendarDayData & {
         isSelected: boolean;
@@ -449,7 +505,13 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         categoryClass: string;
         primaryCategory: string;
         noteTooltip: string;
+        combinedTooltip: string;
         canCreateNote: boolean;
+        hasEvents: boolean;
+        eventCount: number;
+        eventTooltip: string;
+        eventIcon?: string;
+        eventColor?: string;
       });
 
       // Start new week on last day of week
