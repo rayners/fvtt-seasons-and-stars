@@ -688,8 +688,8 @@
         // Lighter background for better contrast with dark event icons
         background: rgba(255, 255, 255, 0.25);
         border-radius: 50%;
-        width: 1.3rem;
-        height: 1.3rem;
+        width: 1.1rem; // Reduced from 1.3rem
+        height: 1.1rem; // Reduced from 1.3rem
         box-shadow:
           0 1px 3px rgba(0, 0, 0, 0.4),
           inset 0 1px 0 rgba(255, 255, 255, 0.2),
@@ -706,7 +706,7 @@
         }
 
         i {
-          font-size: 11px; // Increased from 9px for better accessibility
+          font-size: 9px; // Reduced from 11px
           filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
         }
 
@@ -714,13 +714,13 @@
           position: absolute;
           top: -3px;
           right: -3px;
-          font-size: 7px;
+          font-size: 6px; // Reduced from 7px
           font-weight: bold;
           background: rgba(0, 0, 0, 0.8);
           color: white;
           border-radius: 50%;
-          width: 11px;
-          height: 11px;
+          width: 10px; // Reduced from 11px
+          height: 10px; // Reduced from 11px
           display: flex;
           align-items: center;
           justify-content: center;
@@ -741,15 +741,15 @@
         // Circular background matching main widget style
         background: rgba(0, 0, 0, 0.3);
         border-radius: 50%;
-        width: 1.15rem;
-        height: 1.15rem;
+        width: 1rem; // Reduced from 1.15rem
+        height: 1rem; // Reduced from 1.15rem
         box-shadow:
           0 1px 3px rgba(0, 0, 0, 0.4),
           inset 0 1px 0 rgba(255, 255, 255, 0.1);
         pointer-events: none;
 
         i {
-          font-size: 0.7rem;
+          font-size: 0.6rem; // Reduced from 0.7rem
           filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
         }
 
@@ -757,13 +757,13 @@
           position: absolute;
           top: -2px;
           right: -2px;
-          font-size: 6px;
+          font-size: 5px; // Reduced from 6px
           font-weight: bold;
           color: rgba(255, 255, 255, 0.9);
           background: rgba(0, 0, 0, 0.6);
           border-radius: 50%;
-          width: 9px;
-          height: 9px;
+          width: 8px; // Reduced from 9px
+          height: 8px; // Reduced from 9px
           display: flex;
           align-items: center;
           justify-content: center;
