@@ -121,10 +121,10 @@
                     </div>
                   {{/if}}
                   {{#if hasEvents}}
-                    <div class="event-indicator" {{#if eventColor}}style="color: {{eventColor}}"{{/if}} data-tooltip="{{eventTooltip}}">
-                      <i class="{{#if eventIcon}}{{eventIcon}}{{else}}fas fa-calendar-day{{/if}}"></i>
+                    <div class="event-indicator" {{#if eventColor}}style="color: {{eventColor}}"{{/if}} data-tooltip="{{eventTooltip}}" role="img" aria-label="{{eventCount}} calendar event(s) on this date">
+                      <i class="{{#if eventIcon}}{{eventIcon}}{{else}}fas fa-calendar-day{{/if}}" aria-hidden="true"></i>
                       {{#if (gt eventCount 1)}}
-                        <span class="event-count">{{eventCount}}</span>
+                        <span class="event-count" aria-hidden="true">{{eventCount}}</span>
                       {{/if}}
                     </div>
                   {{/if}}
@@ -162,10 +162,10 @@
                     </div>
                   {{/if}}
                   {{#if hasEvents}}
-                    <div class="event-indicator" {{#if eventColor}}style="color: {{eventColor}}"{{/if}} data-tooltip="{{eventTooltip}}">
-                      <i class="{{#if eventIcon}}{{eventIcon}}{{else}}fas fa-calendar-day{{/if}}"></i>
+                    <div class="event-indicator" {{#if eventColor}}style="color: {{eventColor}}"{{/if}} data-tooltip="{{eventTooltip}}" role="img" aria-label="{{eventCount}} calendar event(s) on this date">
+                      <i class="{{#if eventIcon}}{{eventIcon}}{{else}}fas fa-calendar-day{{/if}}" aria-hidden="true"></i>
                       {{#if (gt eventCount 1)}}
-                        <span class="event-count">{{eventCount}}</span>
+                        <span class="event-count" aria-hidden="true">{{eventCount}}</span>
                       {{/if}}
                     </div>
                   {{/if}}

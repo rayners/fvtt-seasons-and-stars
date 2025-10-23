@@ -191,7 +191,7 @@ export interface CalendarManagerInterface {
   setCurrentDate(date: CalendarDate): Promise<void>;
   getActiveCalendar(): SeasonsStarsCalendar | null;
   getActiveEngine(): CalendarEngineInterface | null;
-  getActiveEventsManager(): any | null;
+  getActiveEventsManager(): import('../core/events-manager').EventsManager | null;
   getAllCalendars(): SeasonsStarsCalendar[];
   getCalendar(calendarId: string): SeasonsStarsCalendar | null;
   getAvailableCalendars(): SeasonsStarsCalendar[];

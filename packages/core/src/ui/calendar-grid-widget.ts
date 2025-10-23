@@ -344,22 +344,37 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         eventsManager?.getEventsForDate(viewDate.year, viewDate.month, day) || [];
       const hasEvents = calendarEvents.length > 0;
 
-      // Create enhanced tooltip with note details (HTML format)
+      // Helper function for HTML escaping (XSS protection)
+      const escapeHTML = (str: string): string => {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      };
+
+      // Create enhanced tooltip with note details (HTML format with XSS protection)
       let noteTooltipHtml = '';
       if (hasNotes && noteData) {
         const notesList = noteData.notes
           .map(note => {
-            const tagText = note.tags.length > 0 ? ` [${note.tags.join(', ')}]` : '';
-            return `<div>${note.title}${tagText}</div>`;
+            const escapedTitle = escapeHTML(note.title);
+            const escapedTags = note.tags.map(tag => escapeHTML(tag));
+            const tagText = escapedTags.length > 0 ? ` [${escapedTags.join(', ')}]` : '';
+            return `<div>${escapedTitle}${tagText}</div>`;
           })
           .join('');
-        noteTooltipHtml = `<strong>${noteCount} note(s) (${noteData.primaryCategory}):</strong>${notesList}`;
+        const escapedCategory = escapeHTML(noteData.primaryCategory);
+        noteTooltipHtml = `<strong>${noteCount} note(s) (${escapedCategory}):</strong>${notesList}`;
       }
 
-      // Create event tooltip (HTML format)
+      // Create event tooltip (HTML format with XSS protection)
       let eventTooltipHtml = '';
       if (hasEvents) {
-        const eventsList = calendarEvents.map(event => `<div>${event.event.name}</div>`).join('');
+        const eventsList = calendarEvents
+          .map(event => {
+            const escapedName = escapeHTML(event.event.name);
+            return `<div>${escapedName}</div>`;
+          })
+          .join('');
         eventTooltipHtml = `<strong>${calendarEvents.length} event(s):</strong>${eventsList}`;
       }
 
