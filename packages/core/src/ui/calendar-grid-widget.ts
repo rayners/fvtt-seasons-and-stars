@@ -344,25 +344,18 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         eventsManager?.getEventsForDate(viewDate.year, viewDate.month, day) || [];
       const hasEvents = calendarEvents.length > 0;
 
-      // Helper function for HTML escaping (XSS protection)
-      const escapeHTML = (str: string): string => {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-      };
-
       // Create enhanced tooltip with note details (HTML format with XSS protection)
       let noteTooltipHtml = '';
       if (hasNotes && noteData) {
         const notesList = noteData.notes
           .map(note => {
-            const escapedTitle = escapeHTML(note.title);
-            const escapedTags = note.tags.map(tag => escapeHTML(tag));
+            const escapedTitle = note.title.stripScripts();
+            const escapedTags = note.tags.map(tag => tag.stripScripts());
             const tagText = escapedTags.length > 0 ? ` [${escapedTags.join(', ')}]` : '';
             return `<div>${escapedTitle}${tagText}</div>`;
           })
           .join('');
-        const escapedCategory = escapeHTML(noteData.primaryCategory);
+        const escapedCategory = noteData.primaryCategory.stripScripts();
         noteTooltipHtml = `<strong>${noteCount} note(s) (${escapedCategory}):</strong>${notesList}`;
       }
 
@@ -371,7 +364,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       if (hasEvents) {
         const eventsList = calendarEvents
           .map(event => {
-            const escapedName = escapeHTML(event.event.name);
+            const escapedName = event.event.name.stripScripts();
             return `<div>${escapedName}</div>`;
           })
           .join('');
