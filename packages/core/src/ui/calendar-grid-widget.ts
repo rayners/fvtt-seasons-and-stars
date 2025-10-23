@@ -1048,14 +1048,12 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     }
 
     return new Promise(resolve => {
-      // Ensure we have valid date values
       const safeDate = {
         year: date.year || this.viewDate.year || 2024,
         month: date.month || this.viewDate.month || 1,
         day: date.day || 1,
       };
 
-      // Format date using calendar system
       const manager = game.seasonsStars?.manager as CalendarManagerInterface;
       const activeCalendar = manager?.getActiveCalendar();
       let dateDisplayStr = `${safeDate.year}-${safeDate.month.toString().padStart(2, '0')}-${safeDate.day.toString().padStart(2, '0')}`;
@@ -1067,27 +1065,23 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         const yearPrefix = activeCalendar.year?.prefix || '';
         const yearSuffix = activeCalendar.year?.suffix || '';
         dateDisplayStr = `${safeDate.day} ${monthName}, ${yearPrefix}${safeDate.year}${yearSuffix}`;
-        calendarInfo = `<div style="text-align: center; margin-bottom: 16px; padding: 8px; background: rgba(0,0,0,0.1); border-radius: 4px; font-weight: 600; color: var(--color-text-dark-primary);">${dateDisplayStr}</div>`;
+        calendarInfo = `<div class="note-dialog-date">${dateDisplayStr}</div>`;
       }
 
-      // Build category options from the categories system
       const availableCategories = categories.getCategories();
       const categoryOptions = availableCategories
         .map(cat => `<option value="${cat.id}">${cat.name}</option>`)
         .join('');
 
-      // Get predefined tags for suggestions
       const predefinedTags = categories.getPredefinedTags();
       const tagSuggestions = predefinedTags
         .map(tag => `<span class="tag-suggestion" data-tag="${tag}">${tag}</span>`)
         .join(' ');
 
-      // Get existing tags from notes for autocompletion
       const notesManager = game.seasonsStars?.notes as NotesManagerInterface;
       const existingTags = new Set<string>();
       if (notesManager && notesManager.storage) {
         try {
-          // Check if getAllNotes method exists and is callable
           if (typeof notesManager.storage.getAllNotes === 'function') {
             const allNotes = notesManager.storage.getAllNotes() || [];
             allNotes.forEach(note => {
@@ -1095,7 +1089,6 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               noteTags.forEach((tag: string) => existingTags.add(tag));
             });
           } else {
-            // Fallback: try to get notes from game.journal if storage method unavailable
             if (game.journal) {
               for (const entry of game.journal.values()) {
                 if (entry.flags?.['seasons-and-stars']?.calendarNote === true) {
@@ -1106,7 +1099,6 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             }
           }
         } catch (error) {
-          // Silent fallback - just use predefined tags if existing tags can't be loaded
           Logger.debug(
             'Could not load existing tags for autocompletion, using predefined tags only',
             error
@@ -1114,225 +1106,70 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         }
       }
 
-      // Combine predefined and existing tags for autocompletion
       const allAvailableTags = Array.from(new Set([...predefinedTags, ...existingTags]));
 
-      new Dialog({
-        title: `Create Note`,
-        content: `
-          <style>
-            .seasons-stars-note-form {
-              max-width: 600px;
-              font-family: var(--font-primary);
-              overflow: visible;
-            }
-            .seasons-stars-note-form .form-group {
-              margin-bottom: 16px;
-            }
-            .seasons-stars-note-form .form-row {
-              display: flex;
-              gap: 12px;
-            }
-            .seasons-stars-note-form .form-group.half-width {
-              flex: 1;
-            }
-            .seasons-stars-note-form label {
-              display: block;
-              margin-bottom: 4px;
-              font-weight: 600;
-              color: var(--color-text-dark-primary);
-              font-size: 13px;
-            }
-            .seasons-stars-note-form input[type="text"],
-            .seasons-stars-note-form textarea,
-            .seasons-stars-note-form select {
-              width: 100%;
-              padding: 8px 10px;
-              border: 1px solid var(--color-border-dark);
-              border-radius: 4px;
-              background: var(--color-bg-option);
-              color: var(--color-text-dark-primary);
-              font-size: 13px;
-              transition: border-color 0.2s ease, box-shadow 0.2s ease;
-              line-height: 1.4;
-              min-height: 36px;
-            }
-            .seasons-stars-note-form select {
-              padding: 6px 10px;
-              height: auto;
-              min-height: 34px;
-            }
-            .seasons-stars-note-form input[type="text"]:focus,
-            .seasons-stars-note-form textarea:focus,
-            .seasons-stars-note-form select:focus {
-              border-color: var(--color-border-highlight);
-              box-shadow: 0 0 0 2px rgba(var(--color-shadow-highlight), 0.2);
-              outline: none;
-            }
-            .seasons-stars-note-form textarea {
-              resize: vertical;
-              min-height: 80px;
-            }
-            .seasons-stars-note-form .tag-suggestions {
-              margin-top: 6px;
-              max-height: 80px;
-              overflow-y: auto;
-              border: 1px solid var(--color-border-light);
-              border-radius: 4px;
-              padding: 8px;
-              background: rgba(0, 0, 0, 0.1);
-            }
-            .seasons-stars-note-form .tag-suggestions small {
-              display: block;
-              margin-bottom: 6px;
-              color: var(--color-text-dark-secondary);
-              font-weight: 600;
-              font-size: 11px;
-            }
-            .seasons-stars-note-form .tag-suggestion {
-              display: inline-block;
-              background: var(--color-bg-btn);
-              border: 1px solid var(--color-border-dark);
-              border-radius: 12px;
-              padding: 4px 10px;
-              margin: 2px 4px 2px 0;
-              cursor: pointer;
-              font-size: 11px;
-              font-weight: 500;
-              transition: all 0.2s ease;
-              user-select: none;
-            }
-            .seasons-stars-note-form .tag-suggestion:hover {
-              background: var(--color-bg-btn-hover);
-              transform: translateY(-1px);
-              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            }
-            .seasons-stars-note-form .tag-autocomplete {
-              position: relative;
-            }
-            .seasons-stars-note-form .tag-autocomplete-dropdown {
-              position: absolute;
-              top: 100%;
-              left: 0;
-              right: 0;
-              background: var(--color-bg-option);
-              border: 1px solid var(--color-border-dark);
-              border-top: none;
-              border-radius: 0 0 4px 4px;
-              max-height: 120px;
-              overflow-y: auto;
-              z-index: 1000;
-              display: none;
-            }
-            .seasons-stars-note-form .tag-autocomplete-item {
-              padding: 6px 10px;
-              cursor: pointer;
-              font-size: 12px;
-              border-bottom: 1px solid var(--color-border-light);
-              transition: background-color 0.15s ease;
-            }
-            .seasons-stars-note-form .tag-autocomplete-item:hover,
-            .seasons-stars-note-form .tag-autocomplete-item.selected {
-              background: var(--color-bg-btn-hover);
-            }
-            .seasons-stars-note-form .tag-autocomplete-item:last-child {
-              border-bottom: none;
-            }
-            .seasons-stars-note-form .tag-autocomplete-item .tag-match {
-              font-weight: 600;
-              color: var(--color-text-highlight);
-            }
-          </style>
-          <form class="seasons-stars-note-form">
-            ${calendarInfo}
-            
-            <div class="form-group">
-              <label>Title:</label>
-              <input type="text" name="title" placeholder="Note title" autofocus />
+      const content = `
+        <form class="seasons-stars-note-form">
+          ${calendarInfo}
+
+          <div class="form-group">
+            <label>Title:</label>
+            <input type="text" name="title" placeholder="Note title" autofocus />
+          </div>
+
+          <div class="form-group">
+            <label>Content:</label>
+            <textarea name="content" rows="4" placeholder="Note content"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group half-width">
+              <label>Category:</label>
+              <select name="category" class="category-select">
+                ${categoryOptions}
+              </select>
             </div>
-            
-            <div class="form-group">
-              <label>Content:</label>
-              <textarea name="content" rows="4" placeholder="Note content"></textarea>
+            <div class="form-group half-width">
+              <label>
+                <input type="checkbox" name="allDay" checked />
+                All Day Event
+              </label>
             </div>
-            
-            <div class="form-row">
-              <div class="form-group half-width">
-                <label>Category:</label>
-                <select name="category" class="category-select">
-                  ${categoryOptions}
-                </select>
-              </div>
-              <div class="form-group half-width">
-                <label>
-                  <input type="checkbox" name="allDay" checked />
-                  All Day Event
-                </label>
-              </div>
+          </div>
+
+          <div class="form-group">
+            <label>Tags (optional):</label>
+            <div class="tag-autocomplete">
+              <input type="text" name="tags" placeholder="Enter tags separated by commas" class="tags-input" autocomplete="off" />
+              <div class="tag-autocomplete-dropdown"></div>
             </div>
-            
-            <div class="form-group">
-              <label>Tags (optional):</label>
-              <div class="tag-autocomplete">
-                <input type="text" name="tags" placeholder="Enter tags separated by commas" class="tags-input" autocomplete="off" />
-                <div class="tag-autocomplete-dropdown"></div>
-              </div>
-              <div class="tag-suggestions">
-                <small>Click to add:</small>
-                ${tagSuggestions}
-              </div>
+            <div class="tag-suggestions">
+              <small>Click to add:</small>
+              ${tagSuggestions}
             </div>
-          </form>
-          
-          <style>
-            .seasons-stars-note-form .form-row {
-              display: flex;
-              gap: 12px;
-            }
-            .seasons-stars-note-form .half-width {
-              flex: 1;
-            }
-            .seasons-stars-note-form .category-select {
-              width: 100%;
-            }
-            .seasons-stars-note-form .tags-input {
-              width: 100%;
-              margin-bottom: 5px;
-            }
-            .seasons-stars-note-form .tag-suggestions {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 4px;
-              align-items: flex-start;
-              padding-top: 2px;
-            }
-            .seasons-stars-note-form input[type="checkbox"] {
-              margin-right: 6px;
-            }
-            .seasons-stars-note-form .category-select {
-              appearance: none;
-              -webkit-appearance: none;
-              -moz-appearance: none;
-              background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
-              background-repeat: no-repeat;
-              background-position: right 8px center;
-              background-size: 12px;
-              padding-right: 30px !important;
-              vertical-align: top;
-            }
-            .seasons-stars-note-form .category-select option {
-              padding: 4px 8px;
-              line-height: 1.4;
-              min-height: 20px;
-            }
-          </style>
-        `,
-        buttons: {
-          create: {
-            icon: '<i class="fas fa-plus"></i>',
+          </div>
+        </form>
+      `;
+
+      const abortController = new AbortController();
+
+      const dialog = new foundry.applications.api.DialogV2({
+        window: {
+          title: 'Create Note',
+          resizable: true,
+        },
+        content,
+        buttons: [
+          {
+            action: 'create',
+            icon: 'fas fa-plus',
             label: 'Create Note',
-            callback: (html: JQuery) => {
-              const form = html.find('form')[0] as HTMLFormElement;
+            callback: async (
+              event: Event,
+              button: HTMLElement,
+              html: HTMLElement
+            ): Promise<void> => {
+              const form = html.querySelector('form') as HTMLFormElement;
               const formData = new FormData(form);
 
               const title = formData.get('title') as string;
@@ -1345,7 +1182,6 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
                 return;
               }
 
-              // Parse tags
               const tags = categories.parseTagString(tagsString);
               const { valid: validTags, invalid: invalidTags } = categories.validateTags(tags);
 
@@ -1361,48 +1197,54 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
                 category:
                   (formData.get('category') as string) || categories.getDefaultCategory().id,
                 tags: validTags,
-                playerVisible: false, // Default to private
-                recurring: undefined, // No recurring support for now
+                playerVisible: false,
+                recurring: undefined,
               });
             },
           },
-          cancel: {
-            icon: '<i class="fas fa-times"></i>',
+          {
+            action: 'cancel',
+            icon: 'fas fa-times',
             label: 'Cancel',
-            callback: () => resolve(null),
+            callback: (): void => resolve(null),
           },
-        },
+        ],
         default: 'create',
-        resizable: true,
-        render: (html: JQuery) => {
-          // Add click handlers for tag suggestions
-          html.find('.tag-suggestion').on('click', function () {
-            const tag = $(this).data('tag');
-            const tagsInput = html.find('input[name="tags"]');
-            const currentTags = tagsInput.val() as string;
+        position: {
+          width: 600,
+        },
+        render: (event: Event, html: HTMLElement): void => {
+          // Tag suggestions
+          html.querySelectorAll('.tag-suggestion').forEach(suggestion => {
+            suggestion.addEventListener('click', function (this: HTMLElement) {
+              const tag = this.dataset.tag;
+              const tagsInput = html.querySelector('input[name="tags"]') as HTMLInputElement;
+              const currentTags = tagsInput.value;
 
-            if (currentTags) {
-              tagsInput.val(currentTags + ', ' + tag);
-            } else {
-              tagsInput.val(tag);
-            }
-            tagsInput.trigger('input'); // Trigger autocompletion update
+              if (currentTags) {
+                tagsInput.value = currentTags + ', ' + tag;
+              } else {
+                tagsInput.value = tag || '';
+              }
+              tagsInput.dispatchEvent(new Event('input'));
+            });
           });
 
-          // Update category select styling based on selection
-          html.find('.category-select').on('change', function () {
-            const selectedCat = categories.getCategory($(this).val() as string);
+          // Category select
+          const categorySelect = html.querySelector('.category-select') as HTMLSelectElement;
+          categorySelect.addEventListener('change', function () {
+            const selectedCat = categories.getCategory(this.value);
             if (selectedCat) {
-              $(this).css('border-left', `4px solid ${selectedCat.color}`);
+              this.style.borderLeft = `4px solid ${selectedCat.color}`;
             }
           });
 
-          // Tag autocompletion functionality
-          const tagsInput = html.find('input[name="tags"]');
-          const autocompleteDropdown = html.find('.tag-autocomplete-dropdown');
+          const tagsInput = html.querySelector('input[name="tags"]') as HTMLInputElement;
+          const autocompleteDropdown = html.querySelector(
+            '.tag-autocomplete-dropdown'
+          ) as HTMLElement;
           let selectedIndex = -1;
 
-          // Smart tag matching function
           function matchTag(
             searchTerm: string,
             tagToMatch: string
@@ -1410,7 +1252,6 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             const search = searchTerm.toLowerCase();
             const tag = tagToMatch.toLowerCase();
 
-            // Direct match
             if (tag.includes(search)) {
               const index = tag.indexOf(search);
               const highlighted =
@@ -1422,7 +1263,6 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               return { matches: true, highlighted };
             }
 
-            // Colon-separated tag matching
             if (tag.includes(':')) {
               const parts = tag.split(':');
               for (const part of parts) {
@@ -1444,29 +1284,25 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             return { matches: false, highlighted: tagToMatch };
           }
 
-          // Function to get current typing context
           function getCurrentTypingContext(): {
             beforeCursor: string;
             afterCursor: string;
             currentTag: string;
           } {
-            const inputElement = tagsInput[0] as HTMLInputElement;
-            const cursorPos = inputElement.selectionStart || 0;
-            const fullText = tagsInput.val() as string;
+            const cursorPos = tagsInput.selectionStart || 0;
+            const fullText = tagsInput.value;
             const beforeCursor = fullText.substring(0, cursorPos);
             const afterCursor = fullText.substring(cursorPos);
 
-            // Find the current tag being typed
             const lastCommaIndex = beforeCursor.lastIndexOf(',');
             const currentTag = beforeCursor.substring(lastCommaIndex + 1).trim();
 
             return { beforeCursor, afterCursor, currentTag };
           }
 
-          // Function to show autocomplete suggestions
           function showAutocomplete(searchTerm: string) {
             if (searchTerm.length < 1) {
-              autocompleteDropdown.hide();
+              autocompleteDropdown.style.display = 'none';
               return;
             }
 
@@ -1480,11 +1316,10 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             });
 
             if (matches.length === 0) {
-              autocompleteDropdown.hide();
+              autocompleteDropdown.style.display = 'none';
               return;
             }
 
-            // Limit to top 8 matches
             const topMatches = matches.slice(0, 8);
 
             const dropdownHtml = topMatches
@@ -1494,11 +1329,11 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               )
               .join('');
 
-            autocompleteDropdown.html(dropdownHtml).show();
+            autocompleteDropdown.innerHTML = dropdownHtml;
+            autocompleteDropdown.style.display = 'block';
             selectedIndex = -1;
           }
 
-          // Function to insert selected tag
           function insertTag(tagToInsert: string) {
             const context = getCurrentTypingContext();
             const beforeCurrentTag = context.beforeCursor.substring(
@@ -1511,69 +1346,79 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               (context.afterCursor.startsWith(',') ? '' : ', ') +
               context.afterCursor;
 
-            tagsInput.val(newValue.replace(/,\\s*$/, '')); // Remove trailing comma
-            autocompleteDropdown.hide();
+            tagsInput.value = newValue.replace(/,\s*$/, '');
+            autocompleteDropdown.style.display = 'none';
             tagsInput.focus();
           }
 
-          // Input event for autocompletion
-          tagsInput.on('input', function () {
+          tagsInput.addEventListener('input', function () {
             const context = getCurrentTypingContext();
             showAutocomplete(context.currentTag);
           });
 
-          // Keyboard navigation
-          tagsInput.on('keydown', function (e) {
-            const dropdown = autocompleteDropdown;
-            const items = dropdown.find('.tag-autocomplete-item');
+          tagsInput.addEventListener('keydown', function (e: KeyboardEvent) {
+            const items = Array.from(
+              autocompleteDropdown.querySelectorAll('.tag-autocomplete-item')
+            ) as HTMLElement[];
 
-            if (!dropdown.is(':visible') || items.length === 0) return;
+            if (autocompleteDropdown.style.display === 'none' || items.length === 0) return;
 
-            switch (e.keyCode) {
-              case 38: // Up arrow
+            switch (e.key) {
+              case 'ArrowUp':
                 e.preventDefault();
                 selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
                 break;
-              case 40: // Down arrow
+              case 'ArrowDown':
                 e.preventDefault();
                 selectedIndex = selectedIndex >= items.length - 1 ? 0 : selectedIndex + 1;
                 break;
-              case 13: // Enter
+              case 'Enter':
                 e.preventDefault();
                 if (selectedIndex >= 0) {
-                  const selectedTag = items.eq(selectedIndex).data('tag');
-                  insertTag(selectedTag);
+                  const selectedTag = items[selectedIndex].dataset.tag;
+                  if (selectedTag) insertTag(selectedTag);
                 }
                 return;
-              case 27: // Escape
-                dropdown.hide();
+              case 'Escape':
+                autocompleteDropdown.style.display = 'none';
                 return;
             }
 
-            // Update visual selection
-            items.removeClass('selected');
+            items.forEach(item => item.classList.remove('selected'));
             if (selectedIndex >= 0) {
-              items.eq(selectedIndex).addClass('selected');
+              items[selectedIndex].classList.add('selected');
             }
           });
 
-          // Click handlers for autocomplete items
-          autocompleteDropdown.on('click', '.tag-autocomplete-item', function () {
-            const tagToInsert = $(this).data('tag');
-            insertTag(tagToInsert);
-          });
-
-          // Hide dropdown when clicking outside
-          $(document).on('click', function (e) {
-            if (!$(e.target).closest('.tag-autocomplete').length) {
-              autocompleteDropdown.hide();
+          autocompleteDropdown.addEventListener('click', function (e) {
+            const target = (e.target as HTMLElement).closest('.tag-autocomplete-item');
+            if (target) {
+              const tagToInsert = (target as HTMLElement).dataset.tag;
+              if (tagToInsert) insertTag(tagToInsert);
             }
           });
 
-          // Trigger initial styling
-          html.find('.category-select').trigger('change');
+          // Initialize document click handler for autocomplete
+          const documentClickHandler = (e: MouseEvent): void => {
+            const target = e.target as HTMLElement;
+            if (!target.closest('.tag-autocomplete')) {
+              autocompleteDropdown.style.display = 'none';
+            }
+          };
+          document.addEventListener('click', documentClickHandler, {
+            signal: abortController.signal,
+          });
+
+          // Trigger initial category select change to set border color
+          categorySelect.dispatchEvent(new Event('change'));
         },
-      }).render(true);
+        close: (): void => {
+          // Clean up event listeners when dialog closes
+          abortController.abort();
+        },
+      });
+
+      dialog.render(true);
     });
   }
 
@@ -1669,74 +1514,44 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       })
       .join('');
 
+    const content = `
+      <div class="notes-selection">
+        <p>Select a note to view/edit:</p>
+        ${notesList}
+      </div>
+    `;
+
     return new Promise(resolve => {
-      new Dialog({
-        title: `Notes for ${dateDisplayStr}`,
-        content: `
-          <style>
-            .notes-selection {
-              max-width: 500px;
-            }
-            .note-item {
-              border: 1px solid var(--color-border-light);
-              border-radius: 4px;
-              padding: 10px;
-              margin-bottom: 8px;
-              cursor: pointer;
-              transition: background-color 0.2s ease;
-              background: rgba(255, 255, 255, 0.02);
-            }
-            .note-item:hover {
-              background: rgba(255, 255, 255, 0.08);
-              border-color: var(--color-border-highlight);
-            }
-            .note-item:last-child {
-              margin-bottom: 0;
-            }
-            .note-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 4px;
-            }
-            .note-category {
-              font-size: 11px;
-              background: var(--color-bg-btn);
-              padding: 2px 6px;
-              border-radius: 3px;
-              color: var(--color-text-light-heading);
-            }
-            .note-preview {
-              font-size: 12px;
-              color: var(--color-text-dark-secondary);
-              font-style: italic;
-            }
-          </style>
-          <div class="notes-selection">
-            <p>Select a note to view/edit:</p>
-            ${notesList}
-          </div>
-        `,
-        buttons: {
-          cancel: {
-            icon: '<i class="fas fa-times"></i>',
-            label: 'Cancel',
-            callback: () => resolve(),
-          },
+      const dialog = new foundry.applications.api.DialogV2({
+        window: {
+          title: `Notes for ${dateDisplayStr}`,
         },
+        content,
+        buttons: [
+          {
+            action: 'cancel',
+            icon: 'fas fa-times',
+            label: 'Cancel',
+            callback: (): void => resolve(),
+          },
+        ],
         default: 'cancel',
-        render: (html: JQuery) => {
-          // Add click handlers for note items
-          html.find('.note-item').on('click', function () {
-            const noteIndex = parseInt($(this).data('index'));
-            const note = notes[noteIndex];
-            if (note && note.sheet) {
-              (note.sheet as any).render(true);
-            }
-            resolve();
+        render: (event: Event, html: HTMLElement): void => {
+          html.querySelectorAll('.note-item').forEach(item => {
+            item.addEventListener('click', function (this: HTMLElement) {
+              const noteIndex = parseInt(this.dataset.index || '0');
+              const note = notes[noteIndex];
+              if (note && note.sheet) {
+                (note.sheet as any).render(true);
+                dialog.close();
+              }
+              resolve();
+            });
           });
         },
-      }).render(true);
+      });
+
+      dialog.render(true);
     });
   }
 
