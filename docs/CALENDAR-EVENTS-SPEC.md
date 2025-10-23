@@ -83,6 +83,8 @@ interface CalendarEvent {
   description?: string; // Brief plain text summary for tooltips/previews
   journalEntryId?: string; // Optional reference to JournalEntry for rich content
   recurrence: RecurrenceRule; // When this event occurs
+  startTime?: string; // Time of day (format: "hh", "hh:mm", "hh:mm:ss", default: "00:00:00")
+  duration?: string; // Event duration (format: "<number><s|m|h|d|w>", default: "1d")
   startYear?: number; // First year event occurs (omit for all past years)
   endYear?: number; // Last year event occurs (omit for indefinite future)
   exceptions?: EventException[]; // Specific dates to skip/move
@@ -98,6 +100,19 @@ interface CalendarEvent {
 // - If only startYear specified: event continues indefinitely
 // - If only endYear specified: event has existed since calendar creation
 // - If neither specified: event occurs in all years
+
+// Start Time and Duration:
+// - startTime: Time of day when event begins (format: "hh", "hh:mm", or "hh:mm:ss")
+//   - Examples: "14:30:00" (2:30 PM), "9" (9 AM), "23:45" (11:45 PM)
+//   - Default: "00:00:00" (midnight/start of day)
+//   - Uses calendar's time configuration (hoursPerDay, minutesPerHour, secondsPerMinute)
+// - duration: How long the event lasts (format: "<number><unit>")
+//   - Units: s (seconds), m (minutes), h (hours), d (days), w (weeks)
+//   - Examples: "1d" (one day), "3d" (three days), "2h" (two hours), "30m" (thirty minutes)
+//   - Zero-duration events ("0s") represent instantaneous moments (e.g., eclipses)
+//   - Default: "1d" (one day)
+//   - Multi-day events span across multiple calendar dates
+//   - Events that cross month or year boundaries are handled correctly
 
 // Journal Entry Integration:
 // - description: Brief plain text shown in tooltips, calendar previews
@@ -556,6 +571,151 @@ Hook should NOT fire excessively:
 - Only if the new day actually has events
 - Once per day transition (not multiple times for same day)
 
+## Event Time and Duration
+
+_Added in v0.21.0_
+
+Events support precise start times and durations, allowing for multi-day events, sub-day events, and instantaneous moments.
+
+### Start Time
+
+The `startTime` field specifies when an event begins on its occurrence date:
+
+**Format**: `"hh"`, `"hh:mm"`, or `"hh:mm:ss"`
+**Default**: `"00:00:00"` (midnight/start of day)
+
+```json
+{
+  "id": "morning-meeting",
+  "name": "Town Meeting",
+  "startTime": "9",
+  "recurrence": { "type": "fixed", "month": 1, "day": 15 }
+}
+```
+
+```json
+{
+  "id": "evening-ceremony",
+  "name": "Evening Ceremony",
+  "startTime": "18:30",
+  "recurrence": { "type": "fixed", "month": 6, "day": 21 }
+}
+```
+
+```json
+{
+  "id": "precise-event",
+  "name": "Precise Timing Event",
+  "startTime": "14:30:45",
+  "recurrence": { "type": "fixed", "month": 12, "day": 31 }
+}
+```
+
+**Calendar Time Configuration**: Start times respect the calendar's time configuration (`hoursPerDay`, `minutesPerHour`, `secondsPerMinute`). For a calendar with 10-hour days, `"9"` means the 9th hour of that calendar's day.
+
+### Duration
+
+The `duration` field specifies how long an event lasts:
+
+**Format**: `"<number><unit>"` where unit is `s` (seconds), `m` (minutes), `h` (hours), `d` (days), or `w` (weeks)
+**Default**: `"1d"` (one day)
+
+**Single-Day Events**:
+
+```json
+{
+  "id": "new-year",
+  "name": "New Year's Day",
+  "duration": "1d",
+  "recurrence": { "type": "fixed", "month": 1, "day": 1 }
+}
+```
+
+**Multi-Day Events**:
+
+```json
+{
+  "id": "festival-week",
+  "name": "Harvest Festival",
+  "startTime": "00:00:00",
+  "duration": "7d",
+  "recurrence": { "type": "fixed", "month": 9, "day": 1 }
+}
+```
+
+```json
+{
+  "id": "olympics",
+  "name": "Summer Olympics",
+  "startTime": "20:00",
+  "duration": "16d",
+  "recurrence": {
+    "type": "interval",
+    "intervalYears": 4,
+    "anchorYear": 2024,
+    "month": 7,
+    "day": 26
+  }
+}
+```
+
+**Sub-Day Events**:
+
+```json
+{
+  "id": "short-ceremony",
+  "name": "Morning Ceremony",
+  "startTime": "9:00",
+  "duration": "2h",
+  "recurrence": { "type": "fixed", "month": 1, "day": 1 }
+}
+```
+
+```json
+{
+  "id": "brief-meeting",
+  "name": "Council Meeting",
+  "startTime": "14:00",
+  "duration": "90m",
+  "recurrence": { "type": "weekly" }
+}
+```
+
+**Instantaneous Events**:
+
+```json
+{
+  "id": "solar-eclipse",
+  "name": "Solar Eclipse",
+  "startTime": "12:34:56",
+  "duration": "0s",
+  "recurrence": { "type": "fixed", "month": 8, "day": 21 }
+}
+```
+
+### Multi-Day Event Behavior
+
+Events with duration > 1 day appear on all dates they span:
+
+- `startTime: "20:00"`, `duration: "16d"` starting on July 26 → event appears on July 26-August 10 (inclusive)
+- Events crossing month boundaries are handled correctly
+- Events crossing year boundaries are handled correctly
+- Each date shows the same event instance
+
+### API Detection
+
+Use `getEventsForDate()` to find all events occurring on a specific date, including multi-day events that started on previous dates:
+
+```javascript
+// Get all events for a date (includes multi-day events in progress)
+const events = game.seasonsStars.api.events.getEventsForDate(2024, 8, 1);
+
+// Event might have started days earlier but still active on this date
+events.forEach(event => {
+  console.log(`${event.name}: ${event.startTime} for ${event.duration}`);
+});
+```
+
 ## Calendar JSON Schema Updates
 
 The `events` array is **optional** in calendar JSON, making this a **backwards-compatible** addition to the existing schema. Calendars without an `events` property simply have no calendar-defined events.
@@ -568,7 +728,9 @@ The `events` array is **optional** in calendar JSON, making this a **backwards-c
     {
       "id": "must-be-unique-and-stable",
       "name": "Event Name",
-      "recurrence": { "type": "fixed", "month": 1, "day": 1 }
+      "recurrence": { "type": "fixed", "month": 1, "day": 1 },
+      "startTime": "00:00:00",
+      "duration": "1d"
     }
   ]
 }
