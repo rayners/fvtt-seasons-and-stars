@@ -5,10 +5,69 @@
  */
 
 import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
-import type { CreateNoteData } from './external-integrations';
+import type { CreateNoteData, SeasonInfo } from './external-integrations';
 import type { ValidationResult } from '../core/calendar-validator';
 import type { SidebarButtonConfig, WidgetType } from './widget-types';
 export type { ValidationResult };
+
+/**
+ * Note document interface for Seasons & Stars notes
+ */
+export interface NoteDocument {
+  id: string;
+  title: string;
+  content: string;
+  startDate: {
+    year: number;
+    month: number;
+    day: number;
+  };
+  endDate?: {
+    year: number;
+    month: number;
+    day: number;
+  };
+  allDay?: boolean;
+  playerVisible?: boolean;
+  calendarId?: string;
+  category?: string;
+  tags?: string[];
+  flags?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+/**
+ * Date reference for note operations
+ */
+export interface NoteDateReference {
+  year: number;
+  month: number;
+  day: number;
+  hour?: number;
+  minute?: number;
+}
+
+/**
+ * Note update data
+ */
+export interface NoteUpdateData {
+  title?: string;
+  content?: string;
+  startDate?: NoteDateReference;
+  endDate?: NoteDateReference;
+  allDay?: boolean;
+  playerVisible?: boolean;
+  category?: string;
+  tags?: string[];
+  [key: string]: unknown;
+}
+
+/**
+ * Module-specific data attached to notes
+ */
+export interface NoteModuleData {
+  [moduleId: string]: Record<string, unknown>;
+}
 
 // Forward declaration to avoid circular dependency
 export interface SeasonsStarsIntegration {
@@ -52,7 +111,7 @@ export interface SeasonsStarsAPI {
   // Metadata access
   getMonthNames(calendarId?: string): string[];
   getWeekdayNames(calendarId?: string): string[];
-  getSeasonInfo(date: CalendarDate, calendarId?: string): any;
+  getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo | null;
   getSunriseSunset(date: CalendarDate, calendarId?: string): { sunrise: string; sunset: string };
 
   // Time advancement
@@ -125,26 +184,33 @@ export interface SeasonsStarsNotesAPI {
   addNote(
     title: string,
     content: string,
-    startDate: any,
-    endDate?: any,
+    startDate: NoteDateReference,
+    endDate?: NoteDateReference,
     allDay?: boolean,
     playerVisible?: boolean
-  ): Promise<any>;
+  ): Promise<NoteDocument>;
   removeNote(noteId: string): Promise<void>;
-  getNotesForDay(year: number, month: number, day: number, calendarId?: string): any[];
+  getNotesForDay(year: number, month: number, day: number, calendarId?: string): NoteDocument[];
 
   // Enhanced notes functionality (S&S native)
-  createNote(data: CreateNoteData): Promise<any>;
-  updateNote(noteId: string, data: any): Promise<any>;
+  createNote(data: CreateNoteData): Promise<NoteDocument>;
+  updateNote(noteId: string, data: NoteUpdateData): Promise<NoteDocument>;
   deleteNote(noteId: string): Promise<void>;
-  getNote(noteId: string): Promise<any | null>;
-  getNotesForDate(date: CalendarDate, calendarId?: string): Promise<any[]>;
-  getNotesForDateRange(start: CalendarDate, end: CalendarDate, calendarId?: string): Promise<any[]>;
+  getNote(noteId: string): Promise<NoteDocument | null>;
+  getNotesForDate(date: CalendarDate, calendarId?: string): Promise<NoteDocument[]>;
+  getNotesForDateRange(start: CalendarDate, end: CalendarDate, calendarId?: string): Promise<NoteDocument[]>;
 
   // Module integration methods
-  setNoteModuleData(noteId: string, moduleId: string, data: any): Promise<void>;
-  getNoteModuleData(noteId: string, moduleId: string): any;
+  setNoteModuleData(noteId: string, moduleId: string, data: Record<string, unknown>): Promise<void>;
+  getNoteModuleData(noteId: string, moduleId: string): Record<string, unknown> | null;
 
   // Display formatting for compatibility
-  formatNoteDisplay(note: any): any;
+  formatNoteDisplay(note: NoteDocument): {
+    title: string;
+    content: string;
+    date: string;
+    time?: string;
+    category?: string;
+    tags?: string[];
+  };
 }
