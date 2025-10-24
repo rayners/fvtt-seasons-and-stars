@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.23.0...seasons-and-stars-v0.23.1) (2025-10-24)
+
+
+### Bug Fixes
+
+* use dialogV2 instance parameter instead of outer variable ([#415](https://github.com/rayners/fvtt-seasons-and-stars/issues/415)) ([6872be0](https://github.com/rayners/fvtt-seasons-and-stars/commit/6872be04440014b446635bdec7062ac950ec8f46))
+
 ## [0.23.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.22.1...seasons-and-stars-v0.23.0) (2025-10-23)
 
 
