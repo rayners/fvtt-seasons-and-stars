@@ -179,6 +179,10 @@ export interface SeasonsStarsAPI {
   validateCalendar(calendarData: unknown): Promise<import('./bridge-interfaces').ValidationResult>;
   // Events API
   events: EventsAPI;
+  // Calendar Builder API
+  calendarBuilder: {
+    importJson(jsonString: string, source?: string): Promise<void>;
+  };
 }
 
 // Type guard functions (implementations in type-guards.ts)
