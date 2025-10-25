@@ -1007,11 +1007,12 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     const engine = (game.seasonsStars?.manager as CalendarManagerInterface)?.getActiveEngine();
     if (!engine) return;
 
-    // Create a simple input dialog
     const currentYear = this.viewDate.year;
     const newYear = await new Promise<number | null>(resolve => {
-      new Dialog({
-        title: 'Set Year',
+      const dialog = new foundry.applications.api.DialogV2({
+        window: {
+          title: 'Set Year',
+        },
         content: `
           <form>
             <div class="form-group">
@@ -1020,12 +1021,19 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             </div>
           </form>
         `,
-        buttons: {
-          ok: {
-            icon: '<i class="fas fa-check"></i>',
+        buttons: [
+          {
+            action: 'ok',
+            icon: 'fas fa-check',
             label: 'Set Year',
-            callback: (html: JQuery) => {
-              const yearInput = html.find('input[name="year"]').val() as string;
+            callback: (
+              _event: Event,
+              _button: HTMLElement,
+              dialog: foundry.applications.api.DialogV2
+            ): void => {
+              const form = dialog.element?.querySelector('form') as HTMLFormElement;
+              const formData = new FormData(form);
+              const yearInput = formData.get('year') as string;
               const year = parseInt(yearInput);
               if (!isNaN(year) && year > 0) {
                 resolve(year);
@@ -1035,14 +1043,17 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
               }
             },
           },
-          cancel: {
-            icon: '<i class="fas fa-times"></i>',
+          {
+            action: 'cancel',
+            icon: 'fas fa-times',
             label: 'Cancel',
-            callback: () => resolve(null),
+            callback: (): void => resolve(null),
           },
-        },
+        ],
         default: 'ok',
-      }).render(true);
+      });
+
+      dialog.render(true);
     });
 
     if (newYear !== null) {
