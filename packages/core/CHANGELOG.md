@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.23.1...seasons-and-stars-v0.23.2) (2025-10-25)
+
+
+### Bug Fixes
+
+* migrate year setting dialog to DialogV2 ([#424](https://github.com/rayners/fvtt-seasons-and-stars/issues/424)) ([62bb646](https://github.com/rayners/fvtt-seasons-and-stars/commit/62bb6466c90f3feba2881e611fc39d7930f480e7))
+
 ## [0.23.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.23.0...seasons-and-stars-v0.23.1) (2025-10-24)
 
 
