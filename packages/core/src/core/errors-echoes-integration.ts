@@ -1,4 +1,4 @@
-/* istanbul ignore file */
+/* c8 ignore start */
 /**
  * Errors & Echoes Integration
  *
@@ -169,3 +169,4 @@ export function registerErrorsAndEchoesIntegration(
     }
   });
 }
+/* c8 ignore stop */
