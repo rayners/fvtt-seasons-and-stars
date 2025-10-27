@@ -73,7 +73,7 @@
     "@playwright/test": "^1.56.1",
     "eslint": "^9.38.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.4",
+    "lint-staged": "^16.2.6",
     "prettier": "^3.5.3"
   }
 }
