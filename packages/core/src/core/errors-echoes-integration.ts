@@ -152,7 +152,11 @@ export function registerErrorsAndEchoesIntegration(
           }
 
           // Default: filter out most other errors unless they seem time/calendar related
-          if (message.includes('calendar') || message.includes('time') || message.includes('date')) {
+          if (
+            message.includes('calendar') ||
+            message.includes('time') ||
+            message.includes('date')
+          ) {
             return false; // Don't filter (might be related)
           }
 
