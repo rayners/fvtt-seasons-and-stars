@@ -1109,35 +1109,33 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     const targetDate = new CalendarDate(targetDateData, calendar);
 
     // Show note creation dialog
-    const noteData = await this.showCreateNoteDialog(targetDate);
-    if (!noteData) return;
+    const noteCreated = await this.showCreateNoteDialog(targetDate);
 
-    try {
-      const note = await notesManager.createNote(noteData);
-      ui.notifications?.info(`Created note: ${noteData.title}`);
-
-      // Refresh the calendar to show the new note indicator
+    // Refresh the calendar if any note was created
+    if (noteCreated) {
       this.render();
-
-      // Emit hook for other modules
-      Hooks.callAll('seasons-stars:noteCreated', note);
-    } catch (error) {
-      Logger.error('Failed to create note', error as Error);
-      ui.notifications?.error('Failed to create note');
     }
   }
 
   /**
    * Show note creation dialog with enhanced category and tag support
+   * Returns true if any note was created, false otherwise
    */
-  private async showCreateNoteDialog(date: ICalendarDate): Promise<CreateNoteData | null> {
+  private async showCreateNoteDialog(date: ICalendarDate): Promise<boolean> {
     const categories = game.seasonsStars?.categories as NoteCategories | undefined;
     if (!categories) {
       ui.notifications?.error('Note categories system not available');
-      return null;
+      return false;
+    }
+
+    const notesManager = game.seasonsStars?.notes as NotesManagerInterface;
+    if (!notesManager) {
+      ui.notifications?.error('Notes manager not available');
+      return false;
     }
 
     return new Promise(resolve => {
+      let noteWasCreated = false;
       const safeDate = {
         year: date.year || this.viewDate.year || 2024,
         month: date.month || this.viewDate.month || 1,
@@ -1243,6 +1241,89 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
       const abortController = new AbortController();
 
+      /**
+       * Helper function to validate and create a note from form data
+       * Returns true if note was created successfully, false otherwise
+       */
+      const validateAndCreateNote = async (
+        dialogInstance: foundry.applications.api.DialogV2
+      ): Promise<boolean> => {
+        const form = dialogInstance.element?.querySelector('form') as HTMLFormElement;
+        const formData = new FormData(form);
+
+        const title = formData.get('title') as string;
+        const content = formData.get('content') as string;
+        const tagsString = formData.get('tags') as string;
+
+        // Validate required fields
+        if (!title?.trim()) {
+          ui.notifications?.error('Note title is required');
+          return false;
+        }
+
+        // Parse and validate tags
+        const tags = categories.parseTagString(tagsString);
+        const { valid: validTags, invalid: invalidTags } = categories.validateTags(tags);
+
+        if (invalidTags.length > 0) {
+          ui.notifications?.warn(`Some tags are not allowed: ${invalidTags.join(', ')}`);
+        }
+
+        // Create note data
+        const noteData: CreateNoteData = {
+          title: title.trim(),
+          content: content || '',
+          startDate: date,
+          allDay: formData.has('allDay'),
+          category: (formData.get('category') as string) || categories.getDefaultCategory().id,
+          tags: validTags,
+          playerVisible: false,
+          recurring: undefined,
+        };
+
+        // Create the note
+        try {
+          const note = await notesManager.createNote(noteData);
+          ui.notifications?.info(`Created note: ${noteData.title}`);
+
+          // Emit hook for other modules
+          Hooks.callAll('seasons-stars:noteCreated', note);
+
+          return true;
+        } catch (error) {
+          Logger.error('Failed to create note', error as Error);
+          ui.notifications?.error('Failed to create note. Please try again.');
+          return false;
+        }
+      };
+
+      /**
+       * Helper function to reset the form to default values
+       */
+      const resetForm = (dialogInstance: foundry.applications.api.DialogV2): void => {
+        const form = dialogInstance.element?.querySelector('form') as HTMLFormElement;
+        if (!form) return;
+
+        // Reset form inputs
+        const titleInput = form.querySelector('input[name="title"]') as HTMLInputElement;
+        const contentInput = form.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
+        const tagsInput = form.querySelector('input[name="tags"]') as HTMLInputElement;
+        const allDayInput = form.querySelector('input[name="allDay"]') as HTMLInputElement;
+        const categorySelect = form.querySelector('select[name="category"]') as HTMLSelectElement;
+
+        if (titleInput) titleInput.value = '';
+        if (contentInput) contentInput.value = '';
+        if (tagsInput) tagsInput.value = '';
+        if (allDayInput) allDayInput.checked = true;
+        if (categorySelect) categorySelect.selectedIndex = 0;
+
+        // Focus on title input for convenience
+        if (titleInput) titleInput.focus();
+
+        // Trigger category change to update border color
+        if (categorySelect) categorySelect.dispatchEvent(new Event('change'));
+      };
+
       const dialog = new foundry.applications.api.DialogV2({
         window: {
           title: 'Create Note',
@@ -1257,46 +1338,38 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
             callback: async (
               _event: Event,
               _button: HTMLElement,
-              dialog: foundry.applications.api.DialogV2
+              dialogInstance: foundry.applications.api.DialogV2
             ): Promise<void> => {
-              const form = dialog.element?.querySelector('form') as HTMLFormElement;
-              const formData = new FormData(form);
-
-              const title = formData.get('title') as string;
-              const content = formData.get('content') as string;
-              const tagsString = formData.get('tags') as string;
-
-              if (!title?.trim()) {
-                ui.notifications?.error('Note title is required');
-                resolve(null);
-                return;
+              const success = await validateAndCreateNote(dialogInstance);
+              if (success) {
+                noteWasCreated = true;
+                resolve(true);
               }
-
-              const tags = categories.parseTagString(tagsString);
-              const { valid: validTags, invalid: invalidTags } = categories.validateTags(tags);
-
-              if (invalidTags.length > 0) {
-                ui.notifications?.warn(`Some tags are not allowed: ${invalidTags.join(', ')}`);
+              // If validation/creation failed, return without resolving to keep dialog open
+            },
+          },
+          {
+            action: 'create-another',
+            icon: 'fas fa-plus-circle',
+            label: 'Create & Add Another',
+            callback: async (
+              _event: Event,
+              _button: HTMLElement,
+              dialogInstance: foundry.applications.api.DialogV2
+            ): Promise<void> => {
+              const success = await validateAndCreateNote(dialogInstance);
+              if (success) {
+                noteWasCreated = true;
+                resetForm(dialogInstance);
               }
-
-              resolve({
-                title: title.trim(),
-                content: content || '',
-                startDate: date,
-                allDay: formData.has('allDay'),
-                category:
-                  (formData.get('category') as string) || categories.getDefaultCategory().id,
-                tags: validTags,
-                playerVisible: false,
-                recurring: undefined,
-              });
+              // Don't resolve - keep the dialog open for adding more notes
             },
           },
           {
             action: 'cancel',
             icon: 'fas fa-times',
             label: 'Cancel',
-            callback: (): void => resolve(null),
+            callback: (): void => resolve(noteWasCreated),
           },
         ],
         default: 'create',

@@ -104,6 +104,15 @@ describe('DialogV2 Button Callback Parameters', () => {
     const widget = new CalendarGridWidget(mockStandardCalendar);
     const testDate: ICalendarDate = { year: 2024, month: 1, day: 15 };
 
+    // Mock the notes manager
+    const mockCreateNote = vi.fn().mockResolvedValue({ id: 'test-note' });
+    mockGame.seasonsStars.notes = {
+      createNote: mockCreateNote,
+      storage: {
+        getAllNotes: vi.fn().mockReturnValue([]),
+      },
+    };
+
     const resultPromise = (widget as any).showCreateNoteDialog(testDate);
 
     expect(capturedCallback).toBeDefined();
@@ -132,13 +141,23 @@ describe('DialogV2 Button Callback Parameters', () => {
     await capturedCallback(mockEvent, mockButton, mockDialogInstance);
     const result = await resultPromise;
 
-    expect(result).not.toBeNull();
-    expect(result?.title).toBe('Test Title');
+    // Now returns boolean instead of note data
+    expect(result).toBe(true);
+    expect(mockCreateNote).toHaveBeenCalled();
   });
 
   it('callback can access dialog.element to query form', async () => {
     const widget = new CalendarGridWidget(mockStandardCalendar);
     const testDate: ICalendarDate = { year: 2024, month: 1, day: 15 };
+
+    // Mock the notes manager
+    const mockCreateNote = vi.fn().mockResolvedValue({ id: 'test-note' });
+    mockGame.seasonsStars.notes = {
+      createNote: mockCreateNote,
+      storage: {
+        getAllNotes: vi.fn().mockReturnValue([]),
+      },
+    };
 
     const resultPromise = (widget as any).showCreateNoteDialog(testDate);
 
@@ -168,15 +187,29 @@ describe('DialogV2 Button Callback Parameters', () => {
     await capturedCallback(mockEvent, mockButton, mockDialogInstance);
     const result = await resultPromise;
 
-    expect(result).toBeDefined();
-    expect(result?.title).toBe('Test Title');
-    expect(result?.content).toBe('Test Content');
-    expect(result?.tags).toEqual(['tag1', 'tag2']);
+    // Verify the note was created with correct data
+    expect(result).toBe(true);
+    expect(mockCreateNote).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Test Title',
+        content: 'Test Content',
+        tags: ['tag1', 'tag2'],
+      })
+    );
   });
 
-  it('callback fails validation when title is empty', async () => {
+  it('callback fails validation when title is empty and keeps dialog open', async () => {
     const widget = new CalendarGridWidget(mockStandardCalendar);
     const testDate: ICalendarDate = { year: 2024, month: 1, day: 15 };
+
+    // Mock the notes manager
+    const mockCreateNote = vi.fn().mockResolvedValue({ id: 'test-note' });
+    mockGame.seasonsStars.notes = {
+      createNote: mockCreateNote,
+      storage: {
+        getAllNotes: vi.fn().mockReturnValue([]),
+      },
+    };
 
     const resultPromise = (widget as any).showCreateNoteDialog(testDate);
 
@@ -195,10 +228,16 @@ describe('DialogV2 Button Callback Parameters', () => {
       element: container,
     };
 
+    // Call the callback - it should not resolve the promise when validation fails
     await capturedCallback(mockEvent, mockButton, mockDialogInstance);
-    const result = await resultPromise;
 
+    // Verify error was shown
     expect(mockUI.notifications.error).toHaveBeenCalledWith('Note title is required');
-    expect(result).toBeNull();
+
+    // Verify note was not created
+    expect(mockCreateNote).not.toHaveBeenCalled();
+
+    // Note: The promise should not resolve when validation fails (dialog stays open)
+    // We can't easily test this without mocking the entire dialog lifecycle
   });
 });

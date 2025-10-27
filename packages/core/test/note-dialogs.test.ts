@@ -294,7 +294,7 @@ describe('Note Selection Dialog', () => {
 });
 
 describe('Dialog Error Handling', () => {
-  it('returns null when categories system missing', async () => {
+  it('returns false when categories system missing', async () => {
     mockGame.seasonsStars.categories = undefined;
 
     const widget = new CalendarGridWidget(mockStandardCalendar);
@@ -303,7 +303,7 @@ describe('Dialog Error Handling', () => {
     const result = await (widget as any).showCreateNoteDialog(testDate);
 
     expect(mockUI.notifications.error).toHaveBeenCalledWith('Note categories system not available');
-    expect(result).toBeNull();
+    expect(result).toBe(false);
   });
 
   it('shows error when notes manager missing', async () => {
