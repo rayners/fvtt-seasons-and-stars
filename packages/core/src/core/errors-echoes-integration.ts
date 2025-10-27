@@ -1,4 +1,4 @@
-/* c8 ignore start */
+/* v8 ignore start */
 /**
  * Errors & Echoes Integration
  *
@@ -169,4 +169,4 @@ export function registerErrorsAndEchoesIntegration(
     }
   });
 }
-/* c8 ignore stop */
+/* v8 ignore stop */
