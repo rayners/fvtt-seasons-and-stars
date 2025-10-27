@@ -93,3 +93,31 @@ export function sanitizeColor(color: string | undefined): string | undefined {
 
   return undefined;
 }
+
+/**
+ * Generate HTML for an icon, supporting both iconUrl (custom image) and icon (FontAwesome class)
+ * When iconUrl is provided, it takes precedence over icon.
+ *
+ * @param iconUrl - URL to custom icon image (optional)
+ * @param icon - FontAwesome icon class or identifier (optional)
+ * @param width - Width in pixels for image icons (default: 16)
+ * @param height - Height in pixels for image icons (default: 16)
+ * @param additionalClasses - Additional CSS classes to apply (optional)
+ * @returns HTML string for the icon, or empty string if neither is provided
+ */
+export function renderIconHtml(
+  iconUrl: string | undefined,
+  icon: string | undefined,
+  width: number = 16,
+  height: number = 16,
+  additionalClasses: string = ''
+): string {
+  if (iconUrl) {
+    const classes = additionalClasses ? ` class="${additionalClasses}"` : '';
+    return `<img src="${iconUrl}" width="${width}" height="${height}" alt=""${classes} />`;
+  } else if (icon) {
+    const classes = additionalClasses ? `${icon} ${additionalClasses}` : icon;
+    return `<i class="${classes}" aria-hidden="true"></i>`;
+  }
+  return '';
+}

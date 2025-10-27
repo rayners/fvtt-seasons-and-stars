@@ -602,6 +602,12 @@
             "maxLength": 50,
             "description": "Icon identifier for the season"
           },
+          "iconUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "format": "uri",
+            "description": "URL to custom icon image (takes precedence over icon)"
+          },
           "description": {
             "type": "string",
             "maxLength": 500,
@@ -651,7 +657,13 @@
                 "name": { "type": "string", "minLength": 1, "maxLength": 50 },
                 "length": { "type": "number", "minimum": 0.1 },
                 "singleDay": { "type": "boolean", "default": false },
-                "icon": { "type": "string", "maxLength": 50 }
+                "icon": { "type": "string", "maxLength": 50 },
+                "iconUrl": {
+                  "type": "string",
+                  "maxLength": 500,
+                  "format": "uri",
+                  "description": "URL to custom icon image (takes precedence over icon)"
+                }
               }
             },
             "description": "Moon phases configuration"
@@ -916,6 +928,12 @@
             "type": "string",
             "maxLength": 100,
             "description": "CSS icon class (e.g., 'fas fa-star')"
+          },
+          "iconUrl": {
+            "type": "string",
+            "maxLength": 500,
+            "format": "uri",
+            "description": "URL to custom icon image (takes precedence over icon)"
           },
           "translations": {
             "type": "object",

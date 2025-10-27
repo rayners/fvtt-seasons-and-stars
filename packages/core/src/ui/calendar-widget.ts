@@ -167,6 +167,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
               moonName: info.moon.name,
               phaseName: info.phase.name,
               phaseIcon: info.phase.icon,
+              phaseIconUrl: info.phase.iconUrl,
               faIcon: faIcon || 'circle',
               moonColor: sanitizeColor(info.moon.color),
               moonColorIndex: index,

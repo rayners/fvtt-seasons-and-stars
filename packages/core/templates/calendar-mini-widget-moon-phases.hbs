@@ -9,7 +9,11 @@
                aria-label="{{this.moonName}}: {{this.phaseName}}"
                data-tooltip="{{this.moonName}}: {{this.phaseName}}"
                data-moon-index="{{this.moonColorIndex}}">
-            <i class="fas fa-{{this.faIcon}} moon-phase-{{this.phaseIcon}}"></i>
+            {{#if this.phaseIconUrl}}
+              <img src="{{this.phaseIconUrl}}" width="16" height="16" alt="" class="moon-phase-{{this.phaseIcon}}" />
+            {{else}}
+              <i class="fas fa-{{this.faIcon}} moon-phase-{{this.phaseIcon}}"></i>
+            {{/if}}
           </div>
         {{/each}}
       </div>
