@@ -38,10 +38,12 @@ describe('Roshar Calendar', () => {
       expect(rosharCalendar.weekdays).toHaveLength(5);
     });
 
-    it('should have The Weeping as intercalary period', () => {
-      expect(rosharCalendar.intercalary).toHaveLength(1);
-      expect(rosharCalendar.intercalary[0].name).toBe('The Weeping');
+    it('should have both Midpeace and The Weeping as intercalary periods', () => {
+      expect(rosharCalendar.intercalary).toHaveLength(2);
+      expect(rosharCalendar.intercalary[0].name).toBe('Midpeace');
       expect(rosharCalendar.intercalary[0].days).toBe(28);
+      expect(rosharCalendar.intercalary[1].name).toBe('The Weeping');
+      expect(rosharCalendar.intercalary[1].days).toBe(28);
     });
   });
 
@@ -194,9 +196,19 @@ describe('Roshar Calendar', () => {
     });
   });
 
-  describe('Intercalary Period - The Weeping', () => {
+  describe('Intercalary Periods', () => {
+    it('should have Midpeace configured correctly', () => {
+      const midpeace = rosharCalendar.intercalary[0];
+
+      expect(midpeace.name).toBe('Midpeace');
+      expect(midpeace.days).toBe(28);
+      expect(midpeace.after).toBe('Palah');
+      expect(midpeace.description).toContain('four-week period with no highstorms');
+      expect(midpeace.description).toContain('Middlefest');
+    });
+
     it('should have The Weeping configured correctly', () => {
-      const weeping = rosharCalendar.intercalary[0];
+      const weeping = rosharCalendar.intercalary[1];
 
       expect(weeping.name).toBe('The Weeping');
       expect(weeping.days).toBe(28);
