@@ -441,17 +441,18 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     }
 
     try {
-      // Create blob and download
-      const blob = new Blob([this.currentJson], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
+      // Use data URL instead of blob URL for better cross-browser compatibility
+      // Especially helps with Windows "can't open this link" errors
+      const dataStr = 'data:application/json;charset=utf-8,' + encodeURIComponent(this.currentJson);
 
       const a = document.createElement('a');
-      a.href = url;
+      a.href = dataStr;
       a.download = 'custom-calendar.json';
+
+      // Trigger download
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
 
       this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.exported'));
     } catch (error) {
