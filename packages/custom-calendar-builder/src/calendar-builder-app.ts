@@ -441,18 +441,23 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     }
 
     try {
-      // Use data URL instead of blob URL for better cross-browser compatibility
-      // Especially helps with Windows "can't open this link" errors
-      const dataStr = 'data:application/json;charset=utf-8,' + encodeURIComponent(this.currentJson);
+      // Create blob and download link
+      const blob = new Blob([this.currentJson], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
 
       const a = document.createElement('a');
-      a.href = dataStr;
+      a.href = url;
       a.download = 'custom-calendar.json';
-
-      // Trigger download
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+
+      // Delay cleanup to ensure browser has time to process the download
+      // Fixes "Your PC doesn't have an app that can open this link" error on Windows
+      // where immediate revocation prevents the download from starting
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 100);
 
       this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.exported'));
     } catch (error) {
