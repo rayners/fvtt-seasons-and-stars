@@ -2,7 +2,7 @@
   "id": "seasons-and-stars-calendar-builder",
   "title": "Seasons & Stars - Calendar Builder",
   "description": "Calendar builder application for creating and editing custom calendars for Seasons & Stars",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
