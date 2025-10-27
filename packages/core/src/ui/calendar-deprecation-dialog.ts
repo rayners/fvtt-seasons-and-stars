@@ -43,7 +43,10 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
 
       // Check if any calendar packs are already installed
       const calendarPackModules = Array.from(game.modules.values()).filter(
-        module => module.id.startsWith('seasons-and-stars-') && module.active
+        module =>
+          module.id.startsWith('seasons-and-stars-') &&
+          module.id !== 'seasons-and-stars' &&
+          module.active
       );
 
       if (calendarPackModules.length > 0) {

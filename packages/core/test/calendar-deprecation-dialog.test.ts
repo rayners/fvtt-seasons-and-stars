@@ -132,6 +132,22 @@ describe('CalendarDeprecationDialog', () => {
       // Should show dialog because the main module itself doesn't count as a pack
       expect(renderSpy).toHaveBeenCalledWith(true);
     });
+
+    it('should explicitly exclude the core module from pack detection', async () => {
+      // Explicitly test that the core 'seasons-and-stars' module is excluded
+      const mockModules = [
+        { id: 'seasons-and-stars', active: true }, // Core module
+        { id: 'some-other-module', active: true },
+      ];
+      vi.mocked(game.modules.values).mockReturnValue(mockModules.values());
+
+      const renderSpy = vi.spyOn(CalendarDeprecationDialog.prototype, 'render');
+
+      await CalendarDeprecationDialog.showWarningIfNeeded();
+
+      // Should show dialog because core module is not a calendar pack
+      expect(renderSpy).toHaveBeenCalledWith(true);
+    });
   });
 
   describe('GM Permission Check', () => {
