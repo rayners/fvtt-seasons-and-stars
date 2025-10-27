@@ -9,8 +9,7 @@
  */
 
 import type { ErrorsAndEchoesAPI } from '../types/external-integrations';
-import type { CalendarManager } from './calendar-manager';
-import type { NotesManager } from './notes-manager';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
@@ -22,13 +21,10 @@ import { Logger } from './logger';
  * This function is called when the errorsAndEchoesReady hook fires, which guarantees
  * that the E&E module is fully loaded and ready to accept registrations.
  *
- * @param calendarManager - The calendar manager instance for context gathering
- * @param notesManager - The notes manager instance (currently unused but available for future context)
+ * Uses global game.seasonsStars.manager access instead of closure variables to ensure
+ * the latest manager instances are always used, even if managers are recreated.
  */
-export function registerErrorsAndEchoesIntegration(
-  calendarManager: CalendarManager,
-  _notesManager: NotesManager
-): void {
+export function registerErrorsAndEchoesIntegration(): void {
   // Register hook at top level (RECOMMENDED - eliminates timing issues)
   Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
     // E&E is guaranteed to be ready when this hook is called
@@ -42,16 +38,27 @@ export function registerErrorsAndEchoesIntegration(
         contextProvider: () => {
           const context: Record<string, unknown> = {};
 
+          // Use global access to always get the current manager instance
+          // This ensures we always reference the latest manager, even if it's recreated
+          const calendarManager = game.seasonsStars?.manager as
+            | CalendarManagerInterface
+            | undefined;
+
           // Add current calendar information - safe property access
           if (calendarManager) {
-            const currentDate = calendarManager.getCurrentDate();
-            const activeCalendar = calendarManager.getActiveCalendar();
+            try {
+              const currentDate = calendarManager.getCurrentDate();
+              const activeCalendar = calendarManager.getActiveCalendar();
 
-            context.currentDate = currentDate
-              ? `${currentDate.year}-${currentDate.month}-${currentDate.day}`
-              : 'unknown';
-            context.activeCalendarId = activeCalendar?.id || 'unknown';
-            context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
+              context.currentDate = currentDate
+                ? `${currentDate.year}-${currentDate.month}-${currentDate.day}`
+                : 'unknown';
+              context.activeCalendarId = activeCalendar?.id || 'unknown';
+              context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
+            } catch (error) {
+              // If manager methods fail, continue with partial context
+              context.calendarError = error instanceof Error ? error.message : String(error);
+            }
           }
 
           // Add widget state - simple property checks don't need try-catch

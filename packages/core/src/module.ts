@@ -115,8 +115,11 @@ export function init(): void {
     calendarManager = new CalendarManager();
     notesManager = new NotesManager();
 
-    // Register Errors and Echoes integration (must be called after managers are initialized)
-    registerErrorsAndEchoesIntegration(calendarManager, notesManager);
+    // Register Errors and Echoes integration
+    // Note: Uses global game.seasonsStars.manager access, so must be called after API setup
+    // However, the actual registration happens in the errorsAndEchoesReady hook, so we can
+    // register the hook early and it will access the manager when E&E is ready
+    registerErrorsAndEchoesIntegration();
 
     // Try to load active calendar synchronously from cached data first
     // This ensures compatibility bridges can access the API immediately
