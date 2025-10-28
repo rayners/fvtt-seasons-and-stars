@@ -10,6 +10,8 @@ import { Logger } from '../core/logger';
 import type { CreateNoteData } from '../core/notes-manager';
 import type { NotesManager } from '../core/notes-manager';
 import type { NoteCategories } from '../core/note-categories';
+import type { StringTagsElement } from '../types/foundry-elements';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 
 export interface CreateNoteWindowOptions {
   /** The date to associate with newly created notes */
@@ -81,7 +83,7 @@ export class CreateNoteWindow extends foundry.applications.api.HandlebarsApplica
       });
     }
 
-    const manager = game.seasonsStars?.manager as any;
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface | undefined;
     const activeCalendar = manager?.getActiveCalendar?.();
 
     // Format date display
@@ -166,7 +168,11 @@ export class CreateNoteWindow extends foundry.applications.api.HandlebarsApplica
 
     // Setup tag suggestions click handlers for string-tags element
     const tagSuggestions = html.querySelectorAll('.tag-suggestion');
-    const stringTagsElement = html.querySelector('string-tags') as any;
+    const stringTagsElement = html.querySelector('string-tags') as StringTagsElement | null;
+
+    if (!stringTagsElement) {
+      Logger.warn('string-tags element not found in create note form');
+    }
 
     tagSuggestions.forEach(suggestion => {
       suggestion.addEventListener('click', () => {
@@ -215,7 +221,7 @@ export class CreateNoteWindow extends foundry.applications.api.HandlebarsApplica
     const allDay = formData.has('allDay');
 
     // Get tags from string-tags element
-    const stringTagsElement = form.querySelector('string-tags') as any;
+    const stringTagsElement = form.querySelector('string-tags') as StringTagsElement | null;
     const tags = stringTagsElement?.value || [];
 
     // Validate required fields
@@ -283,11 +289,15 @@ export class CreateNoteWindow extends foundry.applications.api.HandlebarsApplica
     const form = this.element?.querySelector('form') as HTMLFormElement;
     if (!form) return;
 
-    const titleInput = form.querySelector('input[name="title"]') as HTMLInputElement;
-    const contentInput = form.querySelector('textarea[name="content"]') as HTMLTextAreaElement;
-    const stringTagsElement = form.querySelector('string-tags') as any;
-    const allDayInput = form.querySelector('input[name="allDay"]') as HTMLInputElement;
-    const categorySelect = form.querySelector('select[name="category"]') as HTMLSelectElement;
+    const titleInput = form.querySelector('input[name="title"]') as HTMLInputElement | null;
+    const contentInput = form.querySelector(
+      'textarea[name="content"]'
+    ) as HTMLTextAreaElement | null;
+    const stringTagsElement = form.querySelector('string-tags') as StringTagsElement | null;
+    const allDayInput = form.querySelector('input[name="allDay"]') as HTMLInputElement | null;
+    const categorySelect = form.querySelector(
+      'select[name="category"]'
+    ) as HTMLSelectElement | null;
 
     if (titleInput) titleInput.value = '';
     if (contentInput) contentInput.value = '';
