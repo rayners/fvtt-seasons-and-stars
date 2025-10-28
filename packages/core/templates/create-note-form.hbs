@@ -25,7 +25,7 @@
       <label for="note-category">Category:</label>
       <select id="note-category" name="category" class="category-select">
         {{#each categories}}
-        <option value="{{id}}" {{#if ../defaultCategory}}{{#eq id ../defaultCategory}}selected{{/eq}}{{/if}}>
+        <option value="{{id}}" {{#if selected}}selected{{/if}}>
           {{name}}
         </option>
         {{/each}}

@@ -197,8 +197,10 @@ describe('CreateNoteWindow - Context Preparation', () => {
 
     const context = await (window as any)._prepareContext();
 
-    expect(context.defaultCategory).toBeDefined();
-    expect(typeof context.defaultCategory).toBe('string');
+    // Default category is marked with selected: true in categories array
+    const selectedCategory = context.categories.find((cat: any) => cat.selected);
+    expect(selectedCategory).toBeDefined();
+    expect(selectedCategory.isDefault).toBe(true);
   });
 
   it('includes all available tags in context', async () => {

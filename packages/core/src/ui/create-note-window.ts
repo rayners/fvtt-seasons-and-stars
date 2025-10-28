@@ -97,9 +97,12 @@ export class CreateNoteWindow extends foundry.applications.api.HandlebarsApplica
       dateDisplay = `${this.date.day} ${monthName}, ${yearPrefix}${this.date.year}${yearSuffix}`;
     }
 
-    // Get categories for dropdown
-    const availableCategories = categories.getCategories();
+    // Get categories for dropdown with selected flag
     const defaultCategory = categories.getDefaultCategory();
+    const availableCategories = categories.getCategories().map(cat => ({
+      ...cat,
+      selected: cat.id === defaultCategory.id,
+    }));
 
     // Get tags for suggestions
     const predefinedTags = categories.getPredefinedTags();
@@ -110,7 +113,6 @@ export class CreateNoteWindow extends foundry.applications.api.HandlebarsApplica
       dateDisplay,
       date: this.date,
       categories: availableCategories,
-      defaultCategory: defaultCategory.id,
       allTags,
     });
   }
