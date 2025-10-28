@@ -274,20 +274,11 @@ describe('CreateNoteWindow - Note Creation', () => {
     const testDate: ICalendarDate = { year: 2024, month: 3, day: 15 };
     const window = new CreateNoteWindow({ date: testDate });
 
-    // Mock form element
-    const mockForm = document.createElement('form');
-    const formData = new FormData();
-    formData.set('title', 'Test Note');
-    formData.set('content', 'Test content');
-    formData.set('tags', 'tag1, tag2');
-    formData.set('category', 'general');
-
-    // Mock FormData
+    // Mock FormData (no longer includes tags - they come from string-tags element)
     (global as any).FormData = class {
       data = new Map([
         ['title', 'Test Note'],
         ['content', 'Test content'],
-        ['tags', 'tag1, tag2'],
         ['category', 'general'],
       ]);
       get(key: string) {
@@ -298,8 +289,24 @@ describe('CreateNoteWindow - Note Creation', () => {
       }
     };
 
+    // Mock string-tags element
+    const mockStringTags = {
+      value: ['tag1', 'tag2'],
+    };
+
+    // Mock form element with querySelector
+    const mockForm = {
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'string-tags') return mockStringTags;
+        return null;
+      }),
+    };
+
     (window as any).element = {
-      querySelector: vi.fn().mockReturnValue(mockForm),
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'form') return mockForm;
+        return null;
+      }),
     };
 
     const success = await (window as any)._validateAndCreateNote();
@@ -329,8 +336,24 @@ describe('CreateNoteWindow - Note Creation', () => {
       }
     };
 
+    // Mock string-tags element
+    const mockStringTags = {
+      value: [],
+    };
+
+    // Mock form element with querySelector
+    const mockForm = {
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'string-tags') return mockStringTags;
+        return null;
+      }),
+    };
+
     (window as any).element = {
-      querySelector: vi.fn().mockReturnValue(document.createElement('form')),
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'form') return mockForm;
+        return null;
+      }),
     };
 
     const success = await (window as any)._validateAndCreateNote();
@@ -346,7 +369,7 @@ describe('CreateNoteWindow - Note Creation', () => {
 
     (global as any).FormData = class {
       get(key: string) {
-        const values: any = { title: 'Test Note', content: '', tags: '', category: 'general' };
+        const values: any = { title: 'Test Note', content: '', category: 'general' };
         return values[key];
       }
       has() {
@@ -354,8 +377,24 @@ describe('CreateNoteWindow - Note Creation', () => {
       }
     };
 
+    // Mock string-tags element with empty tags
+    const mockStringTags = {
+      value: [],
+    };
+
+    // Mock form element with querySelector
+    const mockForm = {
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'string-tags') return mockStringTags;
+        return null;
+      }),
+    };
+
     (window as any).element = {
-      querySelector: vi.fn().mockReturnValue(document.createElement('form')),
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'form') return mockForm;
+        return null;
+      }),
     };
 
     await (window as any)._validateAndCreateNote();
@@ -370,7 +409,7 @@ describe('CreateNoteWindow - Note Creation', () => {
 
     (global as any).FormData = class {
       get(key: string) {
-        const values: any = { title: 'Test Note', content: '', tags: '', category: 'general' };
+        const values: any = { title: 'Test Note', content: '', category: 'general' };
         return values[key];
       }
       has() {
@@ -378,8 +417,24 @@ describe('CreateNoteWindow - Note Creation', () => {
       }
     };
 
+    // Mock string-tags element with empty tags
+    const mockStringTags = {
+      value: [],
+    };
+
+    // Mock form element with querySelector
+    const mockForm = {
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'string-tags') return mockStringTags;
+        return null;
+      }),
+    };
+
     (window as any).element = {
-      querySelector: vi.fn().mockReturnValue(document.createElement('form')),
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'form') return mockForm;
+        return null;
+      }),
     };
 
     await (window as any)._validateAndCreateNote();
@@ -398,7 +453,7 @@ describe('CreateNoteWindow - Note Creation', () => {
 
     (global as any).FormData = class {
       get(key: string) {
-        const values: any = { title: 'Test Note', content: '', tags: '', category: 'general' };
+        const values: any = { title: 'Test Note', content: '', category: 'general' };
         return values[key];
       }
       has() {
@@ -406,8 +461,24 @@ describe('CreateNoteWindow - Note Creation', () => {
       }
     };
 
+    // Mock string-tags element with empty tags
+    const mockStringTags = {
+      value: [],
+    };
+
+    // Mock form element with querySelector
+    const mockForm = {
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'string-tags') return mockStringTags;
+        return null;
+      }),
+    };
+
     (window as any).element = {
-      querySelector: vi.fn().mockReturnValue(document.createElement('form')),
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'form') return mockForm;
+        return null;
+      }),
     };
 
     await (window as any)._validateAndCreateNote();
@@ -423,7 +494,7 @@ describe('CreateNoteWindow - Note Creation', () => {
 
     (global as any).FormData = class {
       get(key: string) {
-        const values: any = { title: 'Test Note', content: '', tags: '', category: 'general' };
+        const values: any = { title: 'Test Note', content: '', category: 'general' };
         return values[key];
       }
       has() {
@@ -431,8 +502,24 @@ describe('CreateNoteWindow - Note Creation', () => {
       }
     };
 
+    // Mock string-tags element with empty tags
+    const mockStringTags = {
+      value: [],
+    };
+
+    // Mock form element with querySelector
+    const mockForm = {
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'string-tags') return mockStringTags;
+        return null;
+      }),
+    };
+
     (window as any).element = {
-      querySelector: vi.fn().mockReturnValue(document.createElement('form')),
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'form') return mockForm;
+        return null;
+      }),
     };
 
     const success = await (window as any)._validateAndCreateNote();
@@ -453,7 +540,7 @@ describe('CreateNoteWindow - Form Reset', () => {
     const fields = {
       title: { value: 'Old Title', focus: vi.fn() },
       content: { value: 'Old Content' },
-      tags: { value: 'old-tag' },
+      tags: { value: ['old-tag'] }, // Changed to array for string-tags element
       allDay: { checked: false },
       category: { selectedIndex: 2, style: {} },
     };
@@ -463,7 +550,7 @@ describe('CreateNoteWindow - Form Reset', () => {
         const fieldMap: any = {
           'input[name="title"]': fields.title,
           'textarea[name="content"]': fields.content,
-          'input[name="tags"]': fields.tags,
+          'string-tags': fields.tags, // Changed selector
           'input[name="allDay"]': fields.allDay,
           'select[name="category"]': fields.category,
         };
@@ -478,7 +565,7 @@ describe('CreateNoteWindow - Form Reset', () => {
 
     expect(fields.title.value).toBe('');
     expect(fields.content.value).toBe('');
-    expect(fields.tags.value).toBe('');
+    expect(fields.tags.value).toEqual([]); // Changed to expect empty array
     expect(fields.allDay.checked).toBe(true);
     expect(fields.title.focus).toHaveBeenCalled();
   });
@@ -587,7 +674,6 @@ describe('CreateNoteWindow - Tag Validation', () => {
         const values: any = {
           title: 'Test Note',
           content: '',
-          tags: 'valid-tag, invalid-tag',
           category: 'general',
         };
         return values[key];
@@ -597,8 +683,24 @@ describe('CreateNoteWindow - Tag Validation', () => {
       }
     };
 
+    // Mock string-tags element with invalid tag
+    const mockStringTags = {
+      value: ['valid-tag', 'invalid-tag'],
+    };
+
+    // Mock form element with querySelector
+    const mockForm = {
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'string-tags') return mockStringTags;
+        return null;
+      }),
+    };
+
     (window as any).element = {
-      querySelector: vi.fn().mockReturnValue(document.createElement('form')),
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'form') return mockForm;
+        return null;
+      }),
     };
 
     // Mock validateTags to return some invalid tags
@@ -623,7 +725,6 @@ describe('CreateNoteWindow - Tag Validation', () => {
         const values: any = {
           title: 'Test Note',
           content: '',
-          tags: 'important, urgent',
           category: 'general',
         };
         return values[key];
@@ -633,8 +734,24 @@ describe('CreateNoteWindow - Tag Validation', () => {
       }
     };
 
+    // Mock string-tags element with valid tags
+    const mockStringTags = {
+      value: ['important', 'urgent'],
+    };
+
+    // Mock form element with querySelector
+    const mockForm = {
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'string-tags') return mockStringTags;
+        return null;
+      }),
+    };
+
     (window as any).element = {
-      querySelector: vi.fn().mockReturnValue(document.createElement('form')),
+      querySelector: vi.fn((selector: string) => {
+        if (selector === 'form') return mockForm;
+        return null;
+      }),
     };
 
     await (window as any)._validateAndCreateNote();
