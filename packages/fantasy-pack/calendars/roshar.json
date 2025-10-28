@@ -114,6 +114,12 @@
 
   "intercalary": [
     {
+      "name": "Midpeace",
+      "days": 28,
+      "after": "Palah",
+      "description": "A four-week period with no highstorms occurring at the midpoint of the year, halfway between Weepings. The Middlefest fair in Jah Keved is held during this time."
+    },
+    {
       "name": "The Weeping",
       "days": 28,
       "after": "Ishev",

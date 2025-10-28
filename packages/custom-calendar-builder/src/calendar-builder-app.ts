@@ -441,7 +441,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     }
 
     try {
-      // Create blob and download
+      // Create blob and download link
       const blob = new Blob([this.currentJson], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
 
@@ -451,7 +451,13 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+
+      // Delay cleanup to ensure browser has time to process the download
+      // Fixes "Your PC doesn't have an app that can open this link" error on Windows
+      // where immediate revocation prevents the download from starting
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 100);
 
       this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.exported'));
     } catch (error) {

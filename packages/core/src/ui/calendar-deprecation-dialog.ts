@@ -41,6 +41,21 @@ export class CalendarDeprecationDialog extends foundry.applications.api.Handleba
         return;
       }
 
+      // Check if any calendar packs are already installed
+      const calendarPackModules = Array.from(game.modules.values()).filter(
+        module =>
+          module.id.startsWith('seasons-and-stars-') &&
+          module.id !== 'seasons-and-stars' &&
+          module.active
+      );
+
+      if (calendarPackModules.length > 0) {
+        Logger.debug(
+          `Calendar pack(s) already installed (${calendarPackModules.map(m => m.id).join(', ')}), skipping information dialog`
+        );
+        return;
+      }
+
       // Check if dialog was already shown and dismissed
       const warningShown = game.settings?.get(
         'seasons-and-stars',
