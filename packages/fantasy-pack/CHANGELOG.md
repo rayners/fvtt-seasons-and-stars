@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.8.0...seasons-and-stars-fantasy-v0.9.0) (2025-10-28)
+
+
+### Features
+
+* **fantasy-pack:** add Midpeace intercalary period to Roshar calendar ([#436](https://github.com/rayners/fvtt-seasons-and-stars/issues/436)) ([1ba502a](https://github.com/rayners/fvtt-seasons-and-stars/commit/1ba502ac3d31f562fbbc2062cc203b7777e43011))
+
 ## [0.8.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.7.0...seasons-and-stars-fantasy-v0.8.0) (2025-10-23)
 
 
