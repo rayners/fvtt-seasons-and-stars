@@ -86,7 +86,6 @@ export const DEFAULT_CATEGORIES: NoteCategory[] = [
 export const DEFAULT_TAGS: string[] = [
   'important',
   'urgent',
-  'recurring',
   'party',
   'player',
   'gm-only',
