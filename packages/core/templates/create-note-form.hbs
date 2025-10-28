@@ -1,0 +1,68 @@
+<form class="seasons-stars-note-form">
+  {{#if error}}
+  <div class="error-message">
+    <i class="fas fa-exclamation-triangle"></i>
+    <p>{{error}}</p>
+  </div>
+  {{else}}
+
+  <div class="date-display">
+    {{dateDisplay}}
+  </div>
+
+  <div class="form-group">
+    <label for="note-title">Title:</label>
+    <input type="text" id="note-title" name="title" value="" autofocus required />
+  </div>
+
+  <div class="form-group">
+    <label for="note-content">Content:</label>
+    <textarea id="note-content" name="content" rows="6"></textarea>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group half-width">
+      <label for="note-category">Category:</label>
+      <select id="note-category" name="category" class="category-select">
+        {{#each categories}}
+        <option value="{{id}}" {{#if selected}}selected{{/if}}>
+          {{name}}
+        </option>
+        {{/each}}
+      </select>
+    </div>
+    <div class="form-group half-width">
+      <label for="note-allday">
+        <input type="checkbox" id="note-allday" name="allDay" checked />
+        All Day Event
+      </label>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="note-tags">Tags (optional):</label>
+    <string-tags name="tags"></string-tags>
+    {{#if allTags.length}}
+    <div class="tag-suggestions">
+      <small>Suggestions:</small>
+      {{#each allTags}}
+      <span class="tag-suggestion" data-tag="{{this}}">{{this}}</span>
+      {{/each}}
+    </div>
+    {{/if}}
+  </div>
+
+  <div class="form-actions">
+    <button type="button" data-action="create" class="button">
+      <i class="fas fa-save"></i> Create
+    </button>
+    <button type="button" data-action="createAnother" class="button">
+      <i class="fas fa-plus-circle"></i> Create & Add Another
+    </button>
+    <button type="button" data-action="close" class="button">
+      <i class="fas fa-times"></i> Cancel
+    </button>
+  </div>
+
+  {{/if}}
+</form>
