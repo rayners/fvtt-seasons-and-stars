@@ -1107,32 +1107,24 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     if (!calendar) return;
     const targetDate = new CalendarDate(targetDateData, calendar);
 
-    // Show note creation dialog
-    const noteCreated = await this.showCreateNoteDialog(targetDate);
-
-    // Refresh the calendar if any note was created
-    if (noteCreated) {
-      await (this as any).render({ parts: ['main'] });
-    }
+    // Show note creation window
+    // Window will refresh the calendar automatically when notes are created
+    await this.showCreateNoteDialog(targetDate);
   }
 
   /**
    * Show note creation window with enhanced category and tag support
-   * Returns true if any note was created, false otherwise
    */
-  private async showCreateNoteDialog(date: ICalendarDate): Promise<boolean> {
-    // Track whether any note was created
-    let noteWasCreated = false;
-
+  private async showCreateNoteDialog(date: ICalendarDate): Promise<void> {
     // Show the create note window
     await CreateNoteWindow.show({
       date,
       onNoteCreated: () => {
-        noteWasCreated = true;
+        // Refresh the calendar immediately when a note is created
+        // This allows the grid to update while the window stays open
+        (this as any).render({ parts: ['main'] });
       },
     });
-
-    return noteWasCreated;
   }
 
   /**
