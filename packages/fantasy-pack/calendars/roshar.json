@@ -7,7 +7,10 @@
       "setting": "Brandon Sanderson's Cosmere - Stormlight Archive"
     }
   },
-  "sources": ["https://stormlightarchive.fandom.com/wiki/Calendar"],
+  "sources": [
+    "https://stormlightarchive.fandom.com/wiki/Calendar",
+    "https://www.17thshard.com/blogs/entry/633-rosharan-time-measurements/"
+  ],
 
   "year": {
     "epoch": 0,
@@ -115,15 +118,15 @@
   "intercalary": [
     {
       "name": "Midpeace",
-      "days": 28,
+      "days": 20,
       "after": "Palah",
-      "description": "A four-week period with no highstorms occurring at the midpoint of the year, halfway between Weepings. The Middlefest fair in Jah Keved is held during this time."
+      "description": "A four-week period (20 days) with no highstorms occurring at the midpoint of the year, halfway between Weepings. The Middlefest fair in Jah Keved is held during this time."
     },
     {
       "name": "The Weeping",
-      "days": 28,
+      "days": 20,
       "after": "Ishev",
-      "description": "A four-week period of constant rain marking the end of the year. No highstorms occur during this time, and gemstones cannot be infused with Stormlight. Contains Lightday, a single clear day in the middle of the period."
+      "description": "A four-week period (20 days) of constant rain marking the end of the year. No highstorms occur during this time, and gemstones cannot be infused with Stormlight. Contains Lightday, a single clear day in the middle of the period."
     }
   ],
 

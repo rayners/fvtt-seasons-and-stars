@@ -14,7 +14,8 @@ The Roshar calendar brings the unique timekeeping system from Brandon Sanderson'
 - **500-day year**: Ten months of fifty days each
 - **5-day weeks**: Ten weeks per month (Vorin week structure)
 - **Authentic date format**: Year.Month.Week.Day notation (e.g., 1173.8.4.3)
-- **The Weeping**: 28-day intercalary period with constant rain
+- **The Weeping**: 20-day intercalary period with constant rain
+- **Midpeace**: 20-day intercalary period with no highstorms
 - **20-hour days**: 100-minute hours with 100-second minutes
 - **Vorin naming**: Official month and weekday names from the source material
 
@@ -43,15 +44,21 @@ _Note: Month names correspond to Vorin numerical system (Jesnan = one, Nanan = t
 4. **Vevod** (Ve) - Fourth day
 5. **Palah** (Pa) - Fifth day
 
-### The Weeping
+### Intercalary Periods
 
-**The Weeping** is a 28-day intercalary period occurring after Ishev (the tenth month). During this time:
+**The Weeping** is a 20-day intercalary period (4 weeks × 5 days) occurring after Ishev (the tenth month). During this time:
 
 - Constant rain falls across Roshar
 - No highstorms occur
 - Gemstones cannot be infused with Stormlight
 - **Lightday** occurs in the middle - a single clear day
 - Marks the transition between years
+
+**Midpeace** is a 20-day intercalary period (4 weeks × 5 days) occurring after Palah (the fifth month). During this time:
+
+- No highstorms occur
+- Occurs at the midpoint of the year, halfway between Weepings
+- The Middlefest fair in Jah Keved is held during this time
 
 ## Date Format System
 
@@ -103,12 +110,20 @@ The calendar's week structure supports highstorm tracking:
 - Use the `highstorm` format for storm-related notation
 - Week boundaries help organize storm cycles for gameplay
 
-### The Weeping as Campaign Element
+### Intercalary Periods as Campaign Elements
 
-- **Duration**: 28 days (exactly 4 weeks)
+**The Weeping**:
+
+- **Duration**: 20 days (4 Rosharan weeks of 5 days each)
 - **Atmosphere**: Constant rain, gray skies, no storms
 - **Mechanical Impact**: No Stormlight infusion possible
 - **Lightday**: Single clear day provides story opportunities
+
+**Midpeace**:
+
+- **Duration**: 20 days (4 Rosharan weeks of 5 days each)
+- **Atmosphere**: Calm period with no highstorms
+- **Campaign Hook**: Ideal for the Middlefest fair and major gatherings
 
 ## Technical Implementation
 
@@ -147,6 +162,7 @@ This implementation is based on official Brandon Sanderson worldbuilding:
 - **Primary Source**: [Brandon Sanderson's Roshar Date System](https://www.brandonsanderson.com/blogs/blog/roshars-date-system)
 - **Wiki Reference**: [Stormlight Archive Calendar](https://stormlightarchive.fandom.com/wiki/Calendar)
 - **Coppermind**: [Roshar Calendar System](https://coppermind.net/wiki/Roshar#Calendar)
+- **Time Measurements**: [Rosharan Time Measurements](https://www.17thshard.com/blogs/entry/633-rosharan-time-measurements/)
 
 All calendar details, naming conventions, and structural elements are derived from these official materials to ensure authenticity for Stormlight Archive campaigns.
 
