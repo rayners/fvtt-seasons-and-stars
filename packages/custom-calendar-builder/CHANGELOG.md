@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-calendar-builder-v0.4.0...seasons-and-stars-calendar-builder-v0.4.1) (2025-10-28)
+
+
+### Bug Fixes
+
+* delay blob URL revocation to fix Windows download error ([#429](https://github.com/rayners/fvtt-seasons-and-stars/issues/429)) ([b6a744f](https://github.com/rayners/fvtt-seasons-and-stars/commit/b6a744f959dba356223a259adc34aea8a24fc0b9))
+
 ## [0.4.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-calendar-builder-v0.3.0...seasons-and-stars-calendar-builder-v0.4.0) (2025-10-15)
 
 
