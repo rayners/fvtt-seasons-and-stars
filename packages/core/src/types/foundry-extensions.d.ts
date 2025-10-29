@@ -116,6 +116,7 @@ declare global {
       notes?: NotesManagerInterface;
       integration?: SeasonsStarsIntegration | null;
       buttonRegistry?: SidebarButtonRegistryAPI;
+      widgets?: WidgetRegistrationAPI;
       CalendarWidget?: unknown;
       CalendarMiniWidget?: unknown;
       CalendarGridWidget?: unknown;
@@ -237,4 +238,72 @@ export interface NotesManagerInterface {
     removeNote(noteId: string): Promise<void>;
     getAllNotes?(): JournalEntry[];
   };
+}
+
+// Widget instance interface for custom widgets
+export interface WidgetInstance<T = unknown> {
+  show(): Promise<void>;
+  hide(): Promise<void>;
+  toggle(): Promise<void>;
+  getInstance(): T;
+  isVisible(): boolean;
+}
+
+// Widget Registration API for external modules
+export interface WidgetRegistrationAPI {
+  /**
+   * Register a custom widget with the widget manager
+   * @param type - Unique widget type identifier
+   * @param factory - Factory function that creates the widget instance
+   * @example
+   * ```javascript
+   * // Register a custom calendar widget
+   * game.seasonsStars.widgets.register('custom-lunar', () => ({
+   *   show: async () => { await myLunarWidget.render(true); },
+   *   hide: async () => { await myLunarWidget.close(); },
+   *   toggle: async () => { await myLunarWidget.toggle(); },
+   *   getInstance: () => myLunarWidget,
+   *   isVisible: () => myLunarWidget.rendered
+   * }));
+   *
+   * // Show the custom widget
+   * await game.seasonsStars.widgets.show('custom-lunar');
+   * ```
+   */
+  register(type: string, factory: () => WidgetInstance): void;
+
+  /**
+   * Show a registered widget
+   * @param type - Widget type to show
+   */
+  show(type: string): Promise<void>;
+
+  /**
+   * Hide a registered widget
+   * @param type - Widget type to hide
+   */
+  hide(type: string): Promise<void>;
+
+  /**
+   * Toggle a registered widget
+   * @param type - Widget type to toggle
+   */
+  toggle(type: string): Promise<void>;
+
+  /**
+   * Check if a widget is currently visible
+   * @param type - Widget type to check
+   */
+  isVisible(type: string): boolean;
+
+  /**
+   * Get the list of registered widget types
+   */
+  getRegisteredTypes(): string[];
+
+  /**
+   * Get a widget instance for direct access
+   * @param type - Widget type to get
+   */
+  getInstance<T = unknown>(type: string): T | null;
 }

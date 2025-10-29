@@ -24,7 +24,7 @@ import { CalendarDeprecationDialog } from './ui/calendar-deprecation-dialog';
 // Note editing dialog imported when needed
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
-import { CalendarWidgetManager, WidgetWrapper } from './ui/widget-manager';
+import { CalendarWidgetManager, WidgetWrapper, type WidgetInstance } from './ui/widget-manager';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
@@ -1944,6 +1944,19 @@ export function setupAPI(): void {
     seasonsStarsNamespace.integration = SeasonsStarsIntegration.detect();
   }
 
+  // Create widget registration API wrapper
+  const widgetAPI = {
+    register: (type: string, factory: () => WidgetInstance) => {
+      CalendarWidgetManager.registerWidget(type, factory);
+    },
+    show: (type: string) => CalendarWidgetManager.showWidget(type),
+    hide: (type: string) => CalendarWidgetManager.hideWidget(type),
+    toggle: (type: string) => CalendarWidgetManager.toggleWidget(type),
+    isVisible: (type: string) => CalendarWidgetManager.isWidgetVisible(type),
+    getRegisteredTypes: () => CalendarWidgetManager.getRegisteredTypes(),
+    getInstance: <T = unknown>(type: string) => CalendarWidgetManager.getWidgetInstance<T>(type),
+  };
+
   // Expose API to window for debugging
   window.SeasonsStars = {
     api,
@@ -1951,6 +1964,7 @@ export function setupAPI(): void {
     notes: notesManager,
     integration: SeasonsStarsIntegration.detect() || null,
     buttonRegistry: SidebarButtonRegistry.getInstance(),
+    widgets: widgetAPI,
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,
