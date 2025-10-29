@@ -4,9 +4,6 @@
 
 import { Logger } from './logger';
 import { CalendarWidgetManager } from '../ui/widget-manager';
-import { CalendarWidget } from '../ui/calendar-widget';
-import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
-import { CalendarGridWidget } from '../ui/calendar-grid-widget';
 import { getTargetWidgetType, getSafeDefaultWidgetOption } from '../ui/widget-type-resolver';
 
 export class SeasonsStarsKeybindings {
@@ -52,7 +49,7 @@ export class SeasonsStarsKeybindings {
       ],
       onDown: () => {
         Logger.debug('Mini widget toggle shortcut pressed');
-        CalendarMiniWidget.toggle();
+        CalendarWidgetManager.toggleWidget('mini');
         return true;
       },
       restricted: false,
@@ -71,7 +68,7 @@ export class SeasonsStarsKeybindings {
       ],
       onDown: () => {
         Logger.debug('Grid widget toggle shortcut pressed');
-        CalendarGridWidget.toggle();
+        CalendarWidgetManager.toggleWidget('grid');
         return true;
       },
       restricted: false,
@@ -90,7 +87,7 @@ export class SeasonsStarsKeybindings {
       ],
       onDown: () => {
         Logger.debug('Main widget toggle shortcut pressed');
-        CalendarWidget.toggle();
+        CalendarWidgetManager.toggleWidget('main');
         return true;
       },
       restricted: false,
