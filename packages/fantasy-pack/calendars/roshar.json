@@ -117,34 +117,20 @@
 
   "intercalary": [],
 
-  "events": [
+  "seasons": [
     {
-      "id": "the-weeping",
       "name": "The Weeping",
-      "description": "Four weeks of constant rain and no highstorms marking the transition between years. Gemstones cannot be infused with Stormlight during this period, except on Lightday.",
-      "recurrence": {
-        "type": "fixed",
-        "month": 10,
-        "day": 31
-      },
-      "duration": "20d",
-      "visibility": "player-visible",
-      "color": "#5C7C99",
-      "icon": "fas fa-cloud-rain"
+      "startMonth": 10,
+      "endMonth": 10,
+      "icon": "cloud-rain",
+      "description": "Four weeks of constant rain and no highstorms marking the transition between years (last 20 days of Ishev). Gemstones cannot be infused with Stormlight during this period, except on Lightday."
     },
     {
-      "id": "midpeace",
       "name": "Midpeace",
-      "description": "Four weeks with no highstorms occurring at the midpoint of the year. The Middlefest fair in Jah Keved is traditionally held during this time.",
-      "recurrence": {
-        "type": "fixed",
-        "month": 5,
-        "day": 41
-      },
-      "duration": "20d",
-      "visibility": "player-visible",
-      "color": "#87CEEB",
-      "icon": "fas fa-dove"
+      "startMonth": 5,
+      "endMonth": 6,
+      "icon": "dove",
+      "description": "Four weeks with no highstorms occurring at the midpoint of the year (last 10 days of Palah through first 10 days of Shash). The Middlefest fair in Jah Keved is traditionally held during this time."
     }
   ],
 

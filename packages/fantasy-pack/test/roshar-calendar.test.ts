@@ -256,45 +256,37 @@ describe('Roshar Calendar', () => {
     });
   });
 
-  describe('Special Period Events', () => {
-    it('should have The Weeping as a calendar event', () => {
-      expect(rosharCalendar.events).toBeDefined();
-      const weeping = rosharCalendar.events?.find(e => e.id === 'the-weeping');
+  describe('Special Period Seasons', () => {
+    it('should have The Weeping as a season', () => {
+      expect(rosharCalendar.seasons).toBeDefined();
+      const weeping = rosharCalendar.seasons?.find(s => s.name === 'The Weeping');
       expect(weeping).toBeDefined();
       expect(weeping?.name).toBe('The Weeping');
-      expect(weeping?.duration).toBe('20d');
     });
 
-    it('should have The Weeping occur at end of year (Ishev 31-50)', () => {
-      const weeping = rosharCalendar.events?.find(e => e.id === 'the-weeping');
-      expect(weeping?.recurrence.type).toBe('fixed');
-      if (weeping?.recurrence.type === 'fixed') {
-        expect(weeping.recurrence.month).toBe(10); // Ishev
-        expect(weeping.recurrence.day).toBe(31); // Day 31
-      }
+    it('should have The Weeping occur at end of year (month 10)', () => {
+      const weeping = rosharCalendar.seasons?.find(s => s.name === 'The Weeping');
+      expect(weeping?.startMonth).toBe(10); // Ishev
+      expect(weeping?.endMonth).toBe(10); // Ishev
     });
 
-    it('should have Midpeace as a calendar event', () => {
-      const midpeace = rosharCalendar.events?.find(e => e.id === 'midpeace');
+    it('should have Midpeace as a season', () => {
+      const midpeace = rosharCalendar.seasons?.find(s => s.name === 'Midpeace');
       expect(midpeace).toBeDefined();
       expect(midpeace?.name).toBe('Midpeace');
-      expect(midpeace?.duration).toBe('20d');
     });
 
-    it('should have Midpeace occur at mid-year (Palah 41)', () => {
-      const midpeace = rosharCalendar.events?.find(e => e.id === 'midpeace');
-      expect(midpeace?.recurrence.type).toBe('fixed');
-      if (midpeace?.recurrence.type === 'fixed') {
-        expect(midpeace.recurrence.month).toBe(5); // Palah
-        expect(midpeace.recurrence.day).toBe(41); // Day 41
-      }
+    it('should have Midpeace occur at mid-year (months 5-6)', () => {
+      const midpeace = rosharCalendar.seasons?.find(s => s.name === 'Midpeace');
+      expect(midpeace?.startMonth).toBe(5); // Palah
+      expect(midpeace?.endMonth).toBe(6); // Shash
     });
 
-    it('should have both events set as player-visible', () => {
-      const weeping = rosharCalendar.events?.find(e => e.id === 'the-weeping');
-      const midpeace = rosharCalendar.events?.find(e => e.id === 'midpeace');
-      expect(weeping?.visibility).toBe('player-visible');
-      expect(midpeace?.visibility).toBe('player-visible');
+    it('should have both seasons with appropriate icons', () => {
+      const weeping = rosharCalendar.seasons?.find(s => s.name === 'The Weeping');
+      const midpeace = rosharCalendar.seasons?.find(s => s.name === 'Midpeace');
+      expect(weeping?.icon).toBe('cloud-rain');
+      expect(midpeace?.icon).toBe('dove');
     });
   });
 });
