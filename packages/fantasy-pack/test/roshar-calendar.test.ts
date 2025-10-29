@@ -38,12 +38,8 @@ describe('Roshar Calendar', () => {
       expect(rosharCalendar.weekdays).toHaveLength(5);
     });
 
-    it('should have both Midpeace and The Weeping as intercalary periods', () => {
-      expect(rosharCalendar.intercalary).toHaveLength(2);
-      expect(rosharCalendar.intercalary[0].name).toBe('Midpeace');
-      expect(rosharCalendar.intercalary[0].days).toBe(28);
-      expect(rosharCalendar.intercalary[1].name).toBe('The Weeping');
-      expect(rosharCalendar.intercalary[1].days).toBe(28);
+    it('should have no intercalary periods (The Weeping and Midpeace are not extra days)', () => {
+      expect(rosharCalendar.intercalary).toHaveLength(0);
     });
   });
 
@@ -196,25 +192,17 @@ describe('Roshar Calendar', () => {
     });
   });
 
-  describe('Intercalary Periods', () => {
-    it('should have Midpeace configured correctly', () => {
-      const midpeace = rosharCalendar.intercalary[0];
-
-      expect(midpeace.name).toBe('Midpeace');
-      expect(midpeace.days).toBe(28);
-      expect(midpeace.after).toBe('Palah');
-      expect(midpeace.description).toContain('four-week period with no highstorms');
-      expect(midpeace.description).toContain('Middlefest');
+  describe('Calendar Year Length', () => {
+    it('should have exactly 500 days per year', () => {
+      const totalDays = rosharCalendar.months.reduce((sum, month) => sum + month.days, 0);
+      expect(totalDays).toBe(500);
     });
 
-    it('should have The Weeping configured correctly', () => {
-      const weeping = rosharCalendar.intercalary[1];
-
-      expect(weeping.name).toBe('The Weeping');
-      expect(weeping.days).toBe(28);
-      expect(weeping.after).toBe('Ishev');
-      expect(weeping.description).toContain('four-week period of constant rain');
-      expect(weeping.description).toContain('Lightday');
+    it('should have correct week structure (10 weeks per month)', () => {
+      rosharCalendar.months.forEach(month => {
+        const weeksPerMonth = month.days / rosharCalendar.weekdays.length;
+        expect(weeksPerMonth).toBe(10);
+      });
     });
   });
 
@@ -265,6 +253,86 @@ describe('Roshar Calendar', () => {
 
       const result = formatter.formatNamed(date, 'time');
       expect(result).toBe('05:42');
+    });
+  });
+
+  describe('Special Period Seasons', () => {
+    it('should have The Weeping as a season', () => {
+      expect(rosharCalendar.seasons).toBeDefined();
+      const weeping = rosharCalendar.seasons?.find(s => s.name === 'The Weeping');
+      expect(weeping).toBeDefined();
+      expect(weeping?.name).toBe('The Weeping');
+    });
+
+    it('should have The Weeping occur at end of year (month 10)', () => {
+      const weeping = rosharCalendar.seasons?.find(s => s.name === 'The Weeping');
+      expect(weeping?.startMonth).toBe(10); // Ishev
+      expect(weeping?.endMonth).toBe(10); // Ishev
+    });
+
+    it('should have Midpeace as a season', () => {
+      const midpeace = rosharCalendar.seasons?.find(s => s.name === 'Midpeace');
+      expect(midpeace).toBeDefined();
+      expect(midpeace?.name).toBe('Midpeace');
+    });
+
+    it('should have Midpeace occur at mid-year (months 5-6)', () => {
+      const midpeace = rosharCalendar.seasons?.find(s => s.name === 'Midpeace');
+      expect(midpeace?.startMonth).toBe(5); // Palah
+      expect(midpeace?.endMonth).toBe(6); // Shash
+    });
+
+    it('should have both seasons with appropriate icons', () => {
+      const weeping = rosharCalendar.seasons?.find(s => s.name === 'The Weeping');
+      const midpeace = rosharCalendar.seasons?.find(s => s.name === 'Midpeace');
+      expect(weeping?.icon).toBe('cloud-rain');
+      expect(midpeace?.icon).toBe('dove');
+    });
+
+    it('should have The Weeping spanning exactly 20 days (Ishev 31-50)', () => {
+      const weeping = rosharCalendar.seasons?.find(s => s.name === 'The Weeping');
+      expect(weeping?.startDay).toBe(31);
+      expect(weeping?.endDay).toBe(50);
+    });
+
+    it('should have Midpeace spanning exactly 20 days (Palah 41-50 through Shash 1-10)', () => {
+      const midpeace = rosharCalendar.seasons?.find(s => s.name === 'Midpeace');
+      expect(midpeace?.startDay).toBe(41);
+      expect(midpeace?.endDay).toBe(10);
+    });
+
+    it('should have The Weeping lasting exactly 20 days (4 Rosharan weeks)', () => {
+      const weeping = rosharCalendar.seasons?.find(s => s.name === 'The Weeping');
+      expect(weeping).toBeDefined();
+
+      // The Weeping: Ishev 31-50 = 20 days
+      const startDay = weeping?.startDay ?? 1;
+      const endDay = weeping?.endDay ?? 50;
+      const durationInDays = endDay - startDay + 1;
+
+      expect(durationInDays).toBe(20); // 4 weeks × 5 days/week
+    });
+
+    it('should have Midpeace lasting exactly 20 days (4 Rosharan weeks)', () => {
+      const midpeace = rosharCalendar.seasons?.find(s => s.name === 'Midpeace');
+      expect(midpeace).toBeDefined();
+
+      // Midpeace spans two months: Palah 41-50 (10 days) + Shash 1-10 (10 days) = 20 days
+      const palahDays = 50 - (midpeace?.startDay ?? 41) + 1; // Days 41-50 in Palah
+      const shashDays = midpeace?.endDay ?? 10; // Days 1-10 in Shash
+      const totalDays = palahDays + shashDays;
+
+      expect(totalDays).toBe(20); // 4 weeks × 5 days/week
+    });
+
+    it('should have total year length of 500 days', () => {
+      // This verifies that seasons don't add extra days to the year
+      const totalDays = rosharCalendar.months.reduce((sum, month) => sum + month.days, 0);
+      const intercalaryDays =
+        rosharCalendar.intercalary?.reduce((sum, period) => sum + period.days, 0) ?? 0;
+      const yearLength = totalDays + intercalaryDays;
+
+      expect(yearLength).toBe(500); // 10 months × 50 days/month
     });
   });
 });
