@@ -2,10 +2,11 @@
  * Keyboard shortcuts for Seasons & Stars
  */
 
+import { Logger } from './logger';
+import { CalendarWidgetManager } from '../ui/widget-manager';
 import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
-import { Logger } from './logger';
 import { getTargetWidgetType, getSafeDefaultWidgetOption } from '../ui/widget-type-resolver';
 
 export class SeasonsStarsKeybindings {
@@ -112,19 +113,7 @@ export class SeasonsStarsKeybindings {
       const targetWidget = getTargetWidgetType(defaultWidget, 'toggle');
 
       if (targetWidget) {
-        // Use the widget class directly for keybindings
-        switch (targetWidget) {
-          case 'mini':
-            CalendarMiniWidget.toggle();
-            break;
-          case 'grid':
-            CalendarGridWidget.toggle();
-            break;
-          case 'main':
-          default:
-            CalendarWidget.toggle();
-            break;
-        }
+        CalendarWidgetManager.toggleWidget(targetWidget);
       }
     } catch (error) {
       Logger.error(
@@ -132,7 +121,7 @@ export class SeasonsStarsKeybindings {
         error instanceof Error ? error : new Error(String(error))
       );
       // Fallback to main widget
-      CalendarWidget.toggle();
+      CalendarWidgetManager.toggleWidget('main');
     }
   }
 

@@ -481,18 +481,7 @@ Hooks.once('ready', async () => {
     const targetWidget = getTargetWidgetType(defaultWidget, 'show');
 
     if (targetWidget) {
-      switch (targetWidget) {
-        case 'mini':
-          CalendarMiniWidget.show();
-          break;
-        case 'grid':
-          CalendarGridWidget.show();
-          break;
-        case 'main':
-        default:
-          CalendarWidget.show();
-          break;
-      }
+      CalendarWidgetManager.showWidget(targetWidget);
     }
     // If targetWidget is null (for 'none' setting), don't show any widget
   }
