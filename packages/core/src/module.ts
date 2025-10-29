@@ -346,6 +346,10 @@ Hooks.once('setup', setup);
 Hooks.once('ready', async () => {
   Logger.debug('Completing setup during ready - setting active calendar from settings');
 
+  // Register defaultWidget setting now that all modules have initialized
+  // This allows custom widgets registered by other modules to appear in choices
+  registerDefaultWidgetSetting();
+
   // Migration: Cache existing active calendar data for synchronous loading
   // This is needed for users upgrading to the new settings-based caching system
   try {
@@ -685,20 +689,8 @@ function registerSettings(): void {
     },
   });
 
-  game.settings.register('seasons-and-stars', 'defaultWidget', {
-    name: 'SEASONS_STARS.settings.default_widget',
-    hint: 'SEASONS_STARS.settings.default_widget_hint',
-    scope: 'client',
-    config: true,
-    type: String,
-    default: 'main',
-    choices: {
-      none: 'SEASONS_STARS.settings.default_widget_none',
-      main: 'SEASONS_STARS.settings.default_widget_main',
-      mini: 'SEASONS_STARS.settings.default_widget_mini',
-      grid: 'SEASONS_STARS.settings.default_widget_grid',
-    },
-  });
+  // Note: defaultWidget setting is registered later in registerDefaultWidgetSetting()
+  // called from ready hook to include custom registered widgets
 
   game.settings.register('seasons-and-stars', 'calendarClickBehavior', {
     name: 'Calendar Click Behavior',
@@ -938,6 +930,44 @@ function registerSettings(): void {
     config: true,
     type: Boolean,
     default: false,
+  });
+}
+
+/**
+ * Register defaultWidget setting with dynamic choices including custom widgets
+ * Called from ready hook after all modules have initialized
+ */
+function registerDefaultWidgetSetting(): void {
+  if (!game.settings) return;
+
+  // Build choices including any custom registered widgets
+  const widgetChoices: Record<string, string> = {
+    none: 'SEASONS_STARS.settings.default_widget_none',
+    main: 'SEASONS_STARS.settings.default_widget_main',
+    mini: 'SEASONS_STARS.settings.default_widget_mini',
+    grid: 'SEASONS_STARS.settings.default_widget_grid',
+  };
+
+  // Add any custom registered widgets
+  const registeredTypes = CalendarWidgetManager.getRegisteredTypes();
+  for (const type of registeredTypes) {
+    // Skip built-in types
+    if (type !== 'main' && type !== 'mini' && type !== 'grid') {
+      // Use capitalized type name as label (custom modules can provide i18n if needed)
+      widgetChoices[type] = type.charAt(0).toUpperCase() + type.slice(1);
+    }
+  }
+
+  Logger.debug('Registering defaultWidget setting with choices', { widgetChoices });
+
+  game.settings.register('seasons-and-stars', 'defaultWidget', {
+    name: 'SEASONS_STARS.settings.default_widget',
+    hint: 'SEASONS_STARS.settings.default_widget_hint',
+    scope: 'client',
+    config: true,
+    type: String,
+    default: 'main',
+    choices: widgetChoices,
   });
 }
 
