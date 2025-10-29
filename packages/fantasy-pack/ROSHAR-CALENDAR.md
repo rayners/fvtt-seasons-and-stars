@@ -11,11 +11,11 @@ The Roshar calendar brings the unique timekeeping system from Brandon Sanderson'
 
 ### Key Features
 
-- **500-day year**: Ten months of fifty days each
+- **500-day year**: Ten months of fifty days each (10 months × 10 weeks × 5 days)
 - **5-day weeks**: Ten weeks per month (Vorin week structure)
 - **Authentic date format**: Year.Month.Week.Day notation (e.g., 1173.8.4.3)
-- **The Weeping**: 20-day intercalary period with constant rain
-- **Midpeace**: 20-day intercalary period with no highstorms
+- **The Weeping**: Four-week period with constant rain occurring during regular calendar weeks
+- **Midpeace**: Four-week period with no highstorms occurring during regular calendar weeks
 - **20-hour days**: 100-minute hours with 100-second minutes
 - **Vorin naming**: Official month and weekday names from the source material
 
@@ -44,9 +44,11 @@ _Note: Month names correspond to Vorin numerical system (Jesnan = one, Nanan = t
 4. **Vevod** (Ve) - Fourth day
 5. **Palah** (Pa) - Fifth day
 
-### Intercalary Periods
+### Special Periods
 
-**The Weeping** is a 20-day intercalary period (4 weeks × 5 days) occurring after Ishev (the tenth month). During this time:
+The Roshar calendar includes two significant atmospheric periods that occur during regular calendar weeks. These are not intercalary days (they don't add extra days to the year), but rather special named periods during the normal 500-day cycle.
+
+**The Weeping** is a four-week period occurring during regular weeks. During this time:
 
 - Constant rain falls across Roshar
 - No highstorms occur
@@ -54,11 +56,15 @@ _Note: Month names correspond to Vorin numerical system (Jesnan = one, Nanan = t
 - **Lightday** occurs in the middle - a single clear day
 - Marks the transition between years
 
-**Midpeace** is a 20-day intercalary period (4 weeks × 5 days) occurring after Palah (the fifth month). During this time:
+_Note: The Weeping occurs during normal calendar weeks and counts toward the standard 500-day year. It is not an intercalary period with extra days._
+
+**Midpeace** is a four-week period occurring during regular weeks. During this time:
 
 - No highstorms occur
-- Occurs at the midpoint of the year, halfway between Weepings
+- Occurs at the midpoint of the year
 - The Middlefest fair in Jah Keved is held during this time
+
+_Note: Midpeace occurs during normal calendar weeks and counts toward the standard 500-day year. It is not an intercalary period with extra days._
 
 ## Date Format System
 
@@ -110,20 +116,22 @@ The calendar's week structure supports highstorm tracking:
 - Use the `highstorm` format for storm-related notation
 - Week boundaries help organize storm cycles for gameplay
 
-### Intercalary Periods as Campaign Elements
+### Special Periods as Campaign Elements
 
 **The Weeping**:
 
-- **Duration**: 20 days (4 Rosharan weeks of 5 days each)
+- **Duration**: Four weeks (20 days) occurring during regular calendar weeks
 - **Atmosphere**: Constant rain, gray skies, no storms
 - **Mechanical Impact**: No Stormlight infusion possible
 - **Lightday**: Single clear day provides story opportunities
+- **Calendar Position**: Part of the normal 500-day year structure
 
 **Midpeace**:
 
-- **Duration**: 20 days (4 Rosharan weeks of 5 days each)
+- **Duration**: Four weeks (20 days) occurring during regular calendar weeks
 - **Atmosphere**: Calm period with no highstorms
 - **Campaign Hook**: Ideal for the Middlefest fair and major gatherings
+- **Calendar Position**: Part of the normal 500-day year structure
 
 ## Technical Implementation
 
@@ -202,11 +210,12 @@ All calendar details, naming conventions, and structural elements are derived fr
 - Check browser console for template errors
 - Verify all format strings use correct helper syntax
 
-**The Weeping not appearing**
+**Questions about The Weeping and Midpeace timing**
 
-- The Weeping appears after Ishev (month 10)
-- Ensure intercalary periods are enabled in calendar settings
-- Check that you're viewing the correct year transition
+- These are atmospheric periods occurring during regular weeks
+- They do not appear as special calendar days
+- Track these periods manually based on your campaign timeline
+- The calendar maintains the standard 500-day year structure
 
 ### Getting Help
 

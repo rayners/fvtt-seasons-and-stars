@@ -3,7 +3,7 @@
   "translations": {
     "en": {
       "label": "Roshar Calendar (Stormlight Archive)",
-      "description": "The Vorin calendar used on Roshar in Brandon Sanderson's Stormlight Archive series. Features ten months of fifty days each, organized into ten weeks of five days per month, with the unique Year.Month.Week.Day date format used by the Alethi and other Vorin cultures.",
+      "description": "The Vorin calendar used on Roshar in Brandon Sanderson's Stormlight Archive series. Features a 500-day year with ten months of fifty days each, organized into ten weeks of five days per month. The calendar includes special periods: The Weeping (four weeks of constant rain marking year's end) and Midpeace (four weeks at mid-year with no highstorms). Uses the unique Year.Month.Week.Day date format.",
       "setting": "Brandon Sanderson's Cosmere - Stormlight Archive"
     }
   },
@@ -115,20 +115,7 @@
     }
   ],
 
-  "intercalary": [
-    {
-      "name": "Midpeace",
-      "days": 20,
-      "after": "Palah",
-      "description": "A four-week period (20 days) with no highstorms occurring at the midpoint of the year, halfway between Weepings. The Middlefest fair in Jah Keved is held during this time."
-    },
-    {
-      "name": "The Weeping",
-      "days": 20,
-      "after": "Ishev",
-      "description": "A four-week period (20 days) of constant rain marking the end of the year. No highstorms occur during this time, and gemstones cannot be infused with Stormlight. Contains Lightday, a single clear day in the middle of the period."
-    }
-  ],
+  "intercalary": [],
 
   "time": {
     "hoursInDay": 20,

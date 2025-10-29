@@ -38,12 +38,8 @@ describe('Roshar Calendar', () => {
       expect(rosharCalendar.weekdays).toHaveLength(5);
     });
 
-    it('should have both Midpeace and The Weeping as intercalary periods', () => {
-      expect(rosharCalendar.intercalary).toHaveLength(2);
-      expect(rosharCalendar.intercalary[0].name).toBe('Midpeace');
-      expect(rosharCalendar.intercalary[0].days).toBe(20);
-      expect(rosharCalendar.intercalary[1].name).toBe('The Weeping');
-      expect(rosharCalendar.intercalary[1].days).toBe(20);
+    it('should have no intercalary periods (The Weeping and Midpeace are not extra days)', () => {
+      expect(rosharCalendar.intercalary).toHaveLength(0);
     });
   });
 
@@ -196,25 +192,17 @@ describe('Roshar Calendar', () => {
     });
   });
 
-  describe('Intercalary Periods', () => {
-    it('should have Midpeace configured correctly', () => {
-      const midpeace = rosharCalendar.intercalary[0];
-
-      expect(midpeace.name).toBe('Midpeace');
-      expect(midpeace.days).toBe(20);
-      expect(midpeace.after).toBe('Palah');
-      expect(midpeace.description).toContain('four-week period');
-      expect(midpeace.description).toContain('Middlefest');
+  describe('Calendar Year Length', () => {
+    it('should have exactly 500 days per year', () => {
+      const totalDays = rosharCalendar.months.reduce((sum, month) => sum + month.days, 0);
+      expect(totalDays).toBe(500);
     });
 
-    it('should have The Weeping configured correctly', () => {
-      const weeping = rosharCalendar.intercalary[1];
-
-      expect(weeping.name).toBe('The Weeping');
-      expect(weeping.days).toBe(20);
-      expect(weeping.after).toBe('Ishev');
-      expect(weeping.description).toContain('four-week period');
-      expect(weeping.description).toContain('Lightday');
+    it('should have correct week structure (10 weeks per month)', () => {
+      rosharCalendar.months.forEach(month => {
+        const weeksPerMonth = month.days / rosharCalendar.weekdays.length;
+        expect(weeksPerMonth).toBe(10);
+      });
     });
   });
 
