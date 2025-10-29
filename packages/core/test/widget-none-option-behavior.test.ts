@@ -38,9 +38,6 @@ vi.mock('../src/core/logger', () => ({
 }));
 
 import { CalendarWidgetManager } from '../src/ui/widget-manager';
-import { CalendarWidget } from '../src/ui/calendar-widget';
-import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
-import { CalendarGridWidget } from '../src/ui/calendar-grid-widget';
 
 const mockSettings = {
   get: vi.fn(),
@@ -101,9 +98,6 @@ describe("Widget 'none' Option - Behavior Specification", () => {
   describe('Startup Behavior (showDefaultWidget)', () => {
     describe("when defaultWidget is 'none'", () => {
       it('should NOT show any widget on startup', () => {
-        const showMainSpy = vi.spyOn(CalendarWidget, 'show');
-        const showMiniSpy = vi.spyOn(CalendarMiniWidget, 'show');
-        const showGridSpy = vi.spyOn(CalendarGridWidget, 'show');
         const showWidgetSpy = vi.spyOn(CalendarWidgetManager, 'showWidget');
 
         const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
@@ -117,9 +111,6 @@ describe("Widget 'none' Option - Behavior Specification", () => {
         expect(defaultWidget).toBe('none');
         expect(targetWidget).toBeNull();
         expect(showWidgetSpy).not.toHaveBeenCalled();
-        expect(showMainSpy).not.toHaveBeenCalled();
-        expect(showMiniSpy).not.toHaveBeenCalled();
-        expect(showGridSpy).not.toHaveBeenCalled();
       });
 
       it('should leave the UI in a clean state with no visible widgets', () => {
@@ -205,23 +196,18 @@ describe("Widget 'none' Option - Behavior Specification", () => {
       });
 
       it('should toggle MAIN widget when Alt+S keybinding is pressed', () => {
-        const toggleSpy = vi.spyOn(CalendarWidget, 'toggle');
+        const toggleSpy = vi.spyOn(CalendarWidgetManager, 'toggleWidget');
 
         const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
         const targetWidget = getTargetWidgetType(defaultWidget, 'toggle');
 
-        // Keybinding uses the widget class directly for consistency
-        if (targetWidget === 'main') {
-          CalendarWidget.toggle();
-        } else if (targetWidget === 'mini') {
-          CalendarMiniWidget.toggle();
-        } else if (targetWidget === 'grid') {
-          CalendarGridWidget.toggle();
+        if (targetWidget) {
+          CalendarWidgetManager.toggleWidget(targetWidget);
         }
 
         expect(defaultWidget).toBe('none');
         expect(targetWidget).toBe('main');
-        expect(toggleSpy).toHaveBeenCalled();
+        expect(toggleSpy).toHaveBeenCalledWith('main');
       });
 
       it('should consistently use main widget as the fallback for manual actions', () => {
