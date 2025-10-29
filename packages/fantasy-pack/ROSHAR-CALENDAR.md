@@ -44,27 +44,27 @@ _Note: Month names correspond to Vorin numerical system (Jesnan = one, Nanan = t
 4. **Vevod** (Ve) - Fourth day
 5. **Palah** (Pa) - Fifth day
 
-### Special Periods
+### Special Periods (Calendar Events)
 
-The Roshar calendar includes two significant atmospheric periods that occur during regular calendar weeks. These are not intercalary days (they don't add extra days to the year), but rather special named periods during the normal 500-day cycle.
+The Roshar calendar includes two significant atmospheric periods that appear as calendar events. These are not intercalary days (they don't add extra days to the year), but rather special 20-day events that occur during the normal 500-day cycle.
 
-**The Weeping** is a four-week period occurring during regular weeks. During this time:
+**The Weeping** (Ishev 31-50) - A four-week period (20 days) marking the end of the year:
 
 - Constant rain falls across Roshar
 - No highstorms occur
 - Gemstones cannot be infused with Stormlight
 - **Lightday** occurs in the middle - a single clear day
 - Marks the transition between years
+- Appears as a calendar event spanning the last 20 days of Ishev
 
-_Note: The Weeping occurs during normal calendar weeks and counts toward the standard 500-day year. It is not an intercalary period with extra days._
-
-**Midpeace** is a four-week period occurring during regular weeks. During this time:
+**Midpeace** (Palah 41-50, Shash 1-10) - A four-week period (20 days) at mid-year:
 
 - No highstorms occur
-- Occurs at the midpoint of the year
-- The Middlefest fair in Jah Keved is held during this time
+- Occurs at the midpoint of the year (days 241-260)
+- The Middlefest fair in Jah Keved is traditionally held during this time
+- Appears as a calendar event spanning 10 days at the end of Palah and 10 days at the start of Shash
 
-_Note: Midpeace occurs during normal calendar weeks and counts toward the standard 500-day year. It is not an intercalary period with extra days._
+_Note: Both periods are implemented as recurring calendar events with 20-day durations. They occur during normal calendar weeks and count toward the standard 500-day year. They are not intercalary periods with extra days._
 
 ## Date Format System
 
@@ -118,20 +118,22 @@ The calendar's week structure supports highstorm tracking:
 
 ### Special Periods as Campaign Elements
 
-**The Weeping**:
+**The Weeping** (Calendar Event: Ishev 31-50):
 
-- **Duration**: Four weeks (20 days) occurring during regular calendar weeks
+- **Duration**: 20 days (four Rosharan weeks)
+- **Calendar Dates**: Last 20 days of the year (Ishev days 31-50)
 - **Atmosphere**: Constant rain, gray skies, no storms
 - **Mechanical Impact**: No Stormlight infusion possible
 - **Lightday**: Single clear day provides story opportunities
-- **Calendar Position**: Part of the normal 500-day year structure
+- **Implementation**: Appears as a recurring calendar event with visual indicator
 
-**Midpeace**:
+**Midpeace** (Calendar Event: Palah 41-50, Shash 1-10):
 
-- **Duration**: Four weeks (20 days) occurring during regular calendar weeks
+- **Duration**: 20 days (four Rosharan weeks)
+- **Calendar Dates**: Mid-year spanning two months (Palah 41-50, Shash 1-10)
 - **Atmosphere**: Calm period with no highstorms
 - **Campaign Hook**: Ideal for the Middlefest fair and major gatherings
-- **Calendar Position**: Part of the normal 500-day year structure
+- **Implementation**: Appears as a recurring calendar event with visual indicator
 
 ## Technical Implementation
 
@@ -212,10 +214,10 @@ All calendar details, naming conventions, and structural elements are derived fr
 
 **Questions about The Weeping and Midpeace timing**
 
-- These are atmospheric periods occurring during regular weeks
-- They do not appear as special calendar days
-- Track these periods manually based on your campaign timeline
-- The calendar maintains the standard 500-day year structure
+- These appear as calendar events with 20-day durations
+- The Weeping: Ishev 31-50 (last 20 days of the year)
+- Midpeace: Palah 41-50, Shash 1-10 (mid-year)
+- They are part of the standard 500-day year structure (not extra days)
 
 ### Getting Help
 
