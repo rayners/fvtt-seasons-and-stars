@@ -75,8 +75,8 @@ export class SeasonsStarsSceneControls {
 
       switch (defaultWidget) {
         case 'none':
-          // When 'none' is selected, show the main widget
-          CalendarWidgetManager.showWidget('main');
+          // Don't show any widget when showing default widget
+          // (This is called during initialization, not from user actions)
           break;
         case 'mini':
           CalendarWidgetManager.showWidget('mini');
@@ -110,7 +110,7 @@ export class SeasonsStarsSceneControls {
 
       switch (defaultWidget) {
         case 'none':
-          // When 'none' is selected, hide the main widget
+          // No widget to hide when 'none' is selected
           CalendarWidgetManager.hideWidget('main');
           break;
         case 'mini':

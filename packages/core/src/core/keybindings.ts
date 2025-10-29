@@ -108,6 +108,10 @@ export class SeasonsStarsKeybindings {
       Logger.debug('Toggling default widget', { defaultWidget });
 
       switch (defaultWidget) {
+        case 'none':
+          // When 'none' is selected, toggle the main widget
+          CalendarWidget.toggle();
+          break;
         case 'mini':
           CalendarMiniWidget.toggle();
           break;
