@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm install)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "WebFetch(domain:foundryvtt.com)",
+      "WebFetch(domain:foundryvtt.wiki)"
     ]
   },
   "hooks": {
