@@ -478,6 +478,9 @@ Hooks.once('ready', async () => {
     const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
 
     switch (defaultWidget) {
+      case 'none':
+        // Don't show any widget on startup
+        break;
       case 'mini':
         CalendarMiniWidget.show();
         break;
@@ -698,6 +701,7 @@ function registerSettings(): void {
     type: String,
     default: 'main',
     choices: {
+      none: 'SEASONS_STARS.settings.default_widget_none',
       main: 'SEASONS_STARS.settings.default_widget_main',
       mini: 'SEASONS_STARS.settings.default_widget_mini',
       grid: 'SEASONS_STARS.settings.default_widget_grid',

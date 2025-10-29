@@ -74,6 +74,10 @@ export class SeasonsStarsSceneControls {
       Logger.debug('Showing default widget', { defaultWidget });
 
       switch (defaultWidget) {
+        case 'none':
+          // When 'none' is selected, show the main widget
+          CalendarWidgetManager.showWidget('main');
+          break;
         case 'mini':
           CalendarWidgetManager.showWidget('mini');
           break;
@@ -105,6 +109,10 @@ export class SeasonsStarsSceneControls {
       Logger.debug('Hiding default widget', { defaultWidget });
 
       switch (defaultWidget) {
+        case 'none':
+          // When 'none' is selected, hide the main widget
+          CalendarWidgetManager.hideWidget('main');
+          break;
         case 'mini':
           CalendarWidgetManager.hideWidget('mini');
           break;
@@ -136,6 +144,10 @@ export class SeasonsStarsSceneControls {
       Logger.debug('Scene control toggling default widget', { defaultWidget });
 
       switch (defaultWidget) {
+        case 'none':
+          // When 'none' is selected, toggle the main widget
+          CalendarWidgetManager.toggleWidget('main');
+          break;
         case 'mini':
           CalendarWidgetManager.toggleWidget('mini');
           break;
