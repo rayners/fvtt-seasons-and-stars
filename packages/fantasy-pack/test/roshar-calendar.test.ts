@@ -288,5 +288,17 @@ describe('Roshar Calendar', () => {
       expect(weeping?.icon).toBe('cloud-rain');
       expect(midpeace?.icon).toBe('dove');
     });
+
+    it('should have The Weeping spanning exactly 20 days (Ishev 31-50)', () => {
+      const weeping = rosharCalendar.seasons?.find(s => s.name === 'The Weeping');
+      expect(weeping?.startDay).toBe(31);
+      expect(weeping?.endDay).toBe(50);
+    });
+
+    it('should have Midpeace spanning exactly 20 days (Palah 41-50 through Shash 1-10)', () => {
+      const midpeace = rosharCalendar.seasons?.find(s => s.name === 'Midpeace');
+      expect(midpeace?.startDay).toBe(41);
+      expect(midpeace?.endDay).toBe(10);
+    });
   });
 });
