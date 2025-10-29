@@ -19,6 +19,7 @@ import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
 import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
+import { getTargetWidgetType, getSafeDefaultWidgetOption } from './ui/widget-type-resolver';
 import { CalendarDeprecationDialog } from './ui/calendar-deprecation-dialog';
 // Note editing dialog imported when needed
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
@@ -475,23 +476,25 @@ Hooks.once('ready', async () => {
 
   // Show default widget if enabled in settings
   if (game.settings?.get('seasons-and-stars', 'showTimeWidget')) {
-    const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+    const settingValue = game.settings?.get('seasons-and-stars', 'defaultWidget');
+    const defaultWidget = getSafeDefaultWidgetOption(settingValue);
+    const targetWidget = getTargetWidgetType(defaultWidget, 'show');
 
-    switch (defaultWidget) {
-      case 'none':
-        // Don't show any widget on startup
-        break;
-      case 'mini':
-        CalendarMiniWidget.show();
-        break;
-      case 'grid':
-        CalendarGridWidget.show();
-        break;
-      case 'main':
-      default:
-        CalendarWidget.show();
-        break;
+    if (targetWidget) {
+      switch (targetWidget) {
+        case 'mini':
+          CalendarMiniWidget.show();
+          break;
+        case 'grid':
+          CalendarGridWidget.show();
+          break;
+        case 'main':
+        default:
+          CalendarWidget.show();
+          break;
+      }
     }
+    // If targetWidget is null (for 'none' setting), don't show any widget
   }
 
   // Show deprecation warning to GMs

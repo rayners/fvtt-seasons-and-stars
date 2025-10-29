@@ -6,6 +6,7 @@ import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { isCalendarManager } from '../types/type-guards';
 import type { SceneControl } from '../types/widget-types';
+import { getTargetWidgetType, getSafeDefaultWidgetOption } from './widget-type-resolver';
 
 export class SeasonsStarsSceneControls {
   /**
@@ -69,26 +70,17 @@ export class SeasonsStarsSceneControls {
    */
   private static showDefaultWidget(): void {
     try {
-      const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+      const settingValue = game.settings?.get('seasons-and-stars', 'defaultWidget');
+      const defaultWidget = getSafeDefaultWidgetOption(settingValue);
 
       Logger.debug('Showing default widget', { defaultWidget });
 
-      switch (defaultWidget) {
-        case 'none':
-          // Don't show any widget when showing default widget
-          // (This is called during initialization, not from user actions)
-          break;
-        case 'mini':
-          CalendarWidgetManager.showWidget('mini');
-          break;
-        case 'grid':
-          CalendarWidgetManager.showWidget('grid');
-          break;
-        case 'main':
-        default:
-          CalendarWidgetManager.showWidget('main');
-          break;
+      const targetWidget = getTargetWidgetType(defaultWidget, 'show');
+
+      if (targetWidget) {
+        CalendarWidgetManager.showWidget(targetWidget);
       }
+      // If targetWidget is null (for 'none' setting), don't show anything
     } catch (error) {
       Logger.error(
         'Failed to show default widget',
@@ -104,25 +96,15 @@ export class SeasonsStarsSceneControls {
    */
   private static hideDefaultWidget(): void {
     try {
-      const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+      const settingValue = game.settings?.get('seasons-and-stars', 'defaultWidget');
+      const defaultWidget = getSafeDefaultWidgetOption(settingValue);
 
       Logger.debug('Hiding default widget', { defaultWidget });
 
-      switch (defaultWidget) {
-        case 'none':
-          // No widget to hide when 'none' is selected
-          CalendarWidgetManager.hideWidget('main');
-          break;
-        case 'mini':
-          CalendarWidgetManager.hideWidget('mini');
-          break;
-        case 'grid':
-          CalendarWidgetManager.hideWidget('grid');
-          break;
-        case 'main':
-        default:
-          CalendarWidgetManager.hideWidget('main');
-          break;
+      const targetWidget = getTargetWidgetType(defaultWidget, 'hide');
+
+      if (targetWidget) {
+        CalendarWidgetManager.hideWidget(targetWidget);
       }
     } catch (error) {
       Logger.error(
@@ -139,25 +121,15 @@ export class SeasonsStarsSceneControls {
    */
   private static toggleDefaultWidget(): void {
     try {
-      const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+      const settingValue = game.settings?.get('seasons-and-stars', 'defaultWidget');
+      const defaultWidget = getSafeDefaultWidgetOption(settingValue);
 
       Logger.debug('Scene control toggling default widget', { defaultWidget });
 
-      switch (defaultWidget) {
-        case 'none':
-          // When 'none' is selected, toggle the main widget
-          CalendarWidgetManager.toggleWidget('main');
-          break;
-        case 'mini':
-          CalendarWidgetManager.toggleWidget('mini');
-          break;
-        case 'grid':
-          CalendarWidgetManager.toggleWidget('grid');
-          break;
-        case 'main':
-        default:
-          CalendarWidgetManager.toggleWidget('main');
-          break;
+      const targetWidget = getTargetWidgetType(defaultWidget, 'toggle');
+
+      if (targetWidget) {
+        CalendarWidgetManager.toggleWidget(targetWidget);
       }
     } catch (error) {
       Logger.error(

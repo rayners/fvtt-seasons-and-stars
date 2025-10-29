@@ -6,6 +6,7 @@ import { CalendarWidget } from '../ui/calendar-widget';
 import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
 import { Logger } from './logger';
+import { getTargetWidgetType, getSafeDefaultWidgetOption } from '../ui/widget-type-resolver';
 
 export class SeasonsStarsKeybindings {
   /**
@@ -103,25 +104,27 @@ export class SeasonsStarsKeybindings {
    */
   private static toggleDefaultWidget(): void {
     try {
-      const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+      const settingValue = game.settings?.get('seasons-and-stars', 'defaultWidget');
+      const defaultWidget = getSafeDefaultWidgetOption(settingValue);
 
       Logger.debug('Toggling default widget', { defaultWidget });
 
-      switch (defaultWidget) {
-        case 'none':
-          // When 'none' is selected, toggle the main widget
-          CalendarWidget.toggle();
-          break;
-        case 'mini':
-          CalendarMiniWidget.toggle();
-          break;
-        case 'grid':
-          CalendarGridWidget.toggle();
-          break;
-        case 'main':
-        default:
-          CalendarWidget.toggle();
-          break;
+      const targetWidget = getTargetWidgetType(defaultWidget, 'toggle');
+
+      if (targetWidget) {
+        // Use the widget class directly for keybindings
+        switch (targetWidget) {
+          case 'mini':
+            CalendarMiniWidget.toggle();
+            break;
+          case 'grid':
+            CalendarGridWidget.toggle();
+            break;
+          case 'main':
+          default:
+            CalendarWidget.toggle();
+            break;
+        }
       }
     } catch (error) {
       Logger.error(
