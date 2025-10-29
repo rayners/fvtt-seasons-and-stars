@@ -42,6 +42,10 @@ globalThis.game = mockGame;
 globalThis.Hooks = mockHooks;
 globalThis.setTimeout = global.setTimeout;
 globalThis.queueMicrotask = global.queueMicrotask;
+// Mock CONFIG for Foundry calendar integration
+(globalThis as any).CONFIG = {
+  time: {},
+};
 
 describe('Module Initialization Hooks - Simple Tests', () => {
   beforeEach(() => {

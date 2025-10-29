@@ -43,6 +43,10 @@ import type {
   CalendarSourceInfo,
 } from './types/calendar';
 import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
+import {
+  initializeFoundryCalendarClass,
+  updateFoundryCalendarConfig,
+} from './core/foundry-calendar-integration';
 
 // Import integrations (they register their own hooks independently)
 // PF2e integration moved to separate pf2e-pack module
@@ -91,6 +95,9 @@ SeasonsStarsSceneControls.registerControls();
 export function init(): void {
   try {
     Logger.debug('Initializing module (BLOCKING)');
+
+    // Initialize Foundry calendar class (must be early so Foundry can instantiate it)
+    initializeFoundryCalendarClass();
 
     // Register module settings
     registerSettings();
@@ -201,9 +208,13 @@ export function setup(): void {
       const success = calendarManager.setActiveCalendarSync(activeCalendarId);
       if (success) {
         Logger.debug(`Active calendar set to ${activeCalendarId} during setup`);
+        // Update Foundry calendar config after setting active calendar
+        updateFoundryCalendarConfig(calendarManager);
       } else {
         Logger.warn(`Failed to set active calendar ${activeCalendarId}, falling back to gregorian`);
         calendarManager.setActiveCalendarSync('gregorian');
+        // Update Foundry calendar config with fallback
+        updateFoundryCalendarConfig(calendarManager);
       }
     } catch (error) {
       Logger.error(
@@ -234,6 +245,8 @@ export function setup(): void {
       resetSeasonsWarningState();
       // Reset event check date when calendar changes to allow events to fire on new calendar
       lastEventCheckDate = null;
+      // Update Foundry calendar config when active calendar changes
+      updateFoundryCalendarConfig(calendarManager);
     });
 
     Hooks.on(
