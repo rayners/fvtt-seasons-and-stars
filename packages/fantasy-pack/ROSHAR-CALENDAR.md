@@ -16,7 +16,7 @@ The Roshar calendar brings the unique timekeeping system from Brandon Sanderson'
 - **Authentic date format**: Year.Month.Week.Day notation (e.g., 1173.8.4.3)
 - **The Weeping**: Four-week season with constant rain (last 20 days of Ishev)
 - **Midpeace**: Four-week season with no highstorms (mid-year spanning Palah/Shash)
-- **20-hour days**: 100-minute hours with 100-second minutes
+- **20-hour days**: 50-minute hours with 100-second minutes
 - **Vorin naming**: Official month and weekday names from the source material
 
 ## Calendar Structure
@@ -94,10 +94,10 @@ The calendar provides multiple date formatting options:
 Roshar uses a unique time structure different from Earth:
 
 - **20 hours per day** (vs. Earth's 24)
-- **100 minutes per hour** (vs. Earth's 60)
+- **50 minutes per hour** (vs. Earth's 60)
 - **100 seconds per minute** (vs. Earth's 60)
 
-This creates longer "hours" but maintains familiar minute/second relationships for gameplay.
+This creates Rosharan hours that are slightly shorter than Earth hours (approximately 0.96 Earth hours or 58 Earth minutes). A full Rosharan day contains 100,000 Rosharan seconds, equivalent to approximately 19.3 Earth hours.
 
 ## Campaign Integration
 

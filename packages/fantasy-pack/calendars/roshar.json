@@ -140,7 +140,7 @@
 
   "time": {
     "hoursInDay": 20,
-    "minutesInHour": 100,
+    "minutesInHour": 50,
     "secondsInMinute": 100
   },
 
