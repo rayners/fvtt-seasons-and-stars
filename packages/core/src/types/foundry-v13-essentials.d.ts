@@ -195,7 +195,7 @@ interface ClientSettings {
       label: string;
       hint: string;
       icon: string;
-      type: any; // Application class - can be ApplicationV2 or custom subclass
+      type: new () => foundry.applications.api.ApplicationV2; // Application class constructor
       restricted: boolean;
     }
   ): void;

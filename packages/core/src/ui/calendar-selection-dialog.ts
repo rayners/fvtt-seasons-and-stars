@@ -9,6 +9,7 @@ import { CalendarTimeUtils } from '../core/calendar-time-utils';
 import { CalendarDate } from '../core/calendar-date';
 import type { SeasonsStarsCalendar, CalendarSourceInfo } from '../types/calendar';
 import type { CalendarCollectionEntry, ExternalCalendarSource } from '../core/calendar-loader';
+import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import {
   saveCalendarDataForSync,
   saveCalendarFilePath,
@@ -44,25 +45,15 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     // If no calendars provided, fetch from manager (called by Foundry registerMenu)
     if (!calendars) {
       Logger.debug('No calendars provided, fetching from manager');
-      if (game.seasonsStars?.manager) {
-        const manager = game.seasonsStars.manager as any;
+      const manager = game.seasonsStars?.manager as CalendarManagerInterface | undefined;
+      if (manager) {
         const availableCalendars = manager.getAllCalendars();
 
-        // Convert to Map if it's an array
-        if (Array.isArray(availableCalendars)) {
-          this.calendars = new Map();
-          availableCalendars.forEach((calendar: SeasonsStarsCalendar) => {
-            this.calendars.set(calendar.id, calendar);
-          });
-        } else if (availableCalendars instanceof Map) {
-          this.calendars = availableCalendars;
-        } else {
-          Logger.error(
-            'Unsupported calendars type from manager',
-            new Error(`Type: ${typeof availableCalendars}`)
-          );
-          this.calendars = new Map();
-        }
+        // Convert array to Map
+        this.calendars = new Map();
+        availableCalendars.forEach((calendar: SeasonsStarsCalendar) => {
+          this.calendars.set(calendar.id, calendar);
+        });
 
         currentCalendarId =
           (game.settings?.get('seasons-and-stars', 'activeCalendar') as string) || 'gregorian';
