@@ -80,25 +80,26 @@ export function updateFoundryCalendarConfig(manager: CalendarManager): void {
 
   Logger.debug('Foundry calendar config updated:', foundryConfig.name);
 
+  // Create and configure our calendar instance with the manager BEFORE Foundry initializes
+  // This way when initializeCalendar() is called, our instance is already ready
+  const calendarInstance = new SeasonsStarsFoundryCalendar(foundryConfig);
+  calendarInstance.setManager(manager);
+  config.time.calendar = calendarInstance;
+  globalCalendarInstance = calendarInstance;
+  Logger.debug('SeasonsStarsFoundryCalendar instance created and manager set');
+
   // Reinitialize game.time.calendar to use our config
   // This ensures game.time.calendar points to our SeasonsStarsFoundryCalendar instance
   if (typeof game !== 'undefined' && game.time?.initializeCalendar) {
     game.time.initializeCalendar();
     Logger.debug('Foundry calendar reinitialized via game.time.initializeCalendar()');
-  }
 
-  // Set the manager reference on the calendar instance
-  // After initializeCalendar(), both CONFIG.time.calendar and game.time.calendar
-  // should point to the same instance
-  if (config.time.calendar instanceof SeasonsStarsFoundryCalendar) {
-    config.time.calendar.setManager(manager);
-    globalCalendarInstance = config.time.calendar;
-    Logger.debug('Calendar class instance updated with manager reference');
-  } else {
-    Logger.warn(
-      'Calendar instance is not SeasonsStarsFoundryCalendar after initialization:',
-      config.time.calendar?.constructor?.name
-    );
+    // Verify the instances are the same
+    if (game.time.calendar === calendarInstance) {
+      Logger.debug('game.time.calendar successfully synchronized with our instance');
+    } else {
+      Logger.warn('game.time.calendar is not our instance after initialization');
+    }
   }
 }
 
