@@ -103,6 +103,14 @@ export class SeasonsStarsFoundryCalendar extends (BaseCalendarData as CalendarDa
   constructor(data?: object, options?: any) {
     super(data, options);
     Logger.debug('SeasonsStarsFoundryCalendar instantiated');
+
+    // Try to get the manager from the global API
+    // This allows Foundry to instantiate this class and it will automatically
+    // find the manager without needing manual setup
+    if (typeof game !== 'undefined' && game.seasonsStars?.manager) {
+      this.manager = game.seasonsStars.manager;
+      Logger.debug('Calendar manager auto-discovered from game.seasonsStars.manager');
+    }
   }
 
   /**
