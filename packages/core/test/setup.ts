@@ -81,6 +81,9 @@ import { DateFormatter } from '../src/core/date-formatter';
       return callback;
     }),
   },
+  data: {
+    CalendarData: undefined as any, // Will be set below
+  },
 } as any;
 
 // Mock ApplicationV2 directly for imports
@@ -124,6 +127,9 @@ import { DateFormatter } from '../src/core/date-formatter';
     return {};
   }
 };
+
+// Also set foundry.data.CalendarData to the same mock
+(globalThis as any).foundry.data.CalendarData = (global as any).CalendarData;
 
 // Basic Handlebars mock for tests that don't set up their own
 // Individual test files can override this with more specific mocks

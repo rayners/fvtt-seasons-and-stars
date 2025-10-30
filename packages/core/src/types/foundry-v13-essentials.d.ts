@@ -169,6 +169,8 @@ interface Game {
 interface GameTime {
   worldTime: number;
   advance(seconds: number): Promise<void>;
+  calendar?: CalendarData;
+  initializeCalendar?(): void;
 }
 
 interface Combat {
@@ -307,6 +309,7 @@ interface Config {
     worldCalendarConfig?: any;
     earthCalendarClass?: typeof CalendarData;
     earthCalendarConfig?: any;
+    calendar?: CalendarData;
   };
 }
 
@@ -791,7 +794,7 @@ interface TimeComponents {
  * CalendarData class for Foundry VTT v13+
  * Base class for calendar implementations
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 declare class CalendarData<Components extends TimeComponents = TimeComponents> {
   constructor(data?: object, options?: any);
 

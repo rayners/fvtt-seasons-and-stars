@@ -29,11 +29,10 @@ export function initializeFoundryCalendarClass(): void {
   Logger.debug('Setting CONFIG.time.worldCalendarClass');
 
   // Set the calendar class - Foundry will instantiate it
-  const config = CONFIG as any;
-  if (!config.time) {
-    config.time = {};
+  if (!CONFIG.time) {
+    CONFIG.time = {};
   }
-  config.time.worldCalendarClass = SeasonsStarsFoundryCalendar;
+  CONFIG.time.worldCalendarClass = SeasonsStarsFoundryCalendar as any;
 
   Logger.debug('Foundry calendar class configured');
 }
@@ -72,11 +71,10 @@ export function updateFoundryCalendarConfig(manager: CalendarManager): void {
   const foundryConfig = convertToFoundryCalendarConfig(calendar);
 
   // Set the config
-  const config = CONFIG as any;
-  if (!config.time) {
-    config.time = {};
+  if (!CONFIG.time) {
+    CONFIG.time = {};
   }
-  config.time.worldCalendarConfig = foundryConfig;
+  CONFIG.time.worldCalendarConfig = foundryConfig;
 
   Logger.debug('Foundry calendar config updated:', foundryConfig.name);
 
@@ -87,8 +85,8 @@ export function updateFoundryCalendarConfig(manager: CalendarManager): void {
     Logger.debug('Foundry calendar initialized via game.time.initializeCalendar()');
 
     // Store reference to the global instance
-    if (config.time.calendar instanceof SeasonsStarsFoundryCalendar) {
-      globalCalendarInstance = config.time.calendar;
+    if (CONFIG.time.calendar instanceof SeasonsStarsFoundryCalendar) {
+      globalCalendarInstance = CONFIG.time.calendar as SeasonsStarsFoundryCalendar;
       Logger.debug('Calendar instance reference stored');
     }
   }

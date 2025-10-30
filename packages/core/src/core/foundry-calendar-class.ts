@@ -108,7 +108,7 @@ export class SeasonsStarsFoundryCalendar extends (BaseCalendarData as CalendarDa
     // This allows Foundry to instantiate this class and it will automatically
     // find the manager without needing manual setup
     if (typeof game !== 'undefined' && game.seasonsStars?.manager) {
-      this.manager = game.seasonsStars.manager;
+      this.manager = game.seasonsStars.manager as CalendarManager;
       Logger.debug('Calendar manager auto-discovered from game.seasonsStars.manager');
     }
   }
@@ -144,13 +144,15 @@ export class SeasonsStarsFoundryCalendar extends (BaseCalendarData as CalendarDa
    */
   timeToComponents(time: number = 0): SeasonsStarsTimeComponents {
     if (!this.manager) {
-      Logger.warn('Calendar manager not initialized for timeToComponents');
+      // Manager not ready yet - return default components silently
+      // This is normal during Foundry's early initialization
       return this.getDefaultComponents();
     }
 
     const engine = this.manager.getActiveEngine();
     if (!engine) {
-      Logger.warn('No active calendar engine for timeToComponents');
+      // Engine not ready yet - return default components silently
+      // Calendar will be properly initialized after calendars are loaded
       return this.getDefaultComponents();
     }
 
@@ -395,9 +397,8 @@ export function getFoundryCalendar(): SeasonsStarsFoundryCalendar | null {
     return null;
   }
 
-  const config = CONFIG as any;
-  if (config.time?.calendar instanceof SeasonsStarsFoundryCalendar) {
-    return config.time.calendar;
+  if (CONFIG.time.calendar instanceof SeasonsStarsFoundryCalendar) {
+    return CONFIG.time.calendar;
   }
 
   return null;

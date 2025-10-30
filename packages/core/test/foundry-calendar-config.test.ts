@@ -63,26 +63,26 @@ describe('convertToFoundryCalendarConfig', () => {
     expect(result.description).toBe('Standard Gregorian calendar');
     expect(result.years.yearZero).toBe(0);
     expect(result.years.firstWeekday).toBe(6);
-    expect(result.days.weekdays).toEqual([
-      'Sunday',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
+    expect(result.days.values).toEqual([
+      { name: 'Sunday', abbreviation: 'Sun', ordinal: 1 },
+      { name: 'Monday', abbreviation: 'Mon', ordinal: 2 },
+      { name: 'Tuesday', abbreviation: 'Tue', ordinal: 3 },
+      { name: 'Wednesday', abbreviation: 'Wed', ordinal: 4 },
+      { name: 'Thursday', abbreviation: 'Thu', ordinal: 5 },
+      { name: 'Friday', abbreviation: 'Fri', ordinal: 6 },
+      { name: 'Saturday', abbreviation: 'Sat', ordinal: 7 },
     ]);
-    expect(result.days.yearLength).toBe(365);
-    expect(result.months?.months).toHaveLength(12);
-    expect(result.months?.months[0]).toEqual({
+    expect(result.days.daysPerYear).toBe(365);
+    expect(result.months?.values).toHaveLength(12);
+    expect(result.months?.values[0]).toEqual({
       name: 'January',
       abbreviation: 'Jan',
       ordinal: 1,
       days: 31,
     });
-    expect(result.time?.hoursInDay).toBe(24);
-    expect(result.time?.minutesInHour).toBe(60);
-    expect(result.time?.secondsInMinute).toBe(60);
+    expect(result.days.hoursPerDay).toBe(24);
+    expect(result.days.minutesPerHour).toBe(60);
+    expect(result.days.secondsPerMinute).toBe(60);
   });
 
   it('should handle calendars with intercalary days', () => {
@@ -148,8 +148,8 @@ describe('convertToFoundryCalendarConfig', () => {
 
     expect(result.name).toBe('Calendar of Harptos');
     // Year length should include 12 months (30 days each) + 5 intercalary days
-    expect(result.days.yearLength).toBe(360 + 5);
-    expect(result.months?.months).toHaveLength(12);
+    expect(result.days.daysPerYear).toBe(360 + 5);
+    expect(result.months?.values).toHaveLength(12);
   });
 
   it('should handle calendars with seasons', () => {
@@ -194,18 +194,18 @@ describe('convertToFoundryCalendarConfig', () => {
     const result = convertToFoundryCalendarConfig(calendar);
 
     expect(result.seasons).not.toBeNull();
-    expect(result.seasons?.seasons).toHaveLength(4);
-    expect(result.seasons?.seasons[0]).toEqual({
+    expect(result.seasons?.values).toHaveLength(4);
+    expect(result.seasons?.values[0]).toEqual({
       name: 'Spring',
       startMonth: 1,
       startDay: 1,
     });
-    expect(result.seasons?.seasons[1]).toEqual({
+    expect(result.seasons?.values[1]).toEqual({
       name: 'Summer',
       startMonth: 2,
       startDay: 1,
     });
-    expect(result.seasons?.seasons[2]).toEqual({
+    expect(result.seasons?.values[2]).toEqual({
       name: 'Fall',
       startMonth: 3,
       startDay: 15,
@@ -278,8 +278,8 @@ describe('convertToFoundryCalendarConfig', () => {
 
     const result = convertToFoundryCalendarConfig(calendar);
 
-    expect(result.months?.months[0].abbreviation).toBe('Jan');
-    expect(result.months?.months[1].abbreviation).toBe('Feb');
+    expect(result.months?.values[0].abbreviation).toBe('Jan');
+    expect(result.months?.values[1].abbreviation).toBe('Feb');
   });
 
   it('should use fallback description when none provided', () => {
@@ -346,8 +346,8 @@ describe('convertToFoundryCalendarConfig', () => {
 
     const result = convertToFoundryCalendarConfig(calendar);
 
-    expect(result.time?.hoursInDay).toBe(20);
-    expect(result.time?.minutesInHour).toBe(100);
-    expect(result.time?.secondsInMinute).toBe(100);
+    expect(result.days.hoursPerDay).toBe(20);
+    expect(result.days.minutesPerHour).toBe(100);
+    expect(result.days.secondsPerMinute).toBe(100);
   });
 });

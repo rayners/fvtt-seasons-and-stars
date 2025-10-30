@@ -173,7 +173,8 @@ describe('SeasonsStarsFoundryCalendar (CalendarData Extension)', () => {
     it('should add time in seconds', () => {
       foundryCalendar.setManager(manager);
 
-      const result = foundryCalendar.add(0, 86400); // Add 1 day
+      const resultSeconds = foundryCalendar.add(0, { day: 1 }); // Add 1 day
+      const result = foundryCalendar.timeToComponents(resultSeconds);
 
       expect(result.day).toBe(2);
     });
@@ -181,7 +182,9 @@ describe('SeasonsStarsFoundryCalendar (CalendarData Extension)', () => {
     it('should add time using components', () => {
       foundryCalendar.setManager(manager);
 
-      const result = foundryCalendar.add({ year: 0, month: 1, day: 1 }, { day: 7 });
+      const startTime = foundryCalendar.componentsToTime({ year: 0, month: 1, day: 1 });
+      const resultSeconds = foundryCalendar.add(startTime, { day: 7 });
+      const result = foundryCalendar.timeToComponents(resultSeconds);
 
       expect(result.day).toBe(8);
     });
@@ -189,7 +192,9 @@ describe('SeasonsStarsFoundryCalendar (CalendarData Extension)', () => {
     it('should handle negative time (subtraction)', () => {
       foundryCalendar.setManager(manager);
 
-      const result = foundryCalendar.add({ year: 0, month: 1, day: 5 }, { day: -2 });
+      const startTime = foundryCalendar.componentsToTime({ year: 0, month: 1, day: 5 });
+      const resultSeconds = foundryCalendar.add(startTime, { day: -2 });
+      const result = foundryCalendar.timeToComponents(resultSeconds);
 
       expect(result.day).toBe(3);
     });
@@ -197,7 +202,9 @@ describe('SeasonsStarsFoundryCalendar (CalendarData Extension)', () => {
     it('should handle month transitions when adding days', () => {
       foundryCalendar.setManager(manager);
 
-      const result = foundryCalendar.add({ year: 0, month: 1, day: 30 }, { day: 1 });
+      const startTime = foundryCalendar.componentsToTime({ year: 0, month: 1, day: 30 });
+      const resultSeconds = foundryCalendar.add(startTime, { day: 1 });
+      const result = foundryCalendar.timeToComponents(resultSeconds);
 
       expect(result.month).toBe(2);
       expect(result.day).toBe(1);

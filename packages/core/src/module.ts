@@ -125,7 +125,7 @@ export function init(): void {
     // Expose manager early so SeasonsStarsFoundryCalendar constructor can find it
     // The full API will be set up in ready hook
     if (!game.seasonsStars) {
-      game.seasonsStars = {} as any;
+      game.seasonsStars = {};
     }
     game.seasonsStars.manager = calendarManager;
     Logger.debug(
@@ -137,27 +137,6 @@ export function init(): void {
     // However, the actual registration happens in the errorsAndEchoesReady hook, so we can
     // register the hook early and it will access the manager when E&E is ready
     registerErrorsAndEchoesIntegration();
-
-    // Try to load active calendar synchronously from cached data first
-    // This ensures compatibility bridges can access the API immediately
-    Logger.debug('Attempting synchronous calendar initialization from cached data');
-    const syncSuccess = calendarManager.initializeSync();
-    if (syncSuccess) {
-      Logger.debug('Successfully initialized active calendar synchronously');
-    } else {
-      Logger.debug('No cached calendar data available, will load asynchronously');
-      // CRITICAL: Set gregorian as fallback so Foundry calendar integration works
-      // This ensures getActiveEngine() returns something when Foundry calls initializeCalendar()
-      try {
-        calendarManager.setActiveCalendarSync('gregorian');
-        Logger.debug('Set gregorian as fallback active calendar for Foundry integration');
-      } catch (error) {
-        Logger.error(
-          'Failed to set gregorian fallback:',
-          error instanceof Error ? error : new Error(String(error))
-        );
-      }
-    }
 
     // Load all calendars during init - this MUST complete before setup hook
     Logger.debug('Loading calendars during init (BLOCKING)');
