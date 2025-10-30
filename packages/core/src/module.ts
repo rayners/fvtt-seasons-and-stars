@@ -122,6 +122,16 @@ export function init(): void {
     calendarManager = new CalendarManager();
     notesManager = new NotesManager();
 
+    // Expose manager early so SeasonsStarsFoundryCalendar constructor can find it
+    // The full API will be set up in ready hook
+    if (!game.seasonsStars) {
+      game.seasonsStars = {} as any;
+    }
+    game.seasonsStars.manager = calendarManager;
+    Logger.debug(
+      'Calendar manager exposed to game.seasonsStars.manager early for Foundry integration'
+    );
+
     // Register Errors and Echoes integration
     // Note: Uses global game.seasonsStars.manager access, so must be called after API setup
     // However, the actual registration happens in the errorsAndEchoesReady hook, so we can
