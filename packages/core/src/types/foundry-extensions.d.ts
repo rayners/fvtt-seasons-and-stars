@@ -240,14 +240,8 @@ export interface NotesManagerInterface {
   };
 }
 
-// Widget instance interface for custom widgets
-export interface WidgetInstance<T = unknown> {
-  show(): Promise<void>;
-  hide(): Promise<void>;
-  toggle(): Promise<void>;
-  getInstance(): T;
-  isVisible(): boolean;
-}
+// Re-export WidgetInstance from widget-manager to avoid duplication
+export type { WidgetInstance } from '../ui/widget-manager';
 
 // Widget Registration API for external modules
 export interface WidgetRegistrationAPI {

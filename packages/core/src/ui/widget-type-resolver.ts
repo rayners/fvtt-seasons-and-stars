@@ -17,14 +17,14 @@
  */
 
 /**
- * Valid widget type options for the defaultWidget setting
+ * Built-in widget type options for the defaultWidget setting
  */
-export type DefaultWidgetOption = 'none' | 'main' | 'mini' | 'grid';
+export type BuiltInWidgetOption = 'none' | 'main' | 'mini' | 'grid';
 
 /**
- * Valid widget type identifiers (excludes 'none' which isn't a real widget)
+ * Built-in widget type identifiers (excludes 'none' which isn't a real widget)
  */
-export type WidgetType = 'main' | 'mini' | 'grid';
+export type BuiltInWidgetType = 'main' | 'mini' | 'grid';
 
 /**
  * Context for widget operations
@@ -34,11 +34,14 @@ export type WidgetOperationContext = 'show' | 'hide' | 'toggle';
 /**
  * Get the target widget type for a given default widget setting and operation.
  *
- * @param defaultWidget - The user's defaultWidget setting
+ * Supports both built-in widgets ('none', 'main', 'mini', 'grid') and custom widgets
+ * registered by third-party modules via the widget registration API.
+ *
+ * @param defaultWidget - The user's defaultWidget setting (built-in or custom widget type)
  * @param operation - The operation being performed (show/hide/toggle)
  * @returns The widget type to operate on, or null if no widget should be affected
  *
- * @example
+ * @example Built-in widget behavior
  * ```typescript
  * // Startup (show operation)
  * const widget = getTargetWidgetType('none', 'show');
@@ -52,11 +55,18 @@ export type WidgetOperationContext = 'show' | 'hide' | 'toggle';
  * const widget = getTargetWidgetType('mini', 'show');
  * // Returns: 'mini' (show mini widget)
  * ```
+ *
+ * @example Custom widget behavior
+ * ```typescript
+ * // Custom widget registered by third-party module
+ * const widget = getTargetWidgetType('lunar-calendar', 'show');
+ * // Returns: 'lunar-calendar' (pass through custom type)
+ * ```
  */
 export function getTargetWidgetType(
-  defaultWidget: DefaultWidgetOption,
+  defaultWidget: string,
   operation: WidgetOperationContext
-): WidgetType | null {
+): string | null {
   switch (defaultWidget) {
     case 'none':
       // 'none' means don't auto-show on startup,
@@ -70,27 +80,41 @@ export function getTargetWidgetType(
       return 'grid';
 
     case 'main':
-    default:
       return 'main';
+
+    default:
+      // Assume it's a custom widget type registered by a third-party module
+      // Pass through as-is to allow custom widgets to work as default widgets
+      return defaultWidget;
   }
 }
 
 /**
- * Check if a value is a valid default widget option
+ * Check if a value is a valid built-in widget option
  *
  * @param value - The value to check
- * @returns True if the value is a valid default widget option
+ * @returns True if the value is a built-in widget option
  */
-export function isValidDefaultWidgetOption(value: unknown): value is DefaultWidgetOption {
+export function isBuiltInWidgetOption(value: unknown): value is BuiltInWidgetOption {
   return value === 'none' || value === 'main' || value === 'mini' || value === 'grid';
 }
 
 /**
- * Get a safe default widget option, falling back to 'main' if invalid
+ * Get a safe default widget option, falling back to 'main' if the value is not a string
+ *
+ * Note: This function intentionally does NOT validate against known widget types,
+ * as it needs to support custom widgets registered by third-party modules.
+ * It only ensures the value is a non-empty string.
  *
  * @param value - The value to validate
- * @returns A valid default widget option
+ * @returns A valid widget type string, or 'main' if the value is invalid
  */
-export function getSafeDefaultWidgetOption(value: unknown): DefaultWidgetOption {
-  return isValidDefaultWidgetOption(value) ? value : 'main';
+export function getSafeDefaultWidgetOption(value: unknown): string {
+  // Accept any non-empty string (built-in or custom widget type)
+  if (typeof value === 'string' && value.trim() !== '') {
+    return value;
+  }
+
+  // Fall back to 'main' for invalid values
+  return 'main';
 }

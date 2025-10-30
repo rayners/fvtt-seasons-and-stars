@@ -1953,15 +1953,16 @@ export function setupAPI(): void {
 
   // Create widget registration API wrapper
   const widgetAPI = {
-    register: (type: string, factory: () => WidgetInstance) => {
+    register: (type: string, factory: () => WidgetInstance): void => {
       CalendarWidgetManager.registerWidget(type, factory);
     },
-    show: (type: string) => CalendarWidgetManager.showWidget(type),
-    hide: (type: string) => CalendarWidgetManager.hideWidget(type),
-    toggle: (type: string) => CalendarWidgetManager.toggleWidget(type),
-    isVisible: (type: string) => CalendarWidgetManager.isWidgetVisible(type),
-    getRegisteredTypes: () => CalendarWidgetManager.getRegisteredTypes(),
-    getInstance: <T = unknown>(type: string) => CalendarWidgetManager.getWidgetInstance<T>(type),
+    show: (type: string): Promise<void> => CalendarWidgetManager.showWidget(type),
+    hide: (type: string): Promise<void> => CalendarWidgetManager.hideWidget(type),
+    toggle: (type: string): Promise<void> => CalendarWidgetManager.toggleWidget(type),
+    isVisible: (type: string): boolean => CalendarWidgetManager.isWidgetVisible(type),
+    getRegisteredTypes: (): string[] => CalendarWidgetManager.getRegisteredTypes(),
+    getInstance: <T = unknown>(type: string): T | null =>
+      CalendarWidgetManager.getWidgetInstance<T>(type),
   };
 
   // Expose API to window for debugging
