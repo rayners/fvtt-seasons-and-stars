@@ -27,8 +27,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private pendingFilePath: string | null = null; // Track file selection before confirmation
 
   constructor(
-    calendars: Map<string, SeasonsStarsCalendar> | SeasonsStarsCalendar[],
-    currentCalendarId: string,
+    calendars?: Map<string, SeasonsStarsCalendar> | SeasonsStarsCalendar[],
+    currentCalendarId?: string,
     collectionEntries?: Map<string, CalendarCollectionEntry>,
     externalSources?: Map<string, ExternalCalendarSource>
   ) {
@@ -41,20 +41,51 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       collectionEntries,
     });
 
-    // Convert array to Map if needed
-    if (Array.isArray(calendars)) {
-      Logger.debug('Converting array to Map');
-      this.calendars = new Map();
-      calendars.forEach((calendar, index) => {
-        const id = calendar.id || String(index);
-        this.calendars.set(id, calendar);
-      });
-      Logger.debug('Converted calendars Map', this.calendars);
-    } else if (calendars instanceof Map) {
-      this.calendars = calendars;
+    // If no calendars provided, fetch from manager (called by Foundry registerMenu)
+    if (!calendars) {
+      Logger.debug('No calendars provided, fetching from manager');
+      if (game.seasonsStars?.manager) {
+        const manager = game.seasonsStars.manager as any;
+        const availableCalendars = manager.getAllCalendars();
+
+        // Convert to Map if it's an array
+        if (Array.isArray(availableCalendars)) {
+          this.calendars = new Map();
+          availableCalendars.forEach((calendar: SeasonsStarsCalendar) => {
+            this.calendars.set(calendar.id, calendar);
+          });
+        } else if (availableCalendars instanceof Map) {
+          this.calendars = availableCalendars;
+        } else {
+          Logger.error(
+            'Unsupported calendars type from manager',
+            new Error(`Type: ${typeof availableCalendars}`)
+          );
+          this.calendars = new Map();
+        }
+
+        currentCalendarId =
+          (game.settings?.get('seasons-and-stars', 'activeCalendar') as string) || 'gregorian';
+      } else {
+        Logger.error('Calendar manager not available');
+        this.calendars = new Map();
+      }
     } else {
-      Logger.error('Unsupported calendars type', new Error(`Type: ${typeof calendars}`));
-      this.calendars = new Map();
+      // Convert array to Map if needed
+      if (Array.isArray(calendars)) {
+        Logger.debug('Converting array to Map');
+        this.calendars = new Map();
+        calendars.forEach((calendar, index) => {
+          const id = calendar.id || String(index);
+          this.calendars.set(id, calendar);
+        });
+        Logger.debug('Converted calendars Map', this.calendars);
+      } else if (calendars instanceof Map) {
+        this.calendars = calendars;
+      } else {
+        Logger.error('Unsupported calendars type', new Error(`Type: ${typeof calendars}`));
+        this.calendars = new Map();
+      }
     }
 
     // Store collection entries metadata (if available)
@@ -81,8 +112,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         activeCalendarSetting,
       });
     } else {
-      this.currentCalendarId = currentCalendarId;
-      this.selectedCalendarId = currentCalendarId;
+      this.currentCalendarId = currentCalendarId || 'gregorian';
+      this.selectedCalendarId = currentCalendarId || 'gregorian';
       Logger.debug('Dialog initialized with regular calendar:', {
         currentCalendarId,
         selectedFilePath,

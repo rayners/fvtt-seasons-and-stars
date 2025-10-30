@@ -105,6 +105,7 @@ export function setupFoundryEnvironment(): void {
     get: vi.fn(),
     set: vi.fn(),
     register: vi.fn(),
+    registerMenu: vi.fn(),
   };
 
   (globalThis as any).game.time = (globalThis as any).game.time || {

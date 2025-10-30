@@ -51,6 +51,9 @@
       "close": "Close"
     },
     "settings": {
+      "calendar_selection": "📅 Calendar System",
+      "select_calendar_button": "Select Calendar",
+      "calendar_selection_hint": "Choose which calendar system to use for date display and time tracking in your world. Opens a dialog to browse and select from available calendars.",
       "active_calendar": "📅 Active Calendar System",
       "active_calendar_hint": "Choose which calendar system to use for date display and time tracking. This is the primary setting for configuring your world's calendar.",
       "active_calendar_file": "📄 Custom Calendar File Path",
