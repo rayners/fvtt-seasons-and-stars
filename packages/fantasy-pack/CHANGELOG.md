@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.9.1...seasons-and-stars-fantasy-v0.9.2) (2025-10-30)
+
+
+### Bug Fixes
+
+* correct Roshar minutes per hour to 50 ([#447](https://github.com/rayners/fvtt-seasons-and-stars/issues/447)) ([afbfbf4](https://github.com/rayners/fvtt-seasons-and-stars/commit/afbfbf43194213f562de973e2fc699fe45ad3eed))
+
 ## [0.9.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.9.0...seasons-and-stars-fantasy-v0.9.1) (2025-10-29)
 
 
