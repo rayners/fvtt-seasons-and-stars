@@ -29,7 +29,7 @@ export interface FoundryCalendarConfig {
     leapYear?: {
       leapStart: number;
       leapInterval: number;
-    } | null;
+    };
   };
   /** Configuration of months (nullable) */
   months: {
@@ -39,14 +39,23 @@ export interface FoundryCalendarConfig {
       name: string;
       /** Month abbreviation */
       abbreviation?: string;
+      /** Ordinal number (1-based) */
+      ordinal: number;
       /** Number of days in the month */
       days: number;
     }>;
   } | null;
   /** Configuration of days */
   days: {
-    /** Array of weekday names */
-    values: string[];
+    /** Array of weekday configurations */
+    values: Array<{
+      /** Weekday name */
+      name: string;
+      /** Weekday abbreviation */
+      abbreviation?: string;
+      /** Ordinal number (1-based) */
+      ordinal: number;
+    }>;
     /** Total number of days in a year */
     daysPerYear: number;
     /** Hours per day */
@@ -133,7 +142,7 @@ export function convertToFoundryCalendarConfig(
     : null;
 
   // Handle leap year configuration if present
-  let leapYear = null;
+  let leapYear: { leapStart: number; leapInterval: number } | undefined;
   if (calendar.leapYear && calendar.leapYear.rule !== 'none') {
     // For gregorian-like leap years, we need to determine the pattern
     // This is a simplified implementation - may need refinement based on calendar rules

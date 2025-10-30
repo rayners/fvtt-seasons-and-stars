@@ -15,6 +15,19 @@ import type { SeasonsStarsCalendar } from '../types/calendar';
 import { Logger } from './logger';
 
 /**
+ * Time components interface for CalendarData
+ */
+interface TimeComponents {
+  year?: number;
+  month?: number;
+  day?: number;
+  hour?: number;
+  minute?: number;
+  second?: number;
+  [key: string]: number | string | undefined;
+}
+
+/**
  * Extended time components for Seasons & Stars calendars
  * Includes standard time units plus optional intercalary day tracking
  */
@@ -27,6 +40,36 @@ export interface SeasonsStarsTimeComponents extends TimeComponents {
   second: number;
   intercalary?: string; // Name of intercalary period if applicable
 }
+
+// Get the base CalendarData class from Foundry at runtime
+// Use getter function to safely access foundry.data.CalendarData when available
+function getBaseCalendarData() {
+  // At module load time, foundry global should be available
+  // Type assertion needed because foundry.data is added at runtime
+  const foundryAny = foundry as any;
+  if (typeof foundry !== 'undefined' && foundryAny.data?.CalendarData) {
+    return foundryAny.data.CalendarData;
+  }
+  // Fallback to empty class if foundry isn't available yet
+  // This should never happen in normal Foundry operation
+  return class {};
+}
+
+const BaseCalendarData = getBaseCalendarData();
+
+// Type definition for CalendarData (compile-time only)
+type CalendarDataType<Components extends TimeComponents = TimeComponents> = {
+  new (
+    data?: object,
+    options?: any
+  ): {
+    timeToComponents(time?: number): Components;
+    componentsToTime(components: Partial<Components>): number;
+    add(time: number, components: Partial<Components>): number;
+    difference(time1: number, time2: number): Partial<Components>;
+    format(time: number, options?: any): string;
+  };
+};
 
 /**
  * Seasons & Stars Calendar implementation extending Foundry's CalendarData
@@ -48,8 +91,7 @@ export interface SeasonsStarsTimeComponents extends TimeComponents {
  * const formatted = game.time.calendar.format(game.time.worldTime);
  * ```
  */
-export class SeasonsStarsFoundryCalendar extends foundry.data
-  .CalendarData<SeasonsStarsTimeComponents> {
+export class SeasonsStarsFoundryCalendar extends (BaseCalendarData as CalendarDataType<SeasonsStarsTimeComponents>) {
   private manager: CalendarManager | null = null;
 
   /**
@@ -161,63 +203,47 @@ export class SeasonsStarsFoundryCalendar extends foundry.data
   /**
    * Add time to a starting point
    *
-   * @param startTime - Starting time (seconds or components)
-   * @param deltaTime - Time to add (seconds or components, can be negative)
-   * @returns Resulting calendar components
+   * @param time - Starting time in seconds
+   * @param components - Time components to add (can be negative)
+   * @returns Resulting time in seconds
    */
-  add(
-    startTime: number | Partial<SeasonsStarsTimeComponents>,
-    deltaTime: number | Partial<SeasonsStarsTimeComponents>
-  ): SeasonsStarsTimeComponents {
-    // Convert both inputs to seconds
-    const startSeconds =
-      typeof startTime === 'number' ? startTime : this.componentsToTime(startTime);
-
-    let deltaSeconds: number;
-    if (typeof deltaTime === 'number') {
-      deltaSeconds = deltaTime;
-    } else {
-      // For delta components, calculate the time delta directly
-      // Each component represents a pure offset, not a calendar position
-      const calendar = this.getActiveCalendar();
-      if (!calendar) {
-        deltaSeconds = 0;
-      } else {
-        // Calculate seconds for each time component
-        const seconds = deltaTime.second ?? 0;
-        const minutes = (deltaTime.minute ?? 0) * calendar.time.secondsInMinute;
-        const hours =
-          (deltaTime.hour ?? 0) * calendar.time.minutesInHour * calendar.time.secondsInMinute;
-        const days =
-          (deltaTime.day ?? 0) *
-          calendar.time.hoursInDay *
-          calendar.time.minutesInHour *
-          calendar.time.secondsInMinute;
-
-        // For months and years, we need to convert through the engine
-        // since month/year lengths vary
-        let monthYearSeconds = 0;
-        if (deltaTime.month || deltaTime.year) {
-          // Create a date at epoch and add the month/year components
-          const baseDate = this.timeToComponents(0);
-          const targetDate = {
-            year: baseDate.year + (deltaTime.year ?? 0),
-            month: baseDate.month + (deltaTime.month ?? 0),
-            day: baseDate.day,
-          };
-          const targetSeconds = this.componentsToTime(targetDate);
-          monthYearSeconds = targetSeconds;
-        }
-
-        deltaSeconds = seconds + minutes + hours + days + monthYearSeconds;
-      }
+  add(time: number, components: Partial<SeasonsStarsTimeComponents>): number {
+    // Calculate delta in seconds for each component
+    const calendar = this.getActiveCalendar();
+    if (!calendar) {
+      return time;
     }
 
-    // Add the times
-    const resultSeconds = startSeconds + deltaSeconds;
+    // Calculate seconds for each time component
+    const seconds = components.second ?? 0;
+    const minutes = (components.minute ?? 0) * calendar.time.secondsInMinute;
+    const hours =
+      (components.hour ?? 0) * calendar.time.minutesInHour * calendar.time.secondsInMinute;
+    const days =
+      (components.day ?? 0) *
+      calendar.time.hoursInDay *
+      calendar.time.minutesInHour *
+      calendar.time.secondsInMinute;
 
-    // Convert back to components
-    return this.timeToComponents(resultSeconds);
+    // For months and years, we need to convert through the engine
+    // since month/year lengths vary
+    let monthYearSeconds = 0;
+    if (components.month || components.year) {
+      // Create a date at epoch and add the month/year components
+      const baseDate = this.timeToComponents(0);
+      const targetDate = {
+        year: baseDate.year + (components.year ?? 0),
+        month: baseDate.month + (components.month ?? 0),
+        day: baseDate.day,
+      };
+      const targetSeconds = this.componentsToTime(targetDate);
+      monthYearSeconds = targetSeconds;
+    }
+
+    const deltaSeconds = seconds + minutes + hours + days + monthYearSeconds;
+
+    // Add the times and return
+    return time + deltaSeconds;
   }
 
   /**

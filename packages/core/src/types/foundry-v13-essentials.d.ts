@@ -872,6 +872,7 @@ interface FoundryNamespace {
   };
   data: {
     CalendarData: typeof CalendarData;
+    TimeComponents: TimeComponents;
   };
   utils: {
     deepClone<T>(obj: T): T;
