@@ -146,6 +146,17 @@ export function init(): void {
       Logger.debug('Successfully initialized active calendar synchronously');
     } else {
       Logger.debug('No cached calendar data available, will load asynchronously');
+      // CRITICAL: Set gregorian as fallback so Foundry calendar integration works
+      // This ensures getActiveEngine() returns something when Foundry calls initializeCalendar()
+      try {
+        calendarManager.setActiveCalendarSync('gregorian');
+        Logger.debug('Set gregorian as fallback active calendar for Foundry integration');
+      } catch (error) {
+        Logger.error(
+          'Failed to set gregorian fallback:',
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
     }
 
     // Load all calendars during init - this MUST complete before setup hook
