@@ -18,11 +18,12 @@ import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
 import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
+import { getTargetWidgetType, getSafeDefaultWidgetOption } from './ui/widget-type-resolver';
 import { CalendarDeprecationDialog } from './ui/calendar-deprecation-dialog';
 // Note editing dialog imported when needed
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
-import { CalendarWidgetManager, WidgetWrapper } from './ui/widget-manager';
+import { CalendarWidgetManager, WidgetWrapper, type WidgetInstance } from './ui/widget-manager';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
@@ -342,6 +343,10 @@ Hooks.once('setup', setup);
 Hooks.once('ready', async () => {
   Logger.debug('Completing setup during ready - setting active calendar from settings');
 
+  // Register defaultWidget setting now that all modules have initialized
+  // This allows custom widgets registered by other modules to appear in choices
+  registerDefaultWidgetSetting();
+
   // Migration: Cache existing active calendar data for synchronous loading
   // This is needed for users upgrading to the new settings-based caching system
   try {
@@ -472,20 +477,14 @@ Hooks.once('ready', async () => {
 
   // Show default widget if enabled in settings
   if (game.settings?.get('seasons-and-stars', 'showTimeWidget')) {
-    const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+    const settingValue = game.settings?.get('seasons-and-stars', 'defaultWidget');
+    const defaultWidget = getSafeDefaultWidgetOption(settingValue);
+    const targetWidget = getTargetWidgetType(defaultWidget, 'show');
 
-    switch (defaultWidget) {
-      case 'mini':
-        CalendarMiniWidget.show();
-        break;
-      case 'grid':
-        CalendarGridWidget.show();
-        break;
-      case 'main':
-      default:
-        CalendarWidget.show();
-        break;
+    if (targetWidget) {
+      CalendarWidgetManager.showWidget(targetWidget);
     }
+    // If targetWidget is null (for 'none' setting), don't show any widget
   }
 
   // Show deprecation warning to GMs
@@ -696,19 +695,8 @@ function registerSettings(): void {
     },
   });
 
-  game.settings.register('seasons-and-stars', 'defaultWidget', {
-    name: 'SEASONS_STARS.settings.default_widget',
-    hint: 'SEASONS_STARS.settings.default_widget_hint',
-    scope: 'client',
-    config: true,
-    type: String,
-    default: 'main',
-    choices: {
-      main: 'SEASONS_STARS.settings.default_widget_main',
-      mini: 'SEASONS_STARS.settings.default_widget_mini',
-      grid: 'SEASONS_STARS.settings.default_widget_grid',
-    },
-  });
+  // Note: defaultWidget setting is registered later in registerDefaultWidgetSetting()
+  // called from ready hook to include custom registered widgets
 
   game.settings.register('seasons-and-stars', 'calendarClickBehavior', {
     name: 'Calendar Click Behavior',
@@ -948,6 +936,44 @@ function registerSettings(): void {
     config: true,
     type: Boolean,
     default: false,
+  });
+}
+
+/**
+ * Register defaultWidget setting with dynamic choices including custom widgets
+ * Called from ready hook after all modules have initialized
+ */
+function registerDefaultWidgetSetting(): void {
+  if (!game.settings) return;
+
+  // Build choices including any custom registered widgets
+  const widgetChoices: Record<string, string> = {
+    none: 'SEASONS_STARS.settings.default_widget_none',
+    main: 'SEASONS_STARS.settings.default_widget_main',
+    mini: 'SEASONS_STARS.settings.default_widget_mini',
+    grid: 'SEASONS_STARS.settings.default_widget_grid',
+  };
+
+  // Add any custom registered widgets
+  const registeredTypes = CalendarWidgetManager.getRegisteredTypes();
+  for (const type of registeredTypes) {
+    // Skip built-in types
+    if (type !== 'main' && type !== 'mini' && type !== 'grid') {
+      // Use capitalized type name as label (custom modules can provide i18n if needed)
+      widgetChoices[type] = type.charAt(0).toUpperCase() + type.slice(1);
+    }
+  }
+
+  Logger.debug('Registering defaultWidget setting with choices', { widgetChoices });
+
+  game.settings.register('seasons-and-stars', 'defaultWidget', {
+    name: 'SEASONS_STARS.settings.default_widget',
+    hint: 'SEASONS_STARS.settings.default_widget_hint',
+    scope: 'client',
+    config: true,
+    type: String,
+    default: 'main',
+    choices: widgetChoices,
   });
 }
 
@@ -1925,6 +1951,20 @@ export function setupAPI(): void {
     seasonsStarsNamespace.integration = SeasonsStarsIntegration.detect();
   }
 
+  // Create widget registration API wrapper
+  const widgetAPI = {
+    register: (type: string, factory: () => WidgetInstance): void => {
+      CalendarWidgetManager.registerWidget(type, factory);
+    },
+    show: (type: string): Promise<void> => CalendarWidgetManager.showWidget(type),
+    hide: (type: string): Promise<void> => CalendarWidgetManager.hideWidget(type),
+    toggle: (type: string): Promise<void> => CalendarWidgetManager.toggleWidget(type),
+    isVisible: (type: string): boolean => CalendarWidgetManager.isWidgetVisible(type),
+    getRegisteredTypes: (): string[] => CalendarWidgetManager.getRegisteredTypes(),
+    getInstance: <T = unknown>(type: string): T | null =>
+      CalendarWidgetManager.getWidgetInstance<T>(type),
+  };
+
   // Expose API to window for debugging
   window.SeasonsStars = {
     api,
@@ -1932,6 +1972,7 @@ export function setupAPI(): void {
     notes: notesManager,
     integration: SeasonsStarsIntegration.detect() || null,
     buttonRegistry: SidebarButtonRegistry.getInstance(),
+    widgets: widgetAPI,
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,

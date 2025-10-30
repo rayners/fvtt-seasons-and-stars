@@ -2,10 +2,9 @@
  * Keyboard shortcuts for Seasons & Stars
  */
 
-import { CalendarWidget } from '../ui/calendar-widget';
-import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
-import { CalendarGridWidget } from '../ui/calendar-grid-widget';
 import { Logger } from './logger';
+import { CalendarWidgetManager } from '../ui/widget-manager';
+import { getTargetWidgetType, getSafeDefaultWidgetOption } from '../ui/widget-type-resolver';
 
 export class SeasonsStarsKeybindings {
   /**
@@ -50,7 +49,7 @@ export class SeasonsStarsKeybindings {
       ],
       onDown: () => {
         Logger.debug('Mini widget toggle shortcut pressed');
-        CalendarMiniWidget.toggle();
+        CalendarWidgetManager.toggleWidget('mini');
         return true;
       },
       restricted: false,
@@ -69,7 +68,7 @@ export class SeasonsStarsKeybindings {
       ],
       onDown: () => {
         Logger.debug('Grid widget toggle shortcut pressed');
-        CalendarGridWidget.toggle();
+        CalendarWidgetManager.toggleWidget('grid');
         return true;
       },
       restricted: false,
@@ -88,7 +87,7 @@ export class SeasonsStarsKeybindings {
       ],
       onDown: () => {
         Logger.debug('Main widget toggle shortcut pressed');
-        CalendarWidget.toggle();
+        CalendarWidgetManager.toggleWidget('main');
         return true;
       },
       restricted: false,
@@ -103,21 +102,15 @@ export class SeasonsStarsKeybindings {
    */
   private static toggleDefaultWidget(): void {
     try {
-      const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+      const settingValue = game.settings?.get('seasons-and-stars', 'defaultWidget');
+      const defaultWidget = getSafeDefaultWidgetOption(settingValue);
 
       Logger.debug('Toggling default widget', { defaultWidget });
 
-      switch (defaultWidget) {
-        case 'mini':
-          CalendarMiniWidget.toggle();
-          break;
-        case 'grid':
-          CalendarGridWidget.toggle();
-          break;
-        case 'main':
-        default:
-          CalendarWidget.toggle();
-          break;
+      const targetWidget = getTargetWidgetType(defaultWidget, 'toggle');
+
+      if (targetWidget) {
+        CalendarWidgetManager.toggleWidget(targetWidget);
       }
     } catch (error) {
       Logger.error(
@@ -125,7 +118,7 @@ export class SeasonsStarsKeybindings {
         error instanceof Error ? error : new Error(String(error))
       );
       // Fallback to main widget
-      CalendarWidget.toggle();
+      CalendarWidgetManager.toggleWidget('main');
     }
   }
 

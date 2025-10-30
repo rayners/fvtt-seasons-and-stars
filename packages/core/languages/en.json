@@ -62,6 +62,7 @@
       "current_date_hint": "The current in-game date (managed automatically)",
       "default_widget": "🔧 Default Calendar Widget",
       "default_widget_hint": "Choose which calendar widget opens when using the scene control button or default keyboard shortcut (Alt+S)",
+      "default_widget_none": "None (no widget on startup)",
       "default_widget_main": "Main Calendar Widget",
       "default_widget_mini": "Mini Calendar Widget",
       "default_widget_grid": "Calendar Grid Widget"

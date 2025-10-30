@@ -7,6 +7,7 @@
 
 import { Logger } from '../core/logger';
 
+// Built-in widget types for type safety in core code
 export type WidgetType = 'main' | 'mini' | 'grid';
 
 export interface WidgetInstance<T = unknown> {
@@ -20,15 +21,19 @@ export interface WidgetInstance<T = unknown> {
 /**
  * Central manager for all calendar widgets
  * Eliminates the need for widgets to directly import each other
+ *
+ * Supports custom widget registration from external modules using string identifiers.
  */
 export class CalendarWidgetManager {
-  private static instances: Map<WidgetType, WidgetInstance> = new Map();
-  private static factories: Map<WidgetType, () => WidgetInstance> = new Map();
+  private static instances: Map<string, WidgetInstance> = new Map();
+  private static factories: Map<string, () => WidgetInstance> = new Map();
 
   /**
    * Register a widget factory function
+   * @param type - Widget type identifier (can be custom string for external widgets)
+   * @param factory - Factory function that creates the widget instance
    */
-  static registerWidget(type: WidgetType, factory: () => WidgetInstance): void {
+  static registerWidget(type: string, factory: () => WidgetInstance): void {
     this.factories.set(type, factory);
     Logger.debug(`Registered widget factory for ${type}`);
   }
@@ -36,7 +41,7 @@ export class CalendarWidgetManager {
   /**
    * Get or create a widget instance
    */
-  static getWidget(type: WidgetType): WidgetInstance | null {
+  static getWidget(type: string): WidgetInstance | null {
     let instance = this.instances.get(type);
 
     if (!instance) {
@@ -65,7 +70,7 @@ export class CalendarWidgetManager {
   /**
    * Show a specific widget type
    */
-  static async showWidget(type: WidgetType): Promise<void> {
+  static async showWidget(type: string): Promise<void> {
     const widget = this.getWidget(type);
     if (widget) {
       try {
@@ -83,7 +88,7 @@ export class CalendarWidgetManager {
   /**
    * Hide a specific widget type
    */
-  static async hideWidget(type: WidgetType): Promise<void> {
+  static async hideWidget(type: string): Promise<void> {
     const widget = this.getWidget(type);
     if (widget) {
       try {
@@ -101,7 +106,7 @@ export class CalendarWidgetManager {
   /**
    * Toggle a specific widget type
    */
-  static async toggleWidget(type: WidgetType): Promise<void> {
+  static async toggleWidget(type: string): Promise<void> {
     const widget = this.getWidget(type);
     if (widget) {
       try {
@@ -119,7 +124,7 @@ export class CalendarWidgetManager {
   /**
    * Switch to a specific widget type, hiding others
    */
-  static async switchToWidget(type: WidgetType, hideOthers: boolean = false): Promise<void> {
+  static async switchToWidget(type: string, hideOthers: boolean = false): Promise<void> {
     if (hideOthers) {
       // Hide all other widgets first
       for (const [otherType] of this.instances) {
@@ -135,7 +140,7 @@ export class CalendarWidgetManager {
   /**
    * Check if a widget is visible
    */
-  static isWidgetVisible(type: WidgetType): boolean {
+  static isWidgetVisible(type: string): boolean {
     const widget = this.getWidget(type);
     return widget ? widget.isVisible() : false;
   }
@@ -143,7 +148,7 @@ export class CalendarWidgetManager {
   /**
    * Get the actual widget instance for direct access
    */
-  static getWidgetInstance<T = unknown>(type: WidgetType): T | null {
+  static getWidgetInstance<T = unknown>(type: string): T | null {
     const widget = this.getWidget(type);
     return widget ? (widget.getInstance() as T) : null;
   }
@@ -160,8 +165,8 @@ export class CalendarWidgetManager {
   /**
    * Get list of currently visible widgets
    */
-  static getVisibleWidgets(): WidgetType[] {
-    const visible: WidgetType[] = [];
+  static getVisibleWidgets(): string[] {
+    const visible: string[] = [];
     for (const [type] of this.instances) {
       if (this.isWidgetVisible(type)) {
         visible.push(type);
@@ -181,7 +186,7 @@ export class CalendarWidgetManager {
   /**
    * Get registered widget types
    */
-  static getRegisteredTypes(): WidgetType[] {
+  static getRegisteredTypes(): string[] {
     return Array.from(this.factories.keys());
   }
 }
