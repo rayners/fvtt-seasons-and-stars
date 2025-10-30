@@ -236,9 +236,9 @@ describe('Roshar Calendar', () => {
   });
 
   describe('Roshar Time System', () => {
-    it('should use 20-hour days with 100-minute hours', () => {
+    it('should use 20-hour days with 50-minute hours', () => {
       expect(rosharCalendar.time.hoursInDay).toBe(20);
-      expect(rosharCalendar.time.minutesInHour).toBe(100);
+      expect(rosharCalendar.time.minutesInHour).toBe(50);
       expect(rosharCalendar.time.secondsInMinute).toBe(100);
     });
 

@@ -66,55 +66,37 @@ describe('Module Initialization - Calendar Settings Integration', () => {
   });
 
   describe('Calendar Loading and Settings Registration Flow', () => {
-    it('should register settings with basic choices first, then update after calendars load', async () => {
+    it('should register menu and hidden setting during init', async () => {
       // Import the module functions
       const { init, setup } = await import('../src/module');
 
-      // Step 1: Module init - should register basic settings
+      // Step 1: Module init - should register menu and hidden setting
       init();
 
-      // Find the initial activeCalendar setting registration
-      const initialActiveCalendarSetting = settingsRegistrations.find(
+      // Find the activeCalendar setting registration
+      const activeCalendarSetting = settingsRegistrations.find(
         reg => reg.module === 'seasons-and-stars' && reg.key === 'activeCalendar'
       );
 
-      expect(initialActiveCalendarSetting).toBeDefined();
-      expect(initialActiveCalendarSetting!.config.choices).toEqual({
-        gregorian: 'Gregorian Calendar',
-      });
+      expect(activeCalendarSetting).toBeDefined();
+      // Setting is now hidden (config: false) - no choices property
+      expect(activeCalendarSetting!.config.config).toBe(false);
+      expect(activeCalendarSetting!.config.default).toBe('gregorian');
+      expect(activeCalendarSetting!.config.choices).toBeUndefined();
 
-      // Step 2: Module setup - should work with basic settings
+      // Verify menu was registered
+      expect(game.settings.registerMenu).toHaveBeenCalledWith(
+        'seasons-and-stars',
+        'calendarSelectionMenu',
+        expect.objectContaining({
+          name: 'SEASONS_STARS.settings.calendar_selection',
+          label: 'SEASONS_STARS.settings.select_calendar_button',
+          restricted: true,
+        })
+      );
+
+      // Step 2: Module setup - should work with hidden settings
       setup();
-
-      // Step 3: Simulate calendar loading completion and settings update
-      // This simulates what happens in the calendar loading promise
-      const { CalendarLocalization } = await import('../src/core/calendar-localization');
-      const choices = CalendarLocalization.createCalendarChoices(mockCalendars);
-
-      // Simulate registerCalendarSettings being called after calendar loading
-      game.settings.register('seasons-and-stars', 'activeCalendar', {
-        name: 'SEASONS_STARS.settings.active_calendar',
-        hint: 'SEASONS_STARS.settings.active_calendar_hint',
-        scope: 'world',
-        config: true,
-        type: String,
-        default: 'gregorian',
-        choices: choices,
-        onChange: expect.any(Function),
-      });
-
-      // Find the updated setting registration
-      const updatedActiveCalendarSetting = settingsRegistrations[settingsRegistrations.length - 1];
-
-      expect(updatedActiveCalendarSetting.module).toBe('seasons-and-stars');
-      expect(updatedActiveCalendarSetting.key).toBe('activeCalendar');
-
-      // The updated choices should include all calendars
-      const updatedChoices = updatedActiveCalendarSetting.config.choices;
-      expect(Object.keys(updatedChoices)).toHaveLength(3);
-      expect(updatedChoices).toHaveProperty('gregorian');
-      expect(updatedChoices).toHaveProperty('exandrian');
-      expect(updatedChoices).toHaveProperty('starfinder');
     });
 
     it('should handle calendar loading failure gracefully', async () => {
@@ -123,164 +105,131 @@ describe('Module Initialization - Calendar Settings Integration', () => {
       // Step 1: Init with settings registration
       init();
 
-      // Verify basic settings were registered
-      const basicSetting = settingsRegistrations.find(
+      // Verify hidden setting was registered with default
+      const activeCalendarSetting = settingsRegistrations.find(
         reg => reg.module === 'seasons-and-stars' && reg.key === 'activeCalendar'
       );
 
-      expect(basicSetting).toBeDefined();
-      expect(basicSetting!.config.choices).toEqual({
-        gregorian: 'Gregorian Calendar',
-      });
+      expect(activeCalendarSetting).toBeDefined();
+      // Setting is hidden - no choices
+      expect(activeCalendarSetting!.config.config).toBe(false);
+      expect(activeCalendarSetting!.config.default).toBe('gregorian');
 
       // Step 2: Simulate calendar loading failure
-      // In this case, settings should remain with basic choices
       // The module should still be functional with just Gregorian calendar
-
       // This prevents crashes when external calendar sources are unavailable
-      expect(basicSetting!.config.default).toBe('gregorian');
-      expect(basicSetting!.config.scope).toBe('world');
+      expect(activeCalendarSetting!.config.scope).toBe('world');
+      expect(activeCalendarSetting!.config.onChange).toBeDefined();
     });
   });
 
   describe('Settings Registration Timing Validation', () => {
     it('should prevent registration race conditions', async () => {
-      // This test ensures that even if calendar loading is slow,
-      // the settings registration happens at the right time
+      // This test ensures that settings are registered immediately,
+      // independent of calendar loading timing
 
-      let settingsUpdateCalled = false;
       let calendarLoadingStarted = false;
+      let calendarLoadingCompleted = false;
 
       // Mock calendar loading that takes time
       const mockSlowCalendarLoad = async () => {
         calendarLoadingStarted = true;
         await new Promise(resolve => setTimeout(resolve, 100)); // Simulate slow loading
-        settingsUpdateCalled = true;
+        calendarLoadingCompleted = true;
       };
 
       // Module should work even during slow calendar loading
       const { init } = await import('../src/module');
       init();
 
-      // Settings should be registered immediately with basic choices
-      const immediateSetting = settingsRegistrations.find(
+      // Settings and menu should be registered immediately, regardless of calendar loading
+      const activeCalendarSetting = settingsRegistrations.find(
         reg => reg.module === 'seasons-and-stars' && reg.key === 'activeCalendar'
       );
 
-      expect(immediateSetting).toBeDefined();
-      expect(immediateSetting!.config.choices).toEqual({
-        gregorian: 'Gregorian Calendar',
-      });
+      expect(activeCalendarSetting).toBeDefined();
+      expect(activeCalendarSetting!.config.config).toBe(false); // Hidden setting
+      expect(activeCalendarSetting!.config.default).toBe('gregorian');
+
+      // Verify menu is also registered
+      expect(game.settings.registerMenu).toHaveBeenCalled();
 
       // Start slow calendar loading
       const loadingPromise = mockSlowCalendarLoad();
 
       expect(calendarLoadingStarted).toBe(true);
-      expect(settingsUpdateCalled).toBe(false);
+      expect(calendarLoadingCompleted).toBe(false);
 
       // Wait for calendar loading to complete
       await loadingPromise;
 
-      expect(settingsUpdateCalled).toBe(true);
+      expect(calendarLoadingCompleted).toBe(true);
     });
 
-    it('should maintain setting configuration consistency across updates', async () => {
+    it('should maintain consistent setting configuration', async () => {
       const { init } = await import('../src/module');
       init();
 
-      // Get initial setting configuration
-      const initialSetting = settingsRegistrations.find(
+      // Get setting configuration
+      const activeCalendarSetting = settingsRegistrations.find(
         reg => reg.module === 'seasons-and-stars' && reg.key === 'activeCalendar'
       );
 
-      const initialConfig = initialSetting!.config;
+      const config = activeCalendarSetting!.config;
 
-      // Simulate settings update after calendar loading
-      const { CalendarLocalization } = await import('../src/core/calendar-localization');
-      const newChoices = CalendarLocalization.createCalendarChoices(mockCalendars);
+      // Verify core configuration properties
+      expect(config.name).toBe('SEASONS_STARS.settings.active_calendar');
+      expect(config.hint).toBe('SEASONS_STARS.settings.active_calendar_hint');
+      expect(config.scope).toBe('world');
+      expect(config.config).toBe(false); // Hidden from settings UI
+      expect(config.type).toBe(String);
+      expect(config.default).toBe('gregorian');
+      expect(config.onChange).toBeDefined();
 
-      game.settings.register('seasons-and-stars', 'activeCalendar', {
-        ...initialConfig,
-        choices: newChoices,
-      });
-
-      const updatedSetting = settingsRegistrations[settingsRegistrations.length - 1];
-      const updatedConfig = updatedSetting.config;
-
-      // Core configuration should remain the same
-      expect(updatedConfig.name).toBe(initialConfig.name);
-      expect(updatedConfig.hint).toBe(initialConfig.hint);
-      expect(updatedConfig.scope).toBe(initialConfig.scope);
-      expect(updatedConfig.config).toBe(initialConfig.config);
-      expect(updatedConfig.type).toBe(initialConfig.type);
-      expect(updatedConfig.default).toBe(initialConfig.default);
-
-      // Only choices should be different
-      expect(updatedConfig.choices).not.toEqual(initialConfig.choices);
-      expect(Object.keys(updatedConfig.choices).length).toBeGreaterThan(
-        Object.keys(initialConfig.choices).length
-      );
+      // No choices since it's a hidden setting
+      expect(config.choices).toBeUndefined();
     });
   });
 
   describe('Regression Prevention Tests', () => {
-    it('should catch the specific regression that caused incomplete calendar lists', async () => {
-      // This test replicates the exact conditions that caused the regression
+    it('should use menu button instead of dropdown to avoid incomplete calendar lists', async () => {
+      // The original regression was caused by settings dropdown being registered
+      // before all calendars loaded. The fix is to use a menu button + dialog instead.
 
       const { init } = await import('../src/module');
 
-      // Step 1: Module init (this should register basic settings)
+      // Step 1: Module init (registers menu and hidden setting)
       init();
 
-      // Get the setting that was registered during init
-      const settingAfterInit = settingsRegistrations.find(
+      // Verify menu is registered (not a dropdown with choices)
+      expect(game.settings.registerMenu).toHaveBeenCalledWith(
+        'seasons-and-stars',
+        'calendarSelectionMenu',
+        expect.objectContaining({
+          type: expect.anything(),
+          restricted: true,
+        })
+      );
+
+      // Verify the setting is hidden (no choices dropdown in UI)
+      const activeCalendarSetting = settingsRegistrations.find(
         reg => reg.module === 'seasons-and-stars' && reg.key === 'activeCalendar'
       );
 
-      // This is what users would see if the bug exists - only gregorian
-      expect(settingAfterInit!.config.choices).toEqual({
-        gregorian: 'Gregorian Calendar',
-      });
+      expect(activeCalendarSetting).toBeDefined();
+      expect(activeCalendarSetting!.config.config).toBe(false); // Hidden
+      expect(activeCalendarSetting!.config.choices).toBeUndefined(); // No dropdown
 
-      // This is the bug: if setup() tried to register calendar settings too early,
-      // it would only have the basic choices available
-
-      // Step 2: Simulate proper fix - calendar loading completes and updates settings
-      const { CalendarLocalization } = await import('../src/core/calendar-localization');
-      const fullChoices = CalendarLocalization.createCalendarChoices(mockCalendars);
-
-      // Re-register with full choices (what the fix does)
-      game.settings.register('seasons-and-stars', 'activeCalendar', {
-        name: 'SEASONS_STARS.settings.active_calendar',
-        hint: 'SEASONS_STARS.settings.active_calendar_hint',
-        scope: 'world',
-        config: true,
-        type: String,
-        default: 'gregorian',
-        choices: fullChoices,
-        onChange: expect.any(Function),
-      });
-
-      const settingAfterUpdate = settingsRegistrations[settingsRegistrations.length - 1];
-
-      // After the fix, users should see all calendars
-      expect(Object.keys(settingAfterUpdate.config.choices)).toHaveLength(3);
-      expect(settingAfterUpdate.config.choices).toHaveProperty('gregorian');
-      expect(settingAfterUpdate.config.choices).toHaveProperty('exandrian');
-      expect(settingAfterUpdate.config.choices).toHaveProperty('starfinder');
-
-      // This confirms the regression is fixed
-      expect(settingAfterUpdate.config.choices).not.toEqual({
-        gregorian: 'Gregorian Calendar',
-      });
+      // The CalendarSelectionDialog will fetch all available calendars when opened,
+      // avoiding the race condition entirely
     });
 
-    it('should ensure calendar packs are loaded before settings update', async () => {
-      // Test that the timing includes calendar pack loading
+    it('should load calendars independently of settings registration', async () => {
+      // Calendar loading happens asynchronously and doesn't affect settings registration
+      // because the dialog fetches calendars dynamically when opened
 
       let builtinCalendarsLoaded = false;
       let calendarPacksLoaded = false;
-      let settingsUpdated = false;
 
       // Mock the loading sequence
       const mockLoadingSequence = async () => {
@@ -291,19 +240,15 @@ describe('Module Initialization - Calendar Settings Integration', () => {
         // Step 2: Load calendar packs
         await new Promise(resolve => setTimeout(resolve, 10));
         calendarPacksLoaded = true;
-
-        // Step 3: Update settings (should happen after both steps)
-        settingsUpdated = true;
       };
 
       await mockLoadingSequence();
 
-      // Verify the correct sequence
+      // Verify calendars loaded
       expect(builtinCalendarsLoaded).toBe(true);
       expect(calendarPacksLoaded).toBe(true);
-      expect(settingsUpdated).toBe(true);
 
-      // Settings update should include calendars from packs
+      // Verify calendar localization can create choices from all calendars
       const { CalendarLocalization } = await import('../src/core/calendar-localization');
       const choices = CalendarLocalization.createCalendarChoices(mockCalendars);
 
@@ -323,38 +268,31 @@ describe('Module Initialization - Calendar Settings Integration', () => {
       setup();
 
       // User should be able to use Gregorian calendar immediately
-      const basicSetting = settingsRegistrations.find(
+      const activeCalendarSetting = settingsRegistrations.find(
         reg => reg.module === 'seasons-and-stars' && reg.key === 'activeCalendar'
       );
 
-      expect(basicSetting!.config.default).toBe('gregorian');
-      expect(basicSetting!.config.choices).toHaveProperty('gregorian');
+      expect(activeCalendarSetting!.config.default).toBe('gregorian');
+      expect(activeCalendarSetting!.config.config).toBe(false); // Hidden
 
       // onChange function should be functional
-      expect(typeof basicSetting!.config.onChange).toBe('function');
+      expect(typeof activeCalendarSetting!.config.onChange).toBe('function');
     });
 
-    it('should gracefully upgrade settings when more calendars become available', async () => {
-      // Test the user experience of getting more calendar options
+    it('should show all calendars when dialog is opened', async () => {
+      // Test that the dialog shows all available calendars when opened
 
-      // Initial state - only Gregorian
-      const initialChoices = { gregorian: 'Gregorian Calendar' };
-
-      // After calendar loading - more options
+      // Calendar choices are created from all loaded calendars
       const { CalendarLocalization } = await import('../src/core/calendar-localization');
-      const expandedChoices = CalendarLocalization.createCalendarChoices(mockCalendars);
+      const allChoices = CalendarLocalization.createCalendarChoices(mockCalendars);
 
-      // User experience: dropdown gets more options without requiring restart
-      expect(Object.keys(initialChoices)).toHaveLength(1);
-      expect(Object.keys(expandedChoices)).toHaveLength(3);
+      // User experience: dialog shows all calendars when opened
+      expect(Object.keys(allChoices)).toHaveLength(3);
 
-      // Gregorian remains available throughout
-      expect(initialChoices).toHaveProperty('gregorian');
-      expect(expandedChoices).toHaveProperty('gregorian');
-
-      // New options are added
-      expect(expandedChoices).toHaveProperty('exandrian');
-      expect(expandedChoices).toHaveProperty('starfinder');
+      // All calendars are available
+      expect(allChoices).toHaveProperty('gregorian');
+      expect(allChoices).toHaveProperty('exandrian');
+      expect(allChoices).toHaveProperty('starfinder');
     });
   });
 });

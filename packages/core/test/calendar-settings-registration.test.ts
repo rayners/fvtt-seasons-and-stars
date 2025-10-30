@@ -69,17 +69,33 @@ describe('Calendar Settings Registration', () => {
   });
 
   describe('Initial Settings Registration', () => {
-    it('should register activeCalendar setting with basic default choices', async () => {
+    it('should register activeCalendar setting as hidden (managed by menu)', async () => {
       const { registerSettings } = await import('../src/module');
 
       registerSettings();
 
       const activeCalendarSetting = registeredSettings.get('seasons-and-stars.activeCalendar');
       expect(activeCalendarSetting).toBeDefined();
-      expect(activeCalendarSetting.choices).toEqual({ gregorian: 'Gregorian Calendar' });
       expect(activeCalendarSetting.default).toBe('gregorian');
       expect(activeCalendarSetting.scope).toBe('world');
-      expect(activeCalendarSetting.config).toBe(true);
+      expect(activeCalendarSetting.config).toBe(false); // Hidden from settings UI
+    });
+
+    it('should register calendar selection menu', async () => {
+      // Track menu registrations
+      const registeredMenus = new Map();
+      vi.mocked(game.settings).registerMenu = vi.fn((moduleId, key, config) => {
+        registeredMenus.set(`${moduleId}.${key}`, config);
+      }) as any;
+
+      const { registerSettings } = await import('../src/module');
+      registerSettings();
+
+      const calendarMenu = registeredMenus.get('seasons-and-stars.calendarSelectionMenu');
+      expect(calendarMenu).toBeDefined();
+      expect(calendarMenu.name).toBe('SEASONS_STARS.settings.calendar_selection');
+      expect(calendarMenu.label).toBe('SEASONS_STARS.settings.select_calendar_button');
+      expect(calendarMenu.restricted).toBe(true); // GM only
     });
   });
 
@@ -134,59 +150,36 @@ describe('Calendar Settings Registration', () => {
     });
   });
 
-  describe('Settings Update After Calendar Loading', () => {
-    it('should call registerCalendarSettings after calendars are loaded', async () => {
+  describe('Calendar Selection Dialog Integration', () => {
+    it('should have CalendarSelectionDialog available for browsing calendars', async () => {
       // Mock calendar manager with loaded calendars
       vi.spyOn(mockCalendarManager, 'getAllCalendars').mockReturnValue([
         mockGregorianCalendar,
         mockExandrianCalendar,
       ]);
 
-      // Import and test the registerCalendarSettings function
-      const moduleExports = await import('../src/module');
-
-      // We can't directly test the private function, but we can test its effects
-      // by importing and calling registerSettings first, then simulating the update
-      moduleExports.registerSettings();
-
-      // Simulate what happens when calendars are loaded and registerCalendarSettings is called
+      // The dialog handles presenting all calendars to the user
       const { CalendarLocalization } = await import('../src/core/calendar-localization');
       const calendars = [mockGregorianCalendar, mockExandrianCalendar];
       const choices = CalendarLocalization.createCalendarChoices(calendars);
 
-      // Verify the choices include both calendars
+      // Verify the choices include both calendars (used by dialog)
       expect(choices).toHaveProperty('gregorian');
       expect(choices).toHaveProperty('exandrian');
       expect(Object.keys(choices)).toHaveLength(2);
     });
 
-    it('should maintain settings configuration when updating choices', async () => {
+    it('should keep activeCalendar setting hidden from config UI', async () => {
       const { registerSettings } = await import('../src/module');
 
       // Initial registration
       registerSettings();
-      const initialSetting = registeredSettings.get('seasons-and-stars.activeCalendar');
+      const activeCalendarSetting = registeredSettings.get('seasons-and-stars.activeCalendar');
 
-      // Simulate updated registration with more calendars
-      const calendars = [mockGregorianCalendar, mockExandrianCalendar];
-      const newChoices = CalendarLocalization.createCalendarChoices(calendars);
-
-      // Re-register with updated choices (simulate what registerCalendarSettings does)
-      game.settings.register('seasons-and-stars', 'activeCalendar', {
-        ...initialSetting,
-        choices: newChoices,
-      });
-
-      const updatedSetting = registeredSettings.get('seasons-and-stars.activeCalendar');
-
-      // Core settings should remain the same
-      expect(updatedSetting.scope).toBe('world');
-      expect(updatedSetting.config).toBe(true);
-      expect(updatedSetting.default).toBe('gregorian');
-      expect(updatedSetting.type).toBe(String);
-
-      // But choices should be updated
-      expect(updatedSetting.choices).toEqual(newChoices);
+      // Setting should remain hidden (selection now handled via menu button/dialog)
+      expect(activeCalendarSetting.config).toBe(false);
+      expect(activeCalendarSetting.scope).toBe('world');
+      expect(activeCalendarSetting.default).toBe('gregorian');
     });
   });
 

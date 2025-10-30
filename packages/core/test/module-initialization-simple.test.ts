@@ -18,6 +18,7 @@ const mockSettings = {
   get: vi.fn(),
   set: vi.fn(),
   register: vi.fn(),
+  registerMenu: vi.fn(),
 };
 
 const mockHooks = {
