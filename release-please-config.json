@@ -1,5 +1,4 @@
 {
-  "separate-pull-requests": true,
   "packages": {
     "packages/core": {
       "package-name": "seasons-and-stars",

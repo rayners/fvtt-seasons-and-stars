@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.9.1...seasons-and-stars-fantasy-v0.9.2) (2025-10-30)
+
+
+### Bug Fixes
+
+* correct Roshar minutes per hour to 50 ([#447](https://github.com/rayners/fvtt-seasons-and-stars/issues/447)) ([afbfbf4](https://github.com/rayners/fvtt-seasons-and-stars/commit/afbfbf43194213f562de973e2fc699fe45ad3eed))
+
+## [0.9.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.9.0...seasons-and-stars-fantasy-v0.9.1) (2025-10-29)
+
+
+### Bug Fixes
+
+* correct Roshar Weeping and Midpeace as seasons ([#443](https://github.com/rayners/fvtt-seasons-and-stars/issues/443)) ([749cda3](https://github.com/rayners/fvtt-seasons-and-stars/commit/749cda3e9009cbf952f05fd2a6b8be02e09578dc))
+
 ## [0.9.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.8.0...seasons-and-stars-fantasy-v0.9.0) (2025-10-28)
 
 

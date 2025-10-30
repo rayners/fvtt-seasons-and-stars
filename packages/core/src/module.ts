@@ -13,7 +13,6 @@ import { NotesManager } from './core/notes-manager';
 import { compatibilityManager } from './core/compatibility-manager';
 import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
-import { CalendarLocalization } from './core/calendar-localization';
 import { EventsAPI } from './core/events-api';
 import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
@@ -153,10 +152,8 @@ export function init(): void {
           );
         }
 
-        // After all calendars are loaded, update the settings with the full list
-        // This ensures the calendar dropdown shows all available calendars
-        registerCalendarSettings();
-        Logger.debug('Calendar settings updated with full calendar list after loading');
+        // Calendars loaded - selection handled via CalendarSelectionDialog
+        Logger.debug('Calendars loaded - available via selection dialog');
       })
       .catch(error => {
         Logger.error(
@@ -507,15 +504,24 @@ function registerSettings(): void {
 
   // === CORE CALENDAR SETTINGS ===
 
-  // Calendar setting registered early with basic choices, updated later when calendars load
+  // Calendar selection menu - opens dialog to browse and select calendars
+  game.settings.registerMenu('seasons-and-stars', 'calendarSelectionMenu', {
+    name: 'SEASONS_STARS.settings.calendar_selection',
+    label: 'SEASONS_STARS.settings.select_calendar_button',
+    hint: 'SEASONS_STARS.settings.calendar_selection_hint',
+    icon: 'fa-solid fa-calendar-alt',
+    type: CalendarSelectionDialog,
+    restricted: true, // GM only
+  });
+
+  // Calendar setting - hidden from UI, managed via dialog
   game.settings.register('seasons-and-stars', 'activeCalendar', {
     name: 'SEASONS_STARS.settings.active_calendar',
     hint: 'SEASONS_STARS.settings.active_calendar_hint',
     scope: 'world',
-    config: true,
+    config: false, // Hidden from settings UI - use menu button instead
     type: String,
     default: 'gregorian',
-    choices: { gregorian: 'Gregorian Calendar' }, // Basic default, updated later
     onChange: async (value: string) => {
       if (value && value.trim() !== '' && calendarManager) {
         await handleCalendarSelection(value, calendarManager);
@@ -969,35 +975,6 @@ function registerDefaultWidgetSetting(): void {
     default: 'main',
     choices: widgetChoices,
   });
-}
-
-/**
- * Update calendar setting choices after calendars are loaded
- */
-function registerCalendarSettings(): void {
-  if (!game.settings) return;
-
-  // Get available calendars and create choices
-  const calendars = calendarManager.getAllCalendars();
-  const choices = CalendarLocalization.createCalendarChoices(calendars);
-
-  // Re-register the setting with updated choices to overwrite the basic one
-  game.settings.register('seasons-and-stars', 'activeCalendar', {
-    name: 'SEASONS_STARS.settings.active_calendar',
-    hint: 'SEASONS_STARS.settings.active_calendar_hint',
-    scope: 'world',
-    config: true,
-    type: String,
-    default: 'gregorian',
-    choices: choices,
-    onChange: async (value: string) => {
-      if (value && value.trim() !== '' && calendarManager) {
-        await handleCalendarSelection(value, calendarManager);
-      }
-    },
-  });
-
-  Logger.debug('Updated calendar setting with full choices', { choices });
 }
 
 /**
