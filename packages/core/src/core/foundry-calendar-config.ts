@@ -11,31 +11,34 @@ import type { SeasonsStarsCalendar } from '../types/calendar';
 import { CalendarLocalization } from './calendar-localization';
 
 /**
- * Foundry CalendarConfig interface based on API documentation
- * @see https://foundryvtt.com/api/interfaces/foundry.data.types.CalendarConfig.html
+ * Foundry CalendarConfig interface matching actual runtime schema
+ * @see https://foundryvtt.com/api/classes/foundry.data.CalendarData.html
  */
 export interface FoundryCalendarConfig {
   /** The name of the calendar being used */
   name: string;
   /** A text description of the calendar configuration */
-  description: string;
+  description?: string;
   /** Configuration of years */
   years: {
     /** The year zero epoch */
     yearZero: number;
     /** The first weekday (0-indexed) */
     firstWeekday: number;
+    /** Leap year configuration */
+    leapYear?: {
+      leapStart: number;
+      leapInterval: number;
+    } | null;
   };
   /** Configuration of months (nullable) */
   months: {
     /** Array of month configurations */
-    months: Array<{
+    values: Array<{
       /** Month name */
       name: string;
       /** Month abbreviation */
-      abbreviation: string;
-      /** Ordinal number (1-based) */
-      ordinal: number;
+      abbreviation?: string;
       /** Number of days in the month */
       days: number;
     }>;
@@ -43,14 +46,20 @@ export interface FoundryCalendarConfig {
   /** Configuration of days */
   days: {
     /** Array of weekday names */
-    weekdays: string[];
+    values: string[];
     /** Total number of days in a year */
-    yearLength: number;
+    daysPerYear: number;
+    /** Hours per day */
+    hoursPerDay: number;
+    /** Minutes per hour */
+    minutesPerHour: number;
+    /** Seconds per minute */
+    secondsPerMinute: number;
   };
   /** Configuration of seasons (nullable) */
   seasons: {
     /** Array of season configurations */
-    seasons: Array<{
+    values: Array<{
       /** Season name */
       name: string;
       /** Starting month (1-based) */
@@ -59,15 +68,6 @@ export interface FoundryCalendarConfig {
       startDay?: number;
     }>;
   } | null;
-  /** Time configuration */
-  time?: {
-    /** Hours per day */
-    hoursInDay: number;
-    /** Minutes per hour */
-    minutesInHour: number;
-    /** Seconds per minute */
-    secondsInMinute: number;
-  };
 }
 
 /**
@@ -110,17 +110,21 @@ export function convertToFoundryCalendarConfig(
   const months = calendar.months.map((month, index) => ({
     name: month.name,
     abbreviation: month.abbreviation || month.name.substring(0, 3),
-    ordinal: index + 1,
+    ordinal: index + 1, // 1-based ordinal
     days: month.days,
   }));
 
-  // Convert weekdays to simple string array
-  const weekdays = calendar.weekdays.map(day => day.name);
+  // Convert weekdays - must be objects with name and ordinal, not just strings
+  const weekdays = calendar.weekdays.map((day, index) => ({
+    name: day.name,
+    abbreviation: day.abbreviation || day.name.substring(0, 3),
+    ordinal: index + 1, // 1-based ordinal
+  }));
 
   // Convert seasons if they exist
   const seasons = calendar.seasons
     ? {
-        seasons: calendar.seasons.map(season => ({
+        values: calendar.seasons.map(season => ({
           name: season.name,
           startMonth: season.startMonth,
           startDay: season.startDay || 1,
@@ -128,25 +132,35 @@ export function convertToFoundryCalendarConfig(
       }
     : null;
 
+  // Handle leap year configuration if present
+  let leapYear = null;
+  if (calendar.leapYear && calendar.leapYear.rule !== 'none') {
+    // For gregorian-like leap years, we need to determine the pattern
+    // This is a simplified implementation - may need refinement based on calendar rules
+    if (calendar.leapYear.rule === 'gregorian') {
+      leapYear = {
+        leapStart: 0, // First leap year
+        leapInterval: 4, // Every 4 years
+      };
+    }
+  }
+
   return {
     name,
     description,
     years: {
       yearZero: calendar.year.epoch,
       firstWeekday: calendar.year.startDay,
+      leapYear,
     },
-    months: {
-      months,
-    },
+    months: months.length > 0 ? { values: months } : null,
     days: {
-      weekdays,
-      yearLength,
+      values: weekdays,
+      daysPerYear: yearLength,
+      hoursPerDay: calendar.time.hoursInDay,
+      minutesPerHour: calendar.time.minutesInHour,
+      secondsPerMinute: calendar.time.secondsInMinute,
     },
     seasons,
-    time: {
-      hoursInDay: calendar.time.hoursInDay,
-      minutesInHour: calendar.time.minutesInHour,
-      secondsInMinute: calendar.time.secondsInMinute,
-    },
   };
 }

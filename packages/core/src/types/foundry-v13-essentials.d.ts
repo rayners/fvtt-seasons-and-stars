@@ -870,6 +870,9 @@ interface FoundryNamespace {
       Draggable: any;
     };
   };
+  data: {
+    CalendarData: typeof CalendarData;
+  };
   utils: {
     deepClone<T>(obj: T): T;
     mergeObject<T, U>(original: T, other: U, options?: any): T & U;

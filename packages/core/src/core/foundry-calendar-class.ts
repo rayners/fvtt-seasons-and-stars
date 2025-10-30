@@ -48,7 +48,8 @@ export interface SeasonsStarsTimeComponents extends TimeComponents {
  * const formatted = game.time.calendar.format(game.time.worldTime);
  * ```
  */
-export class SeasonsStarsFoundryCalendar extends CalendarData<SeasonsStarsTimeComponents> {
+export class SeasonsStarsFoundryCalendar extends foundry.data
+  .CalendarData<SeasonsStarsTimeComponents> {
   private manager: CalendarManager | null = null;
 
   /**
