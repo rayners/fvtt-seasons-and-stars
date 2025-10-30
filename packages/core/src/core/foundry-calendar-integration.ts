@@ -89,7 +89,7 @@ export function updateFoundryCalendarConfig(manager: CalendarManager): void {
   } else {
     // If Foundry hasn't instantiated it yet, create one and set the manager
     if (!globalCalendarInstance) {
-      globalCalendarInstance = new SeasonsStarsFoundryCalendar();
+      globalCalendarInstance = new SeasonsStarsFoundryCalendar(foundryConfig);
     }
     globalCalendarInstance.setManager(manager);
     config.time.calendar = globalCalendarInstance;
