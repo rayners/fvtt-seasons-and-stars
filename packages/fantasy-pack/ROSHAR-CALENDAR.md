@@ -97,7 +97,7 @@ Roshar uses a unique time structure different from Earth:
 - **50 minutes per hour** (vs. Earth's 60)
 - **100 seconds per minute** (vs. Earth's 60)
 
-This creates Rosharan hours that are approximately 2.5 Earth hours long (20 hours × 50 minutes × 100 seconds = 100,000 Rosharan seconds per day).
+This creates Rosharan hours that are slightly shorter than Earth hours (approximately 0.96 Earth hours or 58 Earth minutes). A full Rosharan day contains 100,000 Rosharan seconds, equivalent to approximately 19.3 Earth hours.
 
 ## Campaign Integration
 
