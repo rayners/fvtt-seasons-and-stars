@@ -194,6 +194,7 @@ export interface CalendarSeason {
    */
   endDay?: number;
   icon?: string;
+  iconUrl?: string;
   color?: string;
   translations?: {
     [languageCode: string]: {
@@ -226,6 +227,7 @@ export interface MoonPhase {
   length: number;
   singleDay: boolean;
   icon: string;
+  iconUrl?: string;
   translations?: {
     [languageCode: string]: {
       name?: string;
@@ -592,6 +594,8 @@ export interface CalendarEvent {
   color?: string;
   /** CSS icon class (e.g., 'fas fa-star') */
   icon?: string;
+  /** URL to custom icon image (takes precedence over icon) */
+  iconUrl?: string;
   /** Translations for event name and description */
   translations?: Record<string, EventTranslation>;
 }
