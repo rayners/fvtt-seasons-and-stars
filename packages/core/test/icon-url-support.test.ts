@@ -2,18 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { renderIconHtml } from '../src/core/constants';
 
 describe('Icon URL Support', () => {
-  describe('renderIconHtml', () => {
-    it('should prioritize iconUrl over icon when both are provided', () => {
-      const result = renderIconHtml('https://example.com/icon.png', 'fas fa-star', 16, 16);
-      expect(result).toContain('<img');
-      expect(result).toContain('https://example.com/icon.png');
-      expect(result).not.toContain('fas fa-star');
-    });
-
-    it('should render image tag when iconUrl is provided', () => {
-      const result = renderIconHtml('https://example.com/moon.png', undefined, 24, 24);
+  describe('renderIconHtml - Basic Functionality', () => {
+    it('should render image tag when local iconUrl is provided', () => {
+      const result = renderIconHtml('/modules/my-module/icons/moon.png', undefined, 24, 24);
       expect(result).toBe(
-        '<img src="https://example.com/moon.png" width="24" height="24" alt="" />'
+        '<img src="/modules/my-module/icons/moon.png" width="24" height="24" alt="" />'
       );
     });
 
@@ -23,14 +16,14 @@ describe('Icon URL Support', () => {
     });
 
     it('should use default width and height when not specified', () => {
-      const result = renderIconHtml('https://example.com/icon.png', undefined);
+      const result = renderIconHtml('/icons/icon.png', undefined);
       expect(result).toContain('width="16"');
       expect(result).toContain('height="16"');
     });
 
     it('should apply additional classes to image when provided', () => {
       const result = renderIconHtml(
-        'https://example.com/icon.png',
+        '/modules/seasons-and-stars/icons/moon.png',
         undefined,
         16,
         16,
@@ -50,6 +43,112 @@ describe('Icon URL Support', () => {
     });
   });
 
+  describe('renderIconHtml - Local Path Validation', () => {
+    it('should accept absolute local paths starting with /', () => {
+      const result = renderIconHtml('/modules/my-module/icons/icon.gif', undefined);
+      expect(result).toContain('<img');
+      expect(result).toContain('/modules/my-module/icons/icon.gif');
+    });
+
+    it('should accept relative paths starting with ./', () => {
+      const result = renderIconHtml('./icons/icon.png', undefined);
+      expect(result).toContain('<img');
+      expect(result).toContain('./icons/icon.png');
+    });
+
+    it('should accept relative paths starting with ../', () => {
+      const result = renderIconHtml('../shared/icons/icon.svg', undefined);
+      expect(result).toContain('<img');
+      expect(result).toContain('../shared/icons/icon.svg');
+    });
+
+    it('should accept paths without leading slashes (relative)', () => {
+      const result = renderIconHtml('icons/moon.png', undefined);
+      expect(result).toContain('<img');
+      expect(result).toContain('icons/moon.png');
+    });
+  });
+
+  describe('renderIconHtml - Security: Remote URL Rejection', () => {
+    it('should reject http:// URLs', () => {
+      const result = renderIconHtml('http://example.com/icon.png', undefined);
+      expect(result).toBe('');
+    });
+
+    it('should reject https:// URLs', () => {
+      const result = renderIconHtml('https://example.com/icon.png', undefined);
+      expect(result).toBe('');
+    });
+
+    it('should reject ftp:// URLs', () => {
+      const result = renderIconHtml('ftp://example.com/icon.png', undefined);
+      expect(result).toBe('');
+    });
+
+    it('should reject protocol-relative URLs (//example.com)', () => {
+      const result = renderIconHtml('//example.com/icon.png', undefined);
+      expect(result).toBe('');
+    });
+
+    it('should fallback to icon when iconUrl is remote', () => {
+      const result = renderIconHtml('https://evil.com/icon.png', 'fas fa-shield', 16, 16);
+      expect(result).toContain('fas fa-shield');
+      expect(result).not.toContain('https://evil.com');
+    });
+  });
+
+  describe('renderIconHtml - Security: XSS Prevention', () => {
+    it('should reject javascript: protocol URLs', () => {
+      const result = renderIconHtml('javascript:alert(1)', undefined);
+      expect(result).toBe('');
+    });
+
+    it('should reject data: URIs', () => {
+      const result = renderIconHtml('data:text/html,<script>alert(1)</script>', undefined);
+      expect(result).toBe('');
+    });
+
+    it('should reject data: SVG with script', () => {
+      const result = renderIconHtml('data:image/svg+xml,<svg onload=alert(1)>', undefined);
+      expect(result).toBe('');
+    });
+
+    it('should escape HTML characters in local iconUrl paths', () => {
+      const result = renderIconHtml('/icons/icon"><script>alert(1)</script>.png', undefined);
+      expect(result).not.toContain('<script>');
+      expect(result).toContain('&quot;');
+      expect(result).toContain('&gt;');
+      expect(result).toContain('&lt;');
+    });
+
+    it('should escape quotes in additionalClasses parameter', () => {
+      const result = renderIconHtml('/icons/icon.png', undefined, 16, 16, '" onload="alert(1)');
+      // Should not contain unescaped onload attribute that could execute
+      expect(result).not.toContain(' onload="alert');
+      expect(result).not.toMatch(/\sonload="[^&]/);
+      // Should contain escaped quotes
+      expect(result).toContain('&quot;');
+      expect(result).toContain('onload=&quot;');
+    });
+
+    it('should escape HTML in FontAwesome icon class', () => {
+      const result = renderIconHtml(undefined, 'fas fa-star"><script>alert(1)</script>', 16, 16);
+      expect(result).not.toContain('<script>');
+      expect(result).toContain('&quot;');
+      expect(result).toContain('&gt;');
+    });
+
+    it('should handle empty string iconUrl', () => {
+      const result = renderIconHtml('', undefined);
+      expect(result).toBe('');
+    });
+
+    it('should handle whitespace-only iconUrl', () => {
+      const result = renderIconHtml('   ', undefined);
+      expect(result).toBe('');
+    });
+  });
+
   describe('Calendar Type Support', () => {
     it('should support iconUrl in MoonPhase interface', () => {
       const moonPhase = {
@@ -57,11 +156,10 @@ describe('Icon URL Support', () => {
         length: 1,
         singleDay: true,
         icon: 'full',
-        iconUrl: 'https://example.com/full-moon.png',
+        iconUrl: '/modules/my-calendar/icons/full-moon.png',
       };
 
-      // Type check - should compile without errors
-      expect(moonPhase.iconUrl).toBe('https://example.com/full-moon.png');
+      expect(moonPhase.iconUrl).toBe('/modules/my-calendar/icons/full-moon.png');
       expect(moonPhase.icon).toBe('full');
     });
 
@@ -71,11 +169,10 @@ describe('Icon URL Support', () => {
         startMonth: 6,
         endMonth: 8,
         icon: 'summer',
-        iconUrl: 'https://example.com/summer-icon.png',
+        iconUrl: '/modules/my-calendar/icons/summer-icon.png',
       };
 
-      // Type check - should compile without errors
-      expect(season.iconUrl).toBe('https://example.com/summer-icon.png');
+      expect(season.iconUrl).toBe('/modules/my-calendar/icons/summer-icon.png');
       expect(season.icon).toBe('summer');
     });
 
@@ -85,11 +182,10 @@ describe('Icon URL Support', () => {
         name: 'Test Event',
         recurrence: { type: 'fixed' as const, month: 1, day: 1 },
         icon: 'fas fa-star',
-        iconUrl: 'https://example.com/event-icon.png',
+        iconUrl: '/modules/my-calendar/icons/event-icon.png',
       };
 
-      // Type check - should compile without errors
-      expect(event.iconUrl).toBe('https://example.com/event-icon.png');
+      expect(event.iconUrl).toBe('/modules/my-calendar/icons/event-icon.png');
       expect(event.icon).toBe('fas fa-star');
     });
   });
