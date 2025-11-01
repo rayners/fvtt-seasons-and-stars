@@ -144,12 +144,17 @@ export function convertToFoundryCalendarConfig(
   // Handle leap year configuration if present
   let leapYear: { leapStart: number; leapInterval: number } | undefined;
   if (calendar.leapYear && calendar.leapYear.rule !== 'none') {
-    // For gregorian-like leap years, we need to determine the pattern
-    // This is a simplified implementation - may need refinement based on calendar rules
     if (calendar.leapYear.rule === 'gregorian') {
+      // Gregorian leap year rule: every 4 years
       leapYear = {
-        leapStart: 0, // First leap year
-        leapInterval: 4, // Every 4 years
+        leapStart: calendar.leapYear.offset ?? 0,
+        leapInterval: 4,
+      };
+    } else if (calendar.leapYear.rule === 'custom' && calendar.leapYear.interval) {
+      // Custom leap year rule: use specified interval and offset
+      leapYear = {
+        leapStart: calendar.leapYear.offset ?? 0,
+        leapInterval: calendar.leapYear.interval,
       };
     }
   }

@@ -350,4 +350,111 @@ describe('convertToFoundryCalendarConfig', () => {
     expect(result.days.minutesPerHour).toBe(100);
     expect(result.days.secondsPerMinute).toBe(100);
   });
+
+  it('should convert gregorian leap year rule', () => {
+    const calendar: SeasonsStarsCalendar = {
+      id: 'test',
+      translations: { en: { label: 'Test' } },
+      year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 },
+      leapYear: {
+        rule: 'gregorian',
+      },
+      months: [{ name: 'Month1', days: 30 }],
+      weekdays: [{ name: 'Day1' }],
+      intercalary: [],
+      time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+    };
+
+    const result = convertToFoundryCalendarConfig(calendar);
+
+    expect(result.years.leapYear).toEqual({
+      leapStart: 0,
+      leapInterval: 4,
+    });
+  });
+
+  it('should convert gregorian leap year rule with offset', () => {
+    const calendar: SeasonsStarsCalendar = {
+      id: 'test',
+      translations: { en: { label: 'Test' } },
+      year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 },
+      leapYear: {
+        rule: 'gregorian',
+        offset: 1,
+      },
+      months: [{ name: 'Month1', days: 30 }],
+      weekdays: [{ name: 'Day1' }],
+      intercalary: [],
+      time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+    };
+
+    const result = convertToFoundryCalendarConfig(calendar);
+
+    expect(result.years.leapYear).toEqual({
+      leapStart: 1,
+      leapInterval: 4,
+    });
+  });
+
+  it('should convert custom leap year rule', () => {
+    const calendar: SeasonsStarsCalendar = {
+      id: 'test',
+      translations: { en: { label: 'Test' } },
+      year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 },
+      leapYear: {
+        rule: 'custom',
+        interval: 8,
+        offset: 4708,
+      },
+      months: [{ name: 'Month1', days: 30 }],
+      weekdays: [{ name: 'Day1' }],
+      intercalary: [],
+      time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+    };
+
+    const result = convertToFoundryCalendarConfig(calendar);
+
+    expect(result.years.leapYear).toEqual({
+      leapStart: 4708,
+      leapInterval: 8,
+    });
+  });
+
+  it('should not set leap year config for none rule', () => {
+    const calendar: SeasonsStarsCalendar = {
+      id: 'test',
+      translations: { en: { label: 'Test' } },
+      year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 },
+      leapYear: {
+        rule: 'none',
+      },
+      months: [{ name: 'Month1', days: 30 }],
+      weekdays: [{ name: 'Day1' }],
+      intercalary: [],
+      time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+    };
+
+    const result = convertToFoundryCalendarConfig(calendar);
+
+    expect(result.years.leapYear).toBeUndefined();
+  });
+
+  it('should not set leap year config for custom rule without interval', () => {
+    const calendar: SeasonsStarsCalendar = {
+      id: 'test',
+      translations: { en: { label: 'Test' } },
+      year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 },
+      leapYear: {
+        rule: 'custom',
+      },
+      months: [{ name: 'Month1', days: 30 }],
+      weekdays: [{ name: 'Day1' }],
+      intercalary: [],
+      time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+    };
+
+    const result = convertToFoundryCalendarConfig(calendar);
+
+    expect(result.years.leapYear).toBeUndefined();
+  });
 });

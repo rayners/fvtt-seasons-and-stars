@@ -239,15 +239,38 @@ export class SeasonsStarsFoundryCalendar extends (BaseCalendarData as CalendarDa
     // since month/year lengths vary
     let monthYearSeconds = 0;
     if (components.month || components.year) {
-      // Create a date at epoch and add the month/year components
-      const baseDate = this.timeToComponents(0);
+      // Start from the actual starting time, not epoch
+      const startDate = this.timeToComponents(time);
+
+      // Add month/year components to the starting date
+      // Need to normalize months that overflow year boundaries
+      let targetYear = startDate.year + (components.year ?? 0);
+      let targetMonth = startDate.month + (components.month ?? 0);
+
+      // Normalize month overflow/underflow
+      const monthsPerYear = calendar.months.length;
+      while (targetMonth > monthsPerYear) {
+        targetMonth -= monthsPerYear;
+        targetYear += 1;
+      }
+      while (targetMonth < 1) {
+        targetMonth += monthsPerYear;
+        targetYear -= 1;
+      }
+
       const targetDate = {
-        year: baseDate.year + (components.year ?? 0),
-        month: baseDate.month + (components.month ?? 0),
-        day: baseDate.day,
+        year: targetYear,
+        month: targetMonth,
+        day: startDate.day,
+        hour: startDate.hour,
+        minute: startDate.minute,
+        second: startDate.second,
       };
-      const targetSeconds = this.componentsToTime(targetDate);
-      monthYearSeconds = targetSeconds;
+
+      const targetTime = this.componentsToTime(targetDate);
+
+      // Calculate the delta relative to the starting time
+      monthYearSeconds = targetTime - time;
     }
 
     const deltaSeconds = seconds + minutes + hours + days + monthYearSeconds;

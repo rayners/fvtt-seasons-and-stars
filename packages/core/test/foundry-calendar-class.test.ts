@@ -209,6 +209,70 @@ describe('SeasonsStarsFoundryCalendar (CalendarData Extension)', () => {
       expect(result.month).toBe(2);
       expect(result.day).toBe(1);
     });
+
+    it('should correctly add months from non-epoch start time', () => {
+      foundryCalendar.setManager(manager);
+
+      const startTime = foundryCalendar.componentsToTime({ year: 0, month: 2, day: 15 });
+      const resultSeconds = foundryCalendar.add(startTime, { month: 1 });
+      const result = foundryCalendar.timeToComponents(resultSeconds);
+
+      expect(result.year).toBe(0);
+      expect(result.month).toBe(3);
+      expect(result.day).toBe(15);
+    });
+
+    it('should correctly add years from non-epoch start time', () => {
+      foundryCalendar.setManager(manager);
+
+      const startTime = foundryCalendar.componentsToTime({ year: 5, month: 2, day: 15 });
+      const resultSeconds = foundryCalendar.add(startTime, { year: 3 });
+      const result = foundryCalendar.timeToComponents(resultSeconds);
+
+      expect(result.year).toBe(8);
+      expect(result.month).toBe(2);
+      expect(result.day).toBe(15);
+    });
+
+    it('should correctly add months and years together', () => {
+      foundryCalendar.setManager(manager);
+
+      const startTime = foundryCalendar.componentsToTime({ year: 1, month: 1, day: 10 });
+      const resultSeconds = foundryCalendar.add(startTime, { year: 1, month: 2 });
+      const result = foundryCalendar.timeToComponents(resultSeconds);
+
+      expect(result.year).toBe(2);
+      expect(result.month).toBe(3);
+      expect(result.day).toBe(10);
+    });
+
+    it('should handle month overflow when adding months', () => {
+      foundryCalendar.setManager(manager);
+
+      // Calendar has 3 months per year
+      // Start: year 0, month 2, day 15
+      // Add 5 months: month 2 + 5 = month 7
+      // Month 7 = 2 full years (6 months) + month 1 = year 2, month 1
+      const startTime = foundryCalendar.componentsToTime({ year: 0, month: 2, day: 15 });
+      const resultSeconds = foundryCalendar.add(startTime, { month: 5 });
+      const result = foundryCalendar.timeToComponents(resultSeconds);
+
+      expect(result.year).toBe(2);
+      expect(result.month).toBe(1);
+      expect(result.day).toBe(15);
+    });
+
+    it('should correctly subtract months from non-epoch start time', () => {
+      foundryCalendar.setManager(manager);
+
+      const startTime = foundryCalendar.componentsToTime({ year: 1, month: 3, day: 15 });
+      const resultSeconds = foundryCalendar.add(startTime, { month: -1 });
+      const result = foundryCalendar.timeToComponents(resultSeconds);
+
+      expect(result.year).toBe(1);
+      expect(result.month).toBe(2);
+      expect(result.day).toBe(15);
+    });
   });
 
   describe('difference', () => {
