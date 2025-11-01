@@ -284,7 +284,7 @@ export class SeasonsStarsFoundryCalendar extends (BaseCalendarData as CalendarDa
    *
    * @param endTime - End time (seconds or components)
    * @param startTime - Start time (seconds or components), defaults to epoch
-   * @returns Difference as calendar components
+   * @returns Difference as duration components (not a timestamp)
    */
   difference(
     endTime: number | Partial<SeasonsStarsTimeComponents>,
@@ -300,11 +300,35 @@ export class SeasonsStarsFoundryCalendar extends (BaseCalendarData as CalendarDa
           ? startTime
           : this.componentsToTime(startTime);
 
-    // Calculate difference
+    // Calculate difference in seconds
     const diffSeconds = endSeconds - startSeconds;
 
-    // Convert to components
-    return this.timeToComponents(diffSeconds);
+    // Convert seconds to duration components (not timestamp components)
+    const calendar = this.getActiveCalendar();
+    if (!calendar) {
+      return this.getDefaultComponents();
+    }
+
+    const secondsPerMinute = calendar.time.secondsInMinute;
+    const secondsPerHour = calendar.time.minutesInHour * secondsPerMinute;
+    const secondsPerDay = calendar.time.hoursInDay * secondsPerHour;
+
+    let remaining = Math.abs(diffSeconds);
+    const days = Math.floor(remaining / secondsPerDay);
+    remaining %= secondsPerDay;
+    const hours = Math.floor(remaining / secondsPerHour);
+    remaining %= secondsPerHour;
+    const minutes = Math.floor(remaining / secondsPerMinute);
+    const seconds = remaining % secondsPerMinute;
+
+    return {
+      year: 0,
+      month: 0,
+      day: days,
+      hour: hours,
+      minute: minutes,
+      second: seconds,
+    };
   }
 
   /**
@@ -366,6 +390,11 @@ export class SeasonsStarsFoundryCalendar extends (BaseCalendarData as CalendarDa
 
   /**
    * Count leap years before a given year
+   *
+   * NOTE: This implementation uses O(n) iteration through years. While this could
+   * be optimized to O(1) for Gregorian calendars using mathematical formulas, the
+   * current approach is acceptable for the typical year ranges used in game calendars
+   * and works correctly for all calendar types including custom leap year rules.
    *
    * @param year - Year to count up to (exclusive)
    * @returns Number of leap years

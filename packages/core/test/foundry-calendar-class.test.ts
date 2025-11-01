@@ -276,15 +276,36 @@ describe('SeasonsStarsFoundryCalendar (CalendarData Extension)', () => {
   });
 
   describe('difference', () => {
-    it('should calculate difference between two times in seconds', () => {
+    it('should return zero duration when times are equal', () => {
       foundryCalendar.setManager(manager);
 
-      const result = foundryCalendar.difference(86400, 0);
+      const result = foundryCalendar.difference(0, 0);
 
-      expect(result.day).toBe(2); // 1 day difference + starting day 1 = day 2
+      expect(result.year).toBe(0);
+      expect(result.month).toBe(0);
+      expect(result.day).toBe(0);
+      expect(result.hour).toBe(0);
+      expect(result.minute).toBe(0);
+      expect(result.second).toBe(0);
     });
 
-    it('should calculate difference using components', () => {
+    it('should return duration components, not timestamp components', () => {
+      foundryCalendar.setManager(manager);
+
+      // 1 day = 86400 seconds
+      // Expected: { day: 1, ... } (duration)
+      // NOT: { year: 0, month: 1, day: 2, ... } (timestamp at 1 day after epoch)
+      const result = foundryCalendar.difference(86400, 0);
+
+      expect(result.year).toBe(0);
+      expect(result.month).toBe(0);
+      expect(result.day).toBe(1);
+      expect(result.hour).toBe(0);
+      expect(result.minute).toBe(0);
+      expect(result.second).toBe(0);
+    });
+
+    it('should calculate difference of 7 days correctly', () => {
       foundryCalendar.setManager(manager);
 
       const result = foundryCalendar.difference(
@@ -292,17 +313,52 @@ describe('SeasonsStarsFoundryCalendar (CalendarData Extension)', () => {
         { year: 0, month: 1, day: 1 }
       );
 
-      // Result should represent the difference (7 days)
-      expect(result.day).toBeGreaterThan(1);
+      expect(result.year).toBe(0);
+      expect(result.month).toBe(0);
+      expect(result.day).toBe(7);
+      expect(result.hour).toBe(0);
+      expect(result.minute).toBe(0);
+      expect(result.second).toBe(0);
+    });
+
+    it('should handle hours, minutes, seconds in duration', () => {
+      foundryCalendar.setManager(manager);
+
+      // 1 hour, 30 minutes, 45 seconds = 5445 seconds
+      const timeInSeconds = 3600 + 1800 + 45;
+      const result = foundryCalendar.difference(timeInSeconds, 0);
+
+      expect(result.day).toBe(0);
+      expect(result.hour).toBe(1);
+      expect(result.minute).toBe(30);
+      expect(result.second).toBe(45);
+    });
+
+    it('should handle complex durations', () => {
+      foundryCalendar.setManager(manager);
+
+      // 2 days, 3 hours, 15 minutes = 183900 seconds
+      const timeInSeconds = 2 * 86400 + 3 * 3600 + 15 * 60;
+      const result = foundryCalendar.difference(timeInSeconds, 0);
+
+      expect(result.day).toBe(2);
+      expect(result.hour).toBe(3);
+      expect(result.minute).toBe(15);
+      expect(result.second).toBe(0);
     });
 
     it('should default to epoch when start time is not provided', () => {
       foundryCalendar.setManager(manager);
 
+      // 1 day from epoch
       const result = foundryCalendar.difference({ year: 0, month: 1, day: 2 });
 
-      // Difference from epoch to day 2
-      expect(result.day).toBe(2);
+      expect(result.year).toBe(0);
+      expect(result.month).toBe(0);
+      expect(result.day).toBe(1);
+      expect(result.hour).toBe(0);
+      expect(result.minute).toBe(0);
+      expect(result.second).toBe(0);
     });
   });
 
