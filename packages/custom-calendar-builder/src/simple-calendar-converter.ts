@@ -1,4 +1,5 @@
 import type { SimpleCalendarExport, SimpleCalendarData } from './simple-calendar-types';
+import type { SeasonsStarsCalendar } from '@seasons-stars/core/types/calendar';
 
 export interface ConversionWarning {
   path: string;
@@ -8,7 +9,7 @@ export interface ConversionWarning {
 }
 
 export interface ConversionResult {
-  calendar: any;
+  calendar: Partial<SeasonsStarsCalendar>;
   warnings: ConversionWarning[];
 }
 
@@ -20,7 +21,7 @@ export class SimpleCalendarConverter {
       return false;
     }
 
-    const obj = data as any;
+    const obj = data as Record<string, unknown>;
 
     // Full export format with exportVersion
     if ('exportVersion' in obj && typeof obj.exportVersion === 'number') {
@@ -53,7 +54,7 @@ export class SimpleCalendarConverter {
       fallbackId = filename.replace(/\.json$/i, '');
     }
 
-    const calendar: any = {
+    const calendar: Partial<SeasonsStarsCalendar> = {
       id: this.convertId(scData.id || scData.name || fallbackId),
       translations: this.convertTranslations(scData, fallbackId),
       year: this.convertYear(scData),
@@ -85,7 +86,7 @@ export class SimpleCalendarConverter {
     return id.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/--+/g, '-');
   }
 
-  private convertTranslations(scData: SimpleCalendarData, fallbackName?: string): any {
+  private convertTranslations(scData: SimpleCalendarData, fallbackName?: string): SeasonsStarsCalendar['translations'] {
     // Use fallback name if available, capitalized nicely
     let label = scData.name;
     if (!label && fallbackName) {
@@ -105,8 +106,8 @@ export class SimpleCalendarConverter {
     };
   }
 
-  private convertYear(scData: SimpleCalendarData): any {
-    const yearConfig: any = {
+  private convertYear(scData: SimpleCalendarData): SeasonsStarsCalendar['year'] {
+    const yearConfig: SeasonsStarsCalendar['year'] = {
       epoch: scData.years?.yearZero || 0,
       currentYear: scData.currentDate?.year || 1,
       prefix: scData.years?.prefix || '',
@@ -127,7 +128,7 @@ export class SimpleCalendarConverter {
     return yearConfig;
   }
 
-  private convertMonths(scData: SimpleCalendarData): any[] {
+  private convertMonths(scData: SimpleCalendarData): SeasonsStarsCalendar['months'] {
     if (!scData.months || scData.months.length === 0) {
       return [];
     }
@@ -135,7 +136,7 @@ export class SimpleCalendarConverter {
     return scData.months
       .filter(month => !month.intercalary)
       .map((month, index) => {
-        const converted: any = {
+        const converted: SeasonsStarsCalendar['months'][number] = {
           name: month.name,
           abbreviation: month.abbreviation || month.name.substring(0, 3),
           days: month.numberOfDays || 30,
@@ -161,13 +162,13 @@ export class SimpleCalendarConverter {
       });
   }
 
-  private convertWeekdays(scData: SimpleCalendarData): any[] {
+  private convertWeekdays(scData: SimpleCalendarData): SeasonsStarsCalendar['weekdays'] {
     if (!scData.weekdays || scData.weekdays.length === 0) {
       return [];
     }
 
     return scData.weekdays.map(weekday => {
-      const converted: any = {
+      const converted: SeasonsStarsCalendar['weekdays'][number] = {
         name: weekday.name,
         abbreviation: weekday.abbreviation || weekday.name.substring(0, 3),
       };
@@ -180,12 +181,12 @@ export class SimpleCalendarConverter {
     });
   }
 
-  private convertLeapYear(scData: SimpleCalendarData): any {
+  private convertLeapYear(scData: SimpleCalendarData): SeasonsStarsCalendar['leapYear'] {
     if (!scData.leapYear || !scData.leapYear.rule) {
       return { rule: 'none' };
     }
 
-    const leapYear: any = {
+    const leapYear: Partial<SeasonsStarsCalendar['leapYear']> & { rule: 'gregorian' | 'custom' | 'none' } = {
       rule: scData.leapYear.rule,
     };
 
@@ -210,7 +211,7 @@ export class SimpleCalendarConverter {
     return leapYear;
   }
 
-  private convertIntercalary(scData: SimpleCalendarData): any[] {
+  private convertIntercalary(scData: SimpleCalendarData): SeasonsStarsCalendar['intercalary'] {
     if (!scData.months) {
       return [];
     }
@@ -218,7 +219,7 @@ export class SimpleCalendarConverter {
     const intercalaryMonths = scData.months.filter(month => month.intercalary);
 
     return intercalaryMonths.map((month, index) => {
-      const intercalary: any = {
+      const intercalary: Partial<SeasonsStarsCalendar['intercalary'][number]> & { name: string } = {
         name: month.name,
         days: month.numberOfDays || 1,
         countsForWeekdays: month.intercalaryInclude !== false,
@@ -273,12 +274,12 @@ export class SimpleCalendarConverter {
         }
       }
 
-      return intercalary;
+      return intercalary as SeasonsStarsCalendar['intercalary'][number];
     });
   }
 
-  private convertTime(scData: SimpleCalendarData): any {
-    const time: any = {
+  private convertTime(scData: SimpleCalendarData): SeasonsStarsCalendar['time'] {
+    const time: SeasonsStarsCalendar['time'] = {
       hoursInDay: scData.time?.hoursInDay || 24,
       minutesInHour: scData.time?.minutesInHour || 60,
       secondsInMinute: scData.time?.secondsInMinute || 60,
@@ -303,7 +304,7 @@ export class SimpleCalendarConverter {
     return time;
   }
 
-  private convertSeasons(scData: SimpleCalendarData): any[] {
+  private convertSeasons(scData: SimpleCalendarData): NonNullable<SeasonsStarsCalendar['seasons']> {
     if (!scData.seasons || !scData.months) {
       return [];
     }
@@ -363,8 +364,8 @@ export class SimpleCalendarConverter {
     });
   }
 
-  private buildSeasonObject(season: any, startMonth: number, index: number): any {
-    const converted: any = {
+  private buildSeasonObject(season: { name: string; description?: string; icon?: string; color?: string; sunriseTimes?: unknown; sunsetTimes?: unknown }, startMonth: number, index: number): NonNullable<SeasonsStarsCalendar['seasons']>[number] {
+    const converted: Partial<NonNullable<SeasonsStarsCalendar['seasons']>[number]> & { name: string; startMonth: number; endMonth: number } = {
       name: season.name,
       startMonth: startMonth,
       endMonth: startMonth, // S&S requires endMonth, defaulting to same as start
@@ -392,13 +393,13 @@ export class SimpleCalendarConverter {
     return converted;
   }
 
-  private convertMoons(scData: SimpleCalendarData): any[] {
+  private convertMoons(scData: SimpleCalendarData): NonNullable<SeasonsStarsCalendar['moons']> {
     if (!scData.moons) {
       return [];
     }
 
     return scData.moons.map((moon, index) => {
-      const converted: any = {
+      const converted: Partial<NonNullable<SeasonsStarsCalendar['moons']>[number]> & { name: string; cycleLength: number } = {
         name: moon.name,
         cycleLength: moon.cycleLength || 29.53,
       };
