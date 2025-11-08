@@ -24,9 +24,14 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 ```json
 {
   "id": "unique-calendar-id",
-  "label": "Human Readable Calendar Name",
-  "description": "Detailed description of the calendar and its cultural context",
-  "setting": "Optional game setting or system name",
+  "translations": {
+    "en": {
+      "label": "Human Readable Calendar Name",
+      "description": "Detailed description of the calendar and its cultural context",
+      "setting": "Optional game setting or system name",
+      "yearName": "Year"
+    }
+  },
   "sources": [
     "https://example.com/calendar-reference",
     "https://example.com/moon-data",
@@ -138,13 +143,70 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 
 ### Root Level Fields
 
-| Field         | Type   | Required | Description                                      |
-| ------------- | ------ | -------- | ------------------------------------------------ |
-| `id`          | string | ✅       | Unique identifier for the calendar               |
-| `label`       | string | ✅       | Display name for users                           |
-| `description` | string | ❌       | Detailed description and cultural context        |
-| `setting`     | string | ❌       | Game setting or system this calendar belongs to  |
-| `sources`     | array  | ❌       | URLs (or user-provided citations) verifying data |
+| Field            | Type   | Required | Description                                                |
+| ---------------- | ------ | -------- | ---------------------------------------------------------- |
+| `id`             | string | ✅       | Unique identifier for the calendar                         |
+| `translations`   | object | ✅       | Localized labels and descriptions (language code keyed)    |
+| `sources`        | array  | ❌       | URLs (or user-provided citations) verifying data           |
+| `year`           | object | ❌       | Year configuration (defaults to Gregorian settings)        |
+| `months`         | array  | ❌       | Month definitions (defaults to Gregorian months)           |
+| `weekdays`       | array  | ❌       | Weekday definitions (defaults to Gregorian weekdays)       |
+| `intercalary`    | array  | ❌       | Intercalary days outside normal calendar structure         |
+| `leapYear`       | object | ❌       | Leap year rules (defaults to Gregorian rules)              |
+| `time`           | object | ❌       | Time configuration (defaults to 24-hour clock)             |
+| `dateFormats`    | object | ❌       | Handlebars templates for date formatting                   |
+| `worldTime`      | object | ❌       | World time interpretation for game system integration      |
+| `seasons`        | array  | ❌       | Seasonal definitions with start/end dates                  |
+| `moons`          | array  | ❌       | Celestial body definitions with phases                     |
+| `canonicalHours` | array  | ❌       | Named time periods (e.g., matins, vespers)                 |
+| `events`         | array  | ❌       | Calendar events (holidays, festivals, recurring occasions) |
+| `variants`       | object | ❌       | Calendar variant definitions                               |
+| `extensions`     | object | ❌       | Module-specific extensions and custom data                 |
+| `baseCalendar`   | string | ❌       | ID of base calendar this calendar extends                  |
+| `name`           | string | ❌       | Human-readable name for calendar collection                |
+| `description`    | string | ❌       | Description of calendar or collection                      |
+| `author`         | string | ❌       | Author or creator of the calendar                          |
+| `version`        | string | ❌       | Version number in semantic versioning format               |
+
+### Translations
+
+> Required – provides localized names and descriptions for the calendar.
+
+The `translations` object contains localized versions of calendar metadata keyed by language code (e.g., `en`, `en-US`, `de`, `es`).
+
+#### Translation Object Structure
+
+| Field         | Type   | Required | Description                               |
+| ------------- | ------ | -------- | ----------------------------------------- |
+| `label`       | string | ✅       | Display name for the calendar             |
+| `description` | string | ❌       | Detailed description and cultural context |
+| `setting`     | string | ❌       | Game setting or system name               |
+| `yearName`    | string | ❌       | Custom name for "year" (e.g., "Cycle")    |
+
+#### Format
+
+```json
+"translations": {
+  "en": {
+    "label": "Calendar of Harptos",
+    "description": "The calendar used in the Forgotten Realms",
+    "setting": "D&D Forgotten Realms",
+    "yearName": "Year"
+  },
+  "de": {
+    "label": "Harptos-Kalender",
+    "description": "Der Kalender der Vergessenen Reiche",
+    "setting": "D&D Vergessene Reiche"
+  }
+}
+```
+
+#### Guidelines
+
+- At least one language must be provided (typically `en`)
+- Language codes follow ISO 639-1 (two-letter) with optional ISO 3166-1 region codes (e.g., `en-US`)
+- The `label` field is required for each language
+- Use appropriate translations for game settings and calendar names
 
 ### Sources
 
@@ -352,6 +414,139 @@ For any named format, you can define an `-intercalary` variant that automaticall
 | `minutesInHour`   | number | 60      | Number of minutes in an hour  |
 | `secondsInMinute` | number | 60      | Number of seconds in a minute |
 
+### World Time Configuration
+
+> Optional – configures how `game.time.worldTime` values are interpreted for game system integration.
+
+| Field            | Type   | Required | Description                          |
+| ---------------- | ------ | -------- | ------------------------------------ |
+| `interpretation` | string | ❌       | How to interpret worldTime values    |
+| `epochYear`      | number | ❌       | Year that corresponds to worldTime 0 |
+| `currentYear`    | number | ❌       | Current year in the calendar system  |
+| `transform`      | object | ❌       | Custom transformation settings       |
+
+**Interpretation Values:**
+
+- `"epoch-based"`: Standard worldTime interpretation (seconds since epoch)
+- `"real-time-based"`: Real-time based interpretation
+- `"direct"`: Direct worldTime mapping
+- `"custom"`: Custom transformation (requires `transform` object)
+
+### Canonical Hours
+
+> Optional – defines named time periods within a day (e.g., liturgical hours, watch periods).
+
+| Field         | Type   | Required | Description                           |
+| ------------- | ------ | -------- | ------------------------------------- |
+| `name`        | string | ✅       | Name of the time period               |
+| `startHour`   | number | ✅       | Starting hour (0-23)                  |
+| `endHour`     | number | ✅       | Ending hour (0-23)                    |
+| `startMinute` | number | ❌       | Starting minute (0-59), defaults to 0 |
+| `endMinute`   | number | ❌       | Ending minute (0-59), defaults to 0   |
+| `description` | string | ❌       | Optional description of the period    |
+
+**Example:**
+
+```json
+"canonicalHours": [
+  {
+    "name": "Matins",
+    "startHour": 0,
+    "endHour": 3,
+    "description": "The night office"
+  },
+  {
+    "name": "Lauds",
+    "startHour": 3,
+    "endHour": 6,
+    "description": "Dawn prayers"
+  },
+  {
+    "name": "Prime",
+    "startHour": 6,
+    "endHour": 9,
+    "description": "First hour of daylight"
+  }
+]
+```
+
+### Calendar Events
+
+> Optional – defines recurring calendar events such as holidays, festivals, and observances.
+
+| Field            | Type   | Required | Description                                 |
+| ---------------- | ------ | -------- | ------------------------------------------- |
+| `id`             | string | ✅       | Unique identifier (stable, never change)    |
+| `name`           | string | ✅       | Display name for the event                  |
+| `description`    | string | ❌       | Brief plain text summary                    |
+| `journalEntryId` | string | ❌       | Optional reference to JournalEntry          |
+| `recurrence`     | object | ✅       | When this event occurs                      |
+| `startTime`      | string | ❌       | Time of day (hh, hh:mm, hh:mm:ss)           |
+| `duration`       | string | ❌       | Duration (format: `<number><unit>`)         |
+| `startYear`      | number | ❌       | First year event occurs                     |
+| `endYear`        | number | ❌       | Last year event occurs                      |
+| `exceptions`     | array  | ❌       | Specific dates to skip/move                 |
+| `visibility`     | string | ❌       | "gm-only" or "player-visible" (default)     |
+| `color`          | string | ❌       | Hex color for calendar display (#RRGGBB)    |
+| `icon`           | string | ❌       | CSS icon class (e.g., "fas fa-star")        |
+| `translations`   | object | ❌       | Translations for event name and description |
+
+**Recurrence Types:**
+
+1. **Fixed Date**: Same calendar date each year
+
+   ```json
+   "recurrence": { "type": "fixed", "month": 1, "day": 1 }
+   ```
+
+2. **Ordinal**: Nth occurrence of a weekday in a month
+
+   ```json
+   "recurrence": { "type": "ordinal", "month": 9, "occurrence": 1, "weekday": 1 }
+   ```
+
+3. **Interval**: Every N years on a specific date
+   ```json
+   "recurrence": { "type": "interval", "intervalYears": 4, "anchorYear": 2024, "month": 7, "day": 26 }
+   ```
+
+**Example:**
+
+```json
+"events": [
+  {
+    "id": "new-year",
+    "name": "New Year's Day",
+    "description": "Start of the new year",
+    "recurrence": { "type": "fixed", "month": 1, "day": 1 },
+    "startTime": "00:00:00",
+    "duration": "1d",
+    "visibility": "player-visible",
+    "color": "#ff0000",
+    "icon": "fas fa-champagne-glasses"
+  }
+]
+```
+
+### Extensions
+
+> Optional – allows modules to add custom data without conflicting with core properties.
+
+```json
+"extensions": {
+  "my-module-id": {
+    "customProperty": "value",
+    "anotherProperty": 123
+  }
+}
+```
+
+**Guidelines:**
+
+- Keys should be module identifiers (lowercase, hyphens)
+- Extension data is module-specific and not validated by core schemas
+- Use for module-specific features that don't fit standard properties
+
 ### Moon Definitions
 
 | Field          | Type   | Required | Description                            |
@@ -361,6 +556,8 @@ For any named format, you can define an `-intercalary` variant that automaticall
 | `firstNewMoon` | object | ✅       | Reference date for first new moon      |
 | `phases`       | array  | ✅       | Array of moon phase definitions        |
 | `color`        | string | ❌       | Hex color code for moon identification |
+
+**Note**: The JSON schema treats `firstNewMoon` and `phases` as optional, but the runtime code requires them to be present. Calendar authors must include these fields.
 
 #### First New Moon Object
 
@@ -379,6 +576,8 @@ For any named format, you can define an `-intercalary` variant that automaticall
 | `singleDay` | boolean | ✅       | Whether this is a single-day phase    |
 | `icon`      | string  | ✅       | Icon identifier for UI display        |
 
+**Note**: The JSON schema treats `singleDay` and `icon` as optional, but the runtime code requires them to be present. Calendar authors must include these fields.
+
 ## Format Examples
 
 ### Simple Calendar (Earth-like)
@@ -386,8 +585,12 @@ For any named format, you can define an `-intercalary` variant that automaticall
 ```json
 {
   "id": "gregorian",
-  "label": "Gregorian Calendar",
-  "description": "Standard Earth calendar with 12 months and leap years",
+  "translations": {
+    "en": {
+      "label": "Gregorian Calendar",
+      "description": "Standard Earth calendar with 12 months and leap years"
+    }
+  },
 
   "year": {
     "epoch": 0,
@@ -435,9 +638,13 @@ For any named format, you can define an `-intercalary` variant that automaticall
 ```json
 {
   "id": "harptos",
-  "label": "Calendar of Harptos",
-  "description": "The calendar used in the Forgotten Realms, featuring intercalary days",
-  "setting": "D&D Forgotten Realms",
+  "translations": {
+    "en": {
+      "label": "Calendar of Harptos",
+      "description": "The calendar used in the Forgotten Realms, featuring intercalary days",
+      "setting": "D&D Forgotten Realms"
+    }
+  },
 
   "year": {
     "epoch": 0,
@@ -655,12 +862,18 @@ For calendars with lunar cycles, add moon definitions with phase tracking:
 
 ### Required Fields
 
-- Root: `id`, `label`
-- Months: `name`, `days`
+- Root: `id`, `translations`
+- Translations: `label` (for each language)
+- Months: `name`, `days` (or `length`)
 - Weekdays: `name`
-- Intercalary: `name`, `after`
-- Moons: `name`, `cycleLength`, `firstNewMoon`, `phases`
-- Moon Phases: `name`, `length`, `singleDay`, `icon`
+- Intercalary: `name`, (`after` OR `before`)
+- Moons: `name`, `cycleLength`, `firstNewMoon`, `phases` (runtime requirement)
+- Moon Phases: `name`, `length`, `singleDay`, `icon` (runtime requirement)
+- Canonical Hours: `name`, `startHour`, `endHour`
+- Events: `id`, `name`, `recurrence`
+- Seasons: `name`, `startMonth`, `endMonth` (schema requirement)
+
+**Note**: Some fields marked as optional in the JSON schema are required by the runtime code and must be present for calendars to function correctly.
 
 ### Data Constraints
 
