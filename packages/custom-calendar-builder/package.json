@@ -22,7 +22,7 @@
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/jquery": "^3.5.33",
-    "@types/node": "^24.9.1",
+    "@types/node": "^24.10.0",
     "rollup": "^4.24.0",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-livereload": "^2.0.5",
