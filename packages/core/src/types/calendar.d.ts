@@ -196,13 +196,13 @@ export interface CalendarSeason {
   icon?: string;
   color?: string;
   /**
-   * Sunrise time on the first day of the season in 24-hour format (HH:MM).
+   * Sunrise time on the first day of the season in HH:MM format.
    * If not specified, defaults will be calculated based on season name matching
    * with Gregorian calendar or interpolated from surrounding seasons.
    */
   sunrise?: string;
   /**
-   * Sunset time on the first day of the season in 24-hour format (HH:MM).
+   * Sunset time on the first day of the season in HH:MM format.
    * If not specified, defaults will be calculated based on season name matching
    * with Gregorian calendar or interpolated from surrounding seasons.
    */

@@ -610,12 +610,12 @@
           "sunrise": {
             "type": "string",
             "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
-            "description": "Sunrise time on the first day of the season in 24-hour format (HH:MM)"
+            "description": "Sunrise time on the first day of the season in HH:MM format"
           },
           "sunset": {
             "type": "string",
             "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
-            "description": "Sunset time on the first day of the season in 24-hour format (HH:MM)"
+            "description": "Sunset time on the first day of the season in HH:MM format"
           }
         }
       }

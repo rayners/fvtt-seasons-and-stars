@@ -436,21 +436,22 @@ For any named format, you can define an `-intercalary` variant that automaticall
 
 > Optional – defines seasonal periods within the calendar year with optional sunrise/sunset data.
 
-| Field        | Type   | Required | Description                                                          |
-| ------------ | ------ | -------- | -------------------------------------------------------------------- |
-| `name`       | string | ✅       | Name of the season                                                   |
-| `startMonth` | number | ✅       | Starting month of the season (1-based)                               |
-| `startDay`   | number | ❌       | Starting day within startMonth (1-based, defaults to 1)              |
-| `endMonth`   | number | ✅       | Ending month of the season (1-based)                                 |
-| `endDay`     | number | ❌       | Ending day within endMonth (1-based, defaults to last day of month)  |
-| `icon`       | string | ❌       | Icon identifier for the season                                       |
-| `description`| string | ❌       | Description of the season                                            |
-| `sunrise`    | string | ❌       | Sunrise time on first day of season in 24-hour format (HH:MM)        |
-| `sunset`     | string | ❌       | Sunset time on first day of season in 24-hour format (HH:MM)         |
+| Field         | Type   | Required | Description                                                         |
+| ------------- | ------ | -------- | ------------------------------------------------------------------- |
+| `name`        | string | ✅       | Name of the season                                                  |
+| `startMonth`  | number | ✅       | Starting month of the season (1-based)                              |
+| `startDay`    | number | ❌       | Starting day within startMonth (1-based, defaults to 1)             |
+| `endMonth`    | number | ✅       | Ending month of the season (1-based)                                |
+| `endDay`      | number | ❌       | Ending day within endMonth (1-based, defaults to last day of month) |
+| `icon`        | string | ❌       | Icon identifier for the season                                      |
+| `description` | string | ❌       | Description of the season                                           |
+| `sunrise`     | string | ❌       | Sunrise time on first day of season in HH:MM format                 |
+| `sunset`      | string | ❌       | Sunset time on first day of season in HH:MM format                  |
 
 **Sunrise/Sunset Behavior:**
 
 When `sunrise` and `sunset` are specified for seasons:
+
 - Values represent the sunrise/sunset times on the **first day** of that season
 - Times are interpolated throughout the season to the next season's values
 - Progress through the season determines interpolation (0% = current season, 100% = next season)
@@ -483,8 +484,9 @@ When `sunrise` and `sunset` are specified for seasons:
 ```
 
 **Notes:**
+
 - Seasons can span year boundaries (e.g., Winter from December to February)
-- Sunrise/sunset times use 24-hour format for consistency
+- Sunrise/sunset times use HH:MM format
 - Times are displayed in widgets and day tooltips across the UI
 - Reference the Gregorian calendar for Baltimore, MD values as a guide
 

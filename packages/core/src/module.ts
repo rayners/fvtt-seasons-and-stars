@@ -1584,7 +1584,7 @@ export function setupAPI(): void {
           throw error;
         }
 
-        // Get the calendar
+        // Get the calendar and engine
         const calendar = calendarId
           ? calendarManager.getCalendar(calendarId)
           : calendarManager.getActiveCalendar();
@@ -1595,8 +1595,12 @@ export function setupAPI(): void {
           return result;
         }
 
+        const engine = calendarId
+          ? calendarManager.engines.get(calendarId)
+          : calendarManager.engines.get(calendar.id);
+
         // Calculate sunrise/sunset using the calculator
-        const result = SunriseSunsetCalculator.calculate(date, calendar);
+        const result = SunriseSunsetCalculator.calculate(date, calendar, engine);
         Logger.api('getSunriseSunset', { date, calendarId }, result);
         return result;
       } catch (error) {

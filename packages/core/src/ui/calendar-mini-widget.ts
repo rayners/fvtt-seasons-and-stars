@@ -239,9 +239,20 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     let sunsetString = '';
     if (showSunriseSunset) {
       try {
-        const sunriseSunset = SunriseSunsetCalculator.calculate(currentDate.toObject(), activeCalendar);
-        sunriseString = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunrise);
-        sunsetString = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunset);
+        const engine = manager.getActiveEngine();
+        const sunriseSunset = SunriseSunsetCalculator.calculate(
+          currentDate.toObject(),
+          activeCalendar,
+          engine
+        );
+        sunriseString = SunriseSunsetCalculator.hoursToTimeString(
+          sunriseSunset.sunrise,
+          activeCalendar
+        );
+        sunsetString = SunriseSunsetCalculator.hoursToTimeString(
+          sunriseSunset.sunset,
+          activeCalendar
+        );
       } catch (error) {
         Logger.debug('Failed to calculate sunrise/sunset for mini widget', error);
       }
@@ -627,7 +638,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         callback: async () => {
           const currentValue =
             game.settings?.get('seasons-and-stars', 'miniWidgetShowSunriseSunset') !== false;
-          await game.settings?.set('seasons-and-stars', 'miniWidgetShowSunriseSunset', !currentValue);
+          await game.settings?.set(
+            'seasons-and-stars',
+            'miniWidgetShowSunriseSunset',
+            !currentValue
+          );
           await this.render();
         },
       }

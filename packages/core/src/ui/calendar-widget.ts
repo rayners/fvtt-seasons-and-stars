@@ -183,9 +183,20 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     let sunriseString = '';
     let sunsetString = '';
     try {
-      const sunriseSunset = SunriseSunsetCalculator.calculate(currentDate.toObject(), activeCalendar);
-      sunriseString = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunrise);
-      sunsetString = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunset);
+      const engine = manager.getActiveEngine();
+      const sunriseSunset = SunriseSunsetCalculator.calculate(
+        currentDate.toObject(),
+        activeCalendar,
+        engine
+      );
+      sunriseString = SunriseSunsetCalculator.hoursToTimeString(
+        sunriseSunset.sunrise,
+        activeCalendar
+      );
+      sunsetString = SunriseSunsetCalculator.hoursToTimeString(
+        sunriseSunset.sunset,
+        activeCalendar
+      );
     } catch (error) {
       Logger.debug('Failed to calculate sunrise/sunset for calendar widget', error);
     }

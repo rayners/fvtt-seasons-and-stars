@@ -1,4 +1,5 @@
-import type { CalendarDate, CalendarSeason, SeasonsStarsCalendar } from '../types/calendar';
+import type { CalendarDateData, CalendarSeason, SeasonsStarsCalendar } from '../types/calendar';
+import type { CalendarEngineInterface } from '../types/foundry-extensions';
 
 /**
  * Utility class for calculating sunrise and sunset times based on calendar seasons.
@@ -9,33 +10,33 @@ export class SunriseSunsetCalculator {
    * Default sunrise/sunset times from Gregorian calendar (Baltimore, MD reference)
    * These are used as fallbacks for matching season names in other calendars
    */
-  private static readonly GREGORIAN_DEFAULTS: Record<
-    string,
-    { sunrise: string; sunset: string }
-  > = {
-    Winter: { sunrise: '07:00', sunset: '16:45' },
-    Spring: { sunrise: '06:30', sunset: '17:45' },
-    Summer: { sunrise: '05:45', sunset: '20:15' },
-    Autumn: { sunrise: '06:30', sunset: '19:30' },
-    Fall: { sunrise: '06:30', sunset: '19:30' }, // Alias for Autumn
-  };
+  private static readonly GREGORIAN_DEFAULTS: Record<string, { sunrise: string; sunset: string }> =
+    {
+      Winter: { sunrise: '07:00', sunset: '16:45' },
+      Spring: { sunrise: '06:30', sunset: '17:45' },
+      Summer: { sunrise: '05:45', sunset: '20:15' },
+      Autumn: { sunrise: '06:30', sunset: '19:30' },
+      Fall: { sunrise: '06:30', sunset: '19:30' }, // Alias for Autumn
+    };
 
   /**
    * Calculate sunrise and sunset times for a given date
    * @param date - The date to calculate times for
    * @param calendar - The calendar definition
+   * @param engine - Optional CalendarEngine instance for accurate year-length calculations
    * @returns Object with sunrise and sunset as hour decimal values (e.g., 6.5 = 6:30)
    */
   static calculate(
-    date: CalendarDate,
-    calendar: SeasonsStarsCalendar
+    date: CalendarDateData,
+    calendar: SeasonsStarsCalendar,
+    engine?: CalendarEngineInterface | null
   ): { sunrise: number; sunset: number } {
     if (!calendar.seasons || calendar.seasons.length === 0) {
       return this.getDefaultTimes(calendar);
     }
 
     // Find current season and next season
-    const currentSeasonIndex = this.findSeasonIndex(date, calendar);
+    const currentSeasonIndex = this.findSeasonIndex(date, calendar.seasons);
     if (currentSeasonIndex === -1) {
       return this.getDefaultTimes(calendar);
     }
@@ -49,7 +50,13 @@ export class SunriseSunsetCalculator {
     const nextTimes = this.getSeasonTimes(nextSeason, calendar);
 
     // Calculate progress through the season (0 = first day, 1 = last day)
-    const progress = this.calculateSeasonProgress(date, currentSeason, nextSeason, calendar);
+    const progress = this.calculateSeasonProgress(
+      date,
+      currentSeason,
+      nextSeason,
+      calendar,
+      engine
+    );
 
     // Interpolate between current and next season
     return {
@@ -61,9 +68,9 @@ export class SunriseSunsetCalculator {
   /**
    * Find the index of the season that contains the given date
    */
-  private static findSeasonIndex(date: CalendarDate, calendar: SeasonsStarsCalendar): number {
-    for (let i = 0; i < calendar.seasons.length; i++) {
-      if (this.isDateInSeason(date, calendar.seasons[i], calendar)) {
+  private static findSeasonIndex(date: CalendarDateData, seasons: CalendarSeason[]): number {
+    for (let i = 0; i < seasons.length; i++) {
+      if (this.isDateInSeason(date, seasons[i])) {
         return i;
       }
     }
@@ -73,25 +80,21 @@ export class SunriseSunsetCalculator {
   /**
    * Check if a date falls within a season
    */
-  private static isDateInSeason(
-    date: CalendarDate,
-    season: CalendarSeason,
-    calendar: SeasonsStarsCalendar
-  ): boolean {
+  private static isDateInSeason(date: CalendarDateData, season: CalendarSeason): boolean {
     const month = date.month;
     const day = date.day;
     const startMonth = season.startMonth;
     const endMonth = season.endMonth ?? season.startMonth;
     const startDay = season.startDay ?? 1;
-    const endDay = season.endDay ?? (calendar.months?.[endMonth - 1]?.days ?? 31);
+    const endDay = season.endDay ?? 31; // Simplified - actual endDay will be validated by caller
 
     // Year-crossing season (e.g., Winter: Dec-Feb)
     if (startMonth > endMonth) {
       return (
-        month > startMonth ||
-        month < endMonth ||
         (month === startMonth && day >= startDay) ||
-        (month === endMonth && day <= endDay)
+        (month === endMonth && day <= endDay) ||
+        month > startMonth ||
+        month < endMonth
       );
     }
 
@@ -118,8 +121,8 @@ export class SunriseSunsetCalculator {
     // If season has explicit times, use them
     if (season.sunrise && season.sunset) {
       return {
-        sunrise: this.timeStringToHours(season.sunrise),
-        sunset: this.timeStringToHours(season.sunset),
+        sunrise: this.timeStringToHours(season.sunrise, calendar),
+        sunset: this.timeStringToHours(season.sunset, calendar),
       };
     }
 
@@ -127,8 +130,8 @@ export class SunriseSunsetCalculator {
     const defaultTimes = this.GREGORIAN_DEFAULTS[season.name];
     if (defaultTimes) {
       return {
-        sunrise: this.timeStringToHours(defaultTimes.sunrise),
-        sunset: this.timeStringToHours(defaultTimes.sunset),
+        sunrise: this.timeStringToHours(defaultTimes.sunrise, calendar),
+        sunset: this.timeStringToHours(defaultTimes.sunset, calendar),
       };
     }
 
@@ -153,22 +156,23 @@ export class SunriseSunsetCalculator {
    * Calculate how far through the current season we are (0 = first day, 1 = last day)
    */
   private static calculateSeasonProgress(
-    date: CalendarDate,
+    date: CalendarDateData,
     currentSeason: CalendarSeason,
     nextSeason: CalendarSeason,
-    calendar: SeasonsStarsCalendar
+    calendar: SeasonsStarsCalendar,
+    engine?: CalendarEngineInterface | null
   ): number {
     // Calculate total days in the season
-    const seasonStartDay = this.seasonStartToDayOfYear(currentSeason, calendar);
-    const seasonEndDay = this.seasonStartToDayOfYear(nextSeason, calendar);
-    const currentDay = this.dateToDayOfYear(date, calendar);
+    const seasonStartDay = this.seasonStartToDayOfYear(currentSeason, calendar, engine, date.year);
+    const seasonEndDay = this.seasonStartToDayOfYear(nextSeason, calendar, engine, date.year);
+    const currentDay = this.dateToDayOfYear(date, calendar, engine);
 
     let totalDaysInSeason: number;
     if (seasonEndDay > seasonStartDay) {
       totalDaysInSeason = seasonEndDay - seasonStartDay;
     } else {
       // Year-crossing season
-      const daysInYear = this.getDaysInYear(calendar);
+      const daysInYear = engine ? engine.getYearLength(date.year) : this.getDaysInYear(calendar);
       totalDaysInSeason = daysInYear - seasonStartDay + seasonEndDay;
     }
 
@@ -178,7 +182,7 @@ export class SunriseSunsetCalculator {
       daysIntoSeason = currentDay - seasonStartDay;
     } else {
       // We're in a year-crossing season and past the year boundary
-      const daysInYear = this.getDaysInYear(calendar);
+      const daysInYear = engine ? engine.getYearLength(date.year) : this.getDaysInYear(calendar);
       daysIntoSeason = daysInYear - seasonStartDay + currentDay;
     }
 
@@ -191,21 +195,72 @@ export class SunriseSunsetCalculator {
    */
   private static seasonStartToDayOfYear(
     season: CalendarSeason,
-    calendar: SeasonsStarsCalendar
+    calendar: SeasonsStarsCalendar,
+    engine?: CalendarEngineInterface | null,
+    year?: number
   ): number {
     const startMonth = season.startMonth;
     const startDay = season.startDay ?? 1;
-    return this.dateToDayOfYear({ year: 1, month: startMonth, day: startDay }, calendar);
+    // Use plain object for internal calculation
+    return this.dateToDayOfYear(
+      { year: year ?? 1, month: startMonth, day: startDay, weekday: 0 },
+      calendar,
+      engine
+    );
   }
 
   /**
    * Convert a date to day-of-year (1-based)
+   * Uses CalendarEngine when available to properly account for intercalary days
    */
-  private static dateToDayOfYear(date: CalendarDate, calendar: SeasonsStarsCalendar): number {
+  private static dateToDayOfYear(
+    date: CalendarDateData,
+    calendar: SeasonsStarsCalendar,
+    engine?: CalendarEngineInterface | null
+  ): number {
     if (!calendar.months) {
       return date.day;
     }
 
+    if (engine) {
+      // Use engine for accurate calculation including intercalary days
+      const monthLengths = engine.getMonthLengths(date.year);
+      const intercalaryDays = calendar.intercalary || [];
+
+      let dayOfYear = 0;
+
+      // Add days from complete months
+      for (let m = 1; m < date.month; m++) {
+        dayOfYear += monthLengths[m - 1];
+
+        // Add intercalary days after each complete month
+        const monthName = calendar.months[m - 1]?.name;
+        if (monthName) {
+          const intercalaryAfter = intercalaryDays.filter(i => i.after === monthName);
+          for (const intercalary of intercalaryAfter) {
+            if (!intercalary.leapYearOnly || engine.isLeapYear(date.year)) {
+              dayOfYear += intercalary.days || 1;
+            }
+          }
+        }
+      }
+
+      // Add intercalary days before current month
+      const currentMonthName = calendar.months[date.month - 1]?.name;
+      if (currentMonthName) {
+        const intercalaryBefore = intercalaryDays.filter(i => i.before === currentMonthName);
+        for (const intercalary of intercalaryBefore) {
+          if (!intercalary.leapYearOnly || engine.isLeapYear(date.year)) {
+            dayOfYear += intercalary.days || 1;
+          }
+        }
+      }
+
+      dayOfYear += date.day;
+      return dayOfYear;
+    }
+
+    // Fallback: simple month-day calculation (doesn't include intercalary days)
     let dayOfYear = 0;
     for (let m = 1; m < date.month; m++) {
       dayOfYear += calendar.months[m - 1]?.days ?? 30;
@@ -226,10 +281,23 @@ export class SunriseSunsetCalculator {
 
   /**
    * Convert time string (HH:MM) to hours as decimal
+   * Respects calendar's minutesInHour setting
    */
-  private static timeStringToHours(timeStr: string): number {
-    const [hours, minutes] = timeStr.split(':').map(Number);
-    return hours + (minutes || 0) / 60;
+  private static timeStringToHours(timeStr: string, calendar?: SeasonsStarsCalendar): number {
+    const parts = timeStr.split(':');
+    if (parts.length !== 2) {
+      throw new Error(`Invalid time format: ${timeStr}. Expected HH:MM`);
+    }
+
+    const hours = Number(parts[0]);
+    const minutes = Number(parts[1]);
+
+    if (isNaN(hours) || isNaN(minutes)) {
+      throw new Error(`Invalid time values: ${timeStr}`);
+    }
+
+    const minutesInHour = calendar?.time?.minutesInHour ?? 60;
+    return hours + (minutes || 0) / minutesInHour;
   }
 
   /**
@@ -241,10 +309,18 @@ export class SunriseSunsetCalculator {
 
   /**
    * Convert hours as decimal to time string (HH:MM)
+   * Respects calendar's minutesInHour setting
    */
-  static hoursToTimeString(hours: number): string {
+  static hoursToTimeString(hours: number, calendar?: SeasonsStarsCalendar): string {
     const h = Math.floor(hours);
-    const m = Math.round((hours - h) * 60);
+    const minutesInHour = calendar?.time?.minutesInHour ?? 60;
+    const m = Math.round((hours - h) * minutesInHour);
+
+    // Handle edge case where rounding produces minutesInHour
+    if (m === minutesInHour) {
+      return `${(h + 1).toString().padStart(2, '0')}:00`;
+    }
+
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   }
 }

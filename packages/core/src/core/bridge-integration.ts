@@ -436,7 +436,11 @@ class IntegrationAPI {
       };
     }
 
-    const times = SunriseSunsetCalculator.calculate(date, calendar);
+    const engine = calendarId
+      ? this.manager.engines.get(calendarId)
+      : this.manager.engines.get(calendar.id);
+
+    const times = SunriseSunsetCalculator.calculate(date, calendar, engine);
     return {
       sunrise: times.sunrise,
       sunset: times.sunset,

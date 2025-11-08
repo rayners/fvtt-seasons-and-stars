@@ -469,15 +469,23 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
 
       // Add sunrise/sunset
       try {
-        const sunriseSunset = SunriseSunsetCalculator.calculate(dayDate.toObject(), calendar);
-        const sunriseStr = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunrise);
-        const sunsetStr = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunset);
+        const engine = manager.getActiveEngine();
+        const sunriseSunset = SunriseSunsetCalculator.calculate(
+          dayDate.toObject(),
+          calendar,
+          engine
+        );
+        const sunriseStr = SunriseSunsetCalculator.hoursToTimeString(
+          sunriseSunset.sunrise,
+          calendar
+        );
+        const sunsetStr = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunset, calendar);
         tooltipParts.push(
           `<span style="white-space: nowrap;"><i class="fas fa-sunrise"></i> ${sunriseStr} <i class="fas fa-sunset"></i> ${sunsetStr}</span>`
         );
       } catch (error) {
         // Silently handle sunrise/sunset calculation errors
-        console.debug('Error calculating sunrise/sunset for date:', dayDate, error);
+        Logger.debug('Error calculating sunrise/sunset for tooltip', { date: dayDate, error });
       }
 
       // Add click instruction (all days are clickable)
