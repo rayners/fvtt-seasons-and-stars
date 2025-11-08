@@ -557,6 +557,8 @@ For any named format, you can define an `-intercalary` variant that automaticall
 | `phases`       | array  | ✅       | Array of moon phase definitions        |
 | `color`        | string | ❌       | Hex color code for moon identification |
 
+**Note**: The JSON schema treats `firstNewMoon` and `phases` as optional, but the runtime code requires them to be present. Calendar authors must include these fields.
+
 #### First New Moon Object
 
 | Field   | Type   | Required | Description                     |
@@ -573,6 +575,8 @@ For any named format, you can define an `-intercalary` variant that automaticall
 | `length`    | number  | ✅       | Duration of this phase in days        |
 | `singleDay` | boolean | ✅       | Whether this is a single-day phase    |
 | `icon`      | string  | ✅       | Icon identifier for UI display        |
+
+**Note**: The JSON schema treats `singleDay` and `icon` as optional, but the runtime code requires them to be present. Calendar authors must include these fields.
 
 ## Format Examples
 
@@ -863,10 +867,13 @@ For calendars with lunar cycles, add moon definitions with phase tracking:
 - Months: `name`, `days` (or `length`)
 - Weekdays: `name`
 - Intercalary: `name`, (`after` OR `before`)
-- Moons: `name`, `cycleLength`, `firstNewMoon`, `phases`
-- Moon Phases: `name`, `length`, `singleDay`, `icon`
+- Moons: `name`, `cycleLength`, `firstNewMoon`, `phases` (runtime requirement)
+- Moon Phases: `name`, `length`, `singleDay`, `icon` (runtime requirement)
 - Canonical Hours: `name`, `startHour`, `endHour`
 - Events: `id`, `name`, `recurrence`
+- Seasons: `name`, `startMonth`, `endMonth` (schema requirement)
+
+**Note**: Some fields marked as optional in the JSON schema are required by the runtime code and must be present for calendars to function correctly.
 
 ### Data Constraints
 
