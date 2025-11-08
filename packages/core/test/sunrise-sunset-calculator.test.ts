@@ -8,6 +8,7 @@
 import { describe, test, expect } from 'vitest';
 import { SunriseSunsetCalculator } from '../src/core/sunrise-sunset-calculator';
 import type { SeasonsStarsCalendar, CalendarDate } from '../src/types/calendar';
+import type { CalendarEngineInterface } from '../src/types/foundry-extensions';
 
 // Test calendar with standard Earth-like configuration and seasons with sunrise/sunset data
 const gregorianTestCalendar: SeasonsStarsCalendar = {
@@ -130,11 +131,32 @@ const nonStandardDayCalendar: SeasonsStarsCalendar = {
   },
 };
 
+// Create a mock engine for a given calendar
+function createMockEngine(calendar: SeasonsStarsCalendar): CalendarEngineInterface {
+  return {
+    getCalendar: () => calendar,
+    calculateWeekday: () => 0,
+    getMonthLength: (month: number) => calendar.months?.[month - 1]?.days ?? 30,
+    getMonthLengths: () => calendar.months?.map(m => m.days ?? 30) ?? [],
+    getYearLength: () =>
+      calendar.months?.reduce((sum, month) => sum + (month.days ?? 30), 0) ?? 365,
+    isLeapYear: () => false,
+    dateToWorldTime: () => 0,
+    worldTimeToDate: () => ({ year: 2024, month: 1, day: 1, weekday: 0 }),
+    getIntercalaryDaysAfterMonth: () => [],
+    getIntercalaryDaysBeforeMonth: () => [],
+    addMonths: (date: CalendarDate) => date,
+    addYears: (date: CalendarDate) => date,
+    getMoonPhaseInfo: () => [],
+  };
+}
+
 describe('SunriseSunsetCalculator', () => {
   describe('Basic Calculation', () => {
     test('should calculate sunrise/sunset for first day of season', () => {
       const date: CalendarDate = { year: 2024, month: 12, day: 1 };
-      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar);
+      const engine = createMockEngine(gregorianTestCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
       expect(result.sunrise).toBe(7.0); // 07:00
       expect(result.sunset).toBe(16.75); // 16:45
@@ -142,7 +164,8 @@ describe('SunriseSunsetCalculator', () => {
 
     test('should calculate sunrise/sunset for summer', () => {
       const date: CalendarDate = { year: 2024, month: 6, day: 1 };
-      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar);
+      const engine = createMockEngine(gregorianTestCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
       expect(result.sunrise).toBe(5.75); // 05:45
       expect(result.sunset).toBe(20.25); // 20:15
@@ -155,7 +178,8 @@ describe('SunriseSunsetCalculator', () => {
       // Spring starts: sunrise 06:30, sunset 17:45
       // Summer starts: sunrise 05:45, sunset 20:15
       const date: CalendarDate = { year: 2024, month: 4, day: 15 };
-      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar);
+      const engine = createMockEngine(gregorianTestCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
       // Values should be between Spring and Summer
       expect(result.sunrise).toBeLessThan(6.5); // Less than Spring start
@@ -167,7 +191,8 @@ describe('SunriseSunsetCalculator', () => {
     test('should approach next season at end of current season', () => {
       // August 31 - last day of Summer
       const date: CalendarDate = { year: 2024, month: 8, day: 31 };
-      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar);
+      const engine = createMockEngine(gregorianTestCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
       // Should be close to Autumn values
       // Autumn: sunrise 06:30, sunset 19:30
@@ -181,7 +206,8 @@ describe('SunriseSunsetCalculator', () => {
     test('should handle year-crossing season (Winter)', () => {
       // January 15 - middle of Winter (Dec-Feb)
       const date: CalendarDate = { year: 2024, month: 1, day: 15 };
-      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar);
+      const engine = createMockEngine(gregorianTestCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
       // Winter starts: sunrise 07:00, sunset 16:45
       // Spring starts: sunrise 06:30, sunset 17:45
@@ -195,7 +221,8 @@ describe('SunriseSunsetCalculator', () => {
   describe('Default/Fallback Values', () => {
     test('should use default 50/50 day/night split when no sun data', () => {
       const date: CalendarDate = { year: 2024, month: 1, day: 1 };
-      const result = SunriseSunsetCalculator.calculate(date, calendarWithoutSunData);
+      const engine = createMockEngine(calendarWithoutSunData);
+      const result = SunriseSunsetCalculator.calculate(date, calendarWithoutSunData, engine);
 
       // 24-hour day: sunrise at 6:00 (25%), sunset at 18:00 (75%)
       expect(result.sunrise).toBe(6.0);
@@ -204,7 +231,8 @@ describe('SunriseSunsetCalculator', () => {
 
     test('should use default with non-standard day length', () => {
       const date: CalendarDate = { year: 2024, month: 1, day: 1 };
-      const result = SunriseSunsetCalculator.calculate(date, nonStandardDayCalendar);
+      const engine = createMockEngine(nonStandardDayCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, nonStandardDayCalendar, engine);
 
       // 20-hour day: sunrise at 5:00 (25%), sunset at 15:00 (75%)
       expect(result.sunrise).toBe(5.0);
@@ -225,7 +253,8 @@ describe('SunriseSunsetCalculator', () => {
       };
 
       const date: CalendarDate = { year: 2024, month: 1, day: 1 };
-      const result = SunriseSunsetCalculator.calculate(date, calendarWithNamedSeasons);
+      const engine = createMockEngine(calendarWithNamedSeasons);
+      const result = SunriseSunsetCalculator.calculate(date, calendarWithNamedSeasons, engine);
 
       // Should match Gregorian Winter values
       expect(result.sunrise).toBe(7.0); // 07:00
@@ -261,7 +290,8 @@ describe('SunriseSunsetCalculator', () => {
       };
 
       const date: CalendarDate = { year: 2024, month: 1, day: 1 };
-      const result = SunriseSunsetCalculator.calculate(date, calendarNoSeasons);
+      const engine = createMockEngine(calendarNoSeasons);
+      const result = SunriseSunsetCalculator.calculate(date, calendarNoSeasons, engine);
 
       // Should fall back to default
       expect(result.sunrise).toBe(6.0);
@@ -283,7 +313,8 @@ describe('SunriseSunsetCalculator', () => {
       };
 
       const date: CalendarDate = { year: 2024, month: 6, day: 15 };
-      const result = SunriseSunsetCalculator.calculate(date, singleSeasonCalendar);
+      const engine = createMockEngine(singleSeasonCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, singleSeasonCalendar, engine);
 
       // Should use the season's values without interpolation
       expect(result.sunrise).toBe(5.0);

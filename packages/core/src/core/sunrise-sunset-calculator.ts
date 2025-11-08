@@ -23,13 +23,13 @@ export class SunriseSunsetCalculator {
    * Calculate sunrise and sunset times for a given date
    * @param date - The date to calculate times for
    * @param calendar - The calendar definition
-   * @param engine - Optional CalendarEngine instance for accurate year-length calculations
+   * @param engine - CalendarEngine instance for accurate year-length calculations
    * @returns Object with sunrise and sunset as hour decimal values (e.g., 6.5 = 6:30)
    */
   static calculate(
     date: CalendarDateData,
     calendar: SeasonsStarsCalendar,
-    engine?: CalendarEngineInterface | null
+    engine: CalendarEngineInterface
   ): { sunrise: number; sunset: number } {
     if (!calendar.seasons || calendar.seasons.length === 0) {
       return this.getDefaultTimes(calendar);
@@ -160,7 +160,7 @@ export class SunriseSunsetCalculator {
     currentSeason: CalendarSeason,
     nextSeason: CalendarSeason,
     calendar: SeasonsStarsCalendar,
-    engine?: CalendarEngineInterface | null
+    engine: CalendarEngineInterface
   ): number {
     // Calculate total days in the season
     const seasonStartDay = this.seasonStartToDayOfYear(currentSeason, calendar, engine, date.year);
@@ -172,7 +172,7 @@ export class SunriseSunsetCalculator {
       totalDaysInSeason = seasonEndDay - seasonStartDay;
     } else {
       // Year-crossing season
-      const daysInYear = engine ? engine.getYearLength(date.year) : this.getDaysInYear(calendar);
+      const daysInYear = engine.getYearLength(date.year);
       totalDaysInSeason = daysInYear - seasonStartDay + seasonEndDay;
     }
 
@@ -182,7 +182,7 @@ export class SunriseSunsetCalculator {
       daysIntoSeason = currentDay - seasonStartDay;
     } else {
       // We're in a year-crossing season and past the year boundary
-      const daysInYear = engine ? engine.getYearLength(date.year) : this.getDaysInYear(calendar);
+      const daysInYear = engine.getYearLength(date.year);
       daysIntoSeason = daysInYear - seasonStartDay + currentDay;
     }
 
@@ -196,7 +196,7 @@ export class SunriseSunsetCalculator {
   private static seasonStartToDayOfYear(
     season: CalendarSeason,
     calendar: SeasonsStarsCalendar,
-    engine?: CalendarEngineInterface | null,
+    engine: CalendarEngineInterface,
     year?: number
   ): number {
     const startMonth = season.startMonth;
@@ -211,72 +211,52 @@ export class SunriseSunsetCalculator {
 
   /**
    * Convert a date to day-of-year (1-based)
-   * Uses CalendarEngine when available to properly account for intercalary days
+   * Uses CalendarEngine to properly account for intercalary days
    */
   private static dateToDayOfYear(
     date: CalendarDateData,
     calendar: SeasonsStarsCalendar,
-    engine?: CalendarEngineInterface | null
+    engine: CalendarEngineInterface
   ): number {
     if (!calendar.months) {
       return date.day;
     }
 
-    if (engine) {
-      // Use engine for accurate calculation including intercalary days
-      const monthLengths = engine.getMonthLengths(date.year);
-      const intercalaryDays = calendar.intercalary || [];
+    // Use engine for accurate calculation including intercalary days
+    const monthLengths = engine.getMonthLengths(date.year);
+    const intercalaryDays = calendar.intercalary || [];
 
-      let dayOfYear = 0;
+    let dayOfYear = 0;
 
-      // Add days from complete months
-      for (let m = 1; m < date.month; m++) {
-        dayOfYear += monthLengths[m - 1];
+    // Add days from complete months
+    for (let m = 1; m < date.month; m++) {
+      dayOfYear += monthLengths[m - 1];
 
-        // Add intercalary days after each complete month
-        const monthName = calendar.months[m - 1]?.name;
-        if (monthName) {
-          const intercalaryAfter = intercalaryDays.filter(i => i.after === monthName);
-          for (const intercalary of intercalaryAfter) {
-            if (!intercalary.leapYearOnly || engine.isLeapYear(date.year)) {
-              dayOfYear += intercalary.days || 1;
-            }
-          }
-        }
-      }
-
-      // Add intercalary days before current month
-      const currentMonthName = calendar.months[date.month - 1]?.name;
-      if (currentMonthName) {
-        const intercalaryBefore = intercalaryDays.filter(i => i.before === currentMonthName);
-        for (const intercalary of intercalaryBefore) {
+      // Add intercalary days after each complete month
+      const monthName = calendar.months[m - 1]?.name;
+      if (monthName) {
+        const intercalaryAfter = intercalaryDays.filter(i => i.after === monthName);
+        for (const intercalary of intercalaryAfter) {
           if (!intercalary.leapYearOnly || engine.isLeapYear(date.year)) {
             dayOfYear += intercalary.days || 1;
           }
         }
       }
-
-      dayOfYear += date.day;
-      return dayOfYear;
     }
 
-    // Fallback: simple month-day calculation (doesn't include intercalary days)
-    let dayOfYear = 0;
-    for (let m = 1; m < date.month; m++) {
-      dayOfYear += calendar.months[m - 1]?.days ?? 30;
+    // Add intercalary days before current month
+    const currentMonthName = calendar.months[date.month - 1]?.name;
+    if (currentMonthName) {
+      const intercalaryBefore = intercalaryDays.filter(i => i.before === currentMonthName);
+      for (const intercalary of intercalaryBefore) {
+        if (!intercalary.leapYearOnly || engine.isLeapYear(date.year)) {
+          dayOfYear += intercalary.days || 1;
+        }
+      }
     }
+
     dayOfYear += date.day;
     return dayOfYear;
-  }
-
-  /**
-   * Get total days in a year for the calendar
-   */
-  private static getDaysInYear(calendar: SeasonsStarsCalendar): number {
-    if (!calendar.months) {
-      return 365;
-    }
-    return calendar.months.reduce((sum, month) => sum + (month.days ?? 30), 0);
   }
 
   /**

@@ -1599,6 +1599,12 @@ export function setupAPI(): void {
           ? calendarManager.engines.get(calendarId)
           : calendarManager.engines.get(calendar.id);
 
+        if (!engine) {
+          const error = new Error('Calendar engine not available');
+          Logger.error('Calendar engine required for sunrise/sunset calculation', error);
+          throw error;
+        }
+
         // Calculate sunrise/sunset using the calculator
         const result = SunriseSunsetCalculator.calculate(date, calendar, engine);
         Logger.api('getSunriseSunset', { date, calendarId }, result);

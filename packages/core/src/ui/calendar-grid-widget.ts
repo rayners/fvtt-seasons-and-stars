@@ -470,6 +470,9 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Add sunrise/sunset
       try {
         const engine = manager.getActiveEngine();
+        if (!engine) {
+          throw new Error('Calendar engine not available');
+        }
         const sunriseSunset = SunriseSunsetCalculator.calculate(
           dayDate.toObject(),
           calendar,

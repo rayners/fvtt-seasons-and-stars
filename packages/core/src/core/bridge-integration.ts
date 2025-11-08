@@ -440,6 +440,10 @@ class IntegrationAPI {
       ? this.manager.engines.get(calendarId)
       : this.manager.engines.get(calendar.id);
 
+    if (!engine) {
+      throw new Error('Calendar engine not available');
+    }
+
     const times = SunriseSunsetCalculator.calculate(date, calendar, engine);
     return {
       sunrise: times.sunrise,

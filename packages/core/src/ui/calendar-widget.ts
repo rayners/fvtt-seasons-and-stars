@@ -184,6 +184,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     let sunsetString = '';
     try {
       const engine = manager.getActiveEngine();
+      if (!engine) {
+        throw new Error('Calendar engine not available');
+      }
       const sunriseSunset = SunriseSunsetCalculator.calculate(
         currentDate.toObject(),
         activeCalendar,
