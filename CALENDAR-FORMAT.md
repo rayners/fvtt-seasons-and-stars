@@ -161,7 +161,6 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 | `canonicalHours` | array  | ❌       | Named time periods (e.g., matins, vespers)                 |
 | `events`         | array  | ❌       | Calendar events (holidays, festivals, recurring occasions) |
 | `variants`       | object | ❌       | Calendar variant definitions                               |
-| `compatibility`  | object | ❌       | System-specific compatibility adjustments                  |
 | `extensions`     | object | ❌       | Module-specific extensions and custom data                 |
 | `baseCalendar`   | string | ❌       | ID of base calendar this calendar extends                  |
 | `name`           | string | ❌       | Human-readable name for calendar collection                |
@@ -554,8 +553,8 @@ For any named format, you can define an `-intercalary` variant that automaticall
 | -------------- | ------ | -------- | -------------------------------------- |
 | `name`         | string | ✅       | Full moon name                         |
 | `cycleLength`  | number | ✅       | Length of full lunar cycle in days     |
-| `firstNewMoon` | object | ❌       | Reference date for first new moon      |
-| `phases`       | array  | ❌       | Array of moon phase definitions        |
+| `firstNewMoon` | object | ✅       | Reference date for first new moon      |
+| `phases`       | array  | ✅       | Array of moon phase definitions        |
 | `color`        | string | ❌       | Hex color code for moon identification |
 
 #### First New Moon Object
@@ -572,8 +571,8 @@ For any named format, you can define an `-intercalary` variant that automaticall
 | ----------- | ------- | -------- | ------------------------------------- |
 | `name`      | string  | ✅       | Name of the phase (e.g., "Full Moon") |
 | `length`    | number  | ✅       | Duration of this phase in days        |
-| `singleDay` | boolean | ❌       | Whether this is a single-day phase    |
-| `icon`      | string  | ❌       | Icon identifier for UI display        |
+| `singleDay` | boolean | ✅       | Whether this is a single-day phase    |
+| `icon`      | string  | ✅       | Icon identifier for UI display        |
 
 ## Format Examples
 
@@ -864,8 +863,8 @@ For calendars with lunar cycles, add moon definitions with phase tracking:
 - Months: `name`, `days` (or `length`)
 - Weekdays: `name`
 - Intercalary: `name`, (`after` OR `before`)
-- Moons: `name`, `cycleLength`
-- Moon Phases: `name`, `length`
+- Moons: `name`, `cycleLength`, `firstNewMoon`, `phases`
+- Moon Phases: `name`, `length`, `singleDay`, `icon`
 - Canonical Hours: `name`, `startHour`, `endHour`
 - Events: `id`, `name`, `recurrence`
 
