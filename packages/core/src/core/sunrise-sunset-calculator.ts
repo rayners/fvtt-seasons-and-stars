@@ -36,7 +36,7 @@ export class SunriseSunsetCalculator {
     }
 
     // Find current season and next season
-    const currentSeasonIndex = this.findSeasonIndex(date, calendar.seasons);
+    const currentSeasonIndex = this.findSeasonIndex(date, calendar.seasons, calendar);
     if (currentSeasonIndex === -1) {
       return this.getDefaultTimes(calendar);
     }
@@ -68,9 +68,13 @@ export class SunriseSunsetCalculator {
   /**
    * Find the index of the season that contains the given date
    */
-  private static findSeasonIndex(date: CalendarDateData, seasons: CalendarSeason[]): number {
+  private static findSeasonIndex(
+    date: CalendarDateData,
+    seasons: CalendarSeason[],
+    calendar: SeasonsStarsCalendar
+  ): number {
     for (let i = 0; i < seasons.length; i++) {
-      if (this.isDateInSeason(date, seasons[i])) {
+      if (this.isDateInSeason(date, seasons[i], calendar)) {
         return i;
       }
     }
@@ -80,13 +84,17 @@ export class SunriseSunsetCalculator {
   /**
    * Check if a date falls within a season
    */
-  private static isDateInSeason(date: CalendarDateData, season: CalendarSeason): boolean {
+  private static isDateInSeason(
+    date: CalendarDateData,
+    season: CalendarSeason,
+    calendar?: SeasonsStarsCalendar
+  ): boolean {
     const month = date.month;
     const day = date.day;
     const startMonth = season.startMonth;
     const endMonth = season.endMonth ?? season.startMonth;
     const startDay = season.startDay ?? 1;
-    const endDay = season.endDay ?? 31; // Simplified - actual endDay will be validated by caller
+    const endDay = season.endDay ?? calendar?.months?.[endMonth - 1]?.days ?? 31;
 
     // Year-crossing season (e.g., Winter: Dec-Feb)
     if (startMonth > endMonth) {
