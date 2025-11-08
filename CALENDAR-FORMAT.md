@@ -432,6 +432,62 @@ For any named format, you can define an `-intercalary` variant that automaticall
 - `"direct"`: Direct worldTime mapping
 - `"custom"`: Custom transformation (requires `transform` object)
 
+### Seasons
+
+> Optional – defines seasonal periods within the calendar year with optional sunrise/sunset data.
+
+| Field        | Type   | Required | Description                                                          |
+| ------------ | ------ | -------- | -------------------------------------------------------------------- |
+| `name`       | string | ✅       | Name of the season                                                   |
+| `startMonth` | number | ✅       | Starting month of the season (1-based)                               |
+| `startDay`   | number | ❌       | Starting day within startMonth (1-based, defaults to 1)              |
+| `endMonth`   | number | ✅       | Ending month of the season (1-based)                                 |
+| `endDay`     | number | ❌       | Ending day within endMonth (1-based, defaults to last day of month)  |
+| `icon`       | string | ❌       | Icon identifier for the season                                       |
+| `description`| string | ❌       | Description of the season                                            |
+| `sunrise`    | string | ❌       | Sunrise time on first day of season in 24-hour format (HH:MM)        |
+| `sunset`     | string | ❌       | Sunset time on first day of season in 24-hour format (HH:MM)         |
+
+**Sunrise/Sunset Behavior:**
+
+When `sunrise` and `sunset` are specified for seasons:
+- Values represent the sunrise/sunset times on the **first day** of that season
+- Times are interpolated throughout the season to the next season's values
+- Progress through the season determines interpolation (0% = current season, 100% = next season)
+- If not specified, the system attempts to match season names with Gregorian defaults
+- Final fallback is 50/50 day/night split (sunrise at 25% of day, sunset at 75%)
+
+**Example:**
+
+```json
+"seasons": [
+  {
+    "name": "Winter",
+    "startMonth": 12,
+    "endMonth": 2,
+    "icon": "winter",
+    "description": "The cold season when days are short",
+    "sunrise": "07:00",
+    "sunset": "16:45"
+  },
+  {
+    "name": "Spring",
+    "startMonth": 3,
+    "endMonth": 5,
+    "icon": "spring",
+    "description": "The season of renewal",
+    "sunrise": "06:30",
+    "sunset": "17:45"
+  }
+]
+```
+
+**Notes:**
+- Seasons can span year boundaries (e.g., Winter from December to February)
+- Sunrise/sunset times use 24-hour format for consistency
+- Times are displayed in widgets and day tooltips across the UI
+- Reference the Gregorian calendar for Baltimore, MD values as a guide
+
 ### Canonical Hours
 
 > Optional – defines named time periods within a day (e.g., liturgical hours, watch periods).
@@ -871,7 +927,7 @@ For calendars with lunar cycles, add moon definitions with phase tracking:
 - Moon Phases: `name`, `length`, `singleDay`, `icon` (runtime requirement)
 - Canonical Hours: `name`, `startHour`, `endHour`
 - Events: `id`, `name`, `recurrence`
-- Seasons: `name`, `startMonth`, `endMonth` (schema requirement)
+- Seasons: `name`, `startMonth`, `endMonth` (schema requirement); `sunrise`, `sunset` (optional)
 
 **Note**: Some fields marked as optional in the JSON schema are required by the runtime code and must be present for calendars to function correctly.
 

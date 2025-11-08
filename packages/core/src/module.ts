@@ -43,6 +43,7 @@ import type {
   CalendarSourceInfo,
 } from './types/calendar';
 import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
+import { SunriseSunsetCalculator } from './core/sunrise-sunset-calculator';
 
 // Import integrations (they register their own hooks independently)
 // PF2e integration moved to separate pf2e-pack module
@@ -680,6 +681,18 @@ function registerSettings(): void {
     default: true,
     onChange: () => {
       Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowMoonPhases');
+    },
+  });
+
+  game.settings.register('seasons-and-stars', 'miniWidgetShowSunriseSunset', {
+    name: 'Display Sunrise/Sunset in Mini Widget',
+    hint: 'Show sunrise and sunset times for the current date',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowSunriseSunset');
     },
   });
 
@@ -1571,9 +1584,19 @@ export function setupAPI(): void {
           throw error;
         }
 
-        // Basic implementation - can be enhanced with calendar-specific data later
-        // For now, return reasonable defaults (6 AM sunrise, 6 PM sunset)
-        const result = { sunrise: 6, sunset: 18 };
+        // Get the calendar
+        const calendar = calendarId
+          ? calendarManager.getCalendar(calendarId)
+          : calendarManager.getActiveCalendar();
+
+        if (!calendar) {
+          const result = { sunrise: 6, sunset: 18 };
+          Logger.api('getSunriseSunset', { date, calendarId }, result);
+          return result;
+        }
+
+        // Calculate sunrise/sunset using the calculator
+        const result = SunriseSunsetCalculator.calculate(date, calendar);
         Logger.api('getSunriseSunset', { date, calendarId }, result);
         return result;
       } catch (error) {

@@ -10,6 +10,7 @@ import { TimeAdvancementService } from '../core/time-advancement-service';
 import { SidebarButtonRegistry } from './sidebar-button-registry';
 import { loadButtonsFromRegistry } from './sidebar-button-mixin';
 import { MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
+import { SunriseSunsetCalculator } from '../core/sunrise-sunset-calculator';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import type { MoonPhaseInfo } from '../types/calendar';
 import type { MainWidgetContext } from '../types/widget-types';
@@ -178,6 +179,17 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       Logger.debug('Failed to get moon phase data for calendar widget', error);
     }
 
+    // Get sunrise/sunset times
+    let sunriseString = '';
+    let sunsetString = '';
+    try {
+      const sunriseSunset = SunriseSunsetCalculator.calculate(currentDate.toObject(), activeCalendar);
+      sunriseString = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunrise);
+      sunsetString = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunset);
+    } catch (error) {
+      Logger.debug('Failed to calculate sunrise/sunset for calendar widget', error);
+    }
+
     const mainContext = Object.assign(context, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
@@ -202,6 +214,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       playPauseButtonText: playPauseButtonText,
       // Moon phase data
       moonPhases: moonPhases,
+      // Sunrise/sunset data
+      sunrise: sunriseString,
+      sunset: sunsetString,
     }) as MainWidgetContext;
 
     // Cache context for use in _attachPartListeners

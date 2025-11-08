@@ -148,28 +148,36 @@
       "startMonth": 12,
       "endMonth": 2,
       "icon": "winter",
-      "description": "The cold season in the northern hemisphere when days are short and temperatures are low."
+      "description": "The cold season in the northern hemisphere when days are short and temperatures are low.",
+      "sunrise": "07:00",
+      "sunset": "16:45"
     },
     {
       "name": "Spring",
       "startMonth": 3,
       "endMonth": 5,
       "icon": "spring",
-      "description": "The season of renewal when plants begin to grow and temperatures warm."
+      "description": "The season of renewal when plants begin to grow and temperatures warm.",
+      "sunrise": "06:30",
+      "sunset": "17:45"
     },
     {
       "name": "Summer",
       "startMonth": 6,
       "endMonth": 8,
       "icon": "summer",
-      "description": "The warmest season with long days and high temperatures in the northern hemisphere."
+      "description": "The warmest season with long days and high temperatures in the northern hemisphere.",
+      "sunrise": "05:45",
+      "sunset": "20:15"
     },
     {
       "name": "Autumn",
       "startMonth": 9,
       "endMonth": 11,
       "icon": "fall",
-      "description": "The harvest season when leaves change color and temperatures begin to cool."
+      "description": "The harvest season when leaves change color and temperatures begin to cool.",
+      "sunrise": "06:30",
+      "sunset": "19:30"
     }
   ],
   "time": {

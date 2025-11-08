@@ -606,6 +606,16 @@
             "type": "string",
             "maxLength": 500,
             "description": "Description of the season"
+          },
+          "sunrise": {
+            "type": "string",
+            "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
+            "description": "Sunrise time on the first day of the season in 24-hour format (HH:MM)"
+          },
+          "sunset": {
+            "type": "string",
+            "pattern": "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$",
+            "description": "Sunset time on the first day of the season in 24-hour format (HH:MM)"
           }
         }
       }

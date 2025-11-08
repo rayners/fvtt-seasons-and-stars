@@ -23,6 +23,15 @@
 
     <div data-application-part="moonPhases"></div>
 
+    {{#if (and showSunriseSunset sunrise)}}
+      <div class="mini-sun-row">
+        <span class="mini-sun-info">
+          <i class="fas fa-sunrise"></i> {{sunrise}}
+          <i class="fas fa-sunset"></i> {{sunset}}
+        </span>
+      </div>
+    {{/if}}
+
     {{#if (or showTimeControls sidebarButtons.length)}}
       <div class="mini-footer-row{{#unless showTimeControls}} mini-footer-row--no-quick{{/unless}}">
         {{#if showTimeControls}}

@@ -28,6 +28,7 @@ import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
 import { CalendarWidgetManager } from '../ui/widget-manager';
 import { SidebarButtonRegistry } from '../ui/sidebar-button-registry';
+import { SunriseSunsetCalculator } from './sunrise-sunset-calculator';
 import type { WidgetType } from '../types/widget-types';
 import { Logger } from './logger';
 
@@ -422,11 +423,23 @@ class IntegrationAPI {
     return calendar.weekdays.map(weekday => weekday.name);
   }
 
-  getSunriseSunset(_date: CalendarDate, _calendarId?: string): TimeOfDay {
-    // Default implementation - can be enhanced with calendar-specific data
+  getSunriseSunset(date: CalendarDate, calendarId?: string): TimeOfDay {
+    const calendar = calendarId
+      ? this.manager.getCalendar(calendarId)
+      : this.manager.getActiveCalendar();
+
+    if (!calendar) {
+      // Fallback to default times
+      return {
+        sunrise: 6,
+        sunset: 18,
+      };
+    }
+
+    const times = SunriseSunsetCalculator.calculate(date, calendar);
     return {
-      sunrise: 6, // 6 AM
-      sunset: 18, // 6 PM
+      sunrise: times.sunrise,
+      sunset: times.sunset,
     };
   }
 

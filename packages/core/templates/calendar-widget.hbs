@@ -32,6 +32,14 @@
           <span class="time">{{timeString}}</span>
         </div>
       {{/if}}
+      {{#if sunrise}}
+        <div class="sun-display">
+          <span class="sun-info">
+            <i class="fas fa-sunrise"></i> {{sunrise}}
+            <i class="fas fa-sunset"></i> {{sunset}}
+          </span>
+        </div>
+      {{/if}}
       <div data-application-part="moonPhases"></div>
     </div>
 

@@ -1,0 +1,250 @@
+import type { CalendarDate, CalendarSeason, SeasonsStarsCalendar } from '../types/calendar';
+
+/**
+ * Utility class for calculating sunrise and sunset times based on calendar seasons.
+ * Handles interpolation between seasons and provides defaults when data is not available.
+ */
+export class SunriseSunsetCalculator {
+  /**
+   * Default sunrise/sunset times from Gregorian calendar (Baltimore, MD reference)
+   * These are used as fallbacks for matching season names in other calendars
+   */
+  private static readonly GREGORIAN_DEFAULTS: Record<
+    string,
+    { sunrise: string; sunset: string }
+  > = {
+    Winter: { sunrise: '07:00', sunset: '16:45' },
+    Spring: { sunrise: '06:30', sunset: '17:45' },
+    Summer: { sunrise: '05:45', sunset: '20:15' },
+    Autumn: { sunrise: '06:30', sunset: '19:30' },
+    Fall: { sunrise: '06:30', sunset: '19:30' }, // Alias for Autumn
+  };
+
+  /**
+   * Calculate sunrise and sunset times for a given date
+   * @param date - The date to calculate times for
+   * @param calendar - The calendar definition
+   * @returns Object with sunrise and sunset as hour decimal values (e.g., 6.5 = 6:30)
+   */
+  static calculate(
+    date: CalendarDate,
+    calendar: SeasonsStarsCalendar
+  ): { sunrise: number; sunset: number } {
+    if (!calendar.seasons || calendar.seasons.length === 0) {
+      return this.getDefaultTimes(calendar);
+    }
+
+    // Find current season and next season
+    const currentSeasonIndex = this.findSeasonIndex(date, calendar);
+    if (currentSeasonIndex === -1) {
+      return this.getDefaultTimes(calendar);
+    }
+
+    const currentSeason = calendar.seasons[currentSeasonIndex];
+    const nextSeasonIndex = (currentSeasonIndex + 1) % calendar.seasons.length;
+    const nextSeason = calendar.seasons[nextSeasonIndex];
+
+    // Get sunrise/sunset for current and next season
+    const currentTimes = this.getSeasonTimes(currentSeason, calendar);
+    const nextTimes = this.getSeasonTimes(nextSeason, calendar);
+
+    // Calculate progress through the season (0 = first day, 1 = last day)
+    const progress = this.calculateSeasonProgress(date, currentSeason, nextSeason, calendar);
+
+    // Interpolate between current and next season
+    return {
+      sunrise: this.interpolate(currentTimes.sunrise, nextTimes.sunrise, progress),
+      sunset: this.interpolate(currentTimes.sunset, nextTimes.sunset, progress),
+    };
+  }
+
+  /**
+   * Find the index of the season that contains the given date
+   */
+  private static findSeasonIndex(date: CalendarDate, calendar: SeasonsStarsCalendar): number {
+    for (let i = 0; i < calendar.seasons.length; i++) {
+      if (this.isDateInSeason(date, calendar.seasons[i], calendar)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Check if a date falls within a season
+   */
+  private static isDateInSeason(
+    date: CalendarDate,
+    season: CalendarSeason,
+    calendar: SeasonsStarsCalendar
+  ): boolean {
+    const month = date.month;
+    const day = date.day;
+    const startMonth = season.startMonth;
+    const endMonth = season.endMonth ?? season.startMonth;
+    const startDay = season.startDay ?? 1;
+    const endDay = season.endDay ?? (calendar.months?.[endMonth - 1]?.days ?? 31);
+
+    // Year-crossing season (e.g., Winter: Dec-Feb)
+    if (startMonth > endMonth) {
+      return (
+        month > startMonth ||
+        month < endMonth ||
+        (month === startMonth && day >= startDay) ||
+        (month === endMonth && day <= endDay)
+      );
+    }
+
+    // Regular season
+    if (month < startMonth || month > endMonth) {
+      return false;
+    }
+    if (month === startMonth && day < startDay) {
+      return false;
+    }
+    if (month === endMonth && day > endDay) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Get sunrise/sunset times for a season, with fallbacks
+   */
+  private static getSeasonTimes(
+    season: CalendarSeason,
+    calendar: SeasonsStarsCalendar
+  ): { sunrise: number; sunset: number } {
+    // If season has explicit times, use them
+    if (season.sunrise && season.sunset) {
+      return {
+        sunrise: this.timeStringToHours(season.sunrise),
+        sunset: this.timeStringToHours(season.sunset),
+      };
+    }
+
+    // Try to match with Gregorian defaults by season name
+    const defaultTimes = this.GREGORIAN_DEFAULTS[season.name];
+    if (defaultTimes) {
+      return {
+        sunrise: this.timeStringToHours(defaultTimes.sunrise),
+        sunset: this.timeStringToHours(defaultTimes.sunset),
+      };
+    }
+
+    // Fallback to default 50/50 day/night split
+    return this.getDefaultTimes(calendar);
+  }
+
+  /**
+   * Get default sunrise/sunset times (50% day, 50% night)
+   */
+  private static getDefaultTimes(calendar: SeasonsStarsCalendar): {
+    sunrise: number;
+    sunset: number;
+  } {
+    const hoursInDay = calendar.time?.hoursInDay ?? 24;
+    const sunrise = hoursInDay / 4; // 25% through the day
+    const sunset = (hoursInDay * 3) / 4; // 75% through the day
+    return { sunrise, sunset };
+  }
+
+  /**
+   * Calculate how far through the current season we are (0 = first day, 1 = last day)
+   */
+  private static calculateSeasonProgress(
+    date: CalendarDate,
+    currentSeason: CalendarSeason,
+    nextSeason: CalendarSeason,
+    calendar: SeasonsStarsCalendar
+  ): number {
+    // Calculate total days in the season
+    const seasonStartDay = this.seasonStartToDayOfYear(currentSeason, calendar);
+    const seasonEndDay = this.seasonStartToDayOfYear(nextSeason, calendar);
+    const currentDay = this.dateToDayOfYear(date, calendar);
+
+    let totalDaysInSeason: number;
+    if (seasonEndDay > seasonStartDay) {
+      totalDaysInSeason = seasonEndDay - seasonStartDay;
+    } else {
+      // Year-crossing season
+      const daysInYear = this.getDaysInYear(calendar);
+      totalDaysInSeason = daysInYear - seasonStartDay + seasonEndDay;
+    }
+
+    // Calculate days into the season
+    let daysIntoSeason: number;
+    if (currentDay >= seasonStartDay) {
+      daysIntoSeason = currentDay - seasonStartDay;
+    } else {
+      // We're in a year-crossing season and past the year boundary
+      const daysInYear = this.getDaysInYear(calendar);
+      daysIntoSeason = daysInYear - seasonStartDay + currentDay;
+    }
+
+    // Return progress as a value between 0 and 1
+    return totalDaysInSeason > 0 ? daysIntoSeason / totalDaysInSeason : 0;
+  }
+
+  /**
+   * Convert a season's start to day-of-year
+   */
+  private static seasonStartToDayOfYear(
+    season: CalendarSeason,
+    calendar: SeasonsStarsCalendar
+  ): number {
+    const startMonth = season.startMonth;
+    const startDay = season.startDay ?? 1;
+    return this.dateToDayOfYear({ year: 1, month: startMonth, day: startDay }, calendar);
+  }
+
+  /**
+   * Convert a date to day-of-year (1-based)
+   */
+  private static dateToDayOfYear(date: CalendarDate, calendar: SeasonsStarsCalendar): number {
+    if (!calendar.months) {
+      return date.day;
+    }
+
+    let dayOfYear = 0;
+    for (let m = 1; m < date.month; m++) {
+      dayOfYear += calendar.months[m - 1]?.days ?? 30;
+    }
+    dayOfYear += date.day;
+    return dayOfYear;
+  }
+
+  /**
+   * Get total days in a year for the calendar
+   */
+  private static getDaysInYear(calendar: SeasonsStarsCalendar): number {
+    if (!calendar.months) {
+      return 365;
+    }
+    return calendar.months.reduce((sum, month) => sum + (month.days ?? 30), 0);
+  }
+
+  /**
+   * Convert time string (HH:MM) to hours as decimal
+   */
+  private static timeStringToHours(timeStr: string): number {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours + (minutes || 0) / 60;
+  }
+
+  /**
+   * Linear interpolation between two values
+   */
+  private static interpolate(start: number, end: number, progress: number): number {
+    return start + (end - start) * progress;
+  }
+
+  /**
+   * Convert hours as decimal to time string (HH:MM)
+   */
+  static hoursToTimeString(hours: number): string {
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  }
+}

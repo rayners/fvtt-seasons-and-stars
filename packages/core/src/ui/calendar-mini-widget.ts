@@ -15,6 +15,7 @@ import {
   hasSidebarButton as registryHasSidebarButton,
   loadButtonsFromRegistry,
 } from './sidebar-button-mixin';
+import { SunriseSunsetCalculator } from '../core/sunrise-sunset-calculator';
 import type { MiniWidgetContext, WidgetRenderOptions } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import type { MoonPhaseInfo } from '../types/calendar';
@@ -186,6 +187,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const showMoonPhases =
       game.settings?.get('seasons-and-stars', 'miniWidgetShowMoonPhases') ?? true;
 
+    // Check if sunrise/sunset should be displayed
+    const showSunriseSunset =
+      game.settings?.get('seasons-and-stars', 'miniWidgetShowSunriseSunset') ?? true;
+
     // Check if extension buttons should be displayed
     const showExtensions =
       game.settings?.get('seasons-and-stars', 'miniWidgetShowExtensions') ?? true;
@@ -229,6 +234,19 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     }
 
+    // Get sunrise/sunset times if enabled
+    let sunriseString = '';
+    let sunsetString = '';
+    if (showSunriseSunset) {
+      try {
+        const sunriseSunset = SunriseSunsetCalculator.calculate(currentDate.toObject(), activeCalendar);
+        sunriseString = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunrise);
+        sunsetString = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunset);
+      } catch (error) {
+        Logger.debug('Failed to calculate sunrise/sunset for mini widget', error);
+      }
+    }
+
     // Load sidebar buttons and filter based on showExtensions setting
     const sidebarButtons = showExtensions ? loadButtonsFromRegistry('mini') : [];
 
@@ -257,6 +275,9 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       sidebarButtons: sidebarButtons,
       showMoonPhases: showMoonPhases,
       moonPhases: moonPhases,
+      showSunriseSunset: showSunriseSunset,
+      sunrise: sunriseString,
+      sunset: sunsetString,
     }) as MiniWidgetContext;
   }
 
@@ -599,6 +620,16 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           await game.settings?.set('seasons-and-stars', 'miniWidgetShowMoonPhases', !currentValue);
           await this.render();
         },
+      },
+      {
+        name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_sunrise_sunset'),
+        icon: '<i class="fas fa-sun"></i>',
+        callback: async () => {
+          const currentValue =
+            game.settings?.get('seasons-and-stars', 'miniWidgetShowSunriseSunset') !== false;
+          await game.settings?.set('seasons-and-stars', 'miniWidgetShowSunriseSunset', !currentValue);
+          await this.render();
+        },
       }
     );
 
@@ -823,6 +854,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           settingName === 'miniWidgetShowDayOfWeek' ||
           settingName === 'miniWidgetCanonicalMode' ||
           settingName === 'miniWidgetShowMoonPhases' ||
+          settingName === 'miniWidgetShowSunriseSunset' ||
           settingName === 'miniWidgetShowExtensions' ||
           settingName === 'alwaysShowQuickTimeButtons') &&
         CalendarMiniWidget.activeInstance?.rendered

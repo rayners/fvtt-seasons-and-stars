@@ -14,6 +14,7 @@ import {
   loadButtonsFromRegistry,
 } from './sidebar-button-mixin';
 import { CreateNoteWindow } from './create-note-window';
+import { SunriseSunsetCalculator } from '../core/sunrise-sunset-calculator';
 import type {
   CalendarDate as ICalendarDate,
   CalendarDateData,
@@ -464,6 +465,19 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Add moon phases
       if (moonTooltip) {
         tooltipParts.push(moonTooltip);
+      }
+
+      // Add sunrise/sunset
+      try {
+        const sunriseSunset = SunriseSunsetCalculator.calculate(dayDate.toObject(), calendar);
+        const sunriseStr = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunrise);
+        const sunsetStr = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunset);
+        tooltipParts.push(
+          `<span style="white-space: nowrap;"><i class="fas fa-sunrise"></i> ${sunriseStr} <i class="fas fa-sunset"></i> ${sunsetStr}</span>`
+        );
+      } catch (error) {
+        // Silently handle sunrise/sunset calculation errors
+        console.debug('Error calculating sunrise/sunset for date:', dayDate, error);
       }
 
       // Add click instruction (all days are clickable)

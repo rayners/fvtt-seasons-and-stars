@@ -98,6 +98,7 @@
         "toggle_time": "Toggle Time",
         "toggle_weekday": "Toggle Weekday",
         "toggle_moon_phases": "Toggle Moon Phases",
+        "toggle_sunrise_sunset": "Toggle Sunrise/Sunset",
         "toggle_time_controls": "Toggle Time Controls",
         "toggle_extensions": "Toggle Extension Buttons",
         "toggle_pin": "Toggle Pin"
