@@ -11,6 +11,12 @@ import { CalendarWidget } from '../src/ui/calendar-widget';
 import { CalendarManager } from '../src/core/calendar-manager';
 import { CalendarDate } from '../src/core/calendar-date';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import {
+  createMockGame,
+  createMockHooks,
+  createMockUI,
+  createMockUser,
+} from './test-helpers/foundry-mocks';
 
 // Mock TimeAdvancementService to avoid initialization logic
 vi.mock('../src/core/time-advancement-service', () => ({
@@ -19,40 +25,10 @@ vi.mock('../src/core/time-advancement-service', () => ({
   },
 }));
 
-// Mock Foundry globals
-const mockSettings = new Map();
-global.game = {
-  settings: {
-    get: vi.fn((module: string, key: string) => mockSettings.get(`${module}.${key}`)),
-    set: vi.fn((module: string, key: string, value: unknown) => {
-      mockSettings.set(`${module}.${key}`, value);
-    }),
-  },
-  user: { isGM: true },
-  system: { id: 'generic' },
-  time: {
-    worldTime: 0,
-    advance: vi.fn(async (delta: number) => {
-      global.game.time!.worldTime += delta;
-    }),
-  },
-  seasonsStars: {} as any,
-} as any;
-
-global.Hooks = {
-  on: vi.fn(),
-  callAll: vi.fn(),
-  call: vi.fn(),
-  off: vi.fn(),
-} as any;
-
-global.ui = {
-  notifications: {
-    warn: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-  },
-} as any;
+// Mock Foundry globals with proper types
+global.game = createMockGame();
+global.Hooks = createMockHooks();
+global.ui = createMockUI();
 
 describe('CalendarWidget - Sunrise/Sunset Button Functionality', () => {
   let widget: CalendarWidget;
@@ -62,7 +38,7 @@ describe('CalendarWidget - Sunrise/Sunset Button Functionality', () => {
   beforeEach(async () => {
     // Reset game.time
     global.game.time!.worldTime = 0;
-    global.game.user = { isGM: true } as any;
+    global.game.user = createMockUser(true);
     vi.clearAllMocks();
 
     // Create a simple test calendar with explicit sunrise/sunset times
@@ -224,7 +200,7 @@ describe('CalendarWidget - Sunrise/Sunset Button Functionality', () => {
 
   describe('GM permission requirements', () => {
     it('should prevent non-GMs from setting time to sunrise', async () => {
-      global.game.user = { isGM: false } as any;
+      global.game.user = createMockUser(false);
 
       await manager.setCurrentDate(
         new CalendarDate(
@@ -244,7 +220,7 @@ describe('CalendarWidget - Sunrise/Sunset Button Functionality', () => {
     });
 
     it('should prevent non-GMs from setting time to sunset', async () => {
-      global.game.user = { isGM: false } as any;
+      global.game.user = createMockUser(false);
 
       await manager.setCurrentDate(
         new CalendarDate(
@@ -264,7 +240,7 @@ describe('CalendarWidget - Sunrise/Sunset Button Functionality', () => {
     });
 
     it('should allow GMs to set time to sunrise', async () => {
-      global.game.user = { isGM: true } as any;
+      global.game.user = createMockUser(true);
 
       await manager.setCurrentDate(
         new CalendarDate(
@@ -284,7 +260,7 @@ describe('CalendarWidget - Sunrise/Sunset Button Functionality', () => {
     });
 
     it('should allow GMs to set time to sunset', async () => {
-      global.game.user = { isGM: true } as any;
+      global.game.user = createMockUser(true);
 
       await manager.setCurrentDate(
         new CalendarDate(

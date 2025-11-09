@@ -10,41 +10,12 @@ import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
 import { CalendarManager } from '../src/core/calendar-manager';
 import { CalendarDate } from '../src/core/calendar-date';
 import type { SeasonsStarsCalendar } from '../src/types/calendar';
+import { createMockGame, createMockHooks, createMockUI } from './test-helpers/foundry-mocks';
 
-// Mock Foundry globals
-const mockSettings = new Map();
-global.game = {
-  settings: {
-    get: vi.fn((module: string, key: string) => mockSettings.get(`${module}.${key}`)),
-    set: vi.fn((module: string, key: string, value: unknown) => {
-      mockSettings.set(`${module}.${key}`, value);
-    }),
-  },
-  user: { isGM: true },
-  system: { id: 'generic' },
-  time: {
-    worldTime: 0,
-    advance: vi.fn(async (delta: number) => {
-      global.game.time!.worldTime += delta;
-    }),
-  },
-  seasonsStars: {} as any,
-} as any;
-
-global.Hooks = {
-  on: vi.fn(),
-  callAll: vi.fn(),
-  call: vi.fn(),
-  off: vi.fn(),
-} as any;
-
-global.ui = {
-  notifications: {
-    warn: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-  },
-} as any;
+// Mock Foundry globals with proper types
+global.game = createMockGame();
+global.Hooks = createMockHooks();
+global.ui = createMockUI();
 
 describe('CalendarMiniWidget - Sunrise/Sunset Click Functionality', () => {
   let widget: CalendarMiniWidget;

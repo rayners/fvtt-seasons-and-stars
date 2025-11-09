@@ -104,6 +104,10 @@ export class SeasonsStarsIntegration {
   private widgetManager: IntegrationWidgetManager;
   private hookManager: IntegrationHookManager;
 
+  // Explicitly declare public methods for TypeScript visibility
+  public getSunriseSunset!: (date: CalendarDate, calendarId?: string) => TimeOfDay;
+  public getSeasonInfo!: (date: CalendarDate, calendarId?: string) => SeasonInfo;
+
   private constructor(manager: CalendarManagerInterface) {
     this.manager = manager;
     this.widgetManager = new IntegrationWidgetManager();
@@ -1225,3 +1229,6 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     }
   }
 }
+
+// Export the class instance type for use in type annotations
+export type SeasonsStarsIntegrationType = SeasonsStarsIntegration;

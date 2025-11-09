@@ -5,7 +5,7 @@
  */
 
 import type { SeasonsStarsCalendar, CalendarDate, DateFormatOptions } from './calendar';
-import type { CreateNoteData } from './external-integrations';
+import type { CreateNoteData, SeasonInfo } from './external-integrations';
 import type { ValidationResult } from '../core/calendar-validator';
 import type { SidebarButtonConfig, WidgetType } from './widget-types';
 export type { ValidationResult };
@@ -21,6 +21,10 @@ export interface SeasonsStarsIntegration {
   readonly isAvailable: boolean;
   readonly buttonRegistry: SidebarButtonRegistryAPI;
   cleanup(): void;
+
+  // Direct access methods (in addition to api.*)
+  getSunriseSunset(date: CalendarDate, calendarId?: string): { sunrise: number; sunset: number };
+  getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo;
 }
 
 export interface SidebarButtonRegistryAPI {
@@ -52,7 +56,7 @@ export interface SeasonsStarsAPI {
   // Metadata access
   getMonthNames(calendarId?: string): string[];
   getWeekdayNames(calendarId?: string): string[];
-  getSeasonInfo(date: CalendarDate, calendarId?: string): any;
+  getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo;
   getSunriseSunset(date: CalendarDate, calendarId?: string): { sunrise: string; sunset: string };
 
   // Time advancement

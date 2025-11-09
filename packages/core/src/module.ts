@@ -24,7 +24,10 @@ import { CalendarDeprecationDialog } from './ui/calendar-deprecation-dialog';
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
 import { CalendarWidgetManager, WidgetWrapper, type WidgetInstance } from './ui/widget-manager';
-import { SeasonsStarsIntegration } from './core/bridge-integration';
+import {
+  SeasonsStarsIntegration,
+  type SeasonsStarsIntegrationType,
+} from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
 import type { ValidationResult } from './core/calendar-validator';
@@ -1603,9 +1606,32 @@ export function setupAPI(): void {
         }
 
         // Delegate to BridgeIntegration for actual calculation
-        const bridge = calendarManager.getBridgeIntegration();
-        const calendarDate = CalendarDate.fromObject(date);
-        const result = bridge.getSunriseSunset(calendarDate, calendarId);
+        // Access through game.seasonsStars to get the actual class instance
+        // Type assertion needed because foundry-v13-essentials.d.ts has unknown for compatibility
+        const integration = game.seasonsStars?.integration as
+          | SeasonsStarsIntegrationType
+          | null
+          | undefined;
+        if (!integration) {
+          // Fallback to default times if integration not available
+          const result = { sunrise: 6, sunset: 18 };
+          Logger.api('getSunriseSunset', { date, calendarId }, result);
+          return result;
+        }
+
+        // Get calendar for fromObject conversion
+        const calendar = calendarId
+          ? calendarManager.getCalendar(calendarId)
+          : calendarManager.getActiveCalendar();
+
+        if (!calendar) {
+          const result = { sunrise: 6, sunset: 18 };
+          Logger.api('getSunriseSunset', { date, calendarId }, result);
+          return result;
+        }
+
+        const calendarDate = CalendarDate.fromObject(date, calendar);
+        const result = integration.getSunriseSunset(calendarDate, calendarId);
 
         Logger.api('getSunriseSunset', { date, calendarId }, result);
         return result;
@@ -2003,7 +2029,7 @@ export function setupAPI(): void {
     api,
     manager: calendarManager,
     notes: notesManager,
-    integration: SeasonsStarsIntegration.detect() || null,
+    integration: SeasonsStarsIntegration.detect(),
     buttonRegistry: SidebarButtonRegistry.getInstance(),
     widgets: widgetAPI,
     CalendarWidget,
