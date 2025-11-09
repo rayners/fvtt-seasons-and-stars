@@ -1146,7 +1146,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
       // Set time to sunrise (hours are fractional, e.g., 6.5 = 6:30)
       const sunriseHours = Math.floor(sunriseSunset.sunrise);
-      const sunriseMinutes = Math.round((sunriseSunset.sunrise - sunriseHours) * 60);
+      const minutesInHour = calendar.time?.minutesInHour ?? 60;
+      const sunriseMinutes = Math.round((sunriseSunset.sunrise - sunriseHours) * minutesInHour);
 
       // Create a new CalendarDate with the sunrise time
       const currentDateData = currentDate.toObject();
@@ -1190,7 +1191,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
       // Set time to sunset (hours are fractional, e.g., 18.75 = 18:45)
       const sunsetHours = Math.floor(sunriseSunset.sunset);
-      const sunsetMinutes = Math.round((sunriseSunset.sunset - sunsetHours) * 60);
+      const minutesInHour = calendar.time?.minutesInHour ?? 60;
+      const sunsetMinutes = Math.round((sunriseSunset.sunset - sunsetHours) * minutesInHour);
 
       // Create a new CalendarDate with the sunset time
       const currentDateData = currentDate.toObject();

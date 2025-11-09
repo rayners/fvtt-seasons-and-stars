@@ -478,7 +478,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       );
 
       const sunriseHours = Math.floor(sunriseSunset.sunrise);
-      const sunriseMinutes = Math.round((sunriseSunset.sunrise - sunriseHours) * 60);
+      const minutesInHour = calendar.time?.minutesInHour ?? 60;
+      const sunriseMinutes = Math.round((sunriseSunset.sunrise - sunriseHours) * minutesInHour);
 
       const currentDateData = currentDate.toObject();
       currentDateData.time = {
@@ -525,7 +526,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       );
 
       const sunsetHours = Math.floor(sunriseSunset.sunset);
-      const sunsetMinutes = Math.round((sunriseSunset.sunset - sunsetHours) * 60);
+      const minutesInHour = calendar.time?.minutesInHour ?? 60;
+      const sunsetMinutes = Math.round((sunriseSunset.sunset - sunsetHours) * minutesInHour);
 
       const currentDateData = currentDate.toObject();
       currentDateData.time = {
