@@ -21,10 +21,6 @@ export interface SeasonsStarsIntegration {
   readonly isAvailable: boolean;
   readonly buttonRegistry: SidebarButtonRegistryAPI;
   cleanup(): void;
-
-  // Direct access methods (in addition to api.*)
-  getSunriseSunset(date: CalendarDate, calendarId?: string): { sunrise: number; sunset: number };
-  getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo;
 }
 
 export interface SidebarButtonRegistryAPI {

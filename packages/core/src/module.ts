@@ -13,6 +13,7 @@ import { NotesManager } from './core/notes-manager';
 import { compatibilityManager } from './core/compatibility-manager';
 import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
+import { SunriseSunsetCalculator } from './core/sunrise-sunset-calculator';
 import { EventsAPI } from './core/events-api';
 import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
@@ -24,10 +25,7 @@ import { CalendarDeprecationDialog } from './ui/calendar-deprecation-dialog';
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
 import { CalendarWidgetManager, WidgetWrapper, type WidgetInstance } from './ui/widget-manager';
-import {
-  SeasonsStarsIntegration,
-  type SeasonsStarsIntegrationType,
-} from './core/bridge-integration';
+import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
 import type { ValidationResult } from './core/calendar-validator';
@@ -1605,21 +1603,7 @@ export function setupAPI(): void {
           throw error;
         }
 
-        // Delegate to BridgeIntegration for actual calculation
-        // Access through game.seasonsStars to get the actual class instance
-        // Type assertion needed because foundry-v13-essentials.d.ts has unknown for compatibility
-        const integration = game.seasonsStars?.integration as
-          | SeasonsStarsIntegrationType
-          | null
-          | undefined;
-        if (!integration) {
-          // Fallback to default times if integration not available
-          const result = { sunrise: 6, sunset: 18 };
-          Logger.api('getSunriseSunset', { date, calendarId }, result);
-          return result;
-        }
-
-        // Get calendar for fromObject conversion
+        // Get calendar for date conversion
         const calendar = calendarId
           ? calendarManager.getCalendar(calendarId)
           : calendarManager.getActiveCalendar();
@@ -1630,8 +1614,19 @@ export function setupAPI(): void {
           return result;
         }
 
+        // Convert to CalendarDate
         const calendarDate = CalendarDate.fromObject(date, calendar);
-        const result = integration.getSunriseSunset(calendarDate, calendarId);
+
+        // Get calendar engine for calculations
+        const engine = calendarManager.engines.get(calendar.id);
+        if (!engine) {
+          const result = { sunrise: 6, sunset: 18 };
+          Logger.api('getSunriseSunset', { date, calendarId }, result);
+          return result;
+        }
+
+        // Calculate sunrise/sunset times directly (returns decimal hours for internal use)
+        const result = SunriseSunsetCalculator.calculate(calendarDate, calendar, engine);
 
         Logger.api('getSunriseSunset', { date, calendarId }, result);
         return result;

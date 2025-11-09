@@ -104,10 +104,6 @@ export class SeasonsStarsIntegration {
   private widgetManager: IntegrationWidgetManager;
   private hookManager: IntegrationHookManager;
 
-  // Explicitly declare public methods for TypeScript visibility
-  public getSunriseSunset!: (date: CalendarDate, calendarId?: string) => TimeOfDay;
-  public getSeasonInfo!: (date: CalendarDate, calendarId?: string) => SeasonInfo;
-
   private constructor(manager: CalendarManagerInterface) {
     this.manager = manager;
     this.widgetManager = new IntegrationWidgetManager();
@@ -427,7 +423,7 @@ class IntegrationAPI {
     return calendar.weekdays.map(weekday => weekday.name);
   }
 
-  getSunriseSunset(date: CalendarDate, calendarId?: string): TimeOfDay {
+  getSunriseSunset(date: CalendarDate, calendarId?: string): { sunrise: string; sunset: string } {
     const calendar = calendarId
       ? this.manager.getCalendar(calendarId)
       : this.manager.getActiveCalendar();
@@ -435,8 +431,8 @@ class IntegrationAPI {
     if (!calendar) {
       // Fallback to default times
       return {
-        sunrise: 6,
-        sunset: 18,
+        sunrise: '06:00',
+        sunset: '18:00',
       };
     }
 
@@ -448,15 +444,15 @@ class IntegrationAPI {
       // Graceful degradation: return fallback instead of throwing
       // This is display data, not critical business logic
       return {
-        sunrise: 6,
-        sunset: 18,
+        sunrise: '06:00',
+        sunset: '18:00',
       };
     }
 
     const times = SunriseSunsetCalculator.calculate(date, calendar, engine);
     return {
-      sunrise: times.sunrise,
-      sunset: times.sunset,
+      sunrise: SunriseSunsetCalculator.hoursToTimeString(times.sunrise),
+      sunset: SunriseSunsetCalculator.hoursToTimeString(times.sunset),
     };
   }
 
