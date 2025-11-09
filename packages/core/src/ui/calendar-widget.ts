@@ -11,6 +11,7 @@ import { SidebarButtonRegistry } from './sidebar-button-registry';
 import { loadButtonsFromRegistry } from './sidebar-button-mixin';
 import { MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
 import { SunriseSunsetCalculator } from '../core/sunrise-sunset-calculator';
+import { CalendarDate } from '../core/calendar-date';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import type { MoonPhaseInfo } from '../types/calendar';
 import type { MainWidgetContext } from '../types/widget-types';
@@ -46,6 +47,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       switchToMini: CalendarWidget.prototype._onSwitchToMini,
       switchToGrid: CalendarWidget.prototype._onSwitchToGrid,
       toggleTimeAdvancement: CalendarWidget.prototype._onToggleTimeAdvancement,
+      setTimeToSunrise: CalendarWidget.prototype._onSetTimeToSunrise,
+      setTimeToSunset: CalendarWidget.prototype._onSetTimeToSunset,
     },
   };
 
@@ -445,6 +448,98 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     } catch (error) {
       ui.notifications?.error('Failed to toggle time advancement');
       Logger.error('Main widget time advancement toggle failed', error as Error);
+    }
+  }
+
+  /**
+   * Set time to sunrise
+   */
+  async _onSetTimeToSunrise(event: Event, _target?: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    if (!game.user?.isGM) {
+      ui.notifications?.warn('Only GMs can change the time');
+      return;
+    }
+
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+    if (!manager) return;
+
+    try {
+      const engine = manager.getActiveEngine();
+      const calendar = manager.getActiveCalendar();
+      const currentDate = manager.getCurrentDate();
+      if (!engine || !calendar || !currentDate) return;
+
+      const sunriseSunset = SunriseSunsetCalculator.calculate(
+        currentDate.toObject(),
+        calendar,
+        engine
+      );
+
+      const sunriseHours = Math.floor(sunriseSunset.sunrise);
+      const sunriseMinutes = Math.round((sunriseSunset.sunrise - sunriseHours) * 60);
+
+      const currentDateData = currentDate.toObject();
+      currentDateData.time = {
+        hour: sunriseHours,
+        minute: sunriseMinutes,
+        second: 0,
+      };
+      const targetDate = new CalendarDate(currentDateData, calendar);
+
+      await manager.setCurrentDate(targetDate);
+      Logger.info(
+        `Set time to sunrise: ${sunriseHours}:${String(sunriseMinutes).padStart(2, '0')}`
+      );
+    } catch (error) {
+      Logger.error('Error setting time to sunrise', error as Error);
+      ui.notifications?.error('Failed to set time to sunrise');
+    }
+  }
+
+  /**
+   * Set time to sunset
+   */
+  async _onSetTimeToSunset(event: Event, _target?: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    if (!game.user?.isGM) {
+      ui.notifications?.warn('Only GMs can change the time');
+      return;
+    }
+
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+    if (!manager) return;
+
+    try {
+      const engine = manager.getActiveEngine();
+      const calendar = manager.getActiveCalendar();
+      const currentDate = manager.getCurrentDate();
+      if (!engine || !calendar || !currentDate) return;
+
+      const sunriseSunset = SunriseSunsetCalculator.calculate(
+        currentDate.toObject(),
+        calendar,
+        engine
+      );
+
+      const sunsetHours = Math.floor(sunriseSunset.sunset);
+      const sunsetMinutes = Math.round((sunriseSunset.sunset - sunsetHours) * 60);
+
+      const currentDateData = currentDate.toObject();
+      currentDateData.time = {
+        hour: sunsetHours,
+        minute: sunsetMinutes,
+        second: 0,
+      };
+      const targetDate = new CalendarDate(currentDateData, calendar);
+
+      await manager.setCurrentDate(targetDate);
+      Logger.info(`Set time to sunset: ${sunsetHours}:${String(sunsetMinutes).padStart(2, '0')}`);
+    } catch (error) {
+      Logger.error('Error setting time to sunset', error as Error);
+      ui.notifications?.error('Failed to set time to sunset');
     }
   }
 

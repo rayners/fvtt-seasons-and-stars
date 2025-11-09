@@ -35,8 +35,12 @@
       {{#if sunrise}}
         <div class="sun-display">
           <span class="sun-info">
-            <i class="fas fa-sunrise"></i> {{sunrise}}
-            <i class="fas fa-sunset"></i> {{sunset}}
+            <span class="sun-time">
+              <i class="fas fa-sunrise"></i> {{sunrise}}
+            </span>
+            <span class="sun-time">
+              <i class="fas fa-sunset"></i> {{sunset}}
+            </span>
           </span>
         </div>
       {{/if}}
@@ -77,6 +81,16 @@
                   </button>
                 {{/each}}
               </div>
+              {{#if sunrise}}
+                <div class="time-buttons sun-time-buttons">
+                  <button data-action="setTimeToSunrise" data-tooltip="Set time to sunrise ({{sunrise}})">
+                    <i class="fas fa-sunrise"></i> Sunrise
+                  </button>
+                  <button data-action="setTimeToSunset" data-tooltip="Set time to sunset ({{sunset}})">
+                    <i class="fas fa-sunset"></i> Sunset
+                  </button>
+                </div>
+              {{/if}}
             </div>
           </div>
         {{/if}}
