@@ -43,7 +43,6 @@ import type {
   CalendarSourceInfo,
 } from './types/calendar';
 import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
-import { SunriseSunsetCalculator } from './core/sunrise-sunset-calculator';
 
 // Import integrations (they register their own hooks independently)
 // PF2e integration moved to separate pf2e-pack module
@@ -1603,30 +1602,11 @@ export function setupAPI(): void {
           throw error;
         }
 
-        // Get the calendar and engine
-        const calendar = calendarId
-          ? calendarManager.getCalendar(calendarId)
-          : calendarManager.getActiveCalendar();
+        // Delegate to BridgeIntegration for actual calculation
+        const bridge = calendarManager.getBridgeIntegration();
+        const calendarDate = CalendarDate.fromObject(date);
+        const result = bridge.getSunriseSunset(calendarDate, calendarId);
 
-        if (!calendar) {
-          const result = { sunrise: 6, sunset: 18 };
-          Logger.api('getSunriseSunset', { date, calendarId }, result);
-          return result;
-        }
-
-        const engine = calendarId
-          ? calendarManager.engines.get(calendarId)
-          : calendarManager.engines.get(calendar.id);
-
-        if (!engine) {
-          Logger.debug('Calendar engine not available, using fallback times', { date, calendarId });
-          const result = { sunrise: 6, sunset: 18 };
-          Logger.api('getSunriseSunset', { date, calendarId }, result);
-          return result;
-        }
-
-        // Calculate sunrise/sunset using the calculator
-        const result = SunriseSunsetCalculator.calculate(date, calendar, engine);
         Logger.api('getSunriseSunset', { date, calendarId }, result);
         return result;
       } catch (error) {
