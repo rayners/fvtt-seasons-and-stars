@@ -435,7 +435,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         }
       } catch (error) {
         // Silently handle moon calculation errors to avoid breaking calendar display
-        console.debug('Error calculating moon phases for date:', dayDate, error);
+        Logger.debug('Error calculating moon phases for tooltip', { date: dayDate, error });
       }
 
       // Build combined HTML tooltip

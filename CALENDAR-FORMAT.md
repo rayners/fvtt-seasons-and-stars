@@ -452,10 +452,12 @@ For any named format, you can define an `-intercalary` variant that automaticall
 
 When `sunrise` and `sunset` are specified for seasons:
 
-- Values represent the sunrise/sunset times on the **first day** of that season
-- Times are interpolated throughout the season to the next season's values
-- Progress through the season determines interpolation (0% = current season, 100% = next season)
-- If not specified, the system attempts to match season names with Gregorian defaults
+- Values represent **reference times** for the start of each season
+- Times are interpolated smoothly throughout the season toward the next season's values
+- The last season of the year interpolates toward the first season (circular progression)
+- Progress through the season determines interpolation (0% = season start, 100% = next season start)
+- **Example**: If Spring starts with sunrise at "06:30" and Summer starts with "05:45", a date halfway through Spring will have sunrise at approximately "06:07" (interpolated midpoint)
+- If not specified, the system attempts to match season names with Gregorian defaults (Winter, Spring, Summer, Autumn/Fall)
 - Final fallback is 50/50 day/night split (sunrise at 25% of day, sunset at 75%)
 
 **Example:**

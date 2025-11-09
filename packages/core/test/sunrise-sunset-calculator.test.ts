@@ -216,6 +216,45 @@ describe('SunriseSunsetCalculator', () => {
       expect(result.sunset).toBeGreaterThan(16.75);
       expect(result.sunset).toBeLessThan(17.75);
     });
+
+    test('should handle December start of year-crossing Winter', () => {
+      // December 1 - first day of Winter
+      const date: CalendarDate = { year: 2024, month: 12, day: 1 };
+      const engine = createMockEngine(gregorianTestCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
+
+      // Should be exactly Winter start values
+      expect(result.sunrise).toBe(7.0); // 07:00
+      expect(result.sunset).toBe(16.75); // 16:45
+    });
+
+    test('should handle February end of year-crossing Winter', () => {
+      // February 28 - last day of Winter
+      const date: CalendarDate = { year: 2024, month: 2, day: 28 };
+      const engine = createMockEngine(gregorianTestCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
+
+      // Should be very close to Spring values (approaching transition)
+      // Spring: sunrise 06:30, sunset 17:45
+      expect(result.sunrise).toBeCloseTo(6.5, 1);
+      expect(result.sunset).toBeCloseTo(17.75, 1);
+    });
+
+    test('should not include November in year-crossing Winter', () => {
+      // November 15 - should NOT be in Winter (Dec-Feb), should be in Autumn
+      const date: CalendarDate = { year: 2024, month: 11, day: 15 };
+      const engine = createMockEngine(gregorianTestCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
+
+      // Should be in Autumn (interpolating toward Winter), not using Winter values
+      // Autumn start: sunrise 06:30, sunset 19:30
+      // Winter start: sunrise 07:00, sunset 16:45
+      // Mid-November should be closer to Winter end than Autumn start
+      expect(result.sunrise).toBeGreaterThan(6.5); // Greater than Autumn start
+      expect(result.sunrise).toBeLessThan(7.0); // Less than Winter start
+      expect(result.sunset).toBeGreaterThan(16.75); // Greater than Winter start
+      expect(result.sunset).toBeLessThan(19.5); // Less than Autumn start
+    });
   });
 
   describe('Default/Fallback Values', () => {

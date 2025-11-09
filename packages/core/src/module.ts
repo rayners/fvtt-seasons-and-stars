@@ -1564,6 +1564,25 @@ export function setupAPI(): void {
     },
 
     // Optional enhanced features (basic implementations)
+    /**
+     * Get sunrise and sunset times for a given date
+     *
+     * @param date - The calendar date to get sunrise/sunset times for
+     * @param calendarId - Optional calendar ID (defaults to active calendar)
+     * @returns Object containing sunrise and sunset times as **decimal hours**
+     *          (e.g., 6.5 = 6:30 AM, 18.75 = 6:45 PM).
+     *          Use `SunriseSunsetCalculator.hoursToTimeString()` to convert to HH:MM format.
+     *
+     * @example
+     * ```typescript
+     * const times = api.getSunriseSunset(currentDate);
+     * // returns: { sunrise: 6.5, sunset: 18.75 }
+     *
+     * // Convert to time strings:
+     * const sunriseStr = SunriseSunsetCalculator.hoursToTimeString(times.sunrise);
+     * // returns: "06:30"
+     * ```
+     */
     getSunriseSunset: (
       date: ICalendarDate,
       calendarId?: string

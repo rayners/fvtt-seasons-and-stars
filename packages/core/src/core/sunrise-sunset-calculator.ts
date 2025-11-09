@@ -171,27 +171,32 @@ export class SunriseSunsetCalculator {
     engine: CalendarEngineInterface
   ): number {
     // Calculate total days in the season
-    const seasonStartDay = this.seasonStartToDayOfYear(currentSeason, calendar, engine, date.year);
-    const seasonEndDay = this.seasonStartToDayOfYear(nextSeason, calendar, engine, date.year);
-    const currentDay = this.dateToDayOfYear(date, calendar, engine);
+    const seasonStartDayOfYear = this.seasonStartToDayOfYear(
+      currentSeason,
+      calendar,
+      engine,
+      date.year
+    );
+    const seasonEndDayOfYear = this.seasonStartToDayOfYear(nextSeason, calendar, engine, date.year);
+    const currentDayOfYear = this.dateToDayOfYear(date, calendar, engine);
 
     let totalDaysInSeason: number;
-    if (seasonEndDay > seasonStartDay) {
-      totalDaysInSeason = seasonEndDay - seasonStartDay;
+    if (seasonEndDayOfYear > seasonStartDayOfYear) {
+      totalDaysInSeason = seasonEndDayOfYear - seasonStartDayOfYear;
     } else {
       // Year-crossing season
       const daysInYear = engine.getYearLength(date.year);
-      totalDaysInSeason = daysInYear - seasonStartDay + seasonEndDay;
+      totalDaysInSeason = daysInYear - seasonStartDayOfYear + seasonEndDayOfYear;
     }
 
     // Calculate days into the season
     let daysIntoSeason: number;
-    if (currentDay >= seasonStartDay) {
-      daysIntoSeason = currentDay - seasonStartDay;
+    if (currentDayOfYear >= seasonStartDayOfYear) {
+      daysIntoSeason = currentDayOfYear - seasonStartDayOfYear;
     } else {
       // We're in a year-crossing season and past the year boundary
       const daysInYear = engine.getYearLength(date.year);
-      daysIntoSeason = daysInYear - seasonStartDay + currentDay;
+      daysIntoSeason = daysInYear - seasonStartDayOfYear + currentDayOfYear;
     }
 
     // Return progress as a value between 0 and 1
