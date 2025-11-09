@@ -445,8 +445,8 @@ For any named format, you can define an `-intercalary` variant that automaticall
 | `endDay`      | number | ❌       | Ending day within endMonth (1-based, defaults to last day of month) |
 | `icon`        | string | ❌       | Icon identifier for the season                                      |
 | `description` | string | ❌       | Description of the season                                           |
-| `sunrise`     | string | ❌       | Sunrise time on first day of season in HH:MM format                 |
-| `sunset`      | string | ❌       | Sunset time on first day of season in HH:MM format                  |
+| `sunrise`     | string | ❌       | Sunrise time on first day of season (format: H:M to HHH:MMM)        |
+| `sunset`      | string | ❌       | Sunset time on first day of season (format: H:M to HHH:MMM)         |
 
 **Sunrise/Sunset Behavior:**
 
@@ -486,7 +486,8 @@ When `sunrise` and `sunset` are specified for seasons:
 **Notes:**
 
 - Seasons can span year boundaries (e.g., Winter from December to February)
-- Sunrise/sunset times use HH:MM format
+- Sunrise/sunset times support flexible formatting: 1-3 digit hours and minutes (e.g., "6:30", "07:00", "125:45")
+- Non-standard calendars can have extended hours (e.g., 30-hour days) or extended minutes
 - Times are displayed in widgets and day tooltips across the UI
 - Reference the Gregorian calendar for Baltimore, MD values as a guide
 
