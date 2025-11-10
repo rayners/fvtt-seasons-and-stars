@@ -28,6 +28,7 @@ import { CalendarMiniWidget } from '../ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../ui/calendar-grid-widget';
 import { CalendarWidgetManager } from '../ui/widget-manager';
 import { SidebarButtonRegistry } from '../ui/sidebar-button-registry';
+import { SunriseSunsetCalculator } from './sunrise-sunset-calculator';
 import type { WidgetType } from '../types/widget-types';
 import { Logger } from './logger';
 
@@ -422,12 +423,33 @@ class IntegrationAPI {
     return calendar.weekdays.map(weekday => weekday.name);
   }
 
-  getSunriseSunset(_date: CalendarDate, _calendarId?: string): TimeOfDay {
-    // Default implementation - can be enhanced with calendar-specific data
-    return {
-      sunrise: 6, // 6 AM
-      sunset: 18, // 6 PM
-    };
+  getSunriseSunset(date: CalendarDate, calendarId?: string): { sunrise: number; sunset: number } {
+    const calendar = calendarId
+      ? this.manager.getCalendar(calendarId)
+      : this.manager.getActiveCalendar();
+
+    if (!calendar) {
+      // Fallback to default times (6am and 6pm in seconds)
+      return {
+        sunrise: 21600, // 6 × 3600
+        sunset: 64800, // 18 × 3600
+      };
+    }
+
+    const engine = calendarId
+      ? this.manager.engines.get(calendarId)
+      : this.manager.engines.get(calendar.id);
+
+    if (!engine) {
+      // Graceful degradation: return fallback instead of throwing
+      return {
+        sunrise: 21600, // 6 × 3600
+        sunset: 64800, // 18 × 3600
+      };
+    }
+
+    // Calculate returns seconds from midnight
+    return SunriseSunsetCalculator.calculate(date, calendar, engine);
   }
 
   getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo {
@@ -1199,3 +1221,6 @@ class IntegrationNotesAPI implements SeasonsStarsNotesAPI {
     }
   }
 }
+
+// Export the class instance type for use in type annotations
+export type SeasonsStarsIntegrationType = SeasonsStarsIntegration;

@@ -7,12 +7,13 @@
 import './styles/seasons-and-stars.scss';
 
 import { Logger } from './core/logger';
-import { UI_CONSTANTS } from './core/constants';
+import { UI_CONSTANTS, SETTINGS_KEYS } from './core/constants';
 import { CalendarManager } from './core/calendar-manager';
 import { NotesManager } from './core/notes-manager';
 import { compatibilityManager } from './core/compatibility-manager';
 import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
+import { SunriseSunsetCalculator } from './core/sunrise-sunset-calculator';
 import { EventsAPI } from './core/events-api';
 import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
@@ -680,6 +681,18 @@ function registerSettings(): void {
     default: true,
     onChange: () => {
       Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowMoonPhases');
+    },
+  });
+
+  game.settings.register('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_SUNRISE_SUNSET, {
+    name: 'Display Sunrise/Sunset in Mini Widget',
+    hint: 'Show sunrise and sunset times for the current date',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', SETTINGS_KEYS.MINI_WIDGET_SHOW_SUNRISE_SUNSET);
     },
   });
 
@@ -1551,6 +1564,23 @@ export function setupAPI(): void {
     },
 
     // Optional enhanced features (basic implementations)
+    /**
+     * Get sunrise and sunset times for a given date
+     *
+     * @param date - The calendar date to get sunrise/sunset times for
+     * @param calendarId - Optional calendar ID (defaults to active calendar)
+     * @returns Object containing sunrise and sunset times as **seconds from midnight**
+     *          (e.g., 21600 = 6:00 AM, 64800 = 6:00 PM).
+     *          Compatible with Simple Calendar's SeasonData.sunriseTime/sunsetTime format.
+     *
+     * @example
+     * ```typescript
+     * const times = api.getSunriseSunset(currentDate);
+     * // returns: { sunrise: 21600, sunset: 64800 }
+     * // 21600 seconds = 6 hours × 3600 seconds/hour
+     * // 64800 seconds = 18 hours × 3600 seconds/hour
+     * ```
+     */
     getSunriseSunset: (
       date: ICalendarDate,
       calendarId?: string
@@ -1571,9 +1601,33 @@ export function setupAPI(): void {
           throw error;
         }
 
-        // Basic implementation - can be enhanced with calendar-specific data later
-        // For now, return reasonable defaults (6 AM sunrise, 6 PM sunset)
-        const result = { sunrise: 6, sunset: 18 };
+        // Get calendar for date conversion
+        const calendar = calendarId
+          ? calendarManager.getCalendar(calendarId)
+          : calendarManager.getActiveCalendar();
+
+        if (!calendar) {
+          // Fallback: 6am and 6pm in seconds (6 × 3600, 18 × 3600)
+          const result = { sunrise: 21600, sunset: 64800 };
+          Logger.api('getSunriseSunset', { date, calendarId }, result);
+          return result;
+        }
+
+        // Convert to CalendarDate
+        const calendarDate = CalendarDate.fromObject(date, calendar);
+
+        // Get calendar engine for calculations
+        const engine = calendarManager.engines.get(calendar.id);
+        if (!engine) {
+          // Fallback: 6am and 6pm in seconds (6 × 3600, 18 × 3600)
+          const result = { sunrise: 21600, sunset: 64800 };
+          Logger.api('getSunriseSunset', { date, calendarId }, result);
+          return result;
+        }
+
+        // Calculate sunrise/sunset times (returns seconds from midnight)
+        const result = SunriseSunsetCalculator.calculate(calendarDate, calendar, engine);
+
         Logger.api('getSunriseSunset', { date, calendarId }, result);
         return result;
       } catch (error) {
@@ -1970,7 +2024,7 @@ export function setupAPI(): void {
     api,
     manager: calendarManager,
     notes: notesManager,
-    integration: SeasonsStarsIntegration.detect() || null,
+    integration: SeasonsStarsIntegration.detect(),
     buttonRegistry: SidebarButtonRegistry.getInstance(),
     widgets: widgetAPI,
     CalendarWidget,

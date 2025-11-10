@@ -1,0 +1,59 @@
+/**
+ * Calendar Mini Widget - Sunrise/Sunset Row Styles
+ */
+
+.calendar-mini-widget {
+  .mini-sun-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.3rem 0;
+    min-height: 1.5rem;
+
+    .mini-sun-info {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.8rem;
+      font-size: 0.75rem;
+
+      .mini-sun-time {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.6rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        color: #e0e0e0;
+        transition: all 0.15s ease;
+
+        &.clickable {
+          cursor: pointer;
+
+          &:hover {
+            background: rgba(0, 0, 0, 0.4);
+            transform: translateY(-1px);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+
+        i {
+          font-size: 0.9rem;
+          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+
+          &.fa-sunrise {
+            color: #ffb347;
+          }
+
+          &.fa-sunset {
+            color: #ff7f50;
+          }
+        }
+      }
+    }
+  }
+}
