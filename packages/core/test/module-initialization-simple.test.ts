@@ -18,6 +18,7 @@ const mockSettings = {
   get: vi.fn(),
   set: vi.fn(),
   register: vi.fn(),
+  registerMenu: vi.fn(),
 };
 
 const mockHooks = {
@@ -42,6 +43,10 @@ globalThis.game = mockGame;
 globalThis.Hooks = mockHooks;
 globalThis.setTimeout = global.setTimeout;
 globalThis.queueMicrotask = global.queueMicrotask;
+// Mock CONFIG for Foundry calendar integration
+(globalThis as any).CONFIG = {
+  time: {},
+};
 
 describe('Module Initialization Hooks - Simple Tests', () => {
   beforeEach(() => {

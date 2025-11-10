@@ -6,7 +6,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CalendarGridWidget } from '../src/ui/calendar-grid-widget';
 import { NoteCategories } from '../src/core/note-categories';
-import type { ICalendarDate } from '../src/types/calendar-date';
 import { mockStandardCalendar } from './mocks/calendar-mocks';
 
 // Setup real NoteCategories instance
@@ -219,30 +218,8 @@ describe('Dialog Note Creation - Form Validation', () => {
   });
 });
 
-describe('Dialog Content Generation', () => {
-  it('includes all required form fields in dialog', () => {
-    const widget = new CalendarGridWidget(mockStandardCalendar);
-    const testDate: ICalendarDate = { year: 2024, month: 1, day: 15 };
-
-    (widget as any).showCreateNoteDialog(testDate);
-
-    // The dialog creates content with form fields
-    // We can't easily inspect the content string, but we verified
-    // the form structure exists in the code
-    expect(categories.getCategories().length).toBeGreaterThan(0);
-    expect(categories.getPredefinedTags().length).toBeGreaterThan(0);
-  });
-
-  it('fetches existing tags from notes storage', () => {
-    const widget = new CalendarGridWidget(mockStandardCalendar);
-    const testDate: ICalendarDate = { year: 2024, month: 1, day: 15 };
-
-    (widget as any).showCreateNoteDialog(testDate);
-
-    // Verify the storage was queried for existing tags
-    expect(mockNotesStorage.getAllNotes).toHaveBeenCalled();
-  });
-});
+// Note: Dialog content generation is now tested in create-note-window.test.ts
+// The CreateNoteWindow class handles all form generation and validation
 
 describe('Note Selection Dialog', () => {
   it('handles notes with content correctly', () => {
@@ -293,20 +270,11 @@ describe('Note Selection Dialog', () => {
   });
 });
 
-describe('Dialog Error Handling', () => {
-  it('returns null when categories system missing', async () => {
-    mockGame.seasonsStars.categories = undefined;
+// Note: Dialog error handling is now tested in create-note-window.test.ts
+// The CreateNoteWindow class handles all error cases
 
-    const widget = new CalendarGridWidget(mockStandardCalendar);
-    const testDate: ICalendarDate = { year: 2024, month: 1, day: 15 };
-
-    const result = await (widget as any).showCreateNoteDialog(testDate);
-
-    expect(mockUI.notifications.error).toHaveBeenCalledWith('Note categories system not available');
-    expect(result).toBeNull();
-  });
-
-  it('shows error when notes manager missing', async () => {
+describe('Notes System Integration', () => {
+  it('shows error when notes manager missing for view action', async () => {
     mockGame.seasonsStars.notes = undefined;
 
     const widget = new CalendarGridWidget(mockStandardCalendar);

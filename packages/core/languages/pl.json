@@ -51,6 +51,9 @@
       "close": "Zamknij"
     },
     "settings": {
+      "calendar_selection": "📅 System kalendarza",
+      "select_calendar_button": "Wybierz kalendarz",
+      "calendar_selection_hint": "Wybierz system kalendarza, który będzie używany do wyświetlania daty i śledzenia czasu w Twoim świecie. Otwiera okno dialogowe, w którym można przeglądać i wybierać spośród dostępnych kalendarzy.",
       "active_calendar": "📅 Aktywny system kalendarza",
       "active_calendar_hint": "Wybór systemu kalendarza używanego do wyświetlania daty i śledzenia czasu. Jest to podstawowe ustawienie służące do konfigurowania kalendarza świata.",
       "active_calendar_file": "📄 Ścieżka do pliku kalendarza niestandardowego",
@@ -59,6 +62,7 @@
       "current_date_hint": "Bieżąca data w grze (zarządzana automatycznie)",
       "default_widget": "🔧 Domyślny widżet kalendarza",
       "default_widget_hint": "Wybór widżetu kalendarza otwieranego przy użyciu przycisku sterowania sceną lub domyślnego skrótu klawiaturowego (Alt+S)",
+      "default_widget_none": "Brak (brak widżetu podczas uruchamiania)",
       "default_widget_main": "Główny widżet kalendarza",
       "default_widget_mini": "Mini widget kalendarza",
       "default_widget_grid": "Widżet siatki kalendarza"

@@ -1,0 +1,26 @@
+{{!-- Calendar Mini Widget - Sunrise/Sunset Row --}}
+<div class="mini-sun-row-container">
+  {{#if showSunriseSunset}}
+    {{#if sunrise}}
+      <div class="mini-sun-row">
+        <span class="mini-sun-info">
+          {{#if isGM}}
+            <span class="mini-sun-time clickable" data-action="setTimeToSunrise" data-tooltip="Set time to sunrise">
+              <i class="fas fa-sunrise"></i> {{sunrise}}
+            </span>
+            <span class="mini-sun-time clickable" data-action="setTimeToSunset" data-tooltip="Set time to sunset">
+              <i class="fas fa-sunset"></i> {{sunset}}
+            </span>
+          {{else}}
+            <span class="mini-sun-time">
+              <i class="fas fa-sunrise"></i> {{sunrise}}
+            </span>
+            <span class="mini-sun-time">
+              <i class="fas fa-sunset"></i> {{sunset}}
+            </span>
+          {{/if}}
+        </span>
+      </div>
+    {{/if}}
+  {{/if}}
+</div>

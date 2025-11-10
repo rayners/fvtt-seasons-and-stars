@@ -13,8 +13,8 @@ import {
   hasSidebarButton as registryHasSidebarButton,
   loadButtonsFromRegistry,
 } from './sidebar-button-mixin';
-import type { NoteCategories } from '../core/note-categories';
-import type { CreateNoteData } from '../core/notes-manager';
+import { CreateNoteWindow } from './create-note-window';
+import { SunriseSunsetCalculator } from '../core/sunrise-sunset-calculator';
 import type {
   CalendarDate as ICalendarDate,
   CalendarDateData,
@@ -435,7 +435,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         }
       } catch (error) {
         // Silently handle moon calculation errors to avoid breaking calendar display
-        console.debug('Error calculating moon phases for date:', dayDate, error);
+        Logger.debug('Error calculating moon phases for tooltip', { date: dayDate, error });
       }
 
       // Build combined HTML tooltip
@@ -465,6 +465,33 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Add moon phases
       if (moonTooltip) {
         tooltipParts.push(moonTooltip);
+      }
+
+      // Add sunrise/sunset
+      try {
+        const engine = manager.getActiveEngine();
+        if (!engine) {
+          throw new Error('Calendar engine not available');
+        }
+        const sunriseSunset = SunriseSunsetCalculator.calculate(
+          dayDate.toObject(),
+          calendar,
+          engine
+        );
+        const sunriseStr = SunriseSunsetCalculator.secondsToTimeString(
+          sunriseSunset.sunrise,
+          calendar
+        );
+        const sunsetStr = SunriseSunsetCalculator.secondsToTimeString(
+          sunriseSunset.sunset,
+          calendar
+        );
+        tooltipParts.push(
+          `<span style="white-space: nowrap;"><i class="fas fa-sunrise"></i> ${sunriseStr} <i class="fas fa-sunset"></i> ${sunsetStr}</span>`
+        );
+      } catch (error) {
+        // Silently handle sunrise/sunset calculation errors
+        Logger.debug('Error calculating sunrise/sunset for tooltip', { date: dayDate, error });
       }
 
       // Add click instruction (all days are clickable)
@@ -1110,407 +1137,23 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
     if (!calendar) return;
     const targetDate = new CalendarDate(targetDateData, calendar);
 
-    // Show note creation dialog
-    const noteData = await this.showCreateNoteDialog(targetDate);
-    if (!noteData) return;
-
-    try {
-      const note = await notesManager.createNote(noteData);
-      ui.notifications?.info(`Created note: ${noteData.title}`);
-
-      // Refresh the calendar to show the new note indicator
-      this.render();
-
-      // Emit hook for other modules
-      Hooks.callAll('seasons-stars:noteCreated', note);
-    } catch (error) {
-      Logger.error('Failed to create note', error as Error);
-      ui.notifications?.error('Failed to create note');
-    }
+    // Show note creation window
+    // Window will refresh the calendar automatically when notes are created
+    await this.showCreateNoteDialog(targetDate);
   }
 
   /**
-   * Show note creation dialog with enhanced category and tag support
+   * Show note creation window with enhanced category and tag support
    */
-  private async showCreateNoteDialog(date: ICalendarDate): Promise<CreateNoteData | null> {
-    const categories = game.seasonsStars?.categories as NoteCategories | undefined;
-    if (!categories) {
-      ui.notifications?.error('Note categories system not available');
-      return null;
-    }
-
-    return new Promise(resolve => {
-      const safeDate = {
-        year: date.year || this.viewDate.year || 2024,
-        month: date.month || this.viewDate.month || 1,
-        day: date.day || 1,
-      };
-
-      const manager = game.seasonsStars?.manager as CalendarManagerInterface;
-      const activeCalendar = manager?.getActiveCalendar();
-      let dateDisplayStr = `${safeDate.year}-${safeDate.month.toString().padStart(2, '0')}-${safeDate.day.toString().padStart(2, '0')}`;
-      let calendarInfo = '';
-
-      if (activeCalendar) {
-        const monthName =
-          activeCalendar.months[safeDate.month - 1]?.name || `Month ${safeDate.month}`;
-        const yearPrefix = activeCalendar.year?.prefix || '';
-        const yearSuffix = activeCalendar.year?.suffix || '';
-        dateDisplayStr = `${safeDate.day} ${monthName}, ${yearPrefix}${safeDate.year}${yearSuffix}`;
-        calendarInfo = `<div class="note-dialog-date">${dateDisplayStr}</div>`;
-      }
-
-      const availableCategories = categories.getCategories();
-      const categoryOptions = availableCategories
-        .map(cat => `<option value="${cat.id}">${cat.name}</option>`)
-        .join('');
-
-      const predefinedTags = categories.getPredefinedTags();
-      const tagSuggestions = predefinedTags
-        .map(tag => `<span class="tag-suggestion" data-tag="${tag}">${tag}</span>`)
-        .join(' ');
-
-      const notesManager = game.seasonsStars?.notes as NotesManagerInterface;
-      const existingTags = new Set<string>();
-      if (notesManager && notesManager.storage) {
-        try {
-          if (typeof notesManager.storage.getAllNotes === 'function') {
-            const allNotes = notesManager.storage.getAllNotes() || [];
-            allNotes.forEach(note => {
-              const noteTags = note.flags?.['seasons-and-stars']?.tags || [];
-              noteTags.forEach((tag: string) => existingTags.add(tag));
-            });
-          } else {
-            if (game.journal) {
-              for (const entry of game.journal.values()) {
-                if (entry.flags?.['seasons-and-stars']?.calendarNote === true) {
-                  const noteTags = entry.flags?.['seasons-and-stars']?.tags || [];
-                  noteTags.forEach((tag: string) => existingTags.add(tag));
-                }
-              }
-            }
-          }
-        } catch (error) {
-          Logger.debug(
-            'Could not load existing tags for autocompletion, using predefined tags only',
-            error
-          );
-        }
-      }
-
-      const allAvailableTags = Array.from(new Set([...predefinedTags, ...existingTags]));
-
-      const content = `
-        <form class="seasons-stars-note-form">
-          ${calendarInfo}
-
-          <div class="form-group">
-            <label>Title:</label>
-            <input type="text" name="title" placeholder="Note title" autofocus />
-          </div>
-
-          <div class="form-group">
-            <label>Content:</label>
-            <textarea name="content" rows="4" placeholder="Note content"></textarea>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group half-width">
-              <label>Category:</label>
-              <select name="category" class="category-select">
-                ${categoryOptions}
-              </select>
-            </div>
-            <div class="form-group half-width">
-              <label>
-                <input type="checkbox" name="allDay" checked />
-                All Day Event
-              </label>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Tags (optional):</label>
-            <div class="tag-autocomplete">
-              <input type="text" name="tags" placeholder="Enter tags separated by commas" class="tags-input" autocomplete="off" />
-              <div class="tag-autocomplete-dropdown"></div>
-            </div>
-            <div class="tag-suggestions">
-              <small>Click to add:</small>
-              ${tagSuggestions}
-            </div>
-          </div>
-        </form>
-      `;
-
-      const abortController = new AbortController();
-
-      const dialog = new foundry.applications.api.DialogV2({
-        window: {
-          title: 'Create Note',
-          resizable: true,
-        },
-        content,
-        buttons: [
-          {
-            action: 'create',
-            icon: 'fas fa-plus',
-            label: 'Create Note',
-            callback: async (
-              _event: Event,
-              _button: HTMLElement,
-              dialog: foundry.applications.api.DialogV2
-            ): Promise<void> => {
-              const form = dialog.element?.querySelector('form') as HTMLFormElement;
-              const formData = new FormData(form);
-
-              const title = formData.get('title') as string;
-              const content = formData.get('content') as string;
-              const tagsString = formData.get('tags') as string;
-
-              if (!title?.trim()) {
-                ui.notifications?.error('Note title is required');
-                resolve(null);
-                return;
-              }
-
-              const tags = categories.parseTagString(tagsString);
-              const { valid: validTags, invalid: invalidTags } = categories.validateTags(tags);
-
-              if (invalidTags.length > 0) {
-                ui.notifications?.warn(`Some tags are not allowed: ${invalidTags.join(', ')}`);
-              }
-
-              resolve({
-                title: title.trim(),
-                content: content || '',
-                startDate: date,
-                allDay: formData.has('allDay'),
-                category:
-                  (formData.get('category') as string) || categories.getDefaultCategory().id,
-                tags: validTags,
-                playerVisible: false,
-                recurring: undefined,
-              });
-            },
-          },
-          {
-            action: 'cancel',
-            icon: 'fas fa-times',
-            label: 'Cancel',
-            callback: (): void => resolve(null),
-          },
-        ],
-        default: 'create',
-        position: {
-          width: 600,
-        },
-        render: (event: Event, html: HTMLElement): void => {
-          // Tag suggestions
-          html.querySelectorAll('.tag-suggestion').forEach(suggestion => {
-            suggestion.addEventListener('click', function (this: HTMLElement) {
-              const tag = this.dataset.tag;
-              const tagsInput = html.querySelector('input[name="tags"]') as HTMLInputElement;
-              const currentTags = tagsInput.value;
-
-              if (currentTags) {
-                tagsInput.value = currentTags + ', ' + tag;
-              } else {
-                tagsInput.value = tag || '';
-              }
-              tagsInput.dispatchEvent(new Event('input'));
-            });
-          });
-
-          // Category select
-          const categorySelect = html.querySelector('.category-select') as HTMLSelectElement;
-          categorySelect.addEventListener('change', function () {
-            const selectedCat = categories.getCategory(this.value);
-            if (selectedCat) {
-              this.style.borderLeft = `4px solid ${selectedCat.color}`;
-            }
-          });
-
-          const tagsInput = html.querySelector('input[name="tags"]') as HTMLInputElement;
-          const autocompleteDropdown = html.querySelector(
-            '.tag-autocomplete-dropdown'
-          ) as HTMLElement;
-          let selectedIndex = -1;
-
-          function matchTag(
-            searchTerm: string,
-            tagToMatch: string
-          ): { matches: boolean; highlighted: string } {
-            const search = searchTerm.toLowerCase();
-            const tag = tagToMatch.toLowerCase();
-
-            if (tag.includes(search)) {
-              const index = tag.indexOf(search);
-              const highlighted =
-                tagToMatch.substring(0, index) +
-                '<span class="tag-match">' +
-                tagToMatch.substring(index, index + search.length) +
-                '</span>' +
-                tagToMatch.substring(index + search.length);
-              return { matches: true, highlighted };
-            }
-
-            if (tag.includes(':')) {
-              const parts = tag.split(':');
-              for (const part of parts) {
-                if (part.trim().includes(search)) {
-                  const partIndex = part.trim().indexOf(search);
-                  const highlighted = tagToMatch.replace(
-                    part,
-                    part.substring(0, partIndex) +
-                      '<span class="tag-match">' +
-                      part.substring(partIndex, partIndex + search.length) +
-                      '</span>' +
-                      part.substring(partIndex + search.length)
-                  );
-                  return { matches: true, highlighted };
-                }
-              }
-            }
-
-            return { matches: false, highlighted: tagToMatch };
-          }
-
-          function getCurrentTypingContext(): {
-            beforeCursor: string;
-            afterCursor: string;
-            currentTag: string;
-          } {
-            const cursorPos = tagsInput.selectionStart || 0;
-            const fullText = tagsInput.value;
-            const beforeCursor = fullText.substring(0, cursorPos);
-            const afterCursor = fullText.substring(cursorPos);
-
-            const lastCommaIndex = beforeCursor.lastIndexOf(',');
-            const currentTag = beforeCursor.substring(lastCommaIndex + 1).trim();
-
-            return { beforeCursor, afterCursor, currentTag };
-          }
-
-          function showAutocomplete(searchTerm: string) {
-            if (searchTerm.length < 1) {
-              autocompleteDropdown.style.display = 'none';
-              return;
-            }
-
-            const matches: Array<{ tag: string; highlighted: string }> = [];
-
-            allAvailableTags.forEach(tag => {
-              const result = matchTag(searchTerm, tag);
-              if (result.matches) {
-                matches.push({ tag, highlighted: result.highlighted });
-              }
-            });
-
-            if (matches.length === 0) {
-              autocompleteDropdown.style.display = 'none';
-              return;
-            }
-
-            const topMatches = matches.slice(0, 8);
-
-            const dropdownHtml = topMatches
-              .map(
-                (match, index) =>
-                  `<div class="tag-autocomplete-item" data-tag="${match.tag}" data-index="${index}">${match.highlighted}</div>`
-              )
-              .join('');
-
-            autocompleteDropdown.innerHTML = dropdownHtml;
-            autocompleteDropdown.style.display = 'block';
-            selectedIndex = -1;
-          }
-
-          function insertTag(tagToInsert: string) {
-            const context = getCurrentTypingContext();
-            const beforeCurrentTag = context.beforeCursor.substring(
-              0,
-              context.beforeCursor.lastIndexOf(',') + 1
-            );
-            const newValue =
-              (beforeCurrentTag ? beforeCurrentTag + ' ' : '') +
-              tagToInsert +
-              (context.afterCursor.startsWith(',') ? '' : ', ') +
-              context.afterCursor;
-
-            tagsInput.value = newValue.replace(/,\s*$/, '');
-            autocompleteDropdown.style.display = 'none';
-            tagsInput.focus();
-          }
-
-          tagsInput.addEventListener('input', function () {
-            const context = getCurrentTypingContext();
-            showAutocomplete(context.currentTag);
-          });
-
-          tagsInput.addEventListener('keydown', function (e: KeyboardEvent) {
-            const items = Array.from(
-              autocompleteDropdown.querySelectorAll('.tag-autocomplete-item')
-            ) as HTMLElement[];
-
-            if (autocompleteDropdown.style.display === 'none' || items.length === 0) return;
-
-            switch (e.key) {
-              case 'ArrowUp':
-                e.preventDefault();
-                selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
-                break;
-              case 'ArrowDown':
-                e.preventDefault();
-                selectedIndex = selectedIndex >= items.length - 1 ? 0 : selectedIndex + 1;
-                break;
-              case 'Enter':
-                e.preventDefault();
-                if (selectedIndex >= 0) {
-                  const selectedTag = items[selectedIndex].dataset.tag;
-                  if (selectedTag) insertTag(selectedTag);
-                }
-                return;
-              case 'Escape':
-                autocompleteDropdown.style.display = 'none';
-                return;
-            }
-
-            items.forEach(item => item.classList.remove('selected'));
-            if (selectedIndex >= 0) {
-              items[selectedIndex].classList.add('selected');
-            }
-          });
-
-          autocompleteDropdown.addEventListener('click', function (e) {
-            const target = (e.target as HTMLElement).closest('.tag-autocomplete-item');
-            if (target) {
-              const tagToInsert = (target as HTMLElement).dataset.tag;
-              if (tagToInsert) insertTag(tagToInsert);
-            }
-          });
-
-          // Initialize document click handler for autocomplete
-          const documentClickHandler = (e: MouseEvent): void => {
-            const target = e.target as HTMLElement;
-            if (!target.closest('.tag-autocomplete')) {
-              autocompleteDropdown.style.display = 'none';
-            }
-          };
-          document.addEventListener('click', documentClickHandler, {
-            signal: abortController.signal,
-          });
-
-          // Trigger initial category select change to set border color
-          categorySelect.dispatchEvent(new Event('change'));
-        },
-        close: (): void => {
-          // Clean up event listeners when dialog closes
-          abortController.abort();
-        },
-      });
-
-      dialog.render(true);
+  private async showCreateNoteDialog(date: ICalendarDate): Promise<void> {
+    // Show the create note window
+    await CreateNoteWindow.show({
+      date,
+      onNoteCreated: () => {
+        // Refresh the calendar immediately when a note is created
+        // This allows the grid to update while the window stays open
+        (this as any).render({ parts: ['main'] });
+      },
     });
   }
 

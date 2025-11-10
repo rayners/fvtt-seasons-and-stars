@@ -5,7 +5,12 @@
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
-import { WIDGET_POSITIONING, MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
+import {
+  WIDGET_POSITIONING,
+  MOON_PHASE_ICON_MAP,
+  SETTINGS_KEYS,
+  sanitizeColor,
+} from '../core/constants';
 import { TimeAdvancementService } from '../core/time-advancement-service';
 import { DateFormatter } from '../core/date-formatter';
 import { SidebarButtonRegistry } from './sidebar-button-registry';
@@ -15,6 +20,8 @@ import {
   hasSidebarButton as registryHasSidebarButton,
   loadButtonsFromRegistry,
 } from './sidebar-button-mixin';
+import { SunriseSunsetCalculator } from '../core/sunrise-sunset-calculator';
+import { CalendarDate } from '../core/calendar-date';
 import type { MiniWidgetContext, WidgetRenderOptions } from '../types/widget-types';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import type { MoonPhaseInfo } from '../types/calendar';
@@ -76,6 +83,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       openLargerView: CalendarMiniWidget.prototype._onOpenLargerView,
       toggleTimeAdvancement: CalendarMiniWidget.prototype._onToggleTimeAdvancement,
       clickSidebarButton: CalendarMiniWidget.prototype._onClickSidebarButton,
+      setTimeToSunrise: CalendarMiniWidget.prototype._onSetTimeToSunrise,
+      setTimeToSunset: CalendarMiniWidget.prototype._onSetTimeToSunset,
     },
   };
 
@@ -87,6 +96,14 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     moonPhases: {
       id: 'moon-phases',
       template: 'modules/seasons-and-stars/templates/calendar-mini-widget-moon-phases.hbs',
+    },
+    sunriseSunset: {
+      id: 'sunrise-sunset',
+      template: 'modules/seasons-and-stars/templates/calendar-mini-widget-sunrise-sunset.hbs',
+    },
+    sidebarButtons: {
+      id: 'sidebar-buttons',
+      template: 'modules/seasons-and-stars/templates/calendar-mini-widget-sidebar-buttons.hbs',
     },
   };
 
@@ -186,6 +203,10 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     const showMoonPhases =
       game.settings?.get('seasons-and-stars', 'miniWidgetShowMoonPhases') ?? true;
 
+    // Check if sunrise/sunset should be displayed
+    const showSunriseSunset =
+      game.settings?.get('seasons-and-stars', 'miniWidgetShowSunriseSunset') ?? true;
+
     // Check if extension buttons should be displayed
     const showExtensions =
       game.settings?.get('seasons-and-stars', 'miniWidgetShowExtensions') ?? true;
@@ -230,6 +251,33 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     }
 
+    // Get sunrise/sunset times if enabled
+    let sunriseString = '';
+    let sunsetString = '';
+    if (showSunriseSunset) {
+      try {
+        const engine = manager.getActiveEngine();
+        if (!engine) {
+          throw new Error('Calendar engine not available');
+        }
+        const sunriseSunset = SunriseSunsetCalculator.calculate(
+          currentDate.toObject(),
+          activeCalendar,
+          engine
+        );
+        sunriseString = SunriseSunsetCalculator.secondsToTimeString(
+          sunriseSunset.sunrise,
+          activeCalendar
+        );
+        sunsetString = SunriseSunsetCalculator.secondsToTimeString(
+          sunriseSunset.sunset,
+          activeCalendar
+        );
+      } catch (error) {
+        Logger.debug('Failed to calculate sunrise/sunset for mini widget', error);
+      }
+    }
+
     // Load sidebar buttons and filter based on showExtensions setting
     const sidebarButtons = showExtensions ? loadButtonsFromRegistry('mini') : [];
 
@@ -258,7 +306,54 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       sidebarButtons: sidebarButtons,
       showMoonPhases: showMoonPhases,
       moonPhases: moonPhases,
+      showSunriseSunset: showSunriseSunset,
+      sunrise: sunriseString,
+      sunset: sunsetString,
     }) as MiniWidgetContext;
+  }
+
+  /**
+   * Prepare context for individual template parts
+   * This ensures moon phases, sunrise/sunset, and sidebar buttons get the correct context when re-rendered
+   */
+  async _preparePartContext(
+    partId: string,
+    context: Record<string, unknown>
+  ): Promise<Record<string, unknown>> {
+    const baseContext = await super._preparePartContext!(partId, context);
+
+    if (partId === 'moonPhases') {
+      // Re-use the moon phases data from the main context
+      return {
+        ...baseContext,
+        showMoonPhases: (context as MiniWidgetContext).showMoonPhases,
+        moonPhases: (context as MiniWidgetContext).moonPhases,
+      };
+    }
+
+    if (partId === 'sunriseSunset') {
+      // Re-use the sunrise/sunset data from the main context
+      return {
+        ...baseContext,
+        showSunriseSunset: (context as MiniWidgetContext).showSunriseSunset,
+        sunrise: (context as MiniWidgetContext).sunrise,
+        sunset: (context as MiniWidgetContext).sunset,
+        isGM: (context as MiniWidgetContext).isGM,
+      };
+    }
+
+    if (partId === 'sidebarButtons') {
+      // Load fresh sidebar buttons from registry
+      const showExtensions =
+        game.settings?.get('seasons-and-stars', 'miniWidgetShowExtensions') ?? true;
+      const sidebarButtons = showExtensions ? loadButtonsFromRegistry('mini') : [];
+      return {
+        ...baseContext,
+        sidebarButtons: sidebarButtons,
+      };
+    }
+
+    return baseContext;
   }
 
   /**
@@ -600,6 +695,20 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           await game.settings?.set('seasons-and-stars', 'miniWidgetShowMoonPhases', !currentValue);
           await this.render();
         },
+      },
+      {
+        name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_sunrise_sunset'),
+        icon: '<i class="fas fa-sun"></i>',
+        callback: async () => {
+          const currentValue =
+            game.settings?.get('seasons-and-stars', 'miniWidgetShowSunriseSunset') !== false;
+          await game.settings?.set(
+            'seasons-and-stars',
+            'miniWidgetShowSunriseSunset',
+            !currentValue
+          );
+          await this.render();
+        },
       }
     );
 
@@ -713,6 +822,12 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       case 'clickSidebarButton':
         this._onClickSidebarButton(event, actionElement);
         break;
+      case 'setTimeToSunrise':
+        this._onSetTimeToSunrise(event, actionElement);
+        break;
+      case 'setTimeToSunset':
+        this._onSetTimeToSunset(event, actionElement);
+        break;
       default:
         Logger.warn(`Unknown action: ${action}`);
         break;
@@ -824,6 +939,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           settingName === 'miniWidgetShowDayOfWeek' ||
           settingName === 'miniWidgetCanonicalMode' ||
           settingName === 'miniWidgetShowMoonPhases' ||
+          settingName === SETTINGS_KEYS.MINI_WIDGET_SHOW_SUNRISE_SUNSET ||
           settingName === 'miniWidgetShowExtensions' ||
           settingName === 'alwaysShowQuickTimeButtons') &&
         CalendarMiniWidget.activeInstance?.rendered
@@ -834,7 +950,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     Hooks.on('seasons-stars:widgetButtonsChanged', () => {
       if (CalendarMiniWidget.activeInstance?.rendered) {
-        (CalendarMiniWidget.activeInstance as any).render({ parts: ['main'] });
+        // Only re-render the sidebar buttons part when buttons change
+        (CalendarMiniWidget.activeInstance as any).render({ parts: ['sidebarButtons'] });
       }
     });
   }
@@ -1009,6 +1126,94 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     } catch (error) {
       ui.notifications?.error('Failed to toggle time advancement');
       Logger.error('Mini widget time advancement toggle failed', error as Error);
+    }
+  }
+
+  /**
+   * Set time to sunrise
+   */
+  async _onSetTimeToSunrise(event: Event, _target?: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+    if (!manager) return;
+
+    try {
+      const engine = manager.getActiveEngine();
+      const calendar = manager.getActiveCalendar();
+      const currentDate = manager.getCurrentDate();
+      if (!engine || !calendar || !currentDate) return;
+
+      const sunriseSunset = SunriseSunsetCalculator.calculate(
+        currentDate.toObject(),
+        calendar,
+        engine
+      );
+
+      // Set time to sunrise (seconds from midnight, e.g., 21600 = 6:00)
+      const { hour, minute } = SunriseSunsetCalculator.secondsToTimeComponents(
+        sunriseSunset.sunrise,
+        calendar
+      );
+
+      // Create a new CalendarDate with the sunrise time
+      const currentDateData = currentDate.toObject();
+      currentDateData.time = {
+        hour,
+        minute,
+        second: 0,
+      };
+      const targetDate = new CalendarDate(currentDateData, calendar);
+
+      await manager.setCurrentDate(targetDate);
+      Logger.info(`Set time to sunrise: ${hour}:${String(minute).padStart(2, '0')}`);
+    } catch (error) {
+      Logger.error('Error setting time to sunrise', error as Error);
+      ui.notifications?.error('Failed to set time to sunrise');
+    }
+  }
+
+  /**
+   * Set time to sunset
+   */
+  async _onSetTimeToSunset(event: Event, _target?: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+    if (!manager) return;
+
+    try {
+      const engine = manager.getActiveEngine();
+      const calendar = manager.getActiveCalendar();
+      const currentDate = manager.getCurrentDate();
+      if (!engine || !calendar || !currentDate) return;
+
+      const sunriseSunset = SunriseSunsetCalculator.calculate(
+        currentDate.toObject(),
+        calendar,
+        engine
+      );
+
+      // Set time to sunset (seconds from midnight, e.g., 64800 = 18:00)
+      const { hour, minute } = SunriseSunsetCalculator.secondsToTimeComponents(
+        sunriseSunset.sunset,
+        calendar
+      );
+
+      // Create a new CalendarDate with the sunset time
+      const currentDateData = currentDate.toObject();
+      currentDateData.time = {
+        hour,
+        minute,
+        second: 0,
+      };
+      const targetDate = new CalendarDate(currentDateData, calendar);
+
+      await manager.setCurrentDate(targetDate);
+      Logger.info(`Set time to sunset: ${hour}:${String(minute).padStart(2, '0')}`);
+    } catch (error) {
+      Logger.error('Error setting time to sunset', error as Error);
+      ui.notifications?.error('Failed to set time to sunset');
     }
   }
 

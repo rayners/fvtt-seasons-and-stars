@@ -11,11 +11,12 @@ The Roshar calendar brings the unique timekeeping system from Brandon Sanderson'
 
 ### Key Features
 
-- **500-day year**: Ten months of fifty days each
+- **500-day year**: Ten months of fifty days each (10 months × 10 weeks × 5 days)
 - **5-day weeks**: Ten weeks per month (Vorin week structure)
 - **Authentic date format**: Year.Month.Week.Day notation (e.g., 1173.8.4.3)
-- **The Weeping**: 28-day intercalary period with constant rain
-- **20-hour days**: 100-minute hours with 100-second minutes
+- **The Weeping**: Four-week season with constant rain (last 20 days of Ishev)
+- **Midpeace**: Four-week season with no highstorms (mid-year spanning Palah/Shash)
+- **20-hour days**: 50-minute hours with 100-second minutes
 - **Vorin naming**: Official month and weekday names from the source material
 
 ## Calendar Structure
@@ -43,15 +44,27 @@ _Note: Month names correspond to Vorin numerical system (Jesnan = one, Nanan = t
 4. **Vevod** (Ve) - Fourth day
 5. **Palah** (Pa) - Fifth day
 
-### The Weeping
+### Special Periods (Seasons)
 
-**The Weeping** is a 28-day intercalary period occurring after Ishev (the tenth month). During this time:
+The Roshar calendar includes two significant atmospheric periods that appear as seasons. These are not intercalary days (they don't add extra days to the year), but rather special periods that occur during the normal 500-day cycle.
+
+**The Weeping** (Ishev 31-50) - A four-week season (20 days) marking the end of the year:
 
 - Constant rain falls across Roshar
 - No highstorms occur
 - Gemstones cannot be infused with Stormlight
 - **Lightday** occurs in the middle - a single clear day
 - Marks the transition between years
+- Appears as a season spanning the last 20 days of Ishev (month 10)
+
+**Midpeace** (Palah 41-50, Shash 1-10) - A four-week season (20 days) at mid-year:
+
+- No highstorms occur
+- Occurs at the midpoint of the year (days 241-260)
+- The Middlefest fair in Jah Keved is traditionally held during this time
+- Appears as a season spanning from month 5 (Palah) through month 6 (Shash)
+
+_Note: Both periods are implemented as seasons. They occur during normal calendar weeks and count toward the standard 500-day year. They are not intercalary periods with extra days._
 
 ## Date Format System
 
@@ -81,10 +94,10 @@ The calendar provides multiple date formatting options:
 Roshar uses a unique time structure different from Earth:
 
 - **20 hours per day** (vs. Earth's 24)
-- **100 minutes per hour** (vs. Earth's 60)
+- **50 minutes per hour** (vs. Earth's 60)
 - **100 seconds per minute** (vs. Earth's 60)
 
-This creates longer "hours" but maintains familiar minute/second relationships for gameplay.
+This creates Rosharan hours that are slightly shorter than Earth hours (approximately 0.96 Earth hours or 58 Earth minutes). A full Rosharan day contains 100,000 Rosharan seconds, equivalent to approximately 19.3 Earth hours.
 
 ## Campaign Integration
 
@@ -103,12 +116,24 @@ The calendar's week structure supports highstorm tracking:
 - Use the `highstorm` format for storm-related notation
 - Week boundaries help organize storm cycles for gameplay
 
-### The Weeping as Campaign Element
+### Special Periods as Campaign Elements
 
-- **Duration**: 28 days (exactly 4 weeks)
+**The Weeping** (Season: Ishev 31-50):
+
+- **Duration**: 20 days (four Rosharan weeks)
+- **Calendar Dates**: Last 20 days of the year (Ishev days 31-50)
 - **Atmosphere**: Constant rain, gray skies, no storms
 - **Mechanical Impact**: No Stormlight infusion possible
 - **Lightday**: Single clear day provides story opportunities
+- **Implementation**: Appears as a season during month 10
+
+**Midpeace** (Season: Palah 41-50, Shash 1-10):
+
+- **Duration**: 20 days (four Rosharan weeks)
+- **Calendar Dates**: Mid-year spanning two months (Palah 41-50, Shash 1-10)
+- **Atmosphere**: Calm period with no highstorms
+- **Campaign Hook**: Ideal for the Middlefest fair and major gatherings
+- **Implementation**: Appears as a season spanning months 5-6
 
 ## Technical Implementation
 
@@ -147,6 +172,7 @@ This implementation is based on official Brandon Sanderson worldbuilding:
 - **Primary Source**: [Brandon Sanderson's Roshar Date System](https://www.brandonsanderson.com/blogs/blog/roshars-date-system)
 - **Wiki Reference**: [Stormlight Archive Calendar](https://stormlightarchive.fandom.com/wiki/Calendar)
 - **Coppermind**: [Roshar Calendar System](https://coppermind.net/wiki/Roshar#Calendar)
+- **Time Measurements**: [Rosharan Time Measurements](https://www.17thshard.com/blogs/entry/633-rosharan-time-measurements/)
 
 All calendar details, naming conventions, and structural elements are derived from these official materials to ensure authenticity for Stormlight Archive campaigns.
 
@@ -186,11 +212,12 @@ All calendar details, naming conventions, and structural elements are derived fr
 - Check browser console for template errors
 - Verify all format strings use correct helper syntax
 
-**The Weeping not appearing**
+**Questions about The Weeping and Midpeace timing**
 
-- The Weeping appears after Ishev (month 10)
-- Ensure intercalary periods are enabled in calendar settings
-- Check that you're viewing the correct year transition
+- These appear as seasons rather than events
+- The Weeping: During month 10 (Ishev), specifically days 31-50
+- Midpeace: Spanning months 5-6 (Palah/Shash), specifically days 41-50 of Palah and days 1-10 of Shash
+- They are part of the standard 500-day year structure (not extra days)
 
 ### Getting Help
 

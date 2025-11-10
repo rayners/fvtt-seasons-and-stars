@@ -169,6 +169,8 @@ interface Game {
 interface GameTime {
   worldTime: number;
   advance(seconds: number): Promise<void>;
+  calendar?: CalendarData;
+  initializeCalendar?(): void;
 }
 
 interface Combat {
@@ -187,6 +189,18 @@ interface ClientSettings {
   get(module: string, setting: string): any;
   set(module: string, setting: string, value: any): Promise<any>;
   register(module: string, setting: string, config: any): void;
+  registerMenu(
+    namespace: string,
+    key: string,
+    data: {
+      name: string;
+      label: string;
+      hint: string;
+      icon: string;
+      type: new () => foundry.applications.api.ApplicationV2; // Application class constructor
+      restricted: boolean;
+    }
+  ): void;
 }
 
 interface FoundryUser {
@@ -289,6 +303,13 @@ interface Canvas {
 interface Config {
   debug: {
     hooks: boolean;
+  };
+  time?: {
+    worldCalendarClass?: typeof CalendarData;
+    worldCalendarConfig?: any;
+    earthCalendarClass?: typeof CalendarData;
+    earthCalendarConfig?: any;
+    calendar?: CalendarData;
   };
 }
 
@@ -753,6 +774,86 @@ declare global {
 }
 
 // =============================================================================
+// CALENDAR DATA SYSTEM
+// =============================================================================
+
+/**
+ * Time components interface for CalendarData
+ */
+interface TimeComponents {
+  year?: number;
+  month?: number;
+  day?: number;
+  hour?: number;
+  minute?: number;
+  second?: number;
+  [key: string]: number | undefined;
+}
+
+/**
+ * CalendarData class for Foundry VTT v13+
+ * Base class for calendar implementations
+ */
+
+declare class CalendarData<Components extends TimeComponents = TimeComponents> {
+  constructor(data?: object, options?: any);
+
+  /**
+   * Convert a timestamp in seconds to time components
+   */
+  timeToComponents(time?: number): Components;
+
+  /**
+   * Convert time components to a timestamp in seconds
+   */
+  componentsToTime(components: Partial<Components>): number;
+
+  /**
+   * Add a time delta to a starting time
+   */
+  add(startTime: number | Partial<Components>, deltaTime: number | Partial<Components>): Components;
+
+  /**
+   * Calculate the difference between two times
+   */
+  difference(
+    endTime: number | Partial<Components>,
+    startTime?: number | Partial<Components>
+  ): Components;
+
+  /**
+   * Format a time value as a string
+   */
+  format(time?: number | Partial<Components>, formatter?: string, options?: any): string;
+
+  /**
+   * Check if a year is a leap year
+   */
+  isLeapYear(year: number): boolean;
+
+  /**
+   * Count leap years before a given year
+   */
+  countLeapYears(year: number): number;
+
+  /**
+   * Define the schema for this calendar data model
+   */
+  static defineSchema(): any;
+
+  /**
+   * Protected method for advanced year decomposition
+   * Override this for custom leap year handling
+   */
+  protected _decomposeTimeYears(time: number): any;
+}
+
+// Make CalendarData available globally
+declare global {
+  const CalendarData: typeof CalendarData;
+}
+
+// =============================================================================
 // FOUNDRY NAMESPACE
 // =============================================================================
 
@@ -771,6 +872,10 @@ interface FoundryNamespace {
       ContextMenu: typeof ContextMenu;
       Draggable: any;
     };
+  };
+  data: {
+    CalendarData: typeof CalendarData;
+    TimeComponents: TimeComponents;
   };
   utils: {
     deepClone<T>(obj: T): T;

@@ -7,23 +7,24 @@
 import './styles/seasons-and-stars.scss';
 
 import { Logger } from './core/logger';
-import { UI_CONSTANTS } from './core/constants';
+import { UI_CONSTANTS, SETTINGS_KEYS } from './core/constants';
 import { CalendarManager } from './core/calendar-manager';
 import { NotesManager } from './core/notes-manager';
 import { compatibilityManager } from './core/compatibility-manager';
 import { noteCategories, initializeNoteCategories } from './core/note-categories';
 import { CalendarDate } from './core/calendar-date';
-import { CalendarLocalization } from './core/calendar-localization';
+import { SunriseSunsetCalculator } from './core/sunrise-sunset-calculator';
 import { EventsAPI } from './core/events-api';
 import { CalendarWidget } from './ui/calendar-widget';
 import { CalendarMiniWidget } from './ui/calendar-mini-widget';
 import { CalendarGridWidget } from './ui/calendar-grid-widget';
 import { CalendarSelectionDialog } from './ui/calendar-selection-dialog';
+import { getTargetWidgetType, getSafeDefaultWidgetOption } from './ui/widget-type-resolver';
 import { CalendarDeprecationDialog } from './ui/calendar-deprecation-dialog';
 // Note editing dialog imported when needed
 import { SeasonsStarsSceneControls } from './ui/scene-controls';
 import { SeasonsStarsKeybindings } from './core/keybindings';
-import { CalendarWidgetManager, WidgetWrapper } from './ui/widget-manager';
+import { CalendarWidgetManager, WidgetWrapper, type WidgetInstance } from './ui/widget-manager';
 import { SeasonsStarsIntegration } from './core/bridge-integration';
 import { ValidationUtils } from './core/validation-utils';
 import { APIWrapper } from './core/api-wrapper';
@@ -33,12 +34,9 @@ import { TimeAdvancementService } from './core/time-advancement-service';
 import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
 import { handleCalendarSelection } from './core/calendar-selection-handler';
+import { registerErrorsAndEchoesIntegration } from './core/errors-echoes-integration';
 import type { SeasonsStarsAPI } from './types/foundry-extensions';
-import type {
-  ErrorsAndEchoesAPI,
-  ExtendedNotesManager,
-  ExtendedCalendarManager,
-} from './types/external-integrations';
+import type { ExtendedNotesManager, ExtendedCalendarManager } from './types/external-integrations';
 import type {
   CalendarDate as ICalendarDate,
   DateFormatOptions,
@@ -46,6 +44,10 @@ import type {
   CalendarSourceInfo,
 } from './types/calendar';
 import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
+import {
+  initializeFoundryCalendarClass,
+  updateFoundryCalendarConfig,
+} from './core/foundry-calendar-integration';
 
 // Import integrations (they register their own hooks independently)
 // PF2e integration moved to separate pf2e-pack module
@@ -88,152 +90,15 @@ export function setSeasonsWarningState(warned: boolean): void {
 // Register scene controls at top level (critical timing requirement)
 SeasonsStarsSceneControls.registerControls();
 
-// Register Errors and Echoes hook at top level (RECOMMENDED - eliminates timing issues)
-Hooks.once('errorsAndEchoesReady', (errorsAndEchoesAPI: ErrorsAndEchoesAPI) => {
-  // E&E is guaranteed to be ready when this hook is called
-  try {
-    Logger.debug('Registering with Errors and Echoes via hook');
-
-    errorsAndEchoesAPI.register({
-      moduleId: 'seasons-and-stars',
-
-      // Context provider - adds useful debugging information
-      contextProvider: () => {
-        const context: Record<string, unknown> = {};
-
-        // Add current calendar information - safe property access
-        if (calendarManager) {
-          const currentDate = calendarManager.getCurrentDate();
-          const activeCalendar = calendarManager.getActiveCalendar();
-
-          context.currentDate = currentDate
-            ? `${currentDate.year}-${currentDate.month}-${currentDate.day}`
-            : 'unknown';
-          context.activeCalendarId = activeCalendar?.id || 'unknown';
-          context.calendarEngineAvailable = !!calendarManager.getActiveEngine();
-        }
-
-        // Add widget state - simple property checks don't need try-catch
-        const activeWidgets: string[] = [];
-        if (CalendarWidget.getInstance?.()?.rendered) activeWidgets.push('main');
-        if (CalendarMiniWidget.getInstance?.()?.rendered) activeWidgets.push('mini');
-        if (CalendarGridWidget.getInstance?.()?.rendered) activeWidgets.push('grid');
-        context.activeWidgets = activeWidgets;
-
-        // Add system information - basic property access
-        context.gameSystem = game.system?.id || 'unknown';
-        context.foundryVersion = game.version || 'unknown';
-        context.smallTimeDetected = !!document.querySelector('#smalltime-app');
-
-        return context;
-      },
-
-      // Error filter - focus on errors relevant to S&S functionality
-      errorFilter: (error: Error) => {
-        const stack = error.stack || '';
-        const message = error.message || '';
-
-        // Always report errors that mention our module explicitly
-        if (
-          stack.includes('seasons-and-stars') ||
-          message.includes('seasons-and-stars') ||
-          message.includes('S&S') ||
-          stack.includes('CalendarManager') ||
-          stack.includes('CalendarWidget') ||
-          stack.includes('CalendarEngine') ||
-          stack.includes('NotesManager')
-        ) {
-          return false; // Don't filter (report this error)
-        }
-
-        // Report time/calendar related errors that might affect us
-        if (
-          message.includes('worldTime') ||
-          message.includes('game.time') ||
-          message.includes('calendar') ||
-          message.includes('dateToWorldTime') ||
-          message.includes('worldTimeToDate') ||
-          (message.includes('time') && stack.includes('foundry'))
-        ) {
-          return false; // Don't filter (time system errors affect us)
-        }
-
-        // Report widget positioning and UI errors
-        if (
-          message.includes('widget') ||
-          message.includes('SmallTime') ||
-          message.includes('player list') ||
-          (message.includes('position') && stack.includes('ui')) ||
-          message.includes('ApplicationV2')
-        ) {
-          return false; // Don't filter (UI errors might affect our widgets)
-        }
-
-        // Report integration-related errors
-        if (
-          message.includes('Simple Calendar') ||
-          message.includes('simple-calendar') ||
-          message.includes('compatibility') ||
-          message.includes('bridge') ||
-          stack.includes('integration')
-        ) {
-          return false; // Don't filter (integration errors affect us)
-        }
-
-        // Report foundry core time system errors
-        if (
-          stack.includes('foundry.js') &&
-          (message.includes('time') || message.includes('world') || message.includes('scene'))
-        ) {
-          return false; // Don't filter (core time system issues)
-        }
-
-        // Filter out errors from unrelated modules (unless they mention calendar/time)
-        const unrelatedModules = [
-          'dice-so-nice',
-          'lib-wrapper',
-          'socketlib',
-          'combat-utility-belt',
-          'enhanced-terrain-layer',
-          'token-action-hud',
-          'foundryvtt-forien-quest-log',
-        ];
-
-        for (const module of unrelatedModules) {
-          if (
-            stack.includes(module) &&
-            !message.includes('calendar') &&
-            !message.includes('time') &&
-            !stack.includes('seasons-and-stars')
-          ) {
-            return true; // Filter out (unrelated module error)
-          }
-        }
-
-        // Default: filter out most other errors unless they seem time/calendar related
-        if (message.includes('calendar') || message.includes('time') || message.includes('date')) {
-          return false; // Don't filter (might be related)
-        }
-
-        return true; // Filter out everything else
-      },
-    });
-
-    Logger.debug('Successfully registered with Errors and Echoes via hook');
-  } catch (error) {
-    Logger.error(
-      'Failed to register with Errors and Echoes via hook',
-      error instanceof Error ? error : new Error(String(error))
-    );
-  }
-});
-
 /**
  * Module initialization - MUST be synchronous to block until calendars are loaded
  */
 export function init(): void {
   try {
     Logger.debug('Initializing module (BLOCKING)');
+
+    // Initialize Foundry calendar class (must be early so Foundry can instantiate it)
+    initializeFoundryCalendarClass();
 
     // Register module settings
     registerSettings();
@@ -258,15 +123,21 @@ export function init(): void {
     calendarManager = new CalendarManager();
     notesManager = new NotesManager();
 
-    // Try to load active calendar synchronously from cached data first
-    // This ensures compatibility bridges can access the API immediately
-    Logger.debug('Attempting synchronous calendar initialization from cached data');
-    const syncSuccess = calendarManager.initializeSync();
-    if (syncSuccess) {
-      Logger.debug('Successfully initialized active calendar synchronously');
-    } else {
-      Logger.debug('No cached calendar data available, will load asynchronously');
+    // Expose manager early so SeasonsStarsFoundryCalendar constructor can find it
+    // The full API will be set up in ready hook
+    if (!game.seasonsStars) {
+      game.seasonsStars = {};
     }
+    game.seasonsStars.manager = calendarManager;
+    Logger.debug(
+      'Calendar manager exposed to game.seasonsStars.manager early for Foundry integration'
+    );
+
+    // Register Errors and Echoes integration
+    // Note: Uses global game.seasonsStars.manager access, so must be called after API setup
+    // However, the actual registration happens in the errorsAndEchoesReady hook, so we can
+    // register the hook early and it will access the manager when E&E is ready
+    registerErrorsAndEchoesIntegration();
 
     // Load all calendars during init - this MUST complete before setup hook
     Logger.debug('Loading calendars during init (BLOCKING)');
@@ -289,10 +160,8 @@ export function init(): void {
           );
         }
 
-        // After all calendars are loaded, update the settings with the full list
-        // This ensures the calendar dropdown shows all available calendars
-        registerCalendarSettings();
-        Logger.debug('Calendar settings updated with full calendar list after loading');
+        // Calendars loaded - selection handled via CalendarSelectionDialog
+        Logger.debug('Calendars loaded - available via selection dialog');
       })
       .catch(error => {
         Logger.error(
@@ -338,9 +207,13 @@ export function setup(): void {
       const success = calendarManager.setActiveCalendarSync(activeCalendarId);
       if (success) {
         Logger.debug(`Active calendar set to ${activeCalendarId} during setup`);
+        // Update Foundry calendar config after setting active calendar
+        updateFoundryCalendarConfig(calendarManager);
       } else {
         Logger.warn(`Failed to set active calendar ${activeCalendarId}, falling back to gregorian`);
         calendarManager.setActiveCalendarSync('gregorian');
+        // Update Foundry calendar config with fallback
+        updateFoundryCalendarConfig(calendarManager);
       }
     } catch (error) {
       Logger.error(
@@ -371,6 +244,8 @@ export function setup(): void {
       resetSeasonsWarningState();
       // Reset event check date when calendar changes to allow events to fire on new calendar
       lastEventCheckDate = null;
+      // Update Foundry calendar config when active calendar changes
+      updateFoundryCalendarConfig(calendarManager);
     });
 
     Hooks.on(
@@ -481,6 +356,10 @@ Hooks.once('setup', setup);
  */
 Hooks.once('ready', async () => {
   Logger.debug('Completing setup during ready - setting active calendar from settings');
+
+  // Register defaultWidget setting now that all modules have initialized
+  // This allows custom widgets registered by other modules to appear in choices
+  registerDefaultWidgetSetting();
 
   // Migration: Cache existing active calendar data for synchronous loading
   // This is needed for users upgrading to the new settings-based caching system
@@ -612,20 +491,14 @@ Hooks.once('ready', async () => {
 
   // Show default widget if enabled in settings
   if (game.settings?.get('seasons-and-stars', 'showTimeWidget')) {
-    const defaultWidget = game.settings?.get('seasons-and-stars', 'defaultWidget') || 'main';
+    const settingValue = game.settings?.get('seasons-and-stars', 'defaultWidget');
+    const defaultWidget = getSafeDefaultWidgetOption(settingValue);
+    const targetWidget = getTargetWidgetType(defaultWidget, 'show');
 
-    switch (defaultWidget) {
-      case 'mini':
-        CalendarMiniWidget.show();
-        break;
-      case 'grid':
-        CalendarGridWidget.show();
-        break;
-      case 'main':
-      default:
-        CalendarWidget.show();
-        break;
+    if (targetWidget) {
+      CalendarWidgetManager.showWidget(targetWidget);
     }
+    // If targetWidget is null (for 'none' setting), don't show any widget
   }
 
   // Show deprecation warning to GMs
@@ -645,15 +518,24 @@ function registerSettings(): void {
 
   // === CORE CALENDAR SETTINGS ===
 
-  // Calendar setting registered early with basic choices, updated later when calendars load
+  // Calendar selection menu - opens dialog to browse and select calendars
+  game.settings.registerMenu('seasons-and-stars', 'calendarSelectionMenu', {
+    name: 'SEASONS_STARS.settings.calendar_selection',
+    label: 'SEASONS_STARS.settings.select_calendar_button',
+    hint: 'SEASONS_STARS.settings.calendar_selection_hint',
+    icon: 'fa-solid fa-calendar-alt',
+    type: CalendarSelectionDialog,
+    restricted: true, // GM only
+  });
+
+  // Calendar setting - hidden from UI, managed via dialog
   game.settings.register('seasons-and-stars', 'activeCalendar', {
     name: 'SEASONS_STARS.settings.active_calendar',
     hint: 'SEASONS_STARS.settings.active_calendar_hint',
     scope: 'world',
-    config: true,
+    config: false, // Hidden from settings UI - use menu button instead
     type: String,
     default: 'gregorian',
-    choices: { gregorian: 'Gregorian Calendar' }, // Basic default, updated later
     onChange: async (value: string) => {
       if (value && value.trim() !== '' && calendarManager) {
         await handleCalendarSelection(value, calendarManager);
@@ -815,6 +697,18 @@ function registerSettings(): void {
     },
   });
 
+  game.settings.register('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_SUNRISE_SUNSET, {
+    name: 'Display Sunrise/Sunset in Mini Widget',
+    hint: 'Show sunrise and sunset times for the current date',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: true,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', SETTINGS_KEYS.MINI_WIDGET_SHOW_SUNRISE_SUNSET);
+    },
+  });
+
   game.settings.register('seasons-and-stars', 'miniWidgetShowExtensions', {
     name: 'Display Extension Buttons in Mini Widget',
     hint: 'Show extension buttons added by other modules in the mini widget footer',
@@ -827,19 +721,8 @@ function registerSettings(): void {
     },
   });
 
-  game.settings.register('seasons-and-stars', 'defaultWidget', {
-    name: 'SEASONS_STARS.settings.default_widget',
-    hint: 'SEASONS_STARS.settings.default_widget_hint',
-    scope: 'client',
-    config: true,
-    type: String,
-    default: 'main',
-    choices: {
-      main: 'SEASONS_STARS.settings.default_widget_main',
-      mini: 'SEASONS_STARS.settings.default_widget_mini',
-      grid: 'SEASONS_STARS.settings.default_widget_grid',
-    },
-  });
+  // Note: defaultWidget setting is registered later in registerDefaultWidgetSetting()
+  // called from ready hook to include custom registered widgets
 
   game.settings.register('seasons-and-stars', 'calendarClickBehavior', {
     name: 'Calendar Click Behavior',
@@ -1083,32 +966,41 @@ function registerSettings(): void {
 }
 
 /**
- * Update calendar setting choices after calendars are loaded
+ * Register defaultWidget setting with dynamic choices including custom widgets
+ * Called from ready hook after all modules have initialized
  */
-function registerCalendarSettings(): void {
+function registerDefaultWidgetSetting(): void {
   if (!game.settings) return;
 
-  // Get available calendars and create choices
-  const calendars = calendarManager.getAllCalendars();
-  const choices = CalendarLocalization.createCalendarChoices(calendars);
+  // Build choices including any custom registered widgets
+  const widgetChoices: Record<string, string> = {
+    none: 'SEASONS_STARS.settings.default_widget_none',
+    main: 'SEASONS_STARS.settings.default_widget_main',
+    mini: 'SEASONS_STARS.settings.default_widget_mini',
+    grid: 'SEASONS_STARS.settings.default_widget_grid',
+  };
 
-  // Re-register the setting with updated choices to overwrite the basic one
-  game.settings.register('seasons-and-stars', 'activeCalendar', {
-    name: 'SEASONS_STARS.settings.active_calendar',
-    hint: 'SEASONS_STARS.settings.active_calendar_hint',
-    scope: 'world',
+  // Add any custom registered widgets
+  const registeredTypes = CalendarWidgetManager.getRegisteredTypes();
+  for (const type of registeredTypes) {
+    // Skip built-in types
+    if (type !== 'main' && type !== 'mini' && type !== 'grid') {
+      // Use capitalized type name as label (custom modules can provide i18n if needed)
+      widgetChoices[type] = type.charAt(0).toUpperCase() + type.slice(1);
+    }
+  }
+
+  Logger.debug('Registering defaultWidget setting with choices', { widgetChoices });
+
+  game.settings.register('seasons-and-stars', 'defaultWidget', {
+    name: 'SEASONS_STARS.settings.default_widget',
+    hint: 'SEASONS_STARS.settings.default_widget_hint',
+    scope: 'client',
     config: true,
     type: String,
-    default: 'gregorian',
-    choices: choices,
-    onChange: async (value: string) => {
-      if (value && value.trim() !== '' && calendarManager) {
-        await handleCalendarSelection(value, calendarManager);
-      }
-    },
+    default: 'main',
+    choices: widgetChoices,
   });
-
-  Logger.debug('Updated calendar setting with full choices', { choices });
 }
 
 /**
@@ -1685,6 +1577,23 @@ export function setupAPI(): void {
     },
 
     // Optional enhanced features (basic implementations)
+    /**
+     * Get sunrise and sunset times for a given date
+     *
+     * @param date - The calendar date to get sunrise/sunset times for
+     * @param calendarId - Optional calendar ID (defaults to active calendar)
+     * @returns Object containing sunrise and sunset times as **seconds from midnight**
+     *          (e.g., 21600 = 6:00 AM, 64800 = 6:00 PM).
+     *          Compatible with Simple Calendar's SeasonData.sunriseTime/sunsetTime format.
+     *
+     * @example
+     * ```typescript
+     * const times = api.getSunriseSunset(currentDate);
+     * // returns: { sunrise: 21600, sunset: 64800 }
+     * // 21600 seconds = 6 hours × 3600 seconds/hour
+     * // 64800 seconds = 18 hours × 3600 seconds/hour
+     * ```
+     */
     getSunriseSunset: (
       date: ICalendarDate,
       calendarId?: string
@@ -1705,9 +1614,33 @@ export function setupAPI(): void {
           throw error;
         }
 
-        // Basic implementation - can be enhanced with calendar-specific data later
-        // For now, return reasonable defaults (6 AM sunrise, 6 PM sunset)
-        const result = { sunrise: 6, sunset: 18 };
+        // Get calendar for date conversion
+        const calendar = calendarId
+          ? calendarManager.getCalendar(calendarId)
+          : calendarManager.getActiveCalendar();
+
+        if (!calendar) {
+          // Fallback: 6am and 6pm in seconds (6 × 3600, 18 × 3600)
+          const result = { sunrise: 21600, sunset: 64800 };
+          Logger.api('getSunriseSunset', { date, calendarId }, result);
+          return result;
+        }
+
+        // Convert to CalendarDate
+        const calendarDate = CalendarDate.fromObject(date, calendar);
+
+        // Get calendar engine for calculations
+        const engine = calendarManager.engines.get(calendar.id);
+        if (!engine) {
+          // Fallback: 6am and 6pm in seconds (6 × 3600, 18 × 3600)
+          const result = { sunrise: 21600, sunset: 64800 };
+          Logger.api('getSunriseSunset', { date, calendarId }, result);
+          return result;
+        }
+
+        // Calculate sunrise/sunset times (returns seconds from midnight)
+        const result = SunriseSunsetCalculator.calculate(calendarDate, calendar, engine);
+
         Logger.api('getSunriseSunset', { date, calendarId }, result);
         return result;
       } catch (error) {
@@ -2085,13 +2018,28 @@ export function setupAPI(): void {
     seasonsStarsNamespace.integration = SeasonsStarsIntegration.detect();
   }
 
+  // Create widget registration API wrapper
+  const widgetAPI = {
+    register: (type: string, factory: () => WidgetInstance): void => {
+      CalendarWidgetManager.registerWidget(type, factory);
+    },
+    show: (type: string): Promise<void> => CalendarWidgetManager.showWidget(type),
+    hide: (type: string): Promise<void> => CalendarWidgetManager.hideWidget(type),
+    toggle: (type: string): Promise<void> => CalendarWidgetManager.toggleWidget(type),
+    isVisible: (type: string): boolean => CalendarWidgetManager.isWidgetVisible(type),
+    getRegisteredTypes: (): string[] => CalendarWidgetManager.getRegisteredTypes(),
+    getInstance: <T = unknown>(type: string): T | null =>
+      CalendarWidgetManager.getWidgetInstance<T>(type),
+  };
+
   // Expose API to window for debugging
   window.SeasonsStars = {
     api,
     manager: calendarManager,
     notes: notesManager,
-    integration: SeasonsStarsIntegration.detect() || null,
+    integration: SeasonsStarsIntegration.detect(),
     buttonRegistry: SidebarButtonRegistry.getInstance(),
+    widgets: widgetAPI,
     CalendarWidget,
     CalendarMiniWidget,
     CalendarGridWidget,

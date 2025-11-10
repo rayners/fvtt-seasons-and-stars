@@ -3,11 +3,14 @@
   "translations": {
     "en": {
       "label": "Roshar Calendar (Stormlight Archive)",
-      "description": "The Vorin calendar used on Roshar in Brandon Sanderson's Stormlight Archive series. Features ten months of fifty days each, organized into ten weeks of five days per month, with the unique Year.Month.Week.Day date format used by the Alethi and other Vorin cultures.",
+      "description": "The Vorin calendar used on Roshar in Brandon Sanderson's Stormlight Archive series. Features a 500-day year with ten months of fifty days each, organized into ten weeks of five days per month. The calendar includes special periods: The Weeping (four weeks of constant rain marking year's end) and Midpeace (four weeks at mid-year with no highstorms). Uses the unique Year.Month.Week.Day date format.",
       "setting": "Brandon Sanderson's Cosmere - Stormlight Archive"
     }
   },
-  "sources": ["https://stormlightarchive.fandom.com/wiki/Calendar"],
+  "sources": [
+    "https://stormlightarchive.fandom.com/wiki/Calendar",
+    "https://www.17thshard.com/blogs/entry/633-rosharan-time-measurements/"
+  ],
 
   "year": {
     "epoch": 0,
@@ -112,18 +115,32 @@
     }
   ],
 
-  "intercalary": [
+  "intercalary": [],
+
+  "seasons": [
     {
       "name": "The Weeping",
-      "days": 28,
-      "after": "Ishev",
-      "description": "A four-week period of constant rain marking the end of the year. No highstorms occur during this time, and gemstones cannot be infused with Stormlight. Contains Lightday, a single clear day in the middle of the period."
+      "startMonth": 10,
+      "startDay": 31,
+      "endMonth": 10,
+      "endDay": 50,
+      "icon": "cloud-rain",
+      "description": "Four weeks of constant rain and no highstorms marking the transition between years (last 20 days of Ishev). Gemstones cannot be infused with Stormlight during this period, except on Lightday."
+    },
+    {
+      "name": "Midpeace",
+      "startMonth": 5,
+      "startDay": 41,
+      "endMonth": 6,
+      "endDay": 10,
+      "icon": "dove",
+      "description": "Four weeks with no highstorms occurring at the midpoint of the year (last 10 days of Palah through first 10 days of Shash). The Middlefest fair in Jah Keved is traditionally held during this time."
     }
   ],
 
   "time": {
     "hoursInDay": 20,
-    "minutesInHour": 100,
+    "minutesInHour": 50,
     "secondsInMinute": 100
   },
 

@@ -65,4 +65,6 @@ jobs:
             i18n
             actions
             events
+            main
+
 

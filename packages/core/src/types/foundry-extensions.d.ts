@@ -116,6 +116,7 @@ declare global {
       notes?: NotesManagerInterface;
       integration?: SeasonsStarsIntegration | null;
       buttonRegistry?: SidebarButtonRegistryAPI;
+      widgets?: WidgetRegistrationAPI;
       CalendarWidget?: unknown;
       CalendarMiniWidget?: unknown;
       CalendarGridWidget?: unknown;
@@ -187,6 +188,7 @@ export declare function isNotesManager(obj: unknown): obj is NotesManagerInterfa
 
 // Calendar Manager interface for type safety
 export interface CalendarManagerInterface {
+  engines: Map<string, CalendarEngineInterface>;
   getCurrentDate(): CalendarDate | null;
   setCurrentDate(date: CalendarDate): Promise<void>;
   getActiveCalendar(): SeasonsStarsCalendar | null;
@@ -210,6 +212,9 @@ export interface CalendarEngineInterface {
   getCalendar(): SeasonsStarsCalendar;
   calculateWeekday(year: number, month: number, day: number): number;
   getMonthLength(month: number, year: number): number;
+  getMonthLengths(year: number): number[];
+  getYearLength(year: number): number;
+  isLeapYear(year: number): boolean;
   dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number;
   worldTimeToDate(timestamp: number, worldCreationTimestamp?: number): CalendarDate;
   getIntercalaryDaysAfterMonth(year: number, month: number): CalendarIntercalary[];
@@ -237,4 +242,66 @@ export interface NotesManagerInterface {
     removeNote(noteId: string): Promise<void>;
     getAllNotes?(): JournalEntry[];
   };
+}
+
+// Re-export WidgetInstance from widget-manager to avoid duplication
+export type { WidgetInstance } from '../ui/widget-manager';
+
+// Widget Registration API for external modules
+export interface WidgetRegistrationAPI {
+  /**
+   * Register a custom widget with the widget manager
+   * @param type - Unique widget type identifier
+   * @param factory - Factory function that creates the widget instance
+   * @example
+   * ```javascript
+   * // Register a custom calendar widget
+   * game.seasonsStars.widgets.register('custom-lunar', () => ({
+   *   show: async () => { await myLunarWidget.render(true); },
+   *   hide: async () => { await myLunarWidget.close(); },
+   *   toggle: async () => { await myLunarWidget.toggle(); },
+   *   getInstance: () => myLunarWidget,
+   *   isVisible: () => myLunarWidget.rendered
+   * }));
+   *
+   * // Show the custom widget
+   * await game.seasonsStars.widgets.show('custom-lunar');
+   * ```
+   */
+  register(type: string, factory: () => WidgetInstance): void;
+
+  /**
+   * Show a registered widget
+   * @param type - Widget type to show
+   */
+  show(type: string): Promise<void>;
+
+  /**
+   * Hide a registered widget
+   * @param type - Widget type to hide
+   */
+  hide(type: string): Promise<void>;
+
+  /**
+   * Toggle a registered widget
+   * @param type - Widget type to toggle
+   */
+  toggle(type: string): Promise<void>;
+
+  /**
+   * Check if a widget is currently visible
+   * @param type - Widget type to check
+   */
+  isVisible(type: string): boolean;
+
+  /**
+   * Get the list of registered widget types
+   */
+  getRegisteredTypes(): string[];
+
+  /**
+   * Get a widget instance for direct access
+   * @param type - Widget type to get
+   */
+  getInstance<T = unknown>(type: string): T | null;
 }

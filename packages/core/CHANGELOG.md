@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.24.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.24.0...seasons-and-stars-v0.24.1) (2025-10-30)
+
+
+### Bug Fixes
+
+* replace calendar dropdown with menu button ([#448](https://github.com/rayners/fvtt-seasons-and-stars/issues/448)) ([80d2c64](https://github.com/rayners/fvtt-seasons-and-stars/commit/80d2c642fa1d339ca89564c1a2e92de3a7966f7d))
+
+## [0.24.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.23.1...seasons-and-stars-v0.24.0) (2025-10-28)
+
+
+### Features
+
+* improve create note dialog with validation and add another button ([#428](https://github.com/rayners/fvtt-seasons-and-stars/issues/428)) ([c18cb0b](https://github.com/rayners/fvtt-seasons-and-stars/commit/c18cb0b1201b35b3471fe9f4aa53724f0e59d350))
+
+
+### Bug Fixes
+
+* hide calendar pack notice when packs are installed ([#433](https://github.com/rayners/fvtt-seasons-and-stars/issues/433)) ([adf6f34](https://github.com/rayners/fvtt-seasons-and-stars/commit/adf6f34766c9982f73b2d47f1c0287a6047905e7))
+* migrate year setting dialog to DialogV2 ([#424](https://github.com/rayners/fvtt-seasons-and-stars/issues/424)) ([62bb646](https://github.com/rayners/fvtt-seasons-and-stars/commit/62bb6466c90f3feba2881e611fc39d7930f480e7))
+
 ## [0.23.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.23.0...seasons-and-stars-v0.23.1) (2025-10-24)
 
 
