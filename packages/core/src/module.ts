@@ -7,7 +7,7 @@
 import './styles/seasons-and-stars.scss';
 
 import { Logger } from './core/logger';
-import { UI_CONSTANTS } from './core/constants';
+import { UI_CONSTANTS, SETTINGS_KEYS } from './core/constants';
 import { CalendarManager } from './core/calendar-manager';
 import { NotesManager } from './core/notes-manager';
 import { compatibilityManager } from './core/compatibility-manager';
@@ -684,7 +684,7 @@ function registerSettings(): void {
     },
   });
 
-  game.settings.register('seasons-and-stars', 'miniWidgetShowSunriseSunset', {
+  game.settings.register('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_SUNRISE_SUNSET, {
     name: 'Display Sunrise/Sunset in Mini Widget',
     hint: 'Show sunrise and sunset times for the current date',
     scope: 'client',
@@ -692,7 +692,7 @@ function registerSettings(): void {
     type: Boolean,
     default: true,
     onChange: () => {
-      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowSunriseSunset');
+      Hooks.callAll('seasons-stars:settingsChanged', SETTINGS_KEYS.MINI_WIDGET_SHOW_SUNRISE_SUNSET);
     },
   });
 

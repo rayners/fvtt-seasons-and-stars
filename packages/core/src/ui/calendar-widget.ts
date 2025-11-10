@@ -477,22 +477,21 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         engine
       );
 
-      const sunriseHours = Math.floor(sunriseSunset.sunrise);
-      const minutesInHour = calendar.time?.minutesInHour ?? 60;
-      const sunriseMinutes = Math.round((sunriseSunset.sunrise - sunriseHours) * minutesInHour);
+      const { hour, minute } = SunriseSunsetCalculator.decimalHoursToTimeComponents(
+        sunriseSunset.sunrise,
+        calendar
+      );
 
       const currentDateData = currentDate.toObject();
       currentDateData.time = {
-        hour: sunriseHours,
-        minute: sunriseMinutes,
+        hour,
+        minute,
         second: 0,
       };
       const targetDate = new CalendarDate(currentDateData, calendar);
 
       await manager.setCurrentDate(targetDate);
-      Logger.info(
-        `Set time to sunrise: ${sunriseHours}:${String(sunriseMinutes).padStart(2, '0')}`
-      );
+      Logger.info(`Set time to sunrise: ${hour}:${String(minute).padStart(2, '0')}`);
     } catch (error) {
       Logger.error('Error setting time to sunrise', error as Error);
       ui.notifications?.error('Failed to set time to sunrise');
@@ -525,20 +524,21 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         engine
       );
 
-      const sunsetHours = Math.floor(sunriseSunset.sunset);
-      const minutesInHour = calendar.time?.minutesInHour ?? 60;
-      const sunsetMinutes = Math.round((sunriseSunset.sunset - sunsetHours) * minutesInHour);
+      const { hour, minute } = SunriseSunsetCalculator.decimalHoursToTimeComponents(
+        sunriseSunset.sunset,
+        calendar
+      );
 
       const currentDateData = currentDate.toObject();
       currentDateData.time = {
-        hour: sunsetHours,
-        minute: sunsetMinutes,
+        hour,
+        minute,
         second: 0,
       };
       const targetDate = new CalendarDate(currentDateData, calendar);
 
       await manager.setCurrentDate(targetDate);
-      Logger.info(`Set time to sunset: ${sunsetHours}:${String(sunsetMinutes).padStart(2, '0')}`);
+      Logger.info(`Set time to sunset: ${hour}:${String(minute).padStart(2, '0')}`);
     } catch (error) {
       Logger.error('Error setting time to sunset', error as Error);
       ui.notifications?.error('Failed to set time to sunset');

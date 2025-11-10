@@ -5,7 +5,12 @@
 import { CalendarWidgetManager } from './widget-manager';
 import { Logger } from '../core/logger';
 import { SmallTimeUtils } from './base-widget-manager';
-import { WIDGET_POSITIONING, MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
+import {
+  WIDGET_POSITIONING,
+  MOON_PHASE_ICON_MAP,
+  SETTINGS_KEYS,
+  sanitizeColor,
+} from '../core/constants';
 import { TimeAdvancementService } from '../core/time-advancement-service';
 import { DateFormatter } from '../core/date-formatter';
 import { SidebarButtonRegistry } from './sidebar-button-registry';
@@ -933,7 +938,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           settingName === 'miniWidgetShowDayOfWeek' ||
           settingName === 'miniWidgetCanonicalMode' ||
           settingName === 'miniWidgetShowMoonPhases' ||
-          settingName === 'miniWidgetShowSunriseSunset' ||
+          settingName === SETTINGS_KEYS.MINI_WIDGET_SHOW_SUNRISE_SUNSET ||
           settingName === 'miniWidgetShowExtensions' ||
           settingName === 'alwaysShowQuickTimeButtons') &&
         CalendarMiniWidget.activeInstance?.rendered
@@ -1145,23 +1150,22 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       );
 
       // Set time to sunrise (hours are fractional, e.g., 6.5 = 6:30)
-      const sunriseHours = Math.floor(sunriseSunset.sunrise);
-      const minutesInHour = calendar.time?.minutesInHour ?? 60;
-      const sunriseMinutes = Math.round((sunriseSunset.sunrise - sunriseHours) * minutesInHour);
+      const { hour, minute } = SunriseSunsetCalculator.decimalHoursToTimeComponents(
+        sunriseSunset.sunrise,
+        calendar
+      );
 
       // Create a new CalendarDate with the sunrise time
       const currentDateData = currentDate.toObject();
       currentDateData.time = {
-        hour: sunriseHours,
-        minute: sunriseMinutes,
+        hour,
+        minute,
         second: 0,
       };
       const targetDate = new CalendarDate(currentDateData, calendar);
 
       await manager.setCurrentDate(targetDate);
-      Logger.info(
-        `Set time to sunrise: ${sunriseHours}:${String(sunriseMinutes).padStart(2, '0')}`
-      );
+      Logger.info(`Set time to sunrise: ${hour}:${String(minute).padStart(2, '0')}`);
     } catch (error) {
       Logger.error('Error setting time to sunrise', error as Error);
       ui.notifications?.error('Failed to set time to sunrise');
@@ -1190,21 +1194,22 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       );
 
       // Set time to sunset (hours are fractional, e.g., 18.75 = 18:45)
-      const sunsetHours = Math.floor(sunriseSunset.sunset);
-      const minutesInHour = calendar.time?.minutesInHour ?? 60;
-      const sunsetMinutes = Math.round((sunriseSunset.sunset - sunsetHours) * minutesInHour);
+      const { hour, minute } = SunriseSunsetCalculator.decimalHoursToTimeComponents(
+        sunriseSunset.sunset,
+        calendar
+      );
 
       // Create a new CalendarDate with the sunset time
       const currentDateData = currentDate.toObject();
       currentDateData.time = {
-        hour: sunsetHours,
-        minute: sunsetMinutes,
+        hour,
+        minute,
         second: 0,
       };
       const targetDate = new CalendarDate(currentDateData, calendar);
 
       await manager.setCurrentDate(targetDate);
-      Logger.info(`Set time to sunset: ${sunsetHours}:${String(sunsetMinutes).padStart(2, '0')}`);
+      Logger.info(`Set time to sunset: ${hour}:${String(minute).padStart(2, '0')}`);
     } catch (error) {
       Logger.error('Error setting time to sunset', error as Error);
       ui.notifications?.error('Failed to set time to sunset');

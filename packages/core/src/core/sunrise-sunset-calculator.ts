@@ -49,7 +49,7 @@ export class SunriseSunsetCalculator {
     const currentTimes = this.getSeasonTimes(currentSeason, calendar);
     const nextTimes = this.getSeasonTimes(nextSeason, calendar);
 
-    // Calculate progress through the season (0 = first day, 1 = last day)
+    // Calculate progress through the season (0 = season start, 1 = next season start)
     const progress = this.calculateSeasonProgress(
       date,
       currentSeason,
@@ -161,7 +161,7 @@ export class SunriseSunsetCalculator {
   }
 
   /**
-   * Calculate how far through the current season we are (0 = first day, 1 = last day)
+   * Calculate how far through the current season we are (0 = season start, 1 = next season start)
    */
   private static calculateSeasonProgress(
     date: CalendarDateData,
@@ -301,19 +301,45 @@ export class SunriseSunsetCalculator {
   }
 
   /**
-   * Convert hours as decimal to time string (HH:MM)
+   * Convert decimal hours to hour and minute components for use in setDate operations
    * Respects calendar's minutesInHour setting
+   *
+   * @param hours - Decimal hours (e.g., 6.5 = 6:30, 18.75 = 18:45)
+   * @param calendar - Optional calendar definition (uses minutesInHour from calendar.time)
+   * @returns Object with hour and minute as integers
+   *
+   * @example
+   * ```typescript
+   * const components = SunriseSunsetCalculator.decimalHoursToTimeComponents(6.5);
+   * // returns: { hour: 6, minute: 30 }
+   *
+   * // With custom calendar (90 minutes per hour)
+   * const customComponents = SunriseSunsetCalculator.decimalHoursToTimeComponents(6.5, calendar);
+   * // returns: { hour: 6, minute: 45 }
+   * ```
    */
-  static hoursToTimeString(hours: number, calendar?: SeasonsStarsCalendar): string {
+  static decimalHoursToTimeComponents(
+    hours: number,
+    calendar?: SeasonsStarsCalendar
+  ): { hour: number; minute: number } {
     const h = Math.floor(hours);
     const minutesInHour = calendar?.time?.minutesInHour ?? 60;
     const m = Math.round((hours - h) * minutesInHour);
 
     // Handle edge case where rounding produces minutesInHour
     if (m === minutesInHour) {
-      return `${(h + 1).toString().padStart(2, '0')}:00`;
+      return { hour: h + 1, minute: 0 };
     }
 
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    return { hour: h, minute: m };
+  }
+
+  /**
+   * Convert hours as decimal to time string (HH:MM)
+   * Respects calendar's minutesInHour setting
+   */
+  static hoursToTimeString(hours: number, calendar?: SeasonsStarsCalendar): string {
+    const { hour, minute } = this.decimalHoursToTimeComponents(hours, calendar);
+    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
   }
 }
