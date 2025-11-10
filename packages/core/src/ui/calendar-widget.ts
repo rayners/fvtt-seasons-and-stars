@@ -19,7 +19,6 @@ import type { MainWidgetContext } from '../types/widget-types';
 export class CalendarWidget extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
-  private updateInterval: number | null = null;
   private static activeInstance: CalendarWidget | null = null;
   private lastRenderContext?: MainWidgetContext;
 
@@ -298,9 +297,6 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     if (partId === 'moonPhases' && this.lastRenderContext) {
       this.applyMoonPhaseColors(this.lastRenderContext);
     }
-
-    // Start auto-update after rendering
-    this.startAutoUpdate();
   }
 
   /**
@@ -636,37 +632,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   }
 
   /**
-   * Start automatic updates
-   */
-  private startAutoUpdate(): void {
-    if (this.updateInterval) {
-      clearInterval(this.updateInterval);
-    }
-
-    // Update every 30 seconds
-    this.updateInterval = window.setInterval(() => {
-      if (this.rendered) {
-        this.render();
-      }
-    }, 30000);
-  }
-
-  /**
-   * Stop automatic updates
-   */
-  private stopAutoUpdate(): void {
-    if (this.updateInterval) {
-      clearInterval(this.updateInterval);
-      this.updateInterval = null;
-    }
-  }
-
-  /**
    * Handle closing the widget
    */
   async close(options: any = {}): Promise<this> {
-    this.stopAutoUpdate();
-
     // Clear active instance if this is it
     if (CalendarWidget.activeInstance === this) {
       CalendarWidget.activeInstance = null;
