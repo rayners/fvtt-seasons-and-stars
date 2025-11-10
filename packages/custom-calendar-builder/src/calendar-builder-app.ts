@@ -14,12 +14,27 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   private lastValidationResult: any = null;
   private validationTimeout: number | null = null;
   private validationSequence: number = 0;
+  private calendarData: any = null;
 
   // Type declaration for HandlebarsApplicationMixin method
   declare _prepareTabs: (group: string) => Record<string, any>;
 
   constructor() {
     super();
+  }
+
+  /**
+   * Parse current JSON string into calendar data object
+   */
+  private parseCalendarData(): any {
+    if (!this.currentJson.trim()) {
+      return null;
+    }
+    try {
+      return JSON.parse(this.currentJson);
+    } catch {
+      return null;
+    }
   }
 
   /** @override */
@@ -132,10 +147,14 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   async _prepareContext(options = {}): Promise<any> {
     const context = await super._prepareContext(options);
 
+    // Parse calendar data for use in form tabs
+    this.calendarData = this.parseCalendarData();
+
     return Object.assign(context, {
       currentJson: this.currentJson,
       hasContent: this.currentJson.length > 0,
       validationResult: this.lastValidationResult,
+      calendar: this.calendarData,
     });
   }
 
@@ -164,6 +183,94 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     // Update validation results display for editor part
     if (partId === 'editor') {
       this._updateValidationDisplay();
+    }
+
+    // Attach form field listeners for interactive tabs
+    if (partId === 'basic' || partId === 'time' || partId === 'leapyear') {
+      this._attachFormFieldListeners(htmlElement);
+    }
+  }
+
+  /**
+   * Attach change and blur listeners to form fields
+   */
+  private _attachFormFieldListeners(htmlElement: HTMLElement): void {
+    const inputs = htmlElement.querySelectorAll('input, select, textarea');
+    inputs.forEach((input) => {
+      input.addEventListener('change', this._onFieldChange.bind(this));
+      input.addEventListener('blur', this._onFieldChange.bind(this));
+    });
+  }
+
+  /**
+   * Handle field changes and update the JSON
+   */
+  private _onFieldChange(event: Event): void {
+    const target = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+    const fieldName = target.name;
+
+    if (!fieldName) return;
+
+    // Get current calendar data
+    let calendar = this.parseCalendarData();
+    if (!calendar) {
+      // Initialize minimal calendar structure if needed
+      calendar = {
+        id: '',
+        translations: { en: { label: '', description: '', setting: '' } },
+        year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 },
+        months: [],
+        weekdays: [],
+        time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+        leapYear: { rule: 'none', month: '', extraDays: 1 }
+      };
+    }
+
+    // Parse field name and update nested properties
+    this._setNestedProperty(calendar, fieldName, target.value);
+
+    // Update the JSON editor
+    this.currentJson = JSON.stringify(calendar, null, 2);
+
+    // Update the CodeMirror editor if it exists
+    const codeMirror = this.element?.querySelector('#calendar-json-editor') as any;
+    if (codeMirror && codeMirror.value !== this.currentJson) {
+      codeMirror.value = this.currentJson;
+    }
+
+    // Validate the updated JSON
+    this._validateCurrentJson();
+  }
+
+  /**
+   * Set a nested property in an object using dot notation
+   */
+  private _setNestedProperty(obj: any, path: string, value: any): void {
+    const keys = path.split('.');
+    let current = obj;
+
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      if (!(key in current) || typeof current[key] !== 'object') {
+        current[key] = {};
+      }
+      current = current[key];
+    }
+
+    const lastKey = keys[keys.length - 1];
+
+    // Handle special cases
+    if (path === 'sources') {
+      // Convert newline-separated text to array
+      current[lastKey] = value.split('\n').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+    } else if (path.includes('year.epoch') || path.includes('year.currentYear') || path.includes('year.startDay') ||
+               path.includes('time.hoursInDay') || path.includes('time.minutesInHour') || path.includes('time.secondsInMinute') ||
+               path.includes('leapYear.extraDays')) {
+      // Convert to number
+      current[lastKey] = parseInt(value, 10) || 0;
+    } else {
+      // String value
+      current[lastKey] = value;
     }
   }
 

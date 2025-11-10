@@ -1,14 +1,8 @@
 <section class="tab scrollable {{tab.cssClass}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
-  {{!-- Warning banner for non-functional mockup tabs --}}
-  <div class="notification warning" style="margin-bottom: 1rem;">
-    <i class="fas fa-exclamation-triangle"></i>
-    <strong>Coming Soon:</strong> This tab is a visual mockup only. Forms do not save or modify calendar data yet. Use the <strong>Editor</strong> tab for functional JSON editing.
-  </div>
-
   <div class="form-group">
     <label for="hours-in-day">Hours in Day</label>
     <div class="form-fields">
-      <input type="number" name="time.hoursInDay" id="hours-in-day" value="24" min="1" />
+      <input type="number" name="time.hoursInDay" id="hours-in-day" value="{{calendar.time.hoursInDay}}" min="1" />
     </div>
     <p class="hint">Number of hours in a full day cycle</p>
   </div>
@@ -16,7 +10,7 @@
   <div class="form-group">
     <label for="minutes-in-hour">Minutes in Hour</label>
     <div class="form-fields">
-      <input type="number" name="time.minutesInHour" id="minutes-in-hour" value="60" min="1" />
+      <input type="number" name="time.minutesInHour" id="minutes-in-hour" value="{{calendar.time.minutesInHour}}" min="1" />
     </div>
     <p class="hint">Number of minutes in an hour</p>
   </div>
@@ -24,7 +18,7 @@
   <div class="form-group">
     <label for="seconds-in-minute">Seconds in Minute</label>
     <div class="form-fields">
-      <input type="number" name="time.secondsInMinute" id="seconds-in-minute" value="60" min="1" />
+      <input type="number" name="time.secondsInMinute" id="seconds-in-minute" value="{{calendar.time.secondsInMinute}}" min="1" />
     </div>
     <p class="hint">Number of seconds in a minute</p>
   </div>
