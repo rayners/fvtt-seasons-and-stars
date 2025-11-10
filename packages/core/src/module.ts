@@ -1569,18 +1569,16 @@ export function setupAPI(): void {
      *
      * @param date - The calendar date to get sunrise/sunset times for
      * @param calendarId - Optional calendar ID (defaults to active calendar)
-     * @returns Object containing sunrise and sunset times as **decimal hours**
-     *          (e.g., 6.5 = 6:30 AM, 18.75 = 6:45 PM).
-     *          Use `SunriseSunsetCalculator.hoursToTimeString()` to convert to HH:MM format.
+     * @returns Object containing sunrise and sunset times as **seconds from midnight**
+     *          (e.g., 21600 = 6:00 AM, 64800 = 6:00 PM).
+     *          Compatible with Simple Calendar's SeasonData.sunriseTime/sunsetTime format.
      *
      * @example
      * ```typescript
      * const times = api.getSunriseSunset(currentDate);
-     * // returns: { sunrise: 6.5, sunset: 18.75 }
-     *
-     * // Convert to time strings:
-     * const sunriseStr = SunriseSunsetCalculator.hoursToTimeString(times.sunrise);
-     * // returns: "06:30"
+     * // returns: { sunrise: 21600, sunset: 64800 }
+     * // 21600 seconds = 6 hours × 3600 seconds/hour
+     * // 64800 seconds = 18 hours × 3600 seconds/hour
      * ```
      */
     getSunriseSunset: (
@@ -1609,7 +1607,8 @@ export function setupAPI(): void {
           : calendarManager.getActiveCalendar();
 
         if (!calendar) {
-          const result = { sunrise: 6, sunset: 18 };
+          // Fallback: 6am and 6pm in seconds (6 × 3600, 18 × 3600)
+          const result = { sunrise: 21600, sunset: 64800 };
           Logger.api('getSunriseSunset', { date, calendarId }, result);
           return result;
         }
@@ -1620,12 +1619,13 @@ export function setupAPI(): void {
         // Get calendar engine for calculations
         const engine = calendarManager.engines.get(calendar.id);
         if (!engine) {
-          const result = { sunrise: 6, sunset: 18 };
+          // Fallback: 6am and 6pm in seconds (6 × 3600, 18 × 3600)
+          const result = { sunrise: 21600, sunset: 64800 };
           Logger.api('getSunriseSunset', { date, calendarId }, result);
           return result;
         }
 
-        // Calculate sunrise/sunset times directly (returns decimal hours for internal use)
+        // Calculate sunrise/sunset times (returns seconds from midnight)
         const result = SunriseSunsetCalculator.calculate(calendarDate, calendar, engine);
 
         Logger.api('getSunriseSunset', { date, calendarId }, result);

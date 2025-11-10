@@ -195,11 +195,11 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         activeCalendar,
         engine
       );
-      sunriseString = SunriseSunsetCalculator.hoursToTimeString(
+      sunriseString = SunriseSunsetCalculator.secondsToTimeString(
         sunriseSunset.sunrise,
         activeCalendar
       );
-      sunsetString = SunriseSunsetCalculator.hoursToTimeString(
+      sunsetString = SunriseSunsetCalculator.secondsToTimeString(
         sunriseSunset.sunset,
         activeCalendar
       );
@@ -477,7 +477,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         engine
       );
 
-      const { hour, minute } = SunriseSunsetCalculator.decimalHoursToTimeComponents(
+      const { hour, minute } = SunriseSunsetCalculator.secondsToTimeComponents(
         sunriseSunset.sunrise,
         calendar
       );
@@ -524,7 +524,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
         engine
       );
 
-      const { hour, minute } = SunriseSunsetCalculator.decimalHoursToTimeComponents(
+      const { hour, minute } = SunriseSunsetCalculator.secondsToTimeComponents(
         sunriseSunset.sunset,
         calendar
       );

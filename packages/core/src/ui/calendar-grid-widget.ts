@@ -478,11 +478,14 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
           calendar,
           engine
         );
-        const sunriseStr = SunriseSunsetCalculator.hoursToTimeString(
+        const sunriseStr = SunriseSunsetCalculator.secondsToTimeString(
           sunriseSunset.sunrise,
           calendar
         );
-        const sunsetStr = SunriseSunsetCalculator.hoursToTimeString(sunriseSunset.sunset, calendar);
+        const sunsetStr = SunriseSunsetCalculator.secondsToTimeString(
+          sunriseSunset.sunset,
+          calendar
+        );
         tooltipParts.push(
           `<span style="white-space: nowrap;"><i class="fas fa-sunrise"></i> ${sunriseStr} <i class="fas fa-sunset"></i> ${sunsetStr}</span>`
         );

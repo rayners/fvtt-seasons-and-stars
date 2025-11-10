@@ -423,16 +423,16 @@ class IntegrationAPI {
     return calendar.weekdays.map(weekday => weekday.name);
   }
 
-  getSunriseSunset(date: CalendarDate, calendarId?: string): { sunrise: string; sunset: string } {
+  getSunriseSunset(date: CalendarDate, calendarId?: string): { sunrise: number; sunset: number } {
     const calendar = calendarId
       ? this.manager.getCalendar(calendarId)
       : this.manager.getActiveCalendar();
 
     if (!calendar) {
-      // Fallback to default times
+      // Fallback to default times (6am and 6pm in seconds)
       return {
-        sunrise: '06:00',
-        sunset: '18:00',
+        sunrise: 21600, // 6 × 3600
+        sunset: 64800, // 18 × 3600
       };
     }
 
@@ -442,18 +442,14 @@ class IntegrationAPI {
 
     if (!engine) {
       // Graceful degradation: return fallback instead of throwing
-      // This is display data, not critical business logic
       return {
-        sunrise: '06:00',
-        sunset: '18:00',
+        sunrise: 21600, // 6 × 3600
+        sunset: 64800, // 18 × 3600
       };
     }
 
-    const times = SunriseSunsetCalculator.calculate(date, calendar, engine);
-    return {
-      sunrise: SunriseSunsetCalculator.hoursToTimeString(times.sunrise),
-      sunset: SunriseSunsetCalculator.hoursToTimeString(times.sunset),
-    };
+    // Calculate returns seconds from midnight
+    return SunriseSunsetCalculator.calculate(date, calendar, engine);
   }
 
   getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo {

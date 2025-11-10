@@ -264,11 +264,11 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           activeCalendar,
           engine
         );
-        sunriseString = SunriseSunsetCalculator.hoursToTimeString(
+        sunriseString = SunriseSunsetCalculator.secondsToTimeString(
           sunriseSunset.sunrise,
           activeCalendar
         );
-        sunsetString = SunriseSunsetCalculator.hoursToTimeString(
+        sunsetString = SunriseSunsetCalculator.secondsToTimeString(
           sunriseSunset.sunset,
           activeCalendar
         );
@@ -1149,8 +1149,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         engine
       );
 
-      // Set time to sunrise (hours are fractional, e.g., 6.5 = 6:30)
-      const { hour, minute } = SunriseSunsetCalculator.decimalHoursToTimeComponents(
+      // Set time to sunrise (seconds from midnight, e.g., 21600 = 6:00)
+      const { hour, minute } = SunriseSunsetCalculator.secondsToTimeComponents(
         sunriseSunset.sunrise,
         calendar
       );
@@ -1193,8 +1193,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         engine
       );
 
-      // Set time to sunset (hours are fractional, e.g., 18.75 = 18:45)
-      const { hour, minute } = SunriseSunsetCalculator.decimalHoursToTimeComponents(
+      // Set time to sunset (seconds from midnight, e.g., 64800 = 18:00)
+      const { hour, minute } = SunriseSunsetCalculator.secondsToTimeComponents(
         sunriseSunset.sunset,
         calendar
       );

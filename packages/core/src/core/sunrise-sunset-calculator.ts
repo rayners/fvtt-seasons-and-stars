@@ -24,7 +24,7 @@ export class SunriseSunsetCalculator {
    * @param date - The date to calculate times for
    * @param calendar - The calendar definition
    * @param engine - CalendarEngine instance for accurate year-length calculations
-   * @returns Object with sunrise and sunset as hour decimal values (e.g., 6.5 = 6:30)
+   * @returns Object with sunrise and sunset as seconds from midnight
    */
   static calculate(
     date: CalendarDateData,
@@ -32,20 +32,28 @@ export class SunriseSunsetCalculator {
     engine: CalendarEngineInterface
   ): { sunrise: number; sunset: number } {
     if (!calendar.seasons || calendar.seasons.length === 0) {
-      return this.getDefaultTimes(calendar);
+      const defaultTimes = this.getDefaultTimes(calendar);
+      return {
+        sunrise: this.decimalHoursToSeconds(defaultTimes.sunrise, calendar),
+        sunset: this.decimalHoursToSeconds(defaultTimes.sunset, calendar),
+      };
     }
 
     // Find current season and next season
     const currentSeasonIndex = this.findSeasonIndex(date, calendar.seasons, calendar);
     if (currentSeasonIndex === -1) {
-      return this.getDefaultTimes(calendar);
+      const defaultTimes = this.getDefaultTimes(calendar);
+      return {
+        sunrise: this.decimalHoursToSeconds(defaultTimes.sunrise, calendar),
+        sunset: this.decimalHoursToSeconds(defaultTimes.sunset, calendar),
+      };
     }
 
     const currentSeason = calendar.seasons[currentSeasonIndex];
     const nextSeasonIndex = (currentSeasonIndex + 1) % calendar.seasons.length;
     const nextSeason = calendar.seasons[nextSeasonIndex];
 
-    // Get sunrise/sunset for current and next season
+    // Get sunrise/sunset for current and next season (in decimal hours)
     const currentTimes = this.getSeasonTimes(currentSeason, calendar);
     const nextTimes = this.getSeasonTimes(nextSeason, calendar);
 
@@ -58,10 +66,14 @@ export class SunriseSunsetCalculator {
       engine
     );
 
-    // Interpolate between current and next season
+    // Interpolate between current and next season (still in decimal hours)
+    const sunriseHours = this.interpolate(currentTimes.sunrise, nextTimes.sunrise, progress);
+    const sunsetHours = this.interpolate(currentTimes.sunset, nextTimes.sunset, progress);
+
+    // Convert from decimal hours to seconds from midnight
     return {
-      sunrise: this.interpolate(currentTimes.sunrise, nextTimes.sunrise, progress),
-      sunset: this.interpolate(currentTimes.sunset, nextTimes.sunset, progress),
+      sunrise: this.decimalHoursToSeconds(sunriseHours, calendar),
+      sunset: this.decimalHoursToSeconds(sunsetHours, calendar),
     };
   }
 
@@ -149,15 +161,19 @@ export class SunriseSunsetCalculator {
 
   /**
    * Get default sunrise/sunset times (50% day, 50% night)
+   * Returns decimal hours
    */
   private static getDefaultTimes(calendar: SeasonsStarsCalendar): {
     sunrise: number;
     sunset: number;
   } {
     const hoursInDay = calendar.time?.hoursInDay ?? 24;
-    const sunrise = hoursInDay / 4; // 25% through the day
-    const sunset = (hoursInDay * 3) / 4; // 75% through the day
-    return { sunrise, sunset };
+    const sunriseHours = hoursInDay / 4; // 25% through the day
+    const sunsetHours = (hoursInDay * 3) / 4; // 75% through the day
+    return {
+      sunrise: sunriseHours,
+      sunset: sunsetHours,
+    };
   }
 
   /**
@@ -301,6 +317,35 @@ export class SunriseSunsetCalculator {
   }
 
   /**
+   * Convert decimal hours to seconds from midnight
+   * Respects calendar's minutesInHour and secondsInMinute settings
+   *
+   * @param hours - Decimal hours (e.g., 6.5 = 6:30, 18.75 = 18:45)
+   * @param calendar - Optional calendar definition
+   * @returns Seconds from midnight
+   *
+   * @example
+   * ```typescript
+   * // Standard 24-hour day with 60-minute hours
+   * const seconds = SunriseSunsetCalculator.decimalHoursToSeconds(6.0);
+   * // returns: 21600 (6 × 60 × 60)
+   *
+   * // Half past six
+   * const seconds2 = SunriseSunsetCalculator.decimalHoursToSeconds(6.5);
+   * // returns: 23400 (6.5 × 60 × 60)
+   *
+   * // Custom calendar with 90 minutes per hour
+   * const seconds3 = SunriseSunsetCalculator.decimalHoursToSeconds(6.0, customCalendar);
+   * // returns: 32400 (6 × 90 × 60)
+   * ```
+   */
+  static decimalHoursToSeconds(hours: number, calendar?: SeasonsStarsCalendar): number {
+    const minutesInHour = calendar?.time?.minutesInHour ?? 60;
+    const secondsInMinute = calendar?.time?.secondsInMinute ?? 60;
+    return Math.round(hours * minutesInHour * secondsInMinute);
+  }
+
+  /**
    * Convert decimal hours to hour and minute components for use in setDate operations
    * Respects calendar's minutesInHour setting
    *
@@ -340,6 +385,74 @@ export class SunriseSunsetCalculator {
    */
   static hoursToTimeString(hours: number, calendar?: SeasonsStarsCalendar): string {
     const { hour, minute } = this.decimalHoursToTimeComponents(hours, calendar);
+    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  }
+
+  /**
+   * Convert seconds from midnight to hour and minute components for use in setDate operations
+   * Respects calendar's minutesInHour and secondsInMinute settings
+   *
+   * @param seconds - Seconds from midnight (e.g., 21600 = 6:00, 64800 = 18:00)
+   * @param calendar - Optional calendar definition
+   * @returns Object with hour and minute as integers
+   *
+   * @example
+   * ```typescript
+   * // Standard 24-hour day with 60-minute hours
+   * const components1 = SunriseSunsetCalculator.secondsToTimeComponents(21600);
+   * // returns: { hour: 6, minute: 0 }
+   *
+   * // Half past six
+   * const components2 = SunriseSunsetCalculator.secondsToTimeComponents(23400);
+   * // returns: { hour: 6, minute: 30 }
+   *
+   * // Custom calendar with 90 minutes per hour
+   * const components3 = SunriseSunsetCalculator.secondsToTimeComponents(32400, customCalendar);
+   * // returns: { hour: 6, minute: 0 }
+   * ```
+   */
+  static secondsToTimeComponents(
+    seconds: number,
+    calendar?: SeasonsStarsCalendar
+  ): { hour: number; minute: number } {
+    const minutesInHour = calendar?.time?.minutesInHour ?? 60;
+    const secondsInMinute = calendar?.time?.secondsInMinute ?? 60;
+
+    // Calculate total minutes from midnight
+    const totalMinutes = Math.floor(seconds / secondsInMinute);
+
+    // Calculate hours and remaining minutes
+    const hours = Math.floor(totalMinutes / minutesInHour);
+    const minutes = totalMinutes % minutesInHour;
+
+    return { hour: hours, minute: minutes };
+  }
+
+  /**
+   * Convert seconds from midnight to time string (HH:MM)
+   * Respects calendar's minutesInHour and secondsInMinute settings
+   *
+   * @param seconds - Seconds from midnight (e.g., 21600 = 6:00, 64800 = 18:00)
+   * @param calendar - Optional calendar definition
+   * @returns Time string in HH:MM format
+   *
+   * @example
+   * ```typescript
+   * // Standard 24-hour day with 60-minute hours
+   * const time1 = SunriseSunsetCalculator.secondsToTimeString(21600);
+   * // returns: "06:00" (6 × 60 × 60 = 21600)
+   *
+   * // Half past six
+   * const time2 = SunriseSunsetCalculator.secondsToTimeString(23400);
+   * // returns: "06:30" (6.5 × 60 × 60 = 23400)
+   *
+   * // Custom calendar with 90 minutes per hour
+   * const time3 = SunriseSunsetCalculator.secondsToTimeString(32400, customCalendar);
+   * // returns: "06:00" (6 × 90 × 60 = 32400)
+   * ```
+   */
+  static secondsToTimeString(seconds: number, calendar?: SeasonsStarsCalendar): string {
+    const { hour, minute } = this.secondsToTimeComponents(seconds, calendar);
     return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
   }
 }

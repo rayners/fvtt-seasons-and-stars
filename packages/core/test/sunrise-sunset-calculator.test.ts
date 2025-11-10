@@ -158,8 +158,8 @@ describe('SunriseSunsetCalculator', () => {
       const engine = createMockEngine(gregorianTestCalendar);
       const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
-      expect(result.sunrise).toBe(7.0); // 07:00
-      expect(result.sunset).toBe(16.75); // 16:45
+      expect(result.sunrise).toBe(25200); // 07:00 = 7 × 3600
+      expect(result.sunset).toBe(60300); // 16:45 = 16.75 × 3600
     });
 
     test('should calculate sunrise/sunset for summer', () => {
@@ -167,8 +167,8 @@ describe('SunriseSunsetCalculator', () => {
       const engine = createMockEngine(gregorianTestCalendar);
       const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
-      expect(result.sunrise).toBe(5.75); // 05:45
-      expect(result.sunset).toBe(20.25); // 20:15
+      expect(result.sunrise).toBe(20700); // 05:45 = 5.75 × 3600
+      expect(result.sunset).toBe(72900); // 20:15 = 20.25 × 3600
     });
   });
 
@@ -181,11 +181,11 @@ describe('SunriseSunsetCalculator', () => {
       const engine = createMockEngine(gregorianTestCalendar);
       const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
-      // Values should be between Spring and Summer
-      expect(result.sunrise).toBeLessThan(6.5); // Less than Spring start
-      expect(result.sunrise).toBeGreaterThan(5.75); // Greater than Summer start
-      expect(result.sunset).toBeGreaterThan(17.75); // Greater than Spring start
-      expect(result.sunset).toBeLessThan(20.25); // Less than Summer start
+      // Values should be between Spring and Summer (in seconds)
+      expect(result.sunrise).toBeLessThan(23400); // Less than Spring start (6.5 hours)
+      expect(result.sunrise).toBeGreaterThan(20700); // Greater than Summer start (5.75 hours)
+      expect(result.sunset).toBeGreaterThan(63900); // Greater than Spring start (17.75 hours)
+      expect(result.sunset).toBeLessThan(72900); // Less than Summer start (20.25 hours)
     });
 
     test('should approach next season at end of current season', () => {
@@ -194,11 +194,11 @@ describe('SunriseSunsetCalculator', () => {
       const engine = createMockEngine(gregorianTestCalendar);
       const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
-      // Should be close to Autumn values
-      // Autumn: sunrise 06:30, sunset 19:30
-      // Allow for some difference as it's not exactly at Autumn yet
-      expect(Math.abs(result.sunrise - 6.5)).toBeLessThan(0.5);
-      expect(Math.abs(result.sunset - 19.5)).toBeLessThan(0.5);
+      // Should be close to Autumn values (in seconds)
+      // Autumn: sunrise 06:30 (23400s), sunset 19:30 (70200s)
+      // Allow for some difference as it's not exactly at Autumn yet (0.5 hours = 1800 seconds)
+      expect(Math.abs(result.sunrise - 23400)).toBeLessThan(1800);
+      expect(Math.abs(result.sunset - 70200)).toBeLessThan(1800);
     });
   });
 
@@ -209,12 +209,12 @@ describe('SunriseSunsetCalculator', () => {
       const engine = createMockEngine(gregorianTestCalendar);
       const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
-      // Winter starts: sunrise 07:00, sunset 16:45
-      // Spring starts: sunrise 06:30, sunset 17:45
-      expect(result.sunrise).toBeGreaterThan(6.3);
-      expect(result.sunrise).toBeLessThan(7.0);
-      expect(result.sunset).toBeGreaterThan(16.75);
-      expect(result.sunset).toBeLessThan(17.75);
+      // Winter starts: sunrise 07:00 (25200s), sunset 16:45 (60300s)
+      // Spring starts: sunrise 06:30 (23400s), sunset 17:45 (63900s)
+      expect(result.sunrise).toBeGreaterThan(22680); // 6.3 hours
+      expect(result.sunrise).toBeLessThan(25200); // 7.0 hours
+      expect(result.sunset).toBeGreaterThan(60300); // 16.75 hours
+      expect(result.sunset).toBeLessThan(63900); // 17.75 hours
     });
 
     test('should handle December start of year-crossing Winter', () => {
@@ -224,8 +224,8 @@ describe('SunriseSunsetCalculator', () => {
       const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
       // Should be exactly Winter start values
-      expect(result.sunrise).toBe(7.0); // 07:00
-      expect(result.sunset).toBe(16.75); // 16:45
+      expect(result.sunrise).toBe(25200); // 07:00 (7.0 × 3600)
+      expect(result.sunset).toBe(60300); // 16:45 (16.75 × 3600)
     });
 
     test('should handle February end of year-crossing Winter', () => {
@@ -235,9 +235,9 @@ describe('SunriseSunsetCalculator', () => {
       const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
       // Should be very close to Spring values (approaching transition)
-      // Spring: sunrise 06:30, sunset 17:45
-      expect(result.sunrise).toBeCloseTo(6.5, 1);
-      expect(result.sunset).toBeCloseTo(17.75, 1);
+      // Spring: sunrise 06:30 (23400s), sunset 17:45 (63900s)
+      expect(result.sunrise).toBeCloseTo(23400, -3); // within 1000s
+      expect(result.sunset).toBeCloseTo(63900, -3); // within 1000s
     });
 
     test('should not include November in year-crossing Winter', () => {
@@ -247,13 +247,13 @@ describe('SunriseSunsetCalculator', () => {
       const result = SunriseSunsetCalculator.calculate(date, gregorianTestCalendar, engine);
 
       // Should be in Autumn (interpolating toward Winter), not using Winter values
-      // Autumn start: sunrise 06:30, sunset 19:30
-      // Winter start: sunrise 07:00, sunset 16:45
+      // Autumn start: sunrise 06:30 (23400s), sunset 19:30 (70200s)
+      // Winter start: sunrise 07:00 (25200s), sunset 16:45 (60300s)
       // Mid-November should be closer to Winter end than Autumn start
-      expect(result.sunrise).toBeGreaterThan(6.5); // Greater than Autumn start
-      expect(result.sunrise).toBeLessThan(7.0); // Less than Winter start
-      expect(result.sunset).toBeGreaterThan(16.75); // Greater than Winter start
-      expect(result.sunset).toBeLessThan(19.5); // Less than Autumn start
+      expect(result.sunrise).toBeGreaterThan(23400); // Greater than Autumn start
+      expect(result.sunrise).toBeLessThan(25200); // Less than Winter start
+      expect(result.sunset).toBeGreaterThan(60300); // Greater than Winter start
+      expect(result.sunset).toBeLessThan(70200); // Less than Autumn start
     });
   });
 
@@ -264,8 +264,8 @@ describe('SunriseSunsetCalculator', () => {
       const result = SunriseSunsetCalculator.calculate(date, calendarWithoutSunData, engine);
 
       // 24-hour day: sunrise at 6:00 (25%), sunset at 18:00 (75%)
-      expect(result.sunrise).toBe(6.0);
-      expect(result.sunset).toBe(18.0);
+      expect(result.sunrise).toBe(21600); // 6.0 × 3600
+      expect(result.sunset).toBe(64800); // 18.0 × 3600
     });
 
     test('should use default with non-standard day length', () => {
@@ -274,8 +274,9 @@ describe('SunriseSunsetCalculator', () => {
       const result = SunriseSunsetCalculator.calculate(date, nonStandardDayCalendar, engine);
 
       // 20-hour day: sunrise at 5:00 (25%), sunset at 15:00 (75%)
-      expect(result.sunrise).toBe(5.0);
-      expect(result.sunset).toBe(15.0);
+      // With 50 minutes/hour and 50 seconds/minute
+      expect(result.sunrise).toBe(12500); // 5.0 × 50 × 50
+      expect(result.sunset).toBe(37500); // 15.0 × 50 × 50
     });
 
     test('should use Gregorian defaults for matching season names', () => {
@@ -296,8 +297,8 @@ describe('SunriseSunsetCalculator', () => {
       const result = SunriseSunsetCalculator.calculate(date, calendarWithNamedSeasons, engine);
 
       // Should match Gregorian Winter values
-      expect(result.sunrise).toBe(7.0); // 07:00
-      expect(result.sunset).toBe(16.75); // 16:45
+      expect(result.sunrise).toBe(25200); // 07:00 (7.0 × 3600)
+      expect(result.sunset).toBe(60300); // 16:45 (16.75 × 3600)
     });
   });
 
@@ -333,8 +334,8 @@ describe('SunriseSunsetCalculator', () => {
       const result = SunriseSunsetCalculator.calculate(date, calendarNoSeasons, engine);
 
       // Should fall back to default
-      expect(result.sunrise).toBe(6.0);
-      expect(result.sunset).toBe(18.0);
+      expect(result.sunrise).toBe(21600); // 6.0 × 3600
+      expect(result.sunset).toBe(64800); // 18.0 × 3600
     });
 
     test('should handle single season calendar', () => {
@@ -356,8 +357,8 @@ describe('SunriseSunsetCalculator', () => {
       const result = SunriseSunsetCalculator.calculate(date, singleSeasonCalendar, engine);
 
       // Should use the season's values without interpolation
-      expect(result.sunrise).toBe(5.0);
-      expect(result.sunset).toBe(21.0);
+      expect(result.sunrise).toBe(18000); // 5.0 × 3600
+      expect(result.sunset).toBe(75600); // 21.0 × 3600
     });
   });
 });

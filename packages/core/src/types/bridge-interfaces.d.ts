@@ -53,7 +53,7 @@ export interface SeasonsStarsAPI {
   getMonthNames(calendarId?: string): string[];
   getWeekdayNames(calendarId?: string): string[];
   getSeasonInfo(date: CalendarDate, calendarId?: string): SeasonInfo;
-  getSunriseSunset(date: CalendarDate, calendarId?: string): { sunrise: string; sunset: string };
+  getSunriseSunset(date: CalendarDate, calendarId?: string): { sunrise: number; sunset: number };
 
   // Time advancement
   advanceDays(days: number): Promise<void>;

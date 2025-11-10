@@ -58,8 +58,8 @@ describe('SunriseSunsetCalculator - Flexible Time Format', () => {
       const engine = createMockEngine(calendar);
       const result = SunriseSunsetCalculator.calculate(date, calendar, engine);
 
-      expect(result.sunrise).toBe(10.0);
-      expect(result.sunset).toBe(25.0);
+      expect(result.sunrise).toBe(36000); // 10.0 × 60 × 60
+      expect(result.sunset).toBe(90000); // 25.0 × 60 × 60
     });
 
     test('should handle 3-digit hours correctly', () => {
@@ -90,8 +90,8 @@ describe('SunriseSunsetCalculator - Flexible Time Format', () => {
       const engine = createMockEngine(calendar);
       const result = SunriseSunsetCalculator.calculate(date, calendar, engine);
 
-      expect(result.sunrise).toBe(50.5);
-      expect(result.sunset).toBe(125.75);
+      expect(result.sunrise).toBe(181800); // 50.5 × 60 × 60
+      expect(result.sunset).toBe(452700); // 125.75 × 60 × 60
     });
   });
 
@@ -124,10 +124,10 @@ describe('SunriseSunsetCalculator - Flexible Time Format', () => {
       const engine = createMockEngine(calendar);
       const result = SunriseSunsetCalculator.calculate(date, calendar, engine);
 
-      // 6 hours + 100/200 of an hour = 6.5
-      expect(result.sunrise).toBe(6.5);
-      // 18 hours + 150/200 of an hour = 18.75
-      expect(result.sunset).toBe(18.75);
+      // 6 hours + 100/200 of an hour = 6.5 → 6.5 × 200 × 60 = 78000
+      expect(result.sunrise).toBe(78000);
+      // 18 hours + 150/200 of an hour = 18.75 → 18.75 × 200 × 60 = 225000
+      expect(result.sunset).toBe(225000);
     });
   });
 
@@ -160,8 +160,8 @@ describe('SunriseSunsetCalculator - Flexible Time Format', () => {
       const engine = createMockEngine(calendar);
       const result = SunriseSunsetCalculator.calculate(date, calendar, engine);
 
-      expect(result.sunrise).toBe(6.0);
-      expect(result.sunset).toBe(18.5);
+      expect(result.sunrise).toBe(21600); // 6.0 × 60 × 60
+      expect(result.sunset).toBe(66600); // 18.5 × 60 × 60
     });
   });
 
