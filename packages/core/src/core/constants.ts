@@ -99,3 +99,103 @@ export function sanitizeColor(color: string | undefined): string | undefined {
 
   return undefined;
 }
+
+/**
+ * Validate that a URL is a local path (not a remote URL)
+ * Rejects URLs with protocols (http:, https:, ftp:, etc.)
+ * Accepts relative and absolute local paths like /modules/my-module/icon.gif
+ *
+ * @param url - The URL string to validate
+ * @returns true if the URL is a valid local path, false otherwise
+ */
+function isLocalPath(url: string): boolean {
+  // Reject empty strings
+  if (!url || url.trim() === '') {
+    return false;
+  }
+
+  // Reject URLs with protocols (http:, https:, ftp:, javascript:, data:, etc.)
+  // Check for protocol pattern at the start of the string
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url)) {
+    return false;
+  }
+
+  // Reject protocol-relative URLs (//example.com/path)
+  if (url.startsWith('//')) {
+    return false;
+  }
+
+  // Accept relative paths (starting with ./ or ../) and absolute paths (starting with /)
+  return true;
+}
+
+/**
+ * Escape HTML-sensitive characters in a string to prevent injection attacks
+ *
+ * @param str - The string to escape
+ * @returns The escaped string safe for HTML attribute values
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Generate HTML for an icon, supporting both iconUrl (custom image) and icon (FontAwesome class)
+ * When iconUrl is provided, it takes precedence over icon.
+ *
+ * Security: iconUrl must be a local path. Remote URLs (http://, https://, etc.) are rejected.
+ * Valid examples: /modules/my-module/icons/icon.gif, ./icons/icon.png
+ * Invalid examples: https://remote.site/icon.gif, javascript:alert(1)
+ *
+ * @param iconUrl - URL to custom icon image (must be local path, optional)
+ * @param icon - FontAwesome icon class or identifier (optional)
+ * @param width - Width in pixels for image icons (default: 16)
+ * @param height - Height in pixels for image icons (default: 16)
+ * @param additionalClasses - Additional CSS classes to apply (optional)
+ * @returns HTML string for the icon, or empty string if neither is provided or iconUrl is invalid
+ */
+export function renderIconHtml(
+  iconUrl: string | undefined,
+  icon: string | undefined,
+  width: number = 16,
+  height: number = 16,
+  additionalClasses: string = ''
+): string {
+  if (iconUrl) {
+    // Validate that iconUrl is a local path, not a remote URL
+    if (!isLocalPath(iconUrl)) {
+      Logger.warn(
+        `Rejected iconUrl with remote protocol or invalid format: ${iconUrl}. Only local paths are allowed (e.g., /modules/my-module/icon.gif)`
+      );
+      // Fall back to icon if iconUrl is invalid
+      if (icon) {
+        const escapedIcon = escapeHtml(icon);
+        const escapedAdditionalClasses = additionalClasses ? escapeHtml(additionalClasses) : '';
+        const classes = escapedAdditionalClasses
+          ? `${escapedIcon} ${escapedAdditionalClasses}`
+          : escapedIcon;
+        return `<i class="${classes}" aria-hidden="true"></i>`;
+      }
+      return '';
+    }
+
+    // Escape URL and classes to prevent HTML injection
+    const escapedUrl = escapeHtml(iconUrl);
+    const escapedClasses = additionalClasses ? escapeHtml(additionalClasses) : '';
+    const classAttr = escapedClasses ? ` class="${escapedClasses}"` : '';
+    return `<img src="${escapedUrl}" width="${width}" height="${height}" alt=""${classAttr} />`;
+  } else if (icon) {
+    const escapedIcon = escapeHtml(icon);
+    const escapedAdditionalClasses = additionalClasses ? escapeHtml(additionalClasses) : '';
+    const classes = escapedAdditionalClasses
+      ? `${escapedIcon} ${escapedAdditionalClasses}`
+      : escapedIcon;
+    return `<i class="${classes}" aria-hidden="true"></i>`;
+  }
+  return '';
+}

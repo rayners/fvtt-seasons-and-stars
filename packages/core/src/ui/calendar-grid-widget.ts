@@ -521,6 +521,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         eventCount: calendarEvents.length,
         eventTooltip: eventTooltipHtml,
         eventIcon: calendarEvents[0]?.event.icon,
+        eventIconUrl: calendarEvents[0]?.event.iconUrl,
         eventColor: calendarEvents[0]?.event.color,
         // Additional properties for template
         isSelected: isViewDate,
@@ -550,6 +551,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         eventCount: number;
         eventTooltip: string;
         eventIcon?: string;
+        eventIconUrl?: string;
         eventColor?: string;
       });
 
