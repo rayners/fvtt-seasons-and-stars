@@ -44,6 +44,10 @@ import type {
   CalendarSourceInfo,
 } from './types/calendar';
 import { SidebarButtonRegistry } from './ui/sidebar-button-registry';
+import {
+  initializeFoundryCalendarClass,
+  updateFoundryCalendarConfig,
+} from './core/foundry-calendar-integration';
 
 // Import integrations (they register their own hooks independently)
 // PF2e integration moved to separate pf2e-pack module
@@ -93,6 +97,9 @@ export function init(): void {
   try {
     Logger.debug('Initializing module (BLOCKING)');
 
+    // Initialize Foundry calendar class (must be early so Foundry can instantiate it)
+    initializeFoundryCalendarClass();
+
     // Register module settings
     registerSettings();
 
@@ -116,21 +123,21 @@ export function init(): void {
     calendarManager = new CalendarManager();
     notesManager = new NotesManager();
 
+    // Expose manager early so SeasonsStarsFoundryCalendar constructor can find it
+    // The full API will be set up in ready hook
+    if (!game.seasonsStars) {
+      game.seasonsStars = {};
+    }
+    game.seasonsStars.manager = calendarManager;
+    Logger.debug(
+      'Calendar manager exposed to game.seasonsStars.manager early for Foundry integration'
+    );
+
     // Register Errors and Echoes integration
     // Note: Uses global game.seasonsStars.manager access, so must be called after API setup
     // However, the actual registration happens in the errorsAndEchoesReady hook, so we can
     // register the hook early and it will access the manager when E&E is ready
     registerErrorsAndEchoesIntegration();
-
-    // Try to load active calendar synchronously from cached data first
-    // This ensures compatibility bridges can access the API immediately
-    Logger.debug('Attempting synchronous calendar initialization from cached data');
-    const syncSuccess = calendarManager.initializeSync();
-    if (syncSuccess) {
-      Logger.debug('Successfully initialized active calendar synchronously');
-    } else {
-      Logger.debug('No cached calendar data available, will load asynchronously');
-    }
 
     // Load all calendars during init - this MUST complete before setup hook
     Logger.debug('Loading calendars during init (BLOCKING)');
@@ -200,9 +207,13 @@ export function setup(): void {
       const success = calendarManager.setActiveCalendarSync(activeCalendarId);
       if (success) {
         Logger.debug(`Active calendar set to ${activeCalendarId} during setup`);
+        // Update Foundry calendar config after setting active calendar
+        updateFoundryCalendarConfig(calendarManager);
       } else {
         Logger.warn(`Failed to set active calendar ${activeCalendarId}, falling back to gregorian`);
         calendarManager.setActiveCalendarSync('gregorian');
+        // Update Foundry calendar config with fallback
+        updateFoundryCalendarConfig(calendarManager);
       }
     } catch (error) {
       Logger.error(
@@ -233,6 +244,8 @@ export function setup(): void {
       resetSeasonsWarningState();
       // Reset event check date when calendar changes to allow events to fire on new calendar
       lastEventCheckDate = null;
+      // Update Foundry calendar config when active calendar changes
+      updateFoundryCalendarConfig(calendarManager);
     });
 
     Hooks.on(

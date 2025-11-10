@@ -81,10 +81,55 @@ import { DateFormatter } from '../src/core/date-formatter';
       return callback;
     }),
   },
+  data: {
+    CalendarData: undefined as any, // Will be set below
+  },
 } as any;
 
 // Mock ApplicationV2 directly for imports
 (global as any).ApplicationV2 = (globalThis as any).foundry.applications.api.ApplicationV2;
+
+// Mock CalendarData for Foundry v13 calendar integration
+(global as any).CalendarData = class MockCalendarData {
+  constructor(_data?: object, _options?: any) {
+    // Mock constructor
+  }
+
+  timeToComponents(_time?: number): any {
+    return { year: 0, month: 1, day: 1, hour: 0, minute: 0, second: 0 };
+  }
+
+  componentsToTime(_components: any): number {
+    return 0;
+  }
+
+  add(_startTime: any, _deltaTime: any): any {
+    return { year: 0, month: 1, day: 1, hour: 0, minute: 0, second: 0 };
+  }
+
+  difference(_endTime: any, _startTime?: any): any {
+    return { year: 0, month: 1, day: 1, hour: 0, minute: 0, second: 0 };
+  }
+
+  format(_time?: any, _formatter?: string, _options?: any): string {
+    return 'Mock date';
+  }
+
+  isLeapYear(_year: number): boolean {
+    return false;
+  }
+
+  countLeapYears(_year: number): number {
+    return 0;
+  }
+
+  static defineSchema(): any {
+    return {};
+  }
+};
+
+// Also set foundry.data.CalendarData to the same mock
+(globalThis as any).foundry.data.CalendarData = (global as any).CalendarData;
 
 // Basic Handlebars mock for tests that don't set up their own
 // Individual test files can override this with more specific mocks
@@ -144,6 +189,11 @@ export function setupFoundryEnvironment(): void {
       on: vi.fn(),
       callAll: vi.fn(),
     } as any);
+
+  // Set up CONFIG for Foundry calendar integration
+  (globalThis as any).CONFIG = (globalThis as any).CONFIG || {
+    time: {},
+  };
 }
 
 // Enhanced Hook system mock that actually registers and executes callbacks
