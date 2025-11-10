@@ -23,6 +23,8 @@
 
     <div data-application-part="moonPhases"></div>
 
+    <div data-application-part="sunriseSunset"></div>
+
     {{#if (or showTimeControls sidebarButtons.length)}}
       <div class="mini-footer-row{{#unless showTimeControls}} mini-footer-row--no-quick{{/unless}}">
         {{#if showTimeControls}}
@@ -41,21 +43,7 @@
           <div class="mini-time-controls mini-time-controls--empty"></div>
         {{/if}}
 
-        {{#if sidebarButtons.length}}
-          <div class="mini-sidebar-buttons">
-            {{#each sidebarButtons}}
-              <button
-                type="button"
-                class="mini-sidebar-button"
-                data-tooltip="{{this.tooltip}}"
-                data-action="clickSidebarButton"
-                data-button-name="{{this.name}}"
-              >
-                <i class="{{this.icon}} fa-fw"></i>
-              </button>
-            {{/each}}
-          </div>
-        {{/if}}
+        <div data-application-part="sidebarButtons"></div>
       </div>
     {{/if}}
   {{/if}}

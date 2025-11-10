@@ -14,6 +14,7 @@ import {
   loadButtonsFromRegistry,
 } from './sidebar-button-mixin';
 import { CreateNoteWindow } from './create-note-window';
+import { SunriseSunsetCalculator } from '../core/sunrise-sunset-calculator';
 import type {
   CalendarDate as ICalendarDate,
   CalendarDateData,
@@ -434,7 +435,7 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
         }
       } catch (error) {
         // Silently handle moon calculation errors to avoid breaking calendar display
-        console.debug('Error calculating moon phases for date:', dayDate, error);
+        Logger.debug('Error calculating moon phases for tooltip', { date: dayDate, error });
       }
 
       // Build combined HTML tooltip
@@ -464,6 +465,33 @@ export class CalendarGridWidget extends foundry.applications.api.HandlebarsAppli
       // Add moon phases
       if (moonTooltip) {
         tooltipParts.push(moonTooltip);
+      }
+
+      // Add sunrise/sunset
+      try {
+        const engine = manager.getActiveEngine();
+        if (!engine) {
+          throw new Error('Calendar engine not available');
+        }
+        const sunriseSunset = SunriseSunsetCalculator.calculate(
+          dayDate.toObject(),
+          calendar,
+          engine
+        );
+        const sunriseStr = SunriseSunsetCalculator.secondsToTimeString(
+          sunriseSunset.sunrise,
+          calendar
+        );
+        const sunsetStr = SunriseSunsetCalculator.secondsToTimeString(
+          sunriseSunset.sunset,
+          calendar
+        );
+        tooltipParts.push(
+          `<span style="white-space: nowrap;"><i class="fas fa-sunrise"></i> ${sunriseStr} <i class="fas fa-sunset"></i> ${sunsetStr}</span>`
+        );
+      } catch (error) {
+        // Silently handle sunrise/sunset calculation errors
+        Logger.debug('Error calculating sunrise/sunset for tooltip', { date: dayDate, error });
       }
 
       // Add click instruction (all days are clickable)

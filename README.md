@@ -2,25 +2,33 @@
 
 A calendar and timekeeping module for Foundry VTT v13+ with clean integration APIs and extensible architecture.
 
+![Main Calendar Widget](docs/Main%20widget.png)
+_Full calendar interface showing monthly view with navigation, notes, and time controls_
+
 ## 🌟 Features
 
 ### ✅ **Available Now (Alpha)**
+
+![Mini Widget with Extensions](docs/Mini%20widget%20with%20weather%20and%20builder.png)
+_Compact mini widget showing weather integration and calendar builder access_
 
 - **Modern UI**: Clean, responsive calendar interface with ApplicationV2 architecture
 - **Multiple Calendar Views**: Full calendar widget, compact mini widget, and monthly grid view
 - **Customizable Mini Widget**: Right-click context menu for toggling display options (time, weekday, moon phases, controls, extensions), plus drag-and-drop positioning with pin/unpin functionality
 - **Configurable Quick Time Buttons**: Customizable time advancement buttons with live preview and smart mini widget selection
+- **Real-Time Time Advancement**: Automatic time progression with pause/resume controls synced to Foundry's game pause state
 - **Smart Year Navigation**: Click year to jump instantly instead of clicking arrows repeatedly
 - **Convenient Defaults**: Gregorian calendars can initialize with current date/time
 - **Module Integration**: Clean APIs for weather modules and other integrations via compatibility bridges
 - **SmallTime Integration**: Seamless positioning and visual consistency. Time display intelligently hidden when SmallTime is present (configurable). Mini widget provides drag-and-drop positioning with persistent storage.
-- **16 Available Calendars**: Switch between core calendars (Gregorian, Golarion PF2e) and calendar pack collections featuring fantasy calendars (D&D, Critical Role, etc.), sci-fi calendars (Star Trek, Starfinder, Traveller), and custom formats based on official game sources
+- **16+ Available Calendars**: Switch between core calendars (Gregorian, Golarion PF2e) and calendar pack collections featuring fantasy calendars (D&D, Critical Role, etc.), sci-fi calendars (Star Trek, Starfinder, Traveller), and custom formats based on official game sources
 - **Calendar Pack Auto-Detection**: Automatically discovers and loads calendar modules following the `seasons-and-stars-*` naming convention - no JavaScript required, just JSON data files
 - **External Calendar Registration**: New hook system (v0.8.0+) allows modules to register calendars programmatically for dynamic calendar loading
 - **Advanced Date Formatting**: Handlebars-based templates with mathematical operations, format embedding, and era-specific calculations (like Star Trek stardates)
 - **Canonical Hours**: Time period naming system for fantasy settings (e.g., "Strange's Bells" for 3-6 AM, medieval monastery hours)
 - **Calendar Variants System**: Cultural and regional calendar variations (e.g., Golarion has Absalom Reckoning, Imperial, Varisian, and Earth Historical variants)
 - **Game Pause Sync**: Automatically pause/resume time advancement when Foundry's game is paused/unpaused with smart multi-source coordination and intuitive single-click button controls
+- **Moon Phase Tracking**: Multi-moon support with accurate phase calculations for fantasy worlds
 
 ### ✅ **Notes System (Basic Creation)**
 
@@ -35,10 +43,20 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 - **Metadata Management**: Tags, categories, and date associations cannot be changed after creation
 - **Limited UI**: No dedicated note management interface - relies on basic Foundry journal sheets
 
+### ✅ **Calendar Builder** (Separate Module)
+
+![Calendar Builder Interface](docs/Calendar%20builder.png)
+_Visual JSON editor for creating and editing custom calendars_
+
+- **Visual Calendar Editor**: Create and modify calendars through an intuitive interface
+- **JSON Schema Validation**: Real-time validation with helpful error messages
+- **Import/Export**: Load existing calendars or create new ones from scratch
+- **Available as**: `seasons-and-stars-calendar-builder` module
+
 ### 🚧 **Coming Soon**
 
 - **Complete Notes UI**: Note viewing, editing, and management interface
-- **Calendar Import/Creation**: In-app calendar editor and Simple Calendar migration tools
+- **Simple Calendar Migration Tools**: Automated import of Simple Calendar data
 - **Advanced Configuration**: Enhanced calendar customization and validation
 - **Extended Integrations**: Additional module compatibility and hook enhancements
 
@@ -46,13 +64,18 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 
 ### Installation
 
-**Option 1: Foundry Module Browser**
+**Foundry Module Browser (Recommended)**
 
-1. Install from Foundry VTT module browser: "Seasons & Stars"
-2. Enable the module in your world
+1. Install from Foundry VTT module browser:
+   - **Seasons & Stars** - Core module (required)
+   - **Seasons & Stars - Fantasy Calendar Pack** - Fantasy RPG calendars (optional)
+   - **Seasons & Stars - Sci-Fi Calendar Pack** - Science fiction calendars (optional)
+   - **Seasons & Stars - Pathfinder 2e Pack** - PF2e integration and Golarion calendars (optional)
+   - **Seasons & Stars - Calendar Builder** - Visual calendar editor (optional)
+2. Enable the modules in your world
 3. Configure your preferred calendar in module settings
 
-**Option 2: Manual Installation (Pre-Registry)**
+**Manual Installation**
 
 1. In Foundry VTT, go to Add-on Modules → Install Module
 2. Use manifest URL: `https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.json`
@@ -60,10 +83,15 @@ A calendar and timekeeping module for Foundry VTT v13+ with clean integration AP
 
 ### Basic Usage
 
+![Mini Widget Configuration](docs/Mini%20widget%20with%20configuration%20menu.png)
+_Right-click the mini widget for display options and quick access to features_
+
 - **Open Calendar**: Click the calendar button in the journal notes controls (left sidebar)
 - **Change Date**: GMs can click on calendar dates to set world time
 - **Quick Time Controls**: Use the mini widget for rapid time advancement
+- **Real-Time Mode**: Toggle automatic time progression with the play/pause button
 - **Calendar Selection**: Switch between different calendar systems anytime
+- **Customize Display**: Right-click mini widget to toggle time, weekday, moons, and extension buttons
 
 ## 📖 Documentation
 
@@ -124,6 +152,20 @@ Hooks.on('seasons-stars:dateChanged', data => {
 - **Foundry VTT**: v13 or higher
 - **Compatibility**: Designed to work with D&D 5e, PF2e, Dragonbane, and other systems. PF2e includes dedicated integration features.
 - **Permissions**: GM required for time changes
+
+## 📦 Available Modules
+
+The Seasons & Stars ecosystem includes multiple modules you can install separately:
+
+| Module                    | Description                                                  | Status      |
+| ------------------------- | ------------------------------------------------------------ | ----------- |
+| **Seasons & Stars**       | Core calendar and timekeeping system                         | ✅ Required |
+| **Fantasy Calendar Pack** | D&D, Pathfinder, Critical Role, and other fantasy calendars  | 📦 Optional |
+| **Sci-Fi Calendar Pack**  | Star Trek, Starfinder, Traveller, and other sci-fi calendars | 📦 Optional |
+| **Pathfinder 2e Pack**    | PF2e system integration and Golarion calendar variants       | 📦 Optional |
+| **Calendar Builder**      | Visual editor for creating and modifying calendars           | 🛠️ Optional |
+
+All optional packs require the core **Seasons & Stars** module to function.
 
 ## 🔧 Development
 

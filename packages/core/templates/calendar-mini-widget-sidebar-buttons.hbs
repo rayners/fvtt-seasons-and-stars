@@ -1,0 +1,18 @@
+{{!-- Calendar Mini Widget - Sidebar Buttons --}}
+<div class="mini-sidebar-buttons-container">
+  {{#if sidebarButtons.length}}
+    <div class="mini-sidebar-buttons">
+      {{#each sidebarButtons}}
+        <button
+          type="button"
+          class="mini-sidebar-button"
+          data-tooltip="{{this.tooltip}}"
+          data-action="clickSidebarButton"
+          data-button-name="{{this.name}}"
+        >
+          <i class="{{this.icon}} fa-fw"></i>
+        </button>
+      {{/each}}
+    </div>
+  {{/if}}
+</div>

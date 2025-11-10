@@ -10,6 +10,8 @@ import { TimeAdvancementService } from '../core/time-advancement-service';
 import { SidebarButtonRegistry } from './sidebar-button-registry';
 import { loadButtonsFromRegistry } from './sidebar-button-mixin';
 import { MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
+import { SunriseSunsetCalculator } from '../core/sunrise-sunset-calculator';
+import { CalendarDate } from '../core/calendar-date';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import type { MoonPhaseInfo } from '../types/calendar';
 import type { MainWidgetContext } from '../types/widget-types';
@@ -45,6 +47,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       switchToMini: CalendarWidget.prototype._onSwitchToMini,
       switchToGrid: CalendarWidget.prototype._onSwitchToGrid,
       toggleTimeAdvancement: CalendarWidget.prototype._onToggleTimeAdvancement,
+      setTimeToSunrise: CalendarWidget.prototype._onSetTimeToSunrise,
+      setTimeToSunset: CalendarWidget.prototype._onSetTimeToSunset,
     },
   };
 
@@ -178,6 +182,31 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       Logger.debug('Failed to get moon phase data for calendar widget', error);
     }
 
+    // Get sunrise/sunset times
+    let sunriseString = '';
+    let sunsetString = '';
+    try {
+      const engine = manager.getActiveEngine();
+      if (!engine) {
+        throw new Error('Calendar engine not available');
+      }
+      const sunriseSunset = SunriseSunsetCalculator.calculate(
+        currentDate.toObject(),
+        activeCalendar,
+        engine
+      );
+      sunriseString = SunriseSunsetCalculator.secondsToTimeString(
+        sunriseSunset.sunrise,
+        activeCalendar
+      );
+      sunsetString = SunriseSunsetCalculator.secondsToTimeString(
+        sunriseSunset.sunset,
+        activeCalendar
+      );
+    } catch (error) {
+      Logger.debug('Failed to calculate sunrise/sunset for calendar widget', error);
+    }
+
     const mainContext = Object.assign(context, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
@@ -202,6 +231,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       playPauseButtonText: playPauseButtonText,
       // Moon phase data
       moonPhases: moonPhases,
+      // Sunrise/sunset data
+      sunrise: sunriseString,
+      sunset: sunsetString,
     }) as MainWidgetContext;
 
     // Cache context for use in _attachPartListeners
@@ -416,6 +448,100 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
     } catch (error) {
       ui.notifications?.error('Failed to toggle time advancement');
       Logger.error('Main widget time advancement toggle failed', error as Error);
+    }
+  }
+
+  /**
+   * Set time to sunrise
+   */
+  async _onSetTimeToSunrise(event: Event, _target?: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    if (!game.user?.isGM) {
+      ui.notifications?.warn('Only GMs can change the time');
+      return;
+    }
+
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+    if (!manager) return;
+
+    try {
+      const engine = manager.getActiveEngine();
+      const calendar = manager.getActiveCalendar();
+      const currentDate = manager.getCurrentDate();
+      if (!engine || !calendar || !currentDate) return;
+
+      const sunriseSunset = SunriseSunsetCalculator.calculate(
+        currentDate.toObject(),
+        calendar,
+        engine
+      );
+
+      const { hour, minute } = SunriseSunsetCalculator.secondsToTimeComponents(
+        sunriseSunset.sunrise,
+        calendar
+      );
+
+      const currentDateData = currentDate.toObject();
+      currentDateData.time = {
+        hour,
+        minute,
+        second: 0,
+      };
+      const targetDate = new CalendarDate(currentDateData, calendar);
+
+      await manager.setCurrentDate(targetDate);
+      Logger.info(`Set time to sunrise: ${hour}:${String(minute).padStart(2, '0')}`);
+    } catch (error) {
+      Logger.error('Error setting time to sunrise', error as Error);
+      ui.notifications?.error('Failed to set time to sunrise');
+    }
+  }
+
+  /**
+   * Set time to sunset
+   */
+  async _onSetTimeToSunset(event: Event, _target?: HTMLElement): Promise<void> {
+    event.preventDefault();
+
+    if (!game.user?.isGM) {
+      ui.notifications?.warn('Only GMs can change the time');
+      return;
+    }
+
+    const manager = game.seasonsStars?.manager as CalendarManagerInterface;
+    if (!manager) return;
+
+    try {
+      const engine = manager.getActiveEngine();
+      const calendar = manager.getActiveCalendar();
+      const currentDate = manager.getCurrentDate();
+      if (!engine || !calendar || !currentDate) return;
+
+      const sunriseSunset = SunriseSunsetCalculator.calculate(
+        currentDate.toObject(),
+        calendar,
+        engine
+      );
+
+      const { hour, minute } = SunriseSunsetCalculator.secondsToTimeComponents(
+        sunriseSunset.sunset,
+        calendar
+      );
+
+      const currentDateData = currentDate.toObject();
+      currentDateData.time = {
+        hour,
+        minute,
+        second: 0,
+      };
+      const targetDate = new CalendarDate(currentDateData, calendar);
+
+      await manager.setCurrentDate(targetDate);
+      Logger.info(`Set time to sunset: ${hour}:${String(minute).padStart(2, '0')}`);
+    } catch (error) {
+      Logger.error('Error setting time to sunset', error as Error);
+      ui.notifications?.error('Failed to set time to sunset');
     }
   }
 

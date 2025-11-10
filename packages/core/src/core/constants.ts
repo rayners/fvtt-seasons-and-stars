@@ -51,6 +51,12 @@ export const HOOK_NAMES = {
   READY: 'seasons-stars:ready',
 } as const;
 
+// Settings keys for consistent settings access
+// Note: Only includes settings added/modified in current work to keep PR scope focused
+export const SETTINGS_KEYS = {
+  MINI_WIDGET_SHOW_SUNRISE_SUNSET: 'miniWidgetShowSunriseSunset',
+} as const;
+
 // UI constants for consistent styling
 export const UI_CONSTANTS = {
   DEFAULT_BUTTON_DEBOUNCE: 300,

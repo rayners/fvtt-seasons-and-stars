@@ -188,6 +188,7 @@ export declare function isNotesManager(obj: unknown): obj is NotesManagerInterfa
 
 // Calendar Manager interface for type safety
 export interface CalendarManagerInterface {
+  engines: Map<string, CalendarEngineInterface>;
   getCurrentDate(): CalendarDate | null;
   setCurrentDate(date: CalendarDate): Promise<void>;
   getActiveCalendar(): SeasonsStarsCalendar | null;
@@ -211,6 +212,9 @@ export interface CalendarEngineInterface {
   getCalendar(): SeasonsStarsCalendar;
   calculateWeekday(year: number, month: number, day: number): number;
   getMonthLength(month: number, year: number): number;
+  getMonthLengths(year: number): number[];
+  getYearLength(year: number): number;
+  isLeapYear(year: number): boolean;
   dateToWorldTime(date: CalendarDate, worldCreationTimestamp?: number): number;
   worldTimeToDate(timestamp: number, worldCreationTimestamp?: number): CalendarDate;
   getIntercalaryDaysAfterMonth(year: number, month: number): CalendarIntercalary[];
