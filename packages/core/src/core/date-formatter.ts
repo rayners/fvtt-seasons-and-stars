@@ -5,6 +5,7 @@
 import type { CalendarDate as ICalendarDate } from './calendar-date';
 import { CalendarDate } from './calendar-date';
 import type { SeasonsStarsCalendar } from '../types/calendar';
+import { renderIconHtml } from './constants';
 
 export class DateFormatter {
   private calendar: SeasonsStarsCalendar;
@@ -967,6 +968,26 @@ export class DateFormatter {
 
       // Default fallback
       return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    });
+
+    // Icon rendering helper - safely renders icons from icon or iconUrl with XSS protection
+    Handlebars.registerHelper('ss-render-icon', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // Get icon, iconUrl, width, height, and additionalClasses from hash parameters
+      const icon = options?.hash?.icon;
+      const iconUrl = options?.hash?.iconUrl;
+      const width = options?.hash?.width || 16;
+      const height = options?.hash?.height || 16;
+      const additionalClasses = options?.hash?.class || '';
+
+      // Use renderIconHtml which includes security validation and HTML escaping
+      // Note: renderIconHtml signature is (iconUrl, icon, width, height, additionalClasses)
+      const html = renderIconHtml(iconUrl, icon, width, height, additionalClasses);
+
+      // Return as SafeString so Handlebars doesn't double-escape
+      return new Handlebars.SafeString(html);
     });
   }
 

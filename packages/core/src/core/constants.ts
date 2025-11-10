@@ -187,8 +187,8 @@ export function renderIconHtml(
     // Escape URL and classes to prevent HTML injection
     const escapedUrl = escapeHtml(iconUrl);
     const escapedClasses = additionalClasses ? escapeHtml(additionalClasses) : '';
-    const classes = escapedClasses ? ` class="${escapedClasses}"` : '';
-    return `<img src="${escapedUrl}" width="${width}" height="${height}" alt=""${classes} />`;
+    const classAttr = escapedClasses ? ` class="${escapedClasses}"` : '';
+    return `<img src="${escapedUrl}" width="${width}" height="${height}" alt=""${classAttr} />`;
   } else if (icon) {
     const escapedIcon = escapeHtml(icon);
     const escapedAdditionalClasses = additionalClasses ? escapeHtml(additionalClasses) : '';

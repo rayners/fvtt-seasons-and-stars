@@ -1,5 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { renderIconHtml } from '../src/core/constants';
+import { DateFormatter } from '../src/core/date-formatter';
+import type { SeasonsStarsCalendar } from '../src/types/calendar';
+
+// Use REAL Handlebars for helper testing
+import Handlebars from 'handlebars';
+global.Handlebars = Handlebars;
 
 describe('Icon URL Support', () => {
   describe('renderIconHtml - Basic Functionality', () => {
@@ -187,6 +193,148 @@ describe('Icon URL Support', () => {
 
       expect(event.iconUrl).toBe('/modules/my-calendar/icons/event-icon.png');
       expect(event.icon).toBe('fas fa-star');
+    });
+  });
+
+  describe('Handlebars Helper Integration', () => {
+    beforeEach(() => {
+      // Reset helpers and create a DateFormatter instance to register the helper
+      DateFormatter.resetHelpersForTesting();
+      const mockCalendar: SeasonsStarsCalendar = {
+        id: 'test-calendar',
+        name: 'Test Calendar',
+        months: [{ name: 'Test Month', abbreviation: 'TM', days: 30 }],
+        weekdays: [{ name: 'Test Day', abbreviation: 'TD' }],
+        year: { prefix: '', suffix: '' },
+        time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+      } as SeasonsStarsCalendar;
+      new DateFormatter(mockCalendar); // This registers the helpers
+    });
+
+    it('should render local iconUrl through ss-render-icon helper', () => {
+      const helper = Handlebars.helpers['ss-render-icon'];
+      expect(helper).toBeDefined();
+
+      const result = helper.call(
+        {},
+        {
+          hash: {
+            iconUrl: '/modules/test/icon.png',
+            width: 24,
+            height: 24,
+          },
+        }
+      );
+
+      expect(result.string).toContain('<img');
+      expect(result.string).toContain('/modules/test/icon.png');
+      expect(result.string).toContain('width="24"');
+      expect(result.string).toContain('height="24"');
+    });
+
+    it('should render FontAwesome icon through ss-render-icon helper', () => {
+      const helper = Handlebars.helpers['ss-render-icon'];
+      const result = helper.call(
+        {},
+        {
+          hash: {
+            icon: 'fas fa-moon',
+            width: 16,
+            height: 16,
+          },
+        }
+      );
+
+      expect(result.string).toContain('<i class="fas fa-moon"');
+      expect(result.string).toContain('aria-hidden="true"');
+    });
+
+    it('should prioritize iconUrl over icon in ss-render-icon helper', () => {
+      const helper = Handlebars.helpers['ss-render-icon'];
+      const result = helper.call(
+        {},
+        {
+          hash: {
+            icon: 'fas fa-star',
+            iconUrl: '/modules/test/custom.png',
+            width: 16,
+            height: 16,
+          },
+        }
+      );
+
+      expect(result.string).toContain('<img');
+      expect(result.string).toContain('/modules/test/custom.png');
+      expect(result.string).not.toContain('fas fa-star');
+    });
+
+    it('should reject remote URLs through ss-render-icon helper', () => {
+      const helper = Handlebars.helpers['ss-render-icon'];
+      const result = helper.call(
+        {},
+        {
+          hash: {
+            iconUrl: 'https://evil.com/malware.png',
+            icon: 'fas fa-shield',
+            width: 16,
+            height: 16,
+          },
+        }
+      );
+
+      expect(result.string).toContain('<i class="fas fa-shield"');
+      expect(result.string).not.toContain('https://evil.com');
+    });
+
+    it('should escape malicious HTML in iconUrl through helper', () => {
+      const helper = Handlebars.helpers['ss-render-icon'];
+      const result = helper.call(
+        {},
+        {
+          hash: {
+            iconUrl: '/icon"><script>alert(1)</script>.png',
+            width: 16,
+            height: 16,
+          },
+        }
+      );
+
+      expect(result.string).not.toContain('<script>');
+      expect(result.string).toContain('&quot;');
+      expect(result.string).toContain('&gt;');
+      expect(result.string).toContain('&lt;');
+    });
+
+    it('should apply additional classes through ss-render-icon helper', () => {
+      const helper = Handlebars.helpers['ss-render-icon'];
+      const result = helper.call(
+        {},
+        {
+          hash: {
+            iconUrl: '/modules/test/icon.png',
+            class: 'custom-class',
+            width: 16,
+            height: 16,
+          },
+        }
+      );
+
+      expect(result.string).toContain('class="custom-class"');
+    });
+
+    it('should use default dimensions when not specified in helper', () => {
+      const helper = Handlebars.helpers['ss-render-icon'];
+      const result = helper.call(
+        {},
+        {
+          hash: {
+            iconUrl: '/modules/test/icon.png',
+          },
+        }
+      );
+
+      expect(result.string).toContain('width="16"');
+      expect(result.string).toContain('height="16"');
     });
   });
 });
