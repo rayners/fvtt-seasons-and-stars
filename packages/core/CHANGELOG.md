@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.25.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.24.1...seasons-and-stars-v0.25.0) (2025-11-10)
+
+
+### Features
+
+* add sunrise and sunset times to seasons with interpolation ([#460](https://github.com/rayners/fvtt-seasons-and-stars/issues/460)) ([9cbe4db](https://github.com/rayners/fvtt-seasons-and-stars/commit/9cbe4dbccc2cf0468fc6e45fa6d1cda3b1644be1))
+* add support for iconUrl in calendar icons ([#441](https://github.com/rayners/fvtt-seasons-and-stars/issues/441)) ([20aa69f](https://github.com/rayners/fvtt-seasons-and-stars/commit/20aa69ffe9e1b57fbfd1f4494a61cca5c7845c3e))
+* **i18n:** update pl.json ([#451](https://github.com/rayners/fvtt-seasons-and-stars/issues/451)) ([c8271df](https://github.com/rayners/fvtt-seasons-and-stars/commit/c8271df202c686e714f88fdcd2072caf1dd28a1f))
+* implement Foundry v13 calendar integration ([#446](https://github.com/rayners/fvtt-seasons-and-stars/issues/446)) ([61b022b](https://github.com/rayners/fvtt-seasons-and-stars/commit/61b022b835d7b4b71d59a0a13b747da4eea71a1e))
+
+
+### Bug Fixes
+
+* remove redundant 30-second auto-update from CalendarWidget ([#461](https://github.com/rayners/fvtt-seasons-and-stars/issues/461)) ([70f854e](https://github.com/rayners/fvtt-seasons-and-stars/commit/70f854e0ab7caf53a5937ee74a320964b9c02f68))
+
 ## [0.24.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.24.0...seasons-and-stars-v0.24.1) (2025-10-30)
 
 
