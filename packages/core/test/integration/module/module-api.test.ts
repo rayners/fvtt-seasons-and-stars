@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Use real TestLogger instead of mocks for better testing
-import { TestLogger } from '../../../utils/test-logger';
+import { TestLogger } from '../../utils/test-logger';
 vi.mock('../../../src/core/logger', () => ({
   Logger: TestLogger,
 }));
@@ -12,7 +12,7 @@ vi.stubGlobal('game', {});
 import { CalendarEngine } from '../../../src/core/calendar-engine';
 import { CalendarManager } from '../../../src/core/calendar-manager';
 import { CalendarDate } from '../../../src/core/calendar-date';
-import { mockStandardCalendar } from './mocks/calendar-mocks';
+import { mockStandardCalendar } from '../../mocks/calendar-mocks';
 
 describe('Module API Methods', () => {
   let calendarManager: CalendarManager;
@@ -85,7 +85,7 @@ describe('Module API Methods', () => {
     } as any;
 
     // Import the module to get the API - need to do this after setting up the manager
-    const { APIWrapper } = await import('../src/core/api-wrapper');
+    const { APIWrapper } = await import('../../../src/core/api-wrapper');
 
     seasonsStarsAPI = {
       advanceDays: async (days: number, calendarId?: string): Promise<void> => {

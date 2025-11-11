@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { mockMinimalCalendar } from '../../../mocks/calendar-mocks';
+import { mockMinimalCalendar } from '../../mocks/calendar-mocks';
 
 // Mock Foundry globals with more complete integration
 const mockSettings = new Map();
@@ -60,7 +60,10 @@ import {
   getQuickTimeButtonsFromSettings,
   registerQuickTimeButtonsHelper,
 } from '../../../src/core/quick-time-buttons';
-import { registerSettingsPreviewHooks, cleanupSettingsPreview } from '../../../src/core/settings-preview';
+import {
+  registerSettingsPreviewHooks,
+  cleanupSettingsPreview,
+} from '../../../src/core/settings-preview';
 
 describe('Quick Time Buttons Integration Tests', () => {
   beforeEach(() => {

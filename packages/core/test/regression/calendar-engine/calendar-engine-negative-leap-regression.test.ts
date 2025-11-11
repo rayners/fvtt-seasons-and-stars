@@ -8,7 +8,7 @@
 import { describe, test, expect } from 'vitest';
 import { CalendarEngine } from '../../../src/core/calendar-engine';
 import type { SeasonsStarsCalendar } from '../../../src/types/calendar';
-import { loadTestCalendar } from './utils/calendar-loader';
+import { loadTestCalendar } from '../../utils/calendar-loader';
 
 describe('Negative Leap Days with Existing Calendars', () => {
   test('Gregorian calendar modified with negative leap days', () => {

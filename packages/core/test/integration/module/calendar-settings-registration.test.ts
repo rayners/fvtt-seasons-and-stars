@@ -8,7 +8,7 @@
  */
 
 import { describe, beforeEach, afterEach, it, expect, vi } from 'vitest';
-import { setupFoundryEnvironment } from './setup';
+import { setupFoundryEnvironment } from '../../setup';
 import { CalendarManager } from '../../../src/core/calendar-manager';
 import { CalendarLocalization } from '../../../src/core/calendar-localization';
 import type { SeasonsStarsCalendar } from '../../../src/types/calendar';
@@ -70,7 +70,7 @@ describe('Calendar Settings Registration', () => {
 
   describe('Initial Settings Registration', () => {
     it('should register activeCalendar setting as hidden (managed by menu)', async () => {
-      const { registerSettings } = await import('../src/module');
+      const { registerSettings } = await import('../../../src/module');
 
       registerSettings();
 
@@ -88,7 +88,7 @@ describe('Calendar Settings Registration', () => {
         registeredMenus.set(`${moduleId}.${key}`, config);
       }) as any;
 
-      const { registerSettings } = await import('../src/module');
+      const { registerSettings } = await import('../../../src/module');
       registerSettings();
 
       const calendarMenu = registeredMenus.get('seasons-and-stars.calendarSelectionMenu');
@@ -159,7 +159,7 @@ describe('Calendar Settings Registration', () => {
       ]);
 
       // The dialog handles presenting all calendars to the user
-      const { CalendarLocalization } = await import('../src/core/calendar-localization');
+      const { CalendarLocalization } = await import('../../../src/core/calendar-localization');
       const calendars = [mockGregorianCalendar, mockExandrianCalendar];
       const choices = CalendarLocalization.createCalendarChoices(calendars);
 
@@ -170,7 +170,7 @@ describe('Calendar Settings Registration', () => {
     });
 
     it('should keep activeCalendar setting hidden from config UI', async () => {
-      const { registerSettings } = await import('../src/module');
+      const { registerSettings } = await import('../../../src/module');
 
       // Initial registration
       registerSettings();

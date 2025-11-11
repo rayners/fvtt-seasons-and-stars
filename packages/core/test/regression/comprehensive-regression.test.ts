@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CalendarEngine } from '../../../src/core/calendar-engine';
-import { loadTestCalendar } from './utils/calendar-loader';
+import { CalendarEngine } from '../../src/core/calendar-engine';
+import { loadTestCalendar } from '../utils/calendar-loader';
 
 describe('Comprehensive Regression Tests - Core Calendar Types', () => {
   // Calendar files to test - use loadTestCalendar to find them in multiple packages

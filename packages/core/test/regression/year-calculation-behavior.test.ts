@@ -11,11 +11,11 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { CalendarEngine } from '../../../src/core/calendar-engine';
-import { compatibilityManager } from '../../../src/core/compatibility-manager';
-import type { SeasonsStarsCalendar } from '../../../src/types/calendar';
-import { loadTestCalendar } from './utils/calendar-loader';
-import { setupRealPF2eEnvironment } from '../../pf2e-pack/test/setup-pf2e';
+import { CalendarEngine } from '../../src/core/calendar-engine';
+import { compatibilityManager } from '../../src/core/compatibility-manager';
+import type { SeasonsStarsCalendar } from '../../src/types/calendar';
+import { loadTestCalendar } from '../utils/calendar-loader';
+import { setupRealPF2eEnvironment } from '../../../pf2e-pack/test/setup-pf2e';
 
 describe('Year Calculation Behavior', () => {
   let golarionCalendar: SeasonsStarsCalendar;

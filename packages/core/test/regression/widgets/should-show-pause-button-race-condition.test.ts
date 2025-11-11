@@ -64,7 +64,7 @@ describe('shouldShowPauseButton Race Condition Bug', () => {
     vi.resetModules();
 
     // Import the service fresh each time
-    const module = await import('../src/core/time-advancement-service');
+    const module = await import('../../src/core/time-advancement-service');
     TimeAdvancementService = module.TimeAdvancementService;
 
     // Reset singleton
@@ -129,7 +129,7 @@ describe('shouldShowPauseButton Race Condition Bug', () => {
       let logMessages: string[] = [];
 
       // Mock Logger.info to capture log messages
-      const { Logger } = await import('../src/core/logger');
+      const { Logger } = await import('../../src/core/logger');
       (Logger.info as any).mockImplementation((msg: string) => {
         logMessages.push(msg);
       });

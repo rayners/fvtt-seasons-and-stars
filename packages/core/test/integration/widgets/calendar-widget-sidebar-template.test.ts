@@ -10,12 +10,10 @@ import path from 'path';
 import fs from 'fs';
 
 describe('calendar-widget-sidebar template', () => {
-  let template: Handlebars.TemplateDelegate;
-
   // Load and compile the sidebar template
-  const templatePath = path.join(__dirname, '../templates/calendar-widget-sidebar.hbs');
+  const templatePath = path.join(__dirname, '../../../templates/calendar-widget-sidebar.hbs');
   const source = fs.readFileSync(templatePath, 'utf8');
-  template = Handlebars.compile(source);
+  const template: Handlebars.TemplateDelegate = Handlebars.compile(source);
 
   it('renders a single root element when sidebarButtons is empty', () => {
     const context = {

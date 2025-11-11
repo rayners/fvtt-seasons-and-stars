@@ -6,7 +6,7 @@
  */
 
 import { describe, beforeEach, afterEach, it, expect, vi } from 'vitest';
-import { setupFoundryEnvironment } from './setup';
+import { setupFoundryEnvironment } from '../../setup';
 import { CalendarDeprecationDialog } from '../../../src/ui/calendar-deprecation-dialog';
 
 describe('CalendarDeprecationDialog', () => {

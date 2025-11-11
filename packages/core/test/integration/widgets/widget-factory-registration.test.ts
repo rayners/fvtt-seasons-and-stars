@@ -143,7 +143,7 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
   describe('Debug Logging Coverage', () => {
     it('should call Logger.debug when registering widget factories', async () => {
       // Import Logger to get the mocked version
-      const { Logger } = await import('../src/core/logger');
+      const { Logger } = await import('../../../src/core/logger');
 
       // Test that the debug logging line is covered
       // Note: In actual module.ts this would be called, we simulate it here
@@ -156,7 +156,7 @@ describe('Widget Factory Registration (Module.ts Changes)', () => {
   describe('Integration Test - Complete Module Registration Flow', () => {
     it('should successfully complete the entire widget registration flow', async () => {
       // Import Logger to get the mocked version
-      const { Logger } = await import('../src/core/logger');
+      const { Logger } = await import('../../../src/core/logger');
 
       // Simulate the complete flow that happens in module.ts ready hook
 

@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CalendarGridWidget } from '../../../src/ui/calendar-grid-widget';
 import { NoteCategories } from '../../../src/core/note-categories';
-import { mockStandardCalendar } from './mocks/calendar-mocks';
+import { mockStandardCalendar } from '../../mocks/calendar-mocks';
 
 // Setup real NoteCategories instance
 let categories: NoteCategories;

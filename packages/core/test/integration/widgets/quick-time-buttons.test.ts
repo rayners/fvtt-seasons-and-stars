@@ -11,7 +11,7 @@ import {
   getMiniWidgetButtonsFromSettings,
   getQuickTimeButtonsFromSettings,
 } from '../../../src/core/quick-time-buttons';
-import { mockStandardCalendar, mockCustomCalendar } from '../../../mocks/calendar-mocks';
+import { mockStandardCalendar, mockCustomCalendar } from '../../mocks/calendar-mocks';
 import { CalendarMiniWidget } from '../../../src/ui/calendar-mini-widget';
 import { CalendarWidget } from '../../../src/ui/calendar-widget';
 import { SmallTimeUtils } from '../../../src/ui/base-widget-manager';
@@ -1175,7 +1175,10 @@ describe('Always Show Quick Time Buttons - SmallTime Integration', () => {
     });
 
     // Both settings should be retrievable
-    const alwaysShow = globalThis.game.settings.get('seasons-and-stars', 'alwaysShowQuickTimeButtons');
+    const alwaysShow = globalThis.game.settings.get(
+      'seasons-and-stars',
+      'alwaysShowQuickTimeButtons'
+    );
     const quickButtons = globalThis.game.settings.get('seasons-and-stars', 'quickTimeButtons');
 
     expect(alwaysShow).toBe(true);

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CalendarGridWidget } from '../../../src/ui/calendar-grid-widget';
 import { CalendarEngine } from '../../../src/core/calendar-engine';
 import { CalendarManager } from '../../../src/core/calendar-manager';
-import { mockStandardCalendar, mockStandardDate } from './mocks/calendar-mocks';
+import { mockStandardCalendar, mockStandardDate } from '../../mocks/calendar-mocks';
 
 describe('Calendar Click Behavior Feature', () => {
   let engine: CalendarEngine;

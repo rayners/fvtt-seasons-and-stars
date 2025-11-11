@@ -6,7 +6,7 @@
  */
 
 import { describe, beforeEach, afterEach, it, expect, vi } from 'vitest';
-import { setupFoundryEnvironment } from './setup';
+import { setupFoundryEnvironment } from '../../setup';
 
 describe('activeCalendarFile Setting', () => {
   beforeEach(() => {
@@ -20,7 +20,7 @@ describe('activeCalendarFile Setting', () => {
   describe('Setting Registration', () => {
     it('should register activeCalendarFile setting with correct configuration', async () => {
       // Import module to trigger setting registration
-      const { registerSettings } = await import('../src/module');
+      const { registerSettings } = await import('../../../src/module');
 
       // Call the registration function directly
       registerSettings();
@@ -72,7 +72,7 @@ describe('activeCalendarFile Setting', () => {
   describe('Mutual Exclusivity with activeCalendar', () => {
     beforeEach(async () => {
       // Register the settings so we can test their onChange behavior
-      const { registerSettings } = await import('../src/module');
+      const { registerSettings } = await import('../../../src/module');
       registerSettings();
     });
 

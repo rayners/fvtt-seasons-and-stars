@@ -13,8 +13,8 @@ import { CalendarMiniWidget } from '../../../src/ui/calendar-mini-widget';
 import { CalendarManager } from '../../../src/core/calendar-manager';
 import { CalendarDate } from '../../../src/core/calendar-date';
 import type { SeasonsStarsCalendar, MoonPhaseInfo } from '../../../src/types/calendar';
-import { mockStandardCalendar } from '../../../mocks/calendar-mocks';
-import { createMockGame, createMockHooks, createMockUI } from '../../../test-helpers/foundry-mocks';
+import { mockStandardCalendar } from '../../mocks/calendar-mocks';
+import { createMockGame, createMockHooks, createMockUI } from '../../test-helpers/foundry-mocks';
 import {
   getMiniWidgetButtonsFromSettings,
   registerQuickTimeButtonsHelper,

@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CalendarWidget } from '../../../src/ui/calendar-widget';
 import { CalendarMiniWidget } from '../../../src/ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../../../src/ui/calendar-grid-widget';
-import { mockStandardCalendar, mockStandardDate } from './mocks/calendar-mocks';
+import { mockStandardCalendar, mockStandardDate } from '../../mocks/calendar-mocks';
 
 // Mock Foundry's stripScripts method
 String.prototype.stripScripts = function () {

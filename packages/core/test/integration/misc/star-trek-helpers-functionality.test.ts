@@ -12,7 +12,6 @@ import type { SeasonsStarsCalendar } from '../../../src/types/calendar';
 global.Handlebars = Handlebars;
 
 describe('Star Trek Helpers Functionality', () => {
-  let _formatter: DateFormatter;
   let mockCalendar: SeasonsStarsCalendar;
 
   beforeEach(() => {
@@ -35,7 +34,8 @@ describe('Star Trek Helpers Functionality', () => {
     } as SeasonsStarsCalendar;
 
     // Create formatter to register helpers with real Handlebars
-    formatter = new DateFormatter(mockCalendar);
+    // Note: formatter created only for side effect of registering helpers
+    new DateFormatter(mockCalendar);
   });
 
   // Helper function to get registered helper from Handlebars

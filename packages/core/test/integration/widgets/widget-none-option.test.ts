@@ -8,15 +8,15 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-import { TestLogger } from '../../../utils/test-logger';
+import { TestLogger } from '../../utils/test-logger';
 vi.mock('../../../src/core/logger', () => ({
   Logger: TestLogger,
 }));
 
-import { CalendarWidgetManager } from '../src/ui/widget-manager';
-import { CalendarWidget } from '../src/ui/calendar-widget';
-import { CalendarMiniWidget } from '../src/ui/calendar-mini-widget';
-import { CalendarGridWidget } from '../src/ui/calendar-grid-widget';
+import { CalendarWidgetManager } from '../../../src/ui/widget-manager';
+import { CalendarWidget } from '../../../src/ui/calendar-widget';
+import { CalendarMiniWidget } from '../../../src/ui/calendar-mini-widget';
+import { CalendarGridWidget } from '../../../src/ui/calendar-grid-widget';
 
 const mockSettings = {
   get: vi.fn(),

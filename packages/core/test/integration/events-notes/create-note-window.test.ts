@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CreateNoteWindow } from '../../../src/ui/create-note-window';
 import { NoteCategories } from '../../../src/core/note-categories';
 import type { CalendarDate as ICalendarDate } from '../../../src/types/calendar';
-import { mockStandardCalendar } from './mocks/calendar-mocks';
+import { mockStandardCalendar } from '../../mocks/calendar-mocks';
 
 let categories: NoteCategories;
 let mockGame: any;

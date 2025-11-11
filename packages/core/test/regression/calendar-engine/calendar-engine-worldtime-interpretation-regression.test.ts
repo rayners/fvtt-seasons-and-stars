@@ -14,7 +14,7 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { CalendarEngine } from '../../../src/core/calendar-engine';
 import type { SeasonsStarsCalendar } from '../../../src/types/calendar';
-import { loadTestCalendar } from './utils/calendar-loader';
+import { loadTestCalendar } from '../../utils/calendar-loader';
 
 // Use the actual Golarion calendar JSON file as base instead of duplicating definitions
 const baseGolarionCalendar: SeasonsStarsCalendar = loadTestCalendar('golarion-pf2e.json');

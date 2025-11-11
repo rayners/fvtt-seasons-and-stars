@@ -16,7 +16,7 @@ import {
   createMockHooks,
   createMockUI,
   createMockUser,
-} from '../../../test-helpers/foundry-mocks';
+} from '../../test-helpers/foundry-mocks';
 
 // Mock TimeAdvancementService to avoid initialization logic
 vi.mock('../../../src/core/time-advancement-service', () => ({

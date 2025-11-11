@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CalendarGridWidget } from '../../../src/ui/calendar-grid-widget';
-import { mockStandardCalendar } from './mocks/calendar-mocks';
+import { mockStandardCalendar } from '../../mocks/calendar-mocks';
 import type { ICalendarDate } from '../../../src/types/calendar-date';
 
 let mockGame: any;

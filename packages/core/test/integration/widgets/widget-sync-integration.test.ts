@@ -13,8 +13,8 @@ import { CalendarEngine } from '../../../src/core/calendar-engine';
 import { TimeConverter } from '../../../src/core/time-converter';
 import { compatibilityManager } from '../../../src/core/compatibility-manager';
 import type { SeasonsStarsCalendar } from '../../../src/types/calendar-types';
-import { setupPF2eEnvironment } from './setup';
-import { loadTestCalendar } from '../../../utils/calendar-loader';
+import { setupPF2eEnvironment } from '../../setup';
+import { loadTestCalendar } from '../../utils/calendar-loader';
 
 describe('Widget Synchronization Integration', () => {
   let golarionCalendar: SeasonsStarsCalendar;

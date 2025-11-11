@@ -9,8 +9,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars, no-empty, no-useless-catch */
 
 import { describe, test, expect, beforeEach } from 'vitest';
-import { CalendarEngine } from '../../../src/core/calendar-engine';
-import { loadTestCalendar } from './utils/calendar-loader';
+import { CalendarEngine } from '../../src/core/calendar-engine';
+import { loadTestCalendar } from '../utils/calendar-loader';
 
 describe('WorldTime Edge Cases - Comprehensive Test Suite', () => {
   let gregorianEngine: CalendarEngine;

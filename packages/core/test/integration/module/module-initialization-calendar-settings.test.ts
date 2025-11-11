@@ -7,7 +7,7 @@
  */
 
 import { describe, beforeEach, afterEach, it, expect, vi } from 'vitest';
-import { setupFoundryEnvironment } from './setup';
+import { setupFoundryEnvironment } from '../../setup';
 import type { SeasonsStarsCalendar } from '../../../src/types/calendar';
 
 describe('Module Initialization - Calendar Settings Integration', () => {
@@ -68,7 +68,7 @@ describe('Module Initialization - Calendar Settings Integration', () => {
   describe('Calendar Loading and Settings Registration Flow', () => {
     it('should register menu and hidden setting during init', async () => {
       // Import the module functions
-      const { init, setup } = await import('../src/module');
+      const { init, setup } = await import('../../../src/module');
 
       // Step 1: Module init - should register menu and hidden setting
       init();
@@ -100,7 +100,7 @@ describe('Module Initialization - Calendar Settings Integration', () => {
     });
 
     it('should handle calendar loading failure gracefully', async () => {
-      const { init } = await import('../src/module');
+      const { init } = await import('../../../src/module');
 
       // Step 1: Init with settings registration
       init();
@@ -139,7 +139,7 @@ describe('Module Initialization - Calendar Settings Integration', () => {
       };
 
       // Module should work even during slow calendar loading
-      const { init } = await import('../src/module');
+      const { init } = await import('../../../src/module');
       init();
 
       // Settings and menu should be registered immediately, regardless of calendar loading
@@ -167,7 +167,7 @@ describe('Module Initialization - Calendar Settings Integration', () => {
     });
 
     it('should maintain consistent setting configuration', async () => {
-      const { init } = await import('../src/module');
+      const { init } = await import('../../../src/module');
       init();
 
       // Get setting configuration
@@ -196,7 +196,7 @@ describe('Module Initialization - Calendar Settings Integration', () => {
       // The original regression was caused by settings dropdown being registered
       // before all calendars loaded. The fix is to use a menu button + dialog instead.
 
-      const { init } = await import('../src/module');
+      const { init } = await import('../../../src/module');
 
       // Step 1: Module init (registers menu and hidden setting)
       init();
@@ -249,7 +249,7 @@ describe('Module Initialization - Calendar Settings Integration', () => {
       expect(calendarPacksLoaded).toBe(true);
 
       // Verify calendar localization can create choices from all calendars
-      const { CalendarLocalization } = await import('../src/core/calendar-localization');
+      const { CalendarLocalization } = await import('../../../src/core/calendar-localization');
       const choices = CalendarLocalization.createCalendarChoices(mockCalendars);
 
       expect(choices).toHaveProperty('gregorian'); // built-in
@@ -262,7 +262,7 @@ describe('Module Initialization - Calendar Settings Integration', () => {
     it('should provide immediate basic functionality while loading', async () => {
       // Even before all calendars are loaded, basic functionality should work
 
-      const { init, setup } = await import('../src/module');
+      const { init, setup } = await import('../../../src/module');
 
       init();
       setup();
@@ -283,7 +283,7 @@ describe('Module Initialization - Calendar Settings Integration', () => {
       // Test that the dialog shows all available calendars when opened
 
       // Calendar choices are created from all loaded calendars
-      const { CalendarLocalization } = await import('../src/core/calendar-localization');
+      const { CalendarLocalization } = await import('../../../src/core/calendar-localization');
       const allChoices = CalendarLocalization.createCalendarChoices(mockCalendars);
 
       // User experience: dialog shows all calendars when opened

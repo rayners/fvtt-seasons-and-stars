@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { setupFoundryEnvironment } from './setup';
+import { setupFoundryEnvironment } from '../../setup';
 
 describe('Integration Detection Timing Regression Test', () => {
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe('Integration Detection Timing Regression Test', () => {
 
   it('should not be null - regression test for integration detection timing issue', async () => {
     // Create real CalendarManager instance (the integration detection depends on this)
-    const { CalendarManager } = await import('../src/core/calendar-manager');
+    const { CalendarManager } = await import('../../../src/core/calendar-manager');
     const calendarManager = new CalendarManager();
 
     // Set up game.seasonsStars with manager (simulating the state after module initialization)
@@ -46,7 +46,7 @@ describe('Integration Detection Timing Regression Test', () => {
     };
 
     // Import and test the actual SeasonsStarsIntegration.detect() method
-    const { SeasonsStarsIntegration } = await import('../src/core/bridge-integration');
+    const { SeasonsStarsIntegration } = await import('../../../src/core/bridge-integration');
 
     // REGRESSION TEST: Test that integration is properly detected when manager exists
     // This is the core test - if the timing bug is reintroduced, this will fail
@@ -67,7 +67,7 @@ describe('Integration Detection Timing Regression Test', () => {
       // manager is missing
     };
 
-    const { SeasonsStarsIntegration } = await import('../src/core/bridge-integration');
+    const { SeasonsStarsIntegration } = await import('../../../src/core/bridge-integration');
 
     const integration = SeasonsStarsIntegration.detect();
 

@@ -6,7 +6,7 @@
  */
 
 import { describe, beforeEach, it, expect, vi } from 'vitest';
-import { setupFoundryEnvironment } from './setup';
+import { setupFoundryEnvironment } from '../../setup';
 import { CalendarManager } from '../../../src/core/calendar-manager';
 
 // Mock window.location for URL construction

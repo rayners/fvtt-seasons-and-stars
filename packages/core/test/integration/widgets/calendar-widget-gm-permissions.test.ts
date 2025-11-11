@@ -10,7 +10,7 @@ import { CalendarWidget } from '../../../src/ui/calendar-widget';
 import { CalendarSelectionDialog } from '../../../src/ui/calendar-selection-dialog';
 import { CalendarDate } from '../../../src/core/calendar-date';
 import type { SeasonsStarsCalendar } from '../../../src/types/calendar';
-import { setupFoundryEnvironment } from './setup';
+import { setupFoundryEnvironment } from '../../setup';
 
 // Mock TimeAdvancementService to avoid initialization logic
 vi.mock('../../../src/core/time-advancement-service', () => ({
@@ -147,7 +147,7 @@ describe('CalendarWidget GM permissions', () => {
 
   it('prevents non-GMs from toggling time advancement', async () => {
     game.user = { isGM: false } as any;
-    const TimeAdvancementService = await import('../src/core/time-advancement-service');
+    const TimeAdvancementService = await import('../../../src/core/time-advancement-service');
     const mockService = { isActive: false, play: vi.fn(), pause: vi.fn() };
     vi.spyOn(TimeAdvancementService.TimeAdvancementService, 'getInstance').mockReturnValue(
       mockService as any
@@ -162,7 +162,7 @@ describe('CalendarWidget GM permissions', () => {
 
   it('allows GMs to toggle time advancement', async () => {
     game.user = { isGM: true } as any;
-    const TimeAdvancementService = await import('../src/core/time-advancement-service');
+    const TimeAdvancementService = await import('../../../src/core/time-advancement-service');
     const mockService = { isActive: false, play: vi.fn(), pause: vi.fn() };
     vi.spyOn(TimeAdvancementService.TimeAdvancementService, 'getInstance').mockReturnValue(
       mockService as any

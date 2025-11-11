@@ -14,7 +14,7 @@ import { join } from 'path';
 describe('ApplicationV2 Template Part Requirements', () => {
   describe('Sidebar template always renders single root element', () => {
     it('should render a single root div element when sidebarButtons is empty', () => {
-      const templatePath = join(__dirname, '../templates/calendar-widget-sidebar.hbs');
+      const templatePath = join(__dirname, '../../../templates/calendar-widget-sidebar.hbs');
       const templateSource = readFileSync(templatePath, 'utf-8');
       const template = Handlebars.compile(templateSource);
 
@@ -34,7 +34,7 @@ describe('ApplicationV2 Template Part Requirements', () => {
     });
 
     it('should render a single root div element when sidebarButtons is undefined', () => {
-      const templatePath = join(__dirname, '../templates/calendar-widget-sidebar.hbs');
+      const templatePath = join(__dirname, '../../../templates/calendar-widget-sidebar.hbs');
       const templateSource = readFileSync(templatePath, 'utf-8');
       const template = Handlebars.compile(templateSource);
 
@@ -53,7 +53,7 @@ describe('ApplicationV2 Template Part Requirements', () => {
     });
 
     it('should render a single root div element when sidebarButtons has items', () => {
-      const templatePath = join(__dirname, '../templates/calendar-widget-sidebar.hbs');
+      const templatePath = join(__dirname, '../../../templates/calendar-widget-sidebar.hbs');
       const templateSource = readFileSync(templatePath, 'utf-8');
       const template = Handlebars.compile(templateSource);
 

@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Use real TestLogger instead of mocks for better testing
-import { TestLogger } from '../../../utils/test-logger';
+import { TestLogger } from '../../utils/test-logger';
 vi.mock('../../../src/core/logger', () => ({
   Logger: TestLogger,
 }));
@@ -46,7 +46,7 @@ globalThis.game = mockGame;
 globalThis.Hooks = mockHooks;
 
 // Import mocks
-import { mockStandardCalendar } from './mocks/calendar-mocks';
+import { mockStandardCalendar } from '../../mocks/calendar-mocks';
 
 // Mock components to prevent side effects during module import
 vi.mock('../../../src/core/calendar-manager', () => {

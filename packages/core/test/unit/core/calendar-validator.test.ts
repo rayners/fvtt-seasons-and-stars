@@ -3,8 +3,14 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import Handlebars from 'handlebars';
 import { CalendarValidator } from '../../../src/core/calendar-validator';
 import { DateFormatter } from '../../../src/core/date-formatter';
+import { CalendarDate } from '../../../src/core/calendar-date';
+import type { SeasonsStarsCalendar } from '../../../src/types/calendar';
+
+// Use REAL Handlebars for date formatter testing
+global.Handlebars = Handlebars;
 
 describe('CalendarValidator - Enhanced Error Messages', () => {
   describe('Additional Properties Detection', () => {

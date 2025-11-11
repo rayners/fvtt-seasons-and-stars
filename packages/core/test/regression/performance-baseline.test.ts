@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { CalendarEngine } from '../../../src/core/calendar-engine';
+import { CalendarEngine } from '../../src/core/calendar-engine';
 import * as fs from 'fs';
 import * as path from 'path';
 

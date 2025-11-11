@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { setupFoundryEnvironment } from './setup';
+import { setupFoundryEnvironment } from '../../setup';
 import { CalendarManager } from '../../../src/core/calendar-manager';
 import { handleCalendarSelection } from '../../../src/core/calendar-selection-handler';
 import type { SeasonsStarsCalendar } from '../../../src/types/calendar';

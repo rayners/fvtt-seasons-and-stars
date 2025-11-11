@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Use real TestLogger instead of mocks for better testing
-import { TestLogger } from '../../../utils/test-logger';
+import { TestLogger } from '../../utils/test-logger';
 vi.mock('../../../src/core/logger', () => ({
   Logger: TestLogger,
 }));
