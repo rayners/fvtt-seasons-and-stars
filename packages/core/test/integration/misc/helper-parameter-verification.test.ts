@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DateFormatter } from '../../../src/core/date-formatter';
-import { _CalendarDate } from '../../../src/core/calendar-date';
 import type { SeasonsStarsCalendar } from '../../../src/types/calendar';
 
 describe('Helper Parameter Verification', () => {
