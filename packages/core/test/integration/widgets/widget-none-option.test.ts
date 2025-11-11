@@ -17,6 +17,7 @@ import { CalendarWidgetManager } from '../../../src/ui/widget-manager';
 import { CalendarWidget } from '../../../src/ui/calendar-widget';
 import { CalendarMiniWidget } from '../../../src/ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../../../src/ui/calendar-grid-widget';
+import { getTargetWidgetType } from '../../../src/ui/widget-type-resolver';
 
 const mockSettings = {
   get: vi.fn(),

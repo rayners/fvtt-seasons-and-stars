@@ -36,7 +36,7 @@ describe('CalendarWidget GM permissions', () => {
     vi.spyOn(CalendarWidget.prototype as any, 'detectSmallTime').mockReturnValue(true);
 
     // Load and compile the widget template
-    const templatePath = path.join(__dirname, '../templates/calendar-widget.hbs');
+    const templatePath = path.join(__dirname, '../../../templates/calendar-widget.hbs');
     const source = fs.readFileSync(templatePath, 'utf8');
     template = Handlebars.compile(source);
 
