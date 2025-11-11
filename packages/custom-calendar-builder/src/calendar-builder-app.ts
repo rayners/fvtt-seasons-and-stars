@@ -229,6 +229,24 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     // Parse field name and update nested properties
     this._setNestedProperty(calendar, fieldName, target.value);
 
+    // Auto-generate kebab-case ID from calendar name if ID is empty or unchanged
+    if (fieldName === 'translations.en.label' && target.value) {
+      const currentId = calendar.id || '';
+      const previousName = this._getPreviousCalendarName(calendar);
+      const previousKebabCase = this._toKebabCase(previousName);
+
+      // Only auto-update ID if it's empty or matches the previous auto-generated value
+      if (!currentId || currentId === previousKebabCase) {
+        calendar.id = this._toKebabCase(target.value);
+
+        // Update the ID input field in the DOM
+        const idInput = this.element?.querySelector('#calendar-id') as HTMLInputElement;
+        if (idInput) {
+          idInput.value = calendar.id;
+        }
+      }
+    }
+
     // Update the JSON editor
     this.currentJson = JSON.stringify(calendar, null, 2);
 
@@ -240,6 +258,32 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
     // Validate the updated JSON
     this._validateCurrentJson();
+  }
+
+  /**
+   * Convert a string to kebab-case
+   * Examples: "My Calendar" -> "my-calendar", "Test_Calendar 2" -> "test-calendar-2"
+   */
+  private _toKebabCase(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')  // Replace non-alphanumeric with hyphens
+      .replace(/^-+|-+$/g, '');      // Remove leading/trailing hyphens
+  }
+
+  /**
+   * Get the previous calendar name from the current JSON
+   * Used to determine if ID was auto-generated and should be updated
+   */
+  private _getPreviousCalendarName(calendar: any): string {
+    // The calendar object passed here has already been updated with the new name
+    // We need to look at the raw JSON to get the previous name
+    try {
+      const previousData = JSON.parse(this.currentJson);
+      return previousData?.translations?.en?.label || '';
+    } catch {
+      return '';
+    }
   }
 
   /**
