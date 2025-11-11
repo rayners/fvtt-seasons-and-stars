@@ -214,7 +214,11 @@ describe('Calendar File Helpers', () => {
 
         expect(result.success).toBe(true);
         expect(result.isGM).toBe(true);
-        expect(mockSettings.set).toHaveBeenCalledWith('seasons-and-stars', 'activeCalendarFile', '');
+        expect(mockSettings.set).toHaveBeenCalledWith(
+          'seasons-and-stars',
+          'activeCalendarFile',
+          ''
+        );
       });
     });
 
@@ -480,7 +484,11 @@ describe('Calendar File Helpers', () => {
       it('should validate file extension', () => {
         const validPaths = ['worlds/test/calendar.json', 'Data/calendars/custom.JSON'];
 
-        const invalidPaths = ['worlds/test/calendar.txt', 'Data/calendars/custom.xml', 'not-a-file'];
+        const invalidPaths = [
+          'worlds/test/calendar.txt',
+          'Data/calendars/custom.xml',
+          'not-a-file',
+        ];
 
         // All paths should be storable - validation happens during loading
         [...validPaths, ...invalidPaths].forEach(testPath => {
@@ -648,7 +656,9 @@ describe('Calendar File Helpers', () => {
 
         // 2. Save activeCalendarData FIRST
         await game.settings.set('seasons-and-stars', 'activeCalendarData', result.calendar);
-        expect(settingsStore.get('seasons-and-stars.activeCalendarData')).toEqual(mockCustomCalendar);
+        expect(settingsStore.get('seasons-and-stars.activeCalendarData')).toEqual(
+          mockCustomCalendar
+        );
 
         // 3. Load calendar into manager
         const loadSuccess = mockCalendarManager.loadCalendar(result.calendar, {

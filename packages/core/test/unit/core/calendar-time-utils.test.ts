@@ -13,7 +13,10 @@
 
 import { describe, test, expect } from 'vitest';
 import { CalendarTimeUtils } from '../../../src/core/calendar-time-utils';
-import type { SeasonsStarsCalendar, CalendarDate as ICalendarDate } from '../../../src/types/calendar';
+import type {
+  SeasonsStarsCalendar,
+  CalendarDate as ICalendarDate,
+} from '../../../src/types/calendar';
 
 // Test calendar with standard Earth time system (24/60/60)
 const standardCalendar: SeasonsStarsCalendar = {

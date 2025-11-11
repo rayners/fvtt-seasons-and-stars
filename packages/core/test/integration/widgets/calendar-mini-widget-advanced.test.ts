@@ -256,7 +256,9 @@ describe('CalendarMiniWidget - Advanced Integration Tests', () => {
 
         await widget._onToggleTimeAdvancement(mockEvent);
 
-        expect(mockUI.notifications.error).toHaveBeenCalledWith('Failed to toggle time advancement');
+        expect(mockUI.notifications.error).toHaveBeenCalledWith(
+          'Failed to toggle time advancement'
+        );
       });
 
       it('should prevent default event behavior', async () => {
@@ -721,7 +723,9 @@ describe('CalendarMiniWidget - Advanced Integration Tests', () => {
         mockCalendar
       );
 
-      (global.game.seasonsStars.manager.getCurrentDate as any).mockReturnValue(mockDateSingleDigits);
+      (global.game.seasonsStars.manager.getCurrentDate as any).mockReturnValue(
+        mockDateSingleDigits
+      );
       mockSettings.set('seasons-and-stars.miniWidgetShowTime', true);
 
       const context = await widget._prepareContext();

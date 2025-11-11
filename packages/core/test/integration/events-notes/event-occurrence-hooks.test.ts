@@ -9,7 +9,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CalendarEngine } from '../../../src/core/calendar-engine';
 import { EventsManager } from '../../../src/core/events-manager';
-import type { SeasonsStarsCalendar, CalendarEvent, EventOccursData } from '../../../src/types/calendar';
+import type {
+  SeasonsStarsCalendar,
+  CalendarEvent,
+  EventOccursData,
+} from '../../../src/types/calendar';
 
 // Mock calendar with events
 const testCalendar: SeasonsStarsCalendar = {

@@ -13,7 +13,10 @@
 import { describe, it, test, expect, beforeEach, vi } from 'vitest';
 import Handlebars from 'handlebars';
 import { DateFormatter } from '../../../src/core/date-formatter';
-import type { SeasonsStarsCalendar, CalendarDate as ICalendarDate } from '../../../src/types/calendar';
+import type {
+  SeasonsStarsCalendar,
+  CalendarDate as ICalendarDate,
+} from '../../../src/types/calendar';
 
 // Use REAL Handlebars for template execution
 (global as any).Handlebars = Handlebars;
@@ -89,9 +92,11 @@ describe('Intercalary Format Regression Tests', () => {
 
       // Mock the formatWithContext method to return predictable results
       mockFormatWithContext = vi.spyOn(formatter as any, 'formatWithContext');
-      mockFormatWithContext.mockImplementation((date: any, template: string, displayName: string) => {
-        return `EXECUTED: ${template} (${displayName})`;
-      });
+      mockFormatWithContext.mockImplementation(
+        (date: any, template: string, displayName: string) => {
+          return `EXECUTED: ${template} (${displayName})`;
+        }
+      );
     });
 
     describe('formatNamed() format resolution', () => {
