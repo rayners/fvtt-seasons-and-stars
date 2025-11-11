@@ -1,0 +1,108 @@
+{
+  "SEASONS_STARS": {
+    "module_title": "Sezóny a hvězdy",
+    "calendar": {
+      "current_date": "Aktuální datum",
+      "toggle_calendar": "Přepínač kalendáře",
+      "monthly_view": "Měsíční kalendář",
+      "advance_time": "Posunout čas",
+      "calendar_selection": "Výběr kalendáře",
+      "calendar_format": "Formát kalendáře",
+      "custom": "Vlastní kalendář",
+      "import": "Importovat kalendář",
+      "export": "Exportovat kalendář",
+      "months": "Měsíce",
+      "days_per_week": "Dny v týdnu",
+      "leap_year": "Přestupný rok",
+      "enabled": "Povoleno"
+    },
+    "dialog": {
+      "calendar_selection": {
+        "title": "📅 Změnit kalendářní systém",
+        "choose_calendar": "Vyber svůj kalendářní systém",
+        "choose_hint": "Vyber, jaký kalendářní systém se má použít pro zobrazení dat a sledování času ve tvém světě. To ovlivní, jak se budou data zobrazovat a počítat napříč hrou. Můžeš si vybrat z vestavěných kalendářů níže, nebo případně načíst vlastní soubor s kalendářem.",
+        "select": "Použít tento kalendář",
+        "cancel": "Ponechat aktuální",
+        "switch_to": "Přepnout na {calendar}",
+        "current": "Aktuálně aktivní",
+        "sample": "Ukázka",
+        "preview": "Náhled",
+        "preview_tooltip": "Zobrazit detaily kalendáře a ukázková data",
+        "sample_dates": "Ukázková data",
+        "structure": "Struktura kalendáře",
+        "no_calendars": "Žádné kalendáře nejsou k dispozici",
+        "no_calendars_hint": "Nebyly nalezeny žádné soubory kalendářů. Ujisti se, že jsou data kalendáře správně nainstalována.",
+        "custom_file": "Soubor vlastního kalendáře",
+        "custom_file_hint": "Vyber JSON soubor vlastního kalendáře ze svého Foundry serveru. To ti umožní použít i kalendáře, které nejsou součástí vestavěné kolekce.",
+        "browse": "Procházet",
+        "browse_tooltip": "Vybrat soubor vlastního kalendáře ze serveru Foundry",
+        "no_file_selected": "Žádný vlastní soubor není vybrán",
+        "clear_file": "Vyčistit výběr souboru",
+        "clear": "Vyčistit",
+        "file_active": "Soubor vlastního kalendáře je aktuálně aktivní",
+        "file_loaded": "Soubor vlastního kalendáře je načten a připraven k použití",
+        "file_path": "Cesta k souboru",
+        "status": "Stav",
+        "click_to_select": "Klikni pro výběr souboru kalendáře"
+      },
+      "calendar_preview": {
+        "title": "Náhled kalendáře: {calendar}"
+      },
+      "close": "Zavřít"
+    },
+    "settings": {
+      "calendar_selection": "📅 Systém kalendáře",
+      "select_calendar_button": "Vybrat kalendář",
+      "calendar_selection_hint": "Zvol, který systém kalendáře chceš používat pro zobrazení data a sledování času ve svém světě. Otevře se dialogové okno, ve kterém můžeš procházet a vybírat z dostupných kalendářů.",
+      "active_calendar": "📅 Aktivní systém kalendáře",
+      "active_calendar_hint": "Zvol, který kalendářní systém se má použít pro zobrazení dat a sledování času. Toto je hlavní nastavení kalendáře tvého světa.",
+      "active_calendar_file": "📄 Cesta k souboru vlastního kalendáře",
+      "active_calendar_file_hint": "Cesta k JSON souboru vlastního kalendáře na serveru Foundry. Toto nastavení se spravuje přes dialog pro výběr kalendáře.",
+      "current_date": "Aktuální datum",
+      "current_date_hint": "Aktuální herní datum (spravováno automaticky).",
+      "default_widget": "🔧 Výchozí ovládací prvek kalendáře",
+      "default_widget_hint": "Zvol, jaký ovládací prvek kalendáře se má otevřít po kliknutí na tlačítko v ovládacím panelu scény či po použití klávesové zkratky (výchozí Alt+S).",
+      "default_widget_none": "Žádný (při startu žádný)",
+      "default_widget_main": "Ovládací prvek hlavního kalendáře",
+      "default_widget_mini": "Ovládací prvek minikalendáře",
+      "default_widget_grid": "Ovládací prvek tabulkového kalendáře"
+    },
+    "notifications": {
+      "calendar_changed": "Kalendář byl změněn na {calendar}"
+    },
+    "warnings": {
+      "no_calendars_available": "Pro výběr nejsou k dispozici žádné kalendáře",
+      "calendar_file_failed": "Nepodařilo se načíst soubor kalendáře '{path}': {error}"
+    },
+    "keybindings": {
+      "toggle_default_widget": "Přepínač ovládacího prvku výchozího kalendáře",
+      "toggle_default_widget_hint": "Zobrazí či skryje ovládací prvek výchozí kalendáře (nastavitelné).",
+      "toggle_mini_widget": "Přepínač ovládacího prvku minikalendáře",
+      "toggle_mini_widget_hint": "Zobrazí či skryje ovládací prvek kompaktního kalendáře.",
+      "toggle_grid_widget": "Přepínač ovládacího prvku mřížkového kalendáře",
+      "toggle_grid_widget_hint": "Zobrazí či skryje ovládací prvek mřížkového kalendáře měsíců.",
+      "toggle_main_widget": "Přepínač hlavního ovládacího prvku kalendáře",
+      "toggle_main_widget_hint": "Zobrazí či skryje ovládací prvek hlavní správy kalendáře."
+    },
+    "errors": {
+      "invalid_calendar": "Neplatný formát kalendáře",
+      "failed_load": "Nepodařilo se načíst kalendář: {error}",
+      "conversion_failed": "Konverze kalendáře selhala: {error}",
+      "manager_not_ready": "Správce kalendáře ještě není připraven",
+      "file_picker_failed": "Nepodařilo se otevřít dialog výběru souboru",
+      "calendar_file_load_failed": "Nepodařilo se načíst kalendář ze souboru {path}: {error}",
+      "clear_file_failed": "Nepodařilo se vyčistit výběr souboru vlastního kalendáře"
+    },
+    "mini_widget": {
+      "context_menu": {
+        "toggle_time": "Přepínač času",
+        "toggle_weekday": "Přepínač dne v týdnu",
+        "toggle_moon_phases": "Přepínač fáze měsíce",
+        "toggle_sunrise_sunset": "Přepínač úsvitu a soumraku",
+        "toggle_time_controls": "Přepínač ovládání času",
+        "toggle_extensions": "Přepínač tlačítka rozšíření",
+        "toggle_pin": "Přepínač připnutí"
+      }
+    }
+  }
+}
