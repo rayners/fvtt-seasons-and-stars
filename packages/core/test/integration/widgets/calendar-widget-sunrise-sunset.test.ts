@@ -19,7 +19,7 @@ import {
 } from '../../../test-helpers/foundry-mocks';
 
 // Mock TimeAdvancementService to avoid initialization logic
-vi.mock('../src/core/time-advancement-service', () => ({
+vi.mock('../../../src/core/time-advancement-service', () => ({
   TimeAdvancementService: {
     getInstance: vi.fn(() => ({ shouldShowPauseButton: false })),
   },

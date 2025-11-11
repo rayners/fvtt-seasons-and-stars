@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Use real TestLogger instead of mocks for better testing
 import { TestLogger } from '../../../utils/test-logger';
-vi.mock('../src/core/logger', () => ({
+vi.mock('../../../src/core/logger', () => ({
   Logger: TestLogger,
 }));
 
@@ -45,12 +45,11 @@ const mockHooks = {
 globalThis.game = mockGame;
 globalThis.Hooks = mockHooks;
 
-// Import real CalendarManager for better testing
-import { _CalendarManager } from '../../../src/core/calendar-manager';
+// Import mocks
 import { mockStandardCalendar } from './mocks/calendar-mocks';
 
 // Mock components to prevent side effects during module import
-vi.mock('../src/core/calendar-manager', () => {
+vi.mock('../../../src/core/calendar-manager', () => {
   const { CalendarManager: RealCalendarManager } = vi.importActual(
     '../src/core/calendar-manager'
   ) as any;
@@ -66,20 +65,20 @@ vi.mock('../src/core/calendar-manager', () => {
   };
 });
 
-vi.mock('../src/core/notes-manager', () => ({
+vi.mock('../../../src/core/notes-manager', () => ({
   NotesManager: vi.fn().mockImplementation(() => ({
     initialize: vi.fn().mockResolvedValue(undefined),
   })),
 }));
 
-vi.mock('../src/ui/calendar-widget', () => ({
+vi.mock('../../../src/ui/calendar-widget', () => ({
   CalendarWidget: {
     registerHooks: vi.fn(),
     getInstance: vi.fn(),
   },
 }));
 
-vi.mock('../src/ui/calendar-mini-widget', () => ({
+vi.mock('../../../src/ui/calendar-mini-widget', () => ({
   CalendarMiniWidget: {
     registerHooks: vi.fn(),
     registerSmallTimeIntegration: vi.fn(),
@@ -87,40 +86,40 @@ vi.mock('../src/ui/calendar-mini-widget', () => ({
   },
 }));
 
-vi.mock('../src/ui/calendar-grid-widget', () => ({
+vi.mock('../../../src/ui/calendar-grid-widget', () => ({
   CalendarGridWidget: {
     registerHooks: vi.fn(),
     getInstance: vi.fn(),
   },
 }));
 
-vi.mock('../src/ui/calendar-widget-manager', () => ({
+vi.mock('../../../src/ui/calendar-widget-manager', () => ({
   CalendarWidgetManager: {
     registerWidget: vi.fn(),
   },
 }));
 
-vi.mock('../src/ui/scene-controls', () => ({
+vi.mock('../../../src/ui/scene-controls', () => ({
   SeasonsStarsSceneControls: {
     registerControls: vi.fn(),
     registerMacros: vi.fn(),
   },
 }));
 
-// Test calendar without seasons
-const _calendarWithoutSeasons = {
-  id: 'test-no-seasons',
-  name: 'Test Calendar No Seasons',
-  year: { epoch: 0, currentYear: 2024 },
-  months: [
-    { name: 'January', days: 31 },
-    { name: 'February', days: 28 },
-  ],
-  weekdays: [{ name: 'Sunday' }, { name: 'Monday' }],
-  intercalary: [],
-  time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
-  // No seasons property
-};
+// Test calendar without seasons (unused in current tests but may be needed for future tests)
+// const _calendarWithoutSeasons = {
+//   id: 'test-no-seasons',
+//   name: 'Test Calendar No Seasons',
+//   year: { epoch: 0, currentYear: 2024 },
+//   months: [
+//     { name: 'January', days: 31 },
+//     { name: 'February', days: 28 },
+//   ],
+//   weekdays: [{ name: 'Sunday' }, { name: 'Monday' }],
+//   intercalary: [],
+//   time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+//   // No seasons property
+// };
 
 describe('Seasons Warning State Management Functions', () => {
   beforeEach(() => {

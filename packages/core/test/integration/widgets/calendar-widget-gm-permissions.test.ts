@@ -13,7 +13,7 @@ import type { SeasonsStarsCalendar } from '../../../src/types/calendar';
 import { setupFoundryEnvironment } from './setup';
 
 // Mock TimeAdvancementService to avoid initialization logic
-vi.mock('../src/core/time-advancement-service', () => ({
+vi.mock('../../../src/core/time-advancement-service', () => ({
   TimeAdvancementService: {
     getInstance: vi.fn(() => ({ shouldShowPauseButton: false })),
   },

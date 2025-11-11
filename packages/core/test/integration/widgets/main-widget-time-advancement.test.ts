@@ -20,7 +20,7 @@ let mockServiceInstance: any = {
   destroy: vi.fn(),
 };
 
-vi.mock('../src/core/time-advancement-service', () => ({
+vi.mock('../../../src/core/time-advancement-service', () => ({
   TimeAdvancementService: {
     getInstance: vi.fn(() => mockServiceInstance),
   },

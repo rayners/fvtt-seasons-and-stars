@@ -8,7 +8,7 @@ import { CalendarManager } from '../../../src/core/calendar-manager';
 import type { SeasonsStarsCalendar } from '../../../src/types/calendar';
 
 // Mock Logger to avoid console output during tests
-vi.mock('../src/core/logger', () => ({
+vi.mock('../../../src/core/logger', () => ({
   Logger: {
     debug: vi.fn(),
     warn: vi.fn(),

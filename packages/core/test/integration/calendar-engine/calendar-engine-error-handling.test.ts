@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock CalendarEngine to throw an error when instantiated
-vi.mock('../src/core/calendar-engine', () => {
+vi.mock('../../../src/core/calendar-engine', () => {
   return {
     CalendarEngine: vi.fn().mockImplementation(() => {
       throw new Error('engine failure');

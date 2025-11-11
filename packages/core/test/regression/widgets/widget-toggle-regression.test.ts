@@ -13,7 +13,7 @@ import { TimeAdvancementService } from '../../../src/core/time-advancement-servi
 let mockServiceInstance: any;
 let callOrder: string[] = [];
 
-vi.mock('../src/core/time-advancement-service', () => ({
+vi.mock('../../../src/core/time-advancement-service', () => ({
   TimeAdvancementService: {
     getInstance: vi.fn(() => mockServiceInstance),
   },
@@ -51,7 +51,7 @@ global.foundry = {
 } as any;
 
 // Mock logger
-vi.mock('../src/core/logger', () => ({
+vi.mock('../../../src/core/logger', () => ({
   Logger: {
     info: vi.fn((msg: string) => {
       callOrder.push(`LOG: ${msg}`);

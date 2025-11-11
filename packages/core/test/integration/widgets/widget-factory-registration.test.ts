@@ -12,7 +12,7 @@ import { CalendarMiniWidget } from '../../../src/ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../../../src/ui/calendar-grid-widget';
 
 // Mock the logger module with simple vi.fn() mocks
-vi.mock('../src/core/logger', () => ({
+vi.mock('../../../src/core/logger', () => ({
   Logger: {
     debug: vi.fn(),
     info: vi.fn(),

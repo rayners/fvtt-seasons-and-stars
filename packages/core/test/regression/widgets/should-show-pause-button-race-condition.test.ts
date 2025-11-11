@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock the logger to avoid import issues
-vi.mock('../src/core/logger', () => ({
+vi.mock('../../../src/core/logger', () => ({
   Logger: {
     info: vi.fn(),
     debug: vi.fn(),

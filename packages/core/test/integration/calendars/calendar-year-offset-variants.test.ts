@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Use real TestLogger instead of mocks for better testing
 import { TestLogger } from '../../../utils/test-logger';
-vi.mock('../src/core/logger', () => ({
+vi.mock('../../../src/core/logger', () => ({
   Logger: TestLogger,
 }));
 
@@ -23,7 +23,7 @@ vi.stubGlobal('Hooks', {
 });
 
 // Mock CalendarValidator
-vi.mock('../src/core/calendar-validator', () => ({
+vi.mock('../../../src/core/calendar-validator', () => ({
   CalendarValidator: {
     validate: vi.fn().mockReturnValue({
       isValid: true,
@@ -39,7 +39,7 @@ vi.mock('../src/core/calendar-validator', () => ({
 }));
 
 // Mock CalendarLocalization
-vi.mock('../src/core/calendar-localization', () => ({
+vi.mock('../../../src/core/calendar-localization', () => ({
   CalendarLocalization: {
     getCalendarLabel: vi.fn().mockReturnValue('Test Calendar'),
   },

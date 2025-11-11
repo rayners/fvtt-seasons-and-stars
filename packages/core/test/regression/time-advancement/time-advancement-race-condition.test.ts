@@ -25,7 +25,7 @@ import { TimeAdvancementService } from '../../../src/core/time-advancement-servi
 // Create a mock service that accurately simulates the race condition
 let mockServiceInstance: any;
 
-vi.mock('../src/core/time-advancement-service', () => ({
+vi.mock('../../../src/core/time-advancement-service', () => ({
   TimeAdvancementService: {
     getInstance: vi.fn(() => mockServiceInstance),
   },

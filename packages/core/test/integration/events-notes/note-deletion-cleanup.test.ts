@@ -9,7 +9,7 @@ import { CalendarMiniWidget } from '../../../src/ui/calendar-mini-widget';
 import { CalendarGridWidget } from '../../../src/ui/calendar-grid-widget';
 
 // Mock the logger module with simple vi.fn() mocks
-vi.mock('../src/core/logger', () => ({
+vi.mock('../../../src/core/logger', () => ({
   Logger: {
     debug: vi.fn(),
     info: vi.fn(),
@@ -78,7 +78,7 @@ describe('Note Deletion Cleanup (Issue #22)', () => {
   it('should clean up calendar notes when journals are deleted externally', async () => {
     // Simulate the hook registration from module.ts
     const registerNotesCleanupHooks = () => {
-      Hooks.on('deleteJournalEntry', async (journal: any, options: any, userId: string) => {
+      Hooks.on('deleteJournalEntry', async (journal: any, _options: any, _userId: string) => {
         try {
           const flags = journal.flags?.['seasons-and-stars'];
           if (flags?.calendarNote) {
@@ -101,7 +101,7 @@ describe('Note Deletion Cleanup (Issue #22)', () => {
               gridWidget.render();
             }
           }
-        } catch (_error) {
+        } catch {
           // Error handling would use Logger here
         }
       });
@@ -171,7 +171,7 @@ describe('Note Deletion Cleanup (Issue #22)', () => {
           }
           Hooks.callAll('seasons-stars:noteDeleted', journal.id);
         }
-      } catch (_error) {
+      } catch {
         // Error would be logged but not thrown
         // Test that the error doesn't propagate
       }

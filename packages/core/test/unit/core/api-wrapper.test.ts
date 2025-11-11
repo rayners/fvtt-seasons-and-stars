@@ -3,7 +3,7 @@ import { APIWrapper } from '../../../src/core/api-wrapper';
 import { Logger } from '../../../src/core/logger';
 
 // Mock the logger module with simple vi.fn() mocks
-vi.mock('../src/core/logger', () => ({
+vi.mock('../../../src/core/logger', () => ({
   Logger: {
     debug: vi.fn(),
     info: vi.fn(),

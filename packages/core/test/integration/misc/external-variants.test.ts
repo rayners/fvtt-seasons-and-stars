@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 // Use real TestLogger instead of mocks for better testing
 import { TestLogger } from '../../../utils/test-logger';
 import { mockCalendarFetch } from '../../../utils/mock-calendar-fetch';
-vi.mock('../src/core/logger', () => ({
+vi.mock('../../../src/core/logger', () => ({
   Logger: TestLogger,
 }));
 
@@ -28,7 +28,7 @@ vi.stubGlobal('fetch', vi.fn());
 // Note: No longer using generated calendar list - calendars loaded dynamically from index.json
 
 // Mock CalendarValidator - will return invalid for calendars missing currentYear
-vi.mock('../src/core/calendar-validator', () => ({
+vi.mock('../../../src/core/calendar-validator', () => ({
   CalendarValidator: {
     validate: vi.fn().mockImplementation(calendar => {
       // Return invalid for calendars missing currentYear
@@ -64,7 +64,7 @@ vi.mock('../src/core/calendar-validator', () => ({
 }));
 
 // Mock CalendarLocalization
-vi.mock('../src/core/calendar-localization', () => ({
+vi.mock('../../../src/core/calendar-localization', () => ({
   CalendarLocalization: {
     getCalendarLabel: vi.fn().mockReturnValue('Test Calendar'),
   },
