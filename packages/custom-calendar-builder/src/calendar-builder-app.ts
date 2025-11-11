@@ -232,7 +232,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     // Auto-generate kebab-case ID from calendar name if ID is empty or unchanged
     if (fieldName === 'translations.en.label' && target.value) {
       const currentId = calendar.id || '';
-      const previousName = this._getPreviousCalendarName(calendar);
+      const previousName = this._getPreviousCalendarName();
       const previousKebabCase = this._toKebabCase(previousName);
 
       // Only auto-update ID if it's empty or matches the previous auto-generated value
@@ -275,9 +275,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    * Get the previous calendar name from the current JSON
    * Used to determine if ID was auto-generated and should be updated
    */
-  private _getPreviousCalendarName(calendar: any): string {
-    // The calendar object passed here has already been updated with the new name
-    // We need to look at the raw JSON to get the previous name
+  private _getPreviousCalendarName(): string {
     try {
       const previousData = JSON.parse(this.currentJson);
       return previousData?.translations?.en?.label || '';

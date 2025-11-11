@@ -310,13 +310,13 @@ describe('CalendarBuilderApp', () => {
         translations: { en: { label: 'Test Calendar' } },
       });
 
-      const result = app['_getPreviousCalendarName']({});
+      const result = app['_getPreviousCalendarName']();
       expect(result).toBe('Test Calendar');
     });
 
     it('should return empty string for invalid JSON in _getPreviousCalendarName', () => {
       app['currentJson'] = 'invalid json';
-      const result = app['_getPreviousCalendarName']({});
+      const result = app['_getPreviousCalendarName']();
       expect(result).toBe('');
     });
   });
