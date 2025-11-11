@@ -51,7 +51,7 @@ import { mockStandardCalendar } from '../../mocks/calendar-mocks';
 // Mock components to prevent side effects during module import
 vi.mock('../../../src/core/calendar-manager', () => {
   const { CalendarManager: RealCalendarManager } = vi.importActual(
-    '../src/core/calendar-manager'
+    '../../../src/core/calendar-manager'
   ) as any;
 
   return {
