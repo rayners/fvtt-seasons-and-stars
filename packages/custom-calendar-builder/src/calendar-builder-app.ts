@@ -185,21 +185,31 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       this._updateValidationDisplay();
     }
 
-    // Attach form field listeners for interactive tabs
+    // Use event delegation for form field changes on interactive tabs
     if (partId === 'basic' || partId === 'time' || partId === 'leapyear') {
-      this._attachFormFieldListeners(htmlElement);
+      htmlElement.addEventListener('change', this._onFormFieldChange.bind(this));
+      htmlElement.addEventListener('blur', this._onFormFieldBlur.bind(this), true); // Use capture phase for blur
     }
   }
 
   /**
-   * Attach change and blur listeners to form fields
+   * Handle form field change events (using event delegation)
    */
-  private _attachFormFieldListeners(htmlElement: HTMLElement): void {
-    const inputs = htmlElement.querySelectorAll('input, select, textarea');
-    inputs.forEach((input) => {
-      input.addEventListener('change', this._onFieldChange.bind(this));
-      input.addEventListener('blur', this._onFieldChange.bind(this));
-    });
+  private _onFormFieldChange(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (target.matches('input, select, textarea')) {
+      this._onFieldChange(event);
+    }
+  }
+
+  /**
+   * Handle form field blur events (using event delegation)
+   */
+  private _onFormFieldBlur(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (target.matches('input, select, textarea')) {
+      this._onFieldChange(event);
+    }
   }
 
   /**
@@ -285,6 +295,19 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Fields that should be parsed as numeric values
+   */
+  private static readonly NUMERIC_FIELDS = new Set([
+    'year.epoch',
+    'year.currentYear',
+    'year.startDay',
+    'time.hoursInDay',
+    'time.minutesInHour',
+    'time.secondsInMinute',
+    'leapYear.extraDays',
+  ]);
+
+  /**
    * Set a nested property in an object using dot notation
    */
   private _setNestedProperty(obj: any, path: string, value: any): void {
@@ -293,7 +316,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
-      if (!(key in current) || typeof current[key] !== 'object') {
+      if (!(key in current) || typeof current[key] !== 'object' || current[key] === null) {
         current[key] = {};
       }
       current = current[key];
@@ -305,9 +328,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     if (path === 'sources') {
       // Convert newline-separated text to array
       current[lastKey] = value.split('\n').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
-    } else if (path.includes('year.epoch') || path.includes('year.currentYear') || path.includes('year.startDay') ||
-               path.includes('time.hoursInDay') || path.includes('time.minutesInHour') || path.includes('time.secondsInMinute') ||
-               path.includes('leapYear.extraDays')) {
+    } else if (CalendarBuilderApp.NUMERIC_FIELDS.has(path)) {
       // Convert to number
       current[lastKey] = parseInt(value, 10) || 0;
     } else {
