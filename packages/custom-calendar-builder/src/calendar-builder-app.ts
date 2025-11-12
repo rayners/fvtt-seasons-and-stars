@@ -242,7 +242,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     this._setNestedProperty(calendar, fieldName, target.value);
 
     // Auto-generate kebab-case ID from calendar name if ID is empty or unchanged
-    if (fieldName === 'translations.en.label' && target.value && calendar) {
+    if (fieldName === 'translations.en.label' && target.value) {
       const currentId = calendar.id || '';
       const previousName = this._getPreviousCalendarName();
       const previousKebabCase = this._toKebabCase(previousName);
