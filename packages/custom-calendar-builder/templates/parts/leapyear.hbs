@@ -1,18 +1,12 @@
 <section class="tab scrollable {{tab.cssClass}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
-  {{!-- Warning banner for non-functional mockup tabs --}}
-  <div class="notification warning" style="margin-bottom: 1rem;">
-    <i class="fas fa-exclamation-triangle"></i>
-    <strong>Coming Soon:</strong> This tab is a visual mockup only. Forms do not save or modify calendar data yet. Use the <strong>Editor</strong> tab for functional JSON editing.
-  </div>
-
   <div class="form-group">
     <label for="leapyear-rule">Leap Year Rule</label>
     <div class="form-fields">
-      <select name="leapYear.rule" id="leapyear-rule" disabled>
-        <option value="none">No Leap Years</option>
-        <option value="gregorian" selected>Gregorian (Every 4 years, except centuries unless divisible by 400)</option>
-        <option value="julian">Julian (Every 4 years)</option>
-        <option value="custom">Custom Rule</option>
+      <select name="leapYear.rule" id="leapyear-rule">
+        <option value="none" {{#if (eq calendar.leapYear.rule "none")}}selected{{/if}}>No Leap Years</option>
+        <option value="gregorian" {{#if (eq calendar.leapYear.rule "gregorian")}}selected{{/if}}>Gregorian (Every 4 years, except centuries unless divisible by 400)</option>
+        <option value="julian" {{#if (eq calendar.leapYear.rule "julian")}}selected{{/if}}>Julian (Every 4 years)</option>
+        <option value="custom" {{#if (eq calendar.leapYear.rule "custom")}}selected{{/if}}>Custom Rule</option>
       </select>
     </div>
     <p class="hint">Choose how leap years are calculated in your calendar</p>
@@ -21,7 +15,7 @@
   <div class="form-group">
     <label for="leapyear-month">Leap Month</label>
     <div class="form-fields">
-      <input type="text" name="leapYear.month" id="leapyear-month" placeholder="February" disabled />
+      <input type="text" name="leapYear.month" id="leapyear-month" placeholder="February" value="{{calendar.leapYear.month}}" />
     </div>
     <p class="hint">Which month receives the extra day(s)</p>
   </div>
@@ -29,7 +23,7 @@
   <div class="form-group">
     <label for="leapyear-extra-days">Extra Days</label>
     <div class="form-fields">
-      <input type="number" name="leapYear.extraDays" id="leapyear-extra-days" value="1" min="1" disabled />
+      <input type="number" name="leapYear.extraDays" id="leapyear-extra-days" value="{{calendar.leapYear.extraDays}}" min="1" />
     </div>
     <p class="hint">Number of days added during a leap year</p>
   </div>

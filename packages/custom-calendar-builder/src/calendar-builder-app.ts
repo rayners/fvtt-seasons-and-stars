@@ -6,6 +6,7 @@
 
 import { SimpleCalendarConverter } from './simple-calendar-converter';
 import type { SimpleCalendarExport, SimpleCalendarData } from './simple-calendar-types';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 
 export class CalendarBuilderApp extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -14,12 +15,27 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   private lastValidationResult: any = null;
   private validationTimeout: number | null = null;
   private validationSequence: number = 0;
+  private calendarData: SeasonsStarsCalendar | null = null;
 
   // Type declaration for HandlebarsApplicationMixin method
   declare _prepareTabs: (group: string) => Record<string, any>;
 
   constructor() {
     super();
+  }
+
+  /**
+   * Parse current JSON string into calendar data object
+   */
+  private parseCalendarData(): SeasonsStarsCalendar | null {
+    if (!this.currentJson.trim()) {
+      return null;
+    }
+    try {
+      return JSON.parse(this.currentJson) as SeasonsStarsCalendar;
+    } catch {
+      return null;
+    }
   }
 
   /** @override */
@@ -132,10 +148,14 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   async _prepareContext(options = {}): Promise<any> {
     const context = await super._prepareContext(options);
 
+    // Parse calendar data for use in form tabs
+    this.calendarData = this.parseCalendarData();
+
     return Object.assign(context, {
       currentJson: this.currentJson,
       hasContent: this.currentJson.length > 0,
       validationResult: this.lastValidationResult,
+      calendar: this.calendarData,
     });
   }
 
@@ -164,6 +184,159 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     // Update validation results display for editor part
     if (partId === 'editor') {
       this._updateValidationDisplay();
+    }
+
+    // Use event delegation for form field changes on interactive tabs
+    if (partId === 'basic' || partId === 'time' || partId === 'leapyear') {
+      htmlElement.addEventListener('change', this._onFormFieldChange.bind(this));
+      htmlElement.addEventListener('blur', this._onFormFieldBlur.bind(this), true); // Use capture phase for blur
+    }
+  }
+
+  /**
+   * Handle form field change events (using event delegation)
+   */
+  private _onFormFieldChange(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (target.matches('input, select, textarea')) {
+      this._onFieldChange(event);
+    }
+  }
+
+  /**
+   * Handle form field blur events (using event delegation)
+   */
+  private _onFormFieldBlur(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (target.matches('input, select, textarea')) {
+      this._onFieldChange(event);
+    }
+  }
+
+  /**
+   * Handle field changes and update the JSON
+   */
+  private _onFieldChange(event: Event): void {
+    const target = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+    const fieldName = target.name;
+
+    if (!fieldName) return;
+
+    // Get current calendar data
+    let calendar = this.parseCalendarData();
+    if (!calendar) {
+      // Initialize minimal calendar structure if needed
+      calendar = {
+        id: '',
+        translations: { en: { label: '', description: '', setting: '' } },
+        year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 },
+        months: [],
+        weekdays: [],
+        intercalary: [],
+        time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+        leapYear: { rule: 'none', month: '', extraDays: 1 }
+      };
+    }
+
+    // Parse field name and update nested properties
+    this._setNestedProperty(calendar, fieldName, target.value);
+
+    // Auto-generate kebab-case ID from calendar name if ID is empty or unchanged
+    if (fieldName === 'translations.en.label' && target.value) {
+      const currentId = calendar.id || '';
+      const previousName = this._getPreviousCalendarName();
+      const previousKebabCase = this._toKebabCase(previousName);
+
+      // Only auto-update ID if it's empty or matches the previous auto-generated value
+      if (!currentId || currentId === previousKebabCase) {
+        calendar.id = this._toKebabCase(target.value);
+
+        // Update the ID input field in the DOM
+        const idInput = this.element?.querySelector('#calendar-id') as HTMLInputElement;
+        if (idInput) {
+          idInput.value = calendar.id;
+        }
+      }
+    }
+
+    // Update the JSON editor
+    this.currentJson = JSON.stringify(calendar, null, 2);
+
+    // Update the CodeMirror editor if it exists
+    const codeMirror = this.element?.querySelector('#calendar-json-editor') as any;
+    if (codeMirror && codeMirror.value !== this.currentJson) {
+      codeMirror.value = this.currentJson;
+    }
+
+    // Validate the updated JSON
+    this._validateCurrentJson();
+  }
+
+  /**
+   * Convert a string to kebab-case
+   * Examples: "My Calendar" -> "my-calendar", "Test_Calendar 2" -> "test-calendar-2"
+   */
+  private _toKebabCase(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')  // Replace non-alphanumeric with hyphens
+      .replace(/^-+|-+$/g, '');      // Remove leading/trailing hyphens
+  }
+
+  /**
+   * Get the previous calendar name from the current JSON
+   * Used to determine if ID was auto-generated and should be updated
+   */
+  private _getPreviousCalendarName(): string {
+    try {
+      const previousData = JSON.parse(this.currentJson);
+      return previousData?.translations?.en?.label || '';
+    } catch {
+      return '';
+    }
+  }
+
+  /**
+   * Fields that should be parsed as numeric values
+   */
+  private static readonly NUMERIC_FIELDS = new Set([
+    'year.epoch',
+    'year.currentYear',
+    'year.startDay',
+    'time.hoursInDay',
+    'time.minutesInHour',
+    'time.secondsInMinute',
+    'leapYear.extraDays',
+  ]);
+
+  /**
+   * Set a nested property in an object using dot notation
+   */
+  private _setNestedProperty(obj: SeasonsStarsCalendar, path: string, value: string): void {
+    const keys = path.split('.');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let current: any = obj;
+
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i];
+      if (!(key in current) || typeof current[key] !== 'object' || current[key] === null) {
+        current[key] = {};
+      }
+      current = current[key];
+    }
+
+    const lastKey = keys[keys.length - 1];
+
+    // Handle special cases
+    if (path === 'sources') {
+      // Convert newline-separated text to array
+      current[lastKey] = value.split('\n').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+    } else if (CalendarBuilderApp.NUMERIC_FIELDS.has(path)) {
+      // Convert to number
+      current[lastKey] = parseInt(value, 10) || 0;
+    } else {
+      // String value
+      current[lastKey] = value;
     }
   }
 

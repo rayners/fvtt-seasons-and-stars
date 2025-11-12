@@ -294,6 +294,179 @@ describe('CalendarBuilderApp', () => {
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
+
+    it('should convert text to kebab-case', () => {
+      expect(app['_toKebabCase']('My Custom Calendar')).toBe('my-custom-calendar');
+      expect(app['_toKebabCase']('Test_Calendar 2')).toBe('test-calendar-2');
+      expect(app['_toKebabCase']('Calendar!!!Name')).toBe('calendar-name');
+      expect(app['_toKebabCase']('  Spaced  Out  ')).toBe('spaced-out');
+      expect(app['_toKebabCase']('UPPERCASE')).toBe('uppercase');
+      expect(app['_toKebabCase']('already-kebab-case')).toBe('already-kebab-case');
+    });
+
+    it('should get previous calendar name from JSON', () => {
+      app['currentJson'] = JSON.stringify({
+        id: 'test-cal',
+        translations: { en: { label: 'Test Calendar' } },
+      });
+
+      const result = app['_getPreviousCalendarName']();
+      expect(result).toBe('Test Calendar');
+    });
+
+    it('should return empty string for invalid JSON in _getPreviousCalendarName', () => {
+      app['currentJson'] = 'invalid json';
+      const result = app['_getPreviousCalendarName']();
+      expect(result).toBe('');
+    });
+  });
+
+  describe('form field interactions', () => {
+    it('should parse calendar data from JSON', () => {
+      app['currentJson'] = JSON.stringify({
+        id: 'test',
+        translations: { en: { label: 'Test' } },
+      });
+
+      const result = app['parseCalendarData']();
+      expect(result).toEqual({
+        id: 'test',
+        translations: { en: { label: 'Test' } },
+      });
+    });
+
+    it('should return null for empty JSON in parseCalendarData', () => {
+      app['currentJson'] = '';
+      const result = app['parseCalendarData']();
+      expect(result).toBeNull();
+    });
+
+    it('should return null for invalid JSON in parseCalendarData', () => {
+      app['currentJson'] = 'invalid json';
+      const result = app['parseCalendarData']();
+      expect(result).toBeNull();
+    });
+
+    it('should set nested property with dot notation', () => {
+      const obj: any = { translations: { en: {} } };
+      app['_setNestedProperty'](obj, 'translations.en.label', 'Test Calendar');
+      expect(obj.translations.en.label).toBe('Test Calendar');
+    });
+
+    it('should convert numeric strings to numbers for year fields', () => {
+      const obj: any = { year: {} };
+      app['_setNestedProperty'](obj, 'year.epoch', '2024');
+      expect(obj.year.epoch).toBe(2024);
+    });
+
+    it('should convert numeric strings to numbers for time fields', () => {
+      const obj: any = { time: {} };
+      app['_setNestedProperty'](obj, 'time.hoursInDay', '24');
+      expect(obj.time.hoursInDay).toBe(24);
+    });
+
+    it('should convert sources from newline-separated text to array', () => {
+      const obj: any = {};
+      app['_setNestedProperty'](
+        obj,
+        'sources',
+        'https://example.com\nhttps://test.com\n\nhttps://third.com'
+      );
+      expect(obj.sources).toEqual(['https://example.com', 'https://test.com', 'https://third.com']);
+    });
+
+    it('should auto-generate ID from calendar name when ID is empty', () => {
+      // Setup: Empty calendar
+      app['currentJson'] = JSON.stringify({
+        id: '',
+        translations: { en: { label: '' } },
+      });
+
+      // Create mock elements
+      const mockIdInput = { value: '' };
+      const mockElement = {
+        querySelector: vi.fn((selector: string) => {
+          if (selector === '#calendar-id') return mockIdInput;
+          if (selector === '#calendar-json-editor') return { value: app['currentJson'] };
+          return null;
+        }),
+      };
+      app['element'] = mockElement as any;
+
+      // Simulate changing the name field
+      const event = new Event('change');
+      const target = { name: 'translations.en.label', value: 'My Custom Calendar' } as any;
+      Object.defineProperty(event, 'target', { value: target, writable: false });
+
+      app['_onFieldChange'](event);
+
+      // Check that ID was auto-generated
+      const calendar = JSON.parse(app['currentJson']);
+      expect(calendar.id).toBe('my-custom-calendar');
+      expect(mockIdInput.value).toBe('my-custom-calendar');
+    });
+
+    it('should update ID when previous ID matches previous auto-generated value', () => {
+      // Setup: Calendar with name and matching kebab-case ID
+      app['currentJson'] = JSON.stringify({
+        id: 'old-calendar-name',
+        translations: { en: { label: 'Old Calendar Name' } },
+      });
+
+      // Create mock elements
+      const mockIdInput = { value: 'old-calendar-name' };
+      const mockElement = {
+        querySelector: vi.fn((selector: string) => {
+          if (selector === '#calendar-id') return mockIdInput;
+          if (selector === '#calendar-json-editor') return { value: app['currentJson'] };
+          return null;
+        }),
+      };
+      app['element'] = mockElement as any;
+
+      // Simulate changing the name field
+      const event = new Event('change');
+      const target = { name: 'translations.en.label', value: 'New Calendar Name' } as any;
+      Object.defineProperty(event, 'target', { value: target, writable: false });
+
+      app['_onFieldChange'](event);
+
+      // Check that ID was updated
+      const calendar = JSON.parse(app['currentJson']);
+      expect(calendar.id).toBe('new-calendar-name');
+      expect(mockIdInput.value).toBe('new-calendar-name');
+    });
+
+    it('should not update ID when user has manually set a custom ID', () => {
+      // Setup: Calendar with name and custom (non-matching) ID
+      app['currentJson'] = JSON.stringify({
+        id: 'custom-user-id',
+        translations: { en: { label: 'Old Calendar Name' } },
+      });
+
+      // Create mock elements
+      const mockIdInput = { value: 'custom-user-id' };
+      const mockElement = {
+        querySelector: vi.fn((selector: string) => {
+          if (selector === '#calendar-id') return mockIdInput;
+          if (selector === '#calendar-json-editor') return { value: app['currentJson'] };
+          return null;
+        }),
+      };
+      app['element'] = mockElement as any;
+
+      // Simulate changing the name field
+      const event = new Event('change');
+      const target = { name: 'translations.en.label', value: 'New Calendar Name' } as any;
+      Object.defineProperty(event, 'target', { value: target, writable: false });
+
+      app['_onFieldChange'](event);
+
+      // Check that ID was NOT updated (kept custom value)
+      const calendar = JSON.parse(app['currentJson']);
+      expect(calendar.id).toBe('custom-user-id');
+      expect(mockIdInput.value).toBe('custom-user-id');
+    });
   });
 
   describe('Simple Calendar import', () => {
