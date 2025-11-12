@@ -6,6 +6,7 @@
 
 import { SimpleCalendarConverter } from './simple-calendar-converter';
 import type { SimpleCalendarExport, SimpleCalendarData } from './simple-calendar-types';
+import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 
 export class CalendarBuilderApp extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -14,7 +15,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   private lastValidationResult: any = null;
   private validationTimeout: number | null = null;
   private validationSequence: number = 0;
-  private calendarData: any = null;
+  private calendarData: SeasonsStarsCalendar | null = null;
 
   // Type declaration for HandlebarsApplicationMixin method
   declare _prepareTabs: (group: string) => Record<string, any>;
@@ -26,12 +27,12 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   /**
    * Parse current JSON string into calendar data object
    */
-  private parseCalendarData(): any {
+  private parseCalendarData(): SeasonsStarsCalendar | null {
     if (!this.currentJson.trim()) {
       return null;
     }
     try {
-      return JSON.parse(this.currentJson);
+      return JSON.parse(this.currentJson) as SeasonsStarsCalendar;
     } catch {
       return null;
     }
@@ -231,6 +232,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
         year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 },
         months: [],
         weekdays: [],
+        intercalary: [],
         time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
         leapYear: { rule: 'none', month: '', extraDays: 1 }
       };
@@ -240,7 +242,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     this._setNestedProperty(calendar, fieldName, target.value);
 
     // Auto-generate kebab-case ID from calendar name if ID is empty or unchanged
-    if (fieldName === 'translations.en.label' && target.value) {
+    if (fieldName === 'translations.en.label' && target.value && calendar) {
       const currentId = calendar.id || '';
       const previousName = this._getPreviousCalendarName();
       const previousKebabCase = this._toKebabCase(previousName);
@@ -310,9 +312,10 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   /**
    * Set a nested property in an object using dot notation
    */
-  private _setNestedProperty(obj: any, path: string, value: any): void {
+  private _setNestedProperty(obj: SeasonsStarsCalendar, path: string, value: string): void {
     const keys = path.split('.');
-    let current = obj;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let current: any = obj;
 
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
