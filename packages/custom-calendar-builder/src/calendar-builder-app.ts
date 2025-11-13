@@ -818,7 +818,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    * Add a new weekday
    */
   async _onAddWeekday(_event: Event, _target: HTMLElement): Promise<void> {
-    let calendar = this.parseCalendarData();
+    const calendar = this.parseCalendarData();
     if (!calendar) {
       this._notify('Please create or load a calendar first', 'warn');
       return;
@@ -835,7 +835,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
     this.currentJson = JSON.stringify(calendar, null, 2);
 
-    const codeMirror = this.element?.querySelector('#calendar-json-editor') as any;
+    const codeMirror = this.element?.querySelector('#calendar-json-editor') as HTMLElement & { value: string };
     if (codeMirror) {
       codeMirror.value = this.currentJson;
     }
@@ -851,16 +851,20 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     const index = parseInt(target.dataset.index || '-1', 10);
     if (index < 0) return;
 
-    let calendar = this.parseCalendarData();
+    const calendar = this.parseCalendarData();
     if (!calendar || !calendar.weekdays || calendar.weekdays.length <= 1) {
       this._notify('Cannot remove the last weekday', 'warn');
       return;
     }
 
-    const removedWeekdayName = calendar.weekdays[index]?.name;
+    const removedWeekdayName = calendar.weekdays[index]?.name || 'Unknown';
     const currentStartDay = calendar.year?.startDay || 0;
 
     calendar.weekdays.splice(index, 1);
+
+    if (!calendar.year) {
+      calendar.year = { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 };
+    }
 
     if (currentStartDay === index) {
       calendar.year.startDay = 0;
@@ -870,7 +874,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
     this.currentJson = JSON.stringify(calendar, null, 2);
 
-    const codeMirror = this.element?.querySelector('#calendar-json-editor') as any;
+    const codeMirror = this.element?.querySelector('#calendar-json-editor') as HTMLElement & { value: string };
     if (codeMirror) {
       codeMirror.value = this.currentJson;
     }
