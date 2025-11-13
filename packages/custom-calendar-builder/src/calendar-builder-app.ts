@@ -67,6 +67,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     actions: {
       newCalendar: CalendarBuilderApp.prototype._onNewCalendar,
       openCalendar: CalendarBuilderApp.prototype._onOpenCalendar,
+      loadCurrentCalendar: CalendarBuilderApp.prototype._onLoadCurrentCalendar,
       exportJson: CalendarBuilderApp.prototype._onExportJson,
       importJson: CalendarBuilderApp.prototype._onImportJson,
       validateJson: CalendarBuilderApp.prototype._onValidateJson,
@@ -601,6 +602,48 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     } catch (error) {
       console.error('Failed to open file picker:', error);
       this._notify('Failed to open file picker', 'error');
+    }
+  }
+
+  /**
+   * Load current calendar from file action
+   */
+  async _onLoadCurrentCalendar(_event: Event, _target: HTMLElement): Promise<void> {
+    try {
+      // Get the active calendar file path from settings
+      const activeCalendarFile = game.settings?.get('seasons-and-stars', 'activeCalendarFile') as string;
+
+      if (!activeCalendarFile) {
+        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_current_calendar'), 'warn');
+        return;
+      }
+
+      // Fetch the calendar file directly (bypassing cache)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+      const response = await fetch(activeCalendarFile, {
+        signal: controller.signal,
+        cache: 'no-store'
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const calendarData = await response.text();
+      this.currentJson = calendarData;
+      this.render(true);
+      this._validateCurrentJson();
+      this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_loaded'));
+    } catch (error) {
+      console.error('Failed to load current calendar:', error);
+      if ((error as Error).name === 'AbortError') {
+        this._notify('Request timeout - file too large or server unavailable', 'error');
+      } else {
+        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_load_failed'), 'error');
+      }
     }
   }
 
