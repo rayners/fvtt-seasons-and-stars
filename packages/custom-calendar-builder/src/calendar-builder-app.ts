@@ -71,6 +71,8 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       importJson: CalendarBuilderApp.prototype._onImportJson,
       validateJson: CalendarBuilderApp.prototype._onValidateJson,
       clearEditor: CalendarBuilderApp.prototype._onClearEditor,
+      addWeekday: CalendarBuilderApp.prototype._onAddWeekday,
+      removeWeekday: CalendarBuilderApp.prototype._onRemoveWeekday,
     },
   };
 
@@ -187,7 +189,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     }
 
     // Use event delegation for form field changes on interactive tabs
-    if (partId === 'basic' || partId === 'time' || partId === 'leapyear') {
+    if (partId === 'basic' || partId === 'time' || partId === 'leapyear' || partId === 'weekdays') {
       htmlElement.addEventListener('change', this._onFormFieldChange.bind(this));
       htmlElement.addEventListener('blur', this._onFormFieldBlur.bind(this), true); // Use capture phase for blur
     }
@@ -320,7 +322,11 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (!(key in current) || typeof current[key] !== 'object' || current[key] === null) {
-        current[key] = {};
+        if (!isNaN(Number(keys[i + 1]))) {
+          current[key] = [];
+        } else {
+          current[key] = {};
+        }
       }
       current = current[key];
     }
@@ -806,5 +812,71 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       console.error('Failed to show confirmation dialog:', error);
       this._notify('Failed to show confirmation dialog', 'error');
     }
+  }
+
+  /**
+   * Add a new weekday
+   */
+  async _onAddWeekday(_event: Event, _target: HTMLElement): Promise<void> {
+    let calendar = this.parseCalendarData();
+    if (!calendar) {
+      this._notify('Please create or load a calendar first', 'warn');
+      return;
+    }
+
+    if (!calendar.weekdays) {
+      calendar.weekdays = [];
+    }
+
+    calendar.weekdays.push({
+      name: `Day ${calendar.weekdays.length + 1}`,
+      abbreviation: `D${calendar.weekdays.length + 1}`,
+    });
+
+    this.currentJson = JSON.stringify(calendar, null, 2);
+
+    const codeMirror = this.element?.querySelector('#calendar-json-editor') as any;
+    if (codeMirror) {
+      codeMirror.value = this.currentJson;
+    }
+
+    this.render(true);
+    this._validateCurrentJson();
+  }
+
+  /**
+   * Remove a weekday
+   */
+  async _onRemoveWeekday(_event: Event, target: HTMLElement): Promise<void> {
+    const index = parseInt(target.dataset.index || '-1', 10);
+    if (index < 0) return;
+
+    let calendar = this.parseCalendarData();
+    if (!calendar || !calendar.weekdays || calendar.weekdays.length <= 1) {
+      this._notify('Cannot remove the last weekday', 'warn');
+      return;
+    }
+
+    const removedWeekdayName = calendar.weekdays[index]?.name;
+    const currentStartDay = calendar.year?.startDay || 0;
+
+    calendar.weekdays.splice(index, 1);
+
+    if (currentStartDay === index) {
+      calendar.year.startDay = 0;
+    } else if (currentStartDay > index) {
+      calendar.year.startDay = currentStartDay - 1;
+    }
+
+    this.currentJson = JSON.stringify(calendar, null, 2);
+
+    const codeMirror = this.element?.querySelector('#calendar-json-editor') as any;
+    if (codeMirror) {
+      codeMirror.value = this.currentJson;
+    }
+
+    this.render(true);
+    this._validateCurrentJson();
+    this._notify(`Removed weekday: ${removedWeekdayName}`);
   }
 }

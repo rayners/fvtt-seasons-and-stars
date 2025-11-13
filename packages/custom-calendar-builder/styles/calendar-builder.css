@@ -448,3 +448,83 @@ body.theme-light .calendar-tabs {
     flex-shrink: 0;
   }
 }
+
+/* Weekday list styles */
+.weekday-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.weekday-item {
+  padding: 12px;
+  background: var(--color-bg-option);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+}
+
+.weekday-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.weekday-fields .form-group {
+  margin: 0;
+}
+
+.weekday-fields label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.weekday-fields input {
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.weekday-actions {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.weekday-actions .button {
+  padding: 6px 10px;
+  font-size: 13px;
+  min-width: 36px;
+}
+
+.weekday-actions .button.danger {
+  background: var(--color-bg-btn);
+  color: #cc0000;
+  border-color: #cc0000;
+}
+
+.weekday-actions .button.danger:hover:not(:disabled) {
+  background: #cc0000;
+  color: white;
+}
+
+.weekday-actions .button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.no-weekdays {
+  text-align: center;
+  color: var(--color-text-dark-inactive);
+  font-style: italic;
+  padding: 24px;
+}
+
+/* Dark theme weekday styles */
+body.theme-dark .weekday-item {
+  background: var(--color-bg-darker);
+  border-color: var(--color-border-dark);
+}
