@@ -11,7 +11,7 @@ import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 export class CalendarBuilderApp extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
-  private static readonly DEFAULT_TEMPLATE = {
+  private static readonly DEFAULT_TEMPLATE: Readonly<SeasonsStarsCalendar> = {
     id: 'my-custom-calendar',
     translations: {
       en: {
