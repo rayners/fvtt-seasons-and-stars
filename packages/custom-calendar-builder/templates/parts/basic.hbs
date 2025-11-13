@@ -70,13 +70,13 @@
       <label for="year-start-day">Starting Weekday</label>
       <div class="form-fields">
         <select name="year.startDay" id="year-start-day">
-          <option value="0" {{#if (eq calendar.year.startDay 0)}}selected{{/if}}>Sunday</option>
-          <option value="1" {{#if (eq calendar.year.startDay 1)}}selected{{/if}}>Monday</option>
-          <option value="2" {{#if (eq calendar.year.startDay 2)}}selected{{/if}}>Tuesday</option>
-          <option value="3" {{#if (eq calendar.year.startDay 3)}}selected{{/if}}>Wednesday</option>
-          <option value="4" {{#if (eq calendar.year.startDay 4)}}selected{{/if}}>Thursday</option>
-          <option value="5" {{#if (eq calendar.year.startDay 5)}}selected{{/if}}>Friday</option>
-          <option value="6" {{#if (eq calendar.year.startDay 6)}}selected{{/if}}>Saturday</option>
+          {{#if calendar.weekdays}}
+            {{#each calendar.weekdays}}
+              <option value="{{@index}}" {{#if (eq ../calendar.year.startDay @index)}}selected{{/if}}>{{this.name}}</option>
+            {{/each}}
+          {{else}}
+            <option value="0">No weekdays defined</option>
+          {{/if}}
         </select>
       </div>
       <p class="hint">Which day of the week the calendar year begins on</p>
