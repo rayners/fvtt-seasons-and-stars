@@ -30,6 +30,7 @@
       "buttons": {
         "new": "New",
         "open": "Open",
+        "load_current": "Load Current",
         "save": "Save",
         "export": "Export",
         "validate": "Validate",
@@ -53,7 +54,11 @@
         "no_content": "No content to validate",
         "invalid_json": "Invalid JSON format",
         "export_failed": "Failed to export calendar",
-        "import_failed": "Failed to import calendar"
+        "import_failed": "Failed to import calendar",
+        "current_calendar_loaded": "Current calendar loaded from file",
+        "no_current_calendar": "No active calendar is currently loaded",
+        "current_calendar_load_failed": "Failed to load current calendar from file",
+        "timeout": "Request timeout - file too large or server unavailable"
       }
     }
   }
