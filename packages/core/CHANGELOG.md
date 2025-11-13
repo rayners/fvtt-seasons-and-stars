@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.25.0...seasons-and-stars-v0.26.0) (2025-11-13)
+
+
+### Features
+
+* **i18n:** cs for SaS 0.25.0 ([#466](https://github.com/rayners/fvtt-seasons-and-stars/issues/466)) ([e1f0348](https://github.com/rayners/fvtt-seasons-and-stars/commit/e1f034849dc04ee1c4dd83690db3a4eacad25d62))
+
 ## [0.25.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.24.1...seasons-and-stars-v0.25.0) (2025-11-10)
 
 

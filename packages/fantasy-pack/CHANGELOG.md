@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.3](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.9.2...seasons-and-stars-fantasy-v0.9.3) (2025-11-13)
+
+
+### Bug Fixes
+
+* **fantasy-pack:** correct Harptos moon phase alignment ([#470](https://github.com/rayners/fvtt-seasons-and-stars/issues/470)) ([b969ed7](https://github.com/rayners/fvtt-seasons-and-stars/commit/b969ed7a238d1e68d7e2f38eeb9b426d55a1c304))
+
 ## [0.9.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.9.1...seasons-and-stars-fantasy-v0.9.2) (2025-10-30)
 
 
