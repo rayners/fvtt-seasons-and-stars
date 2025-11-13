@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-calendar-builder-v0.4.1...seasons-and-stars-calendar-builder-v0.5.0) (2025-11-13)
+
+
+### Features
+
+* **calendar-builder:** implement interactive tabs for Basic, Time, and Leap Year ([#463](https://github.com/rayners/fvtt-seasons-and-stars/issues/463)) ([b71b285](https://github.com/rayners/fvtt-seasons-and-stars/commit/b71b2851ece64182a0667ec2c78957c6c96f626e))
+* **calendar-builder:** initialize with default template on startup ([#480](https://github.com/rayners/fvtt-seasons-and-stars/issues/480)) ([3fbda88](https://github.com/rayners/fvtt-seasons-and-stars/commit/3fbda88a9566965aac75f871ef74a84b7cc0d472))
+
 ## [0.4.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-calendar-builder-v0.4.0...seasons-and-stars-calendar-builder-v0.4.1) (2025-10-28)
 
 
