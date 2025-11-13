@@ -588,9 +588,8 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
             this._validateCurrentJson();
             this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
           } catch (error) {
-            console.error('Failed to load calendar file:', error);
             if ((error as Error).name === 'AbortError') {
-              this._notify('Request timeout - file too large or server unavailable', 'error');
+              this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.timeout'), 'error');
             } else {
               this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.import_failed'), 'error');
             }
@@ -638,9 +637,8 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       this._validateCurrentJson();
       this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_loaded'));
     } catch (error) {
-      console.error('Failed to load current calendar:', error);
       if ((error as Error).name === 'AbortError') {
-        this._notify('Request timeout - file too large or server unavailable', 'error');
+        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.timeout'), 'error');
       } else {
         this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_load_failed'), 'error');
       }
