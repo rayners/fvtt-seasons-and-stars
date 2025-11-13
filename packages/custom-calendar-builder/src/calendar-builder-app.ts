@@ -11,7 +11,59 @@ import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
 export class CalendarBuilderApp extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
-  private currentJson: string = '';
+  private static readonly DEFAULT_TEMPLATE: Readonly<SeasonsStarsCalendar> = {
+    id: 'my-custom-calendar',
+    translations: {
+      en: {
+        label: 'My Custom Calendar',
+        description: 'A custom calendar created with Calendar Builder',
+        setting: 'Generic'
+      }
+    },
+    year: {
+      epoch: 0,
+      currentYear: 1,
+      prefix: '',
+      suffix: '',
+      startDay: 0
+    },
+    months: [
+      { name: 'January', abbreviation: 'Jan', days: 31 },
+      { name: 'February', abbreviation: 'Feb', days: 28 },
+      { name: 'March', abbreviation: 'Mar', days: 31 },
+      { name: 'April', abbreviation: 'Apr', days: 30 },
+      { name: 'May', abbreviation: 'May', days: 31 },
+      { name: 'June', abbreviation: 'Jun', days: 30 },
+      { name: 'July', abbreviation: 'Jul', days: 31 },
+      { name: 'August', abbreviation: 'Aug', days: 31 },
+      { name: 'September', abbreviation: 'Sep', days: 30 },
+      { name: 'October', abbreviation: 'Oct', days: 31 },
+      { name: 'November', abbreviation: 'Nov', days: 30 },
+      { name: 'December', abbreviation: 'Dec', days: 31 }
+    ],
+    weekdays: [
+      { name: 'Sunday', abbreviation: 'Sun' },
+      { name: 'Monday', abbreviation: 'Mon' },
+      { name: 'Tuesday', abbreviation: 'Tue' },
+      { name: 'Wednesday', abbreviation: 'Wed' },
+      { name: 'Thursday', abbreviation: 'Thu' },
+      { name: 'Friday', abbreviation: 'Fri' },
+      { name: 'Saturday', abbreviation: 'Sat' }
+    ],
+    leapYear: {
+      rule: 'gregorian',
+      month: 'February',
+      extraDays: 1
+    },
+    intercalary: [],
+    time: {
+      hoursInDay: 24,
+      minutesInHour: 60,
+      secondsInMinute: 60
+    }
+  };
+
+  private currentJson: string = JSON.stringify(CalendarBuilderApp.DEFAULT_TEMPLATE, null, 2);
   private lastValidationResult: any = null;
   private validationTimeout: number | null = null;
   private validationSequence: number = 0;
@@ -496,59 +548,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    * New calendar action
    */
   async _onNewCalendar(_event: Event, _target: HTMLElement): Promise<void> {
-    const template = {
-      id: 'my-custom-calendar',
-      translations: {
-        en: {
-          label: 'My Custom Calendar',
-          description: 'A custom calendar created with Calendar Builder',
-          setting: 'Generic'
-        }
-      },
-      year: {
-        epoch: 0,
-        currentYear: 1,
-        prefix: '',
-        suffix: '',
-        startDay: 0
-      },
-      months: [
-        { name: 'January', abbreviation: 'Jan', days: 31 },
-        { name: 'February', abbreviation: 'Feb', days: 28 },
-        { name: 'March', abbreviation: 'Mar', days: 31 },
-        { name: 'April', abbreviation: 'Apr', days: 30 },
-        { name: 'May', abbreviation: 'May', days: 31 },
-        { name: 'June', abbreviation: 'Jun', days: 30 },
-        { name: 'July', abbreviation: 'Jul', days: 31 },
-        { name: 'August', abbreviation: 'Aug', days: 31 },
-        { name: 'September', abbreviation: 'Sep', days: 30 },
-        { name: 'October', abbreviation: 'Oct', days: 31 },
-        { name: 'November', abbreviation: 'Nov', days: 30 },
-        { name: 'December', abbreviation: 'Dec', days: 31 }
-      ],
-      weekdays: [
-        { name: 'Sunday', abbreviation: 'Sun' },
-        { name: 'Monday', abbreviation: 'Mon' },
-        { name: 'Tuesday', abbreviation: 'Tue' },
-        { name: 'Wednesday', abbreviation: 'Wed' },
-        { name: 'Thursday', abbreviation: 'Thu' },
-        { name: 'Friday', abbreviation: 'Fri' },
-        { name: 'Saturday', abbreviation: 'Sat' }
-      ],
-      leapYear: {
-        rule: 'gregorian',
-        month: 'February',
-        extraDays: 1
-      },
-      intercalary: [],
-      time: {
-        hoursInDay: 24,
-        minutesInHour: 60,
-        secondsInMinute: 60
-      }
-    };
-
-    this.currentJson = JSON.stringify(template, null, 2);
+    this.currentJson = JSON.stringify(CalendarBuilderApp.DEFAULT_TEMPLATE, null, 2);
     this.render(true);
     this._validateCurrentJson();
     this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.new_template'));
