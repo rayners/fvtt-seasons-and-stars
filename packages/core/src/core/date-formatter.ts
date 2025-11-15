@@ -627,6 +627,57 @@ export class DateFormatter {
       }
     });
 
+    // Week helper - supports numeric, name, abbr, prefix, and suffix formats
+    Handlebars.registerHelper('ss-week', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // Get date data from context
+      const context = options?.data?.root;
+      const dateData = {
+        year: context?.year || 1,
+        month: context?.month || 1,
+        day: context?.day || 1,
+        weekday: context?.weekday || 0,
+      };
+
+      const format = options?.hash?.format;
+      const calendarId = options?.data?.root?._calendarId;
+      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
+
+      if (!formatter) {
+        return ''; // No formatter available
+      }
+
+      // Get week number and info from CalendarEngine
+      const weekNum = formatter.calendarEngine.getWeekOfMonth(dateData);
+      if (weekNum === null) {
+        return ''; // No week number for this date
+      }
+
+      const weekInfo = formatter.calendarEngine.getWeekInfo(dateData);
+
+      switch (format) {
+        case 'numeric':
+          return weekNum.toString();
+        case 'name':
+          return weekInfo?.name || `Week ${weekNum}`;
+        case 'abbr':
+        case 'abbreviation':
+          return weekInfo?.abbreviation || weekNum.toString();
+        case 'prefix':
+          return weekInfo?.prefix || '';
+        case 'suffix':
+          return weekInfo?.suffix || '';
+        case 'ordinal':
+          // Return ordinal form of the week number
+          return formatter.calendarEngine['getOrdinalName'](weekNum);
+        default:
+          // Default to numeric
+          return weekNum.toString();
+      }
+    });
+
     // Format embedding helper - use "{{ss-dateFmt \"name\"}}" syntax
     // Note: This helper is mainly for documentation. The actual format embedding
     // is handled by preprocessing in the format() method to avoid circular issues.

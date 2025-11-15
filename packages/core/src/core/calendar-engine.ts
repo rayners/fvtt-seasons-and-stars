@@ -9,6 +9,7 @@ import type {
   CalendarIntercalary,
   CalendarMoon,
   MoonPhaseInfo,
+  CalendarWeek,
 } from '../types/calendar';
 import { CalendarDate } from './calendar-date';
 import { CalendarTimeUtils } from './calendar-time-utils';
@@ -989,6 +990,120 @@ export class CalendarEngine {
    */
   getCalendar(): SeasonsStarsCalendar {
     return { ...this.calendar };
+  }
+
+  /**
+   * Get the week number within the current month (1-indexed)
+   *
+   * Returns null if:
+   * - Calendar has no weeks configuration
+   * - Date falls on a remainder day with handling set to "none"
+   * - Week configuration is year-based (use getWeekOfYear instead)
+   *
+   * @param date - The calendar date
+   * @returns Week number (1-based) or null
+   *
+   * @example
+   * // Roshar calendar: 10 weeks of 5 days each
+   * getWeekOfMonth({ year: 1173, month: 1, day: 1 }) // returns 1
+   * getWeekOfMonth({ year: 1173, month: 1, day: 25 }) // returns 5
+   *
+   * @example
+   * // Coriolis calendar: 4 weeks of 9 days + 1 remainder (extend-last)
+   * getWeekOfMonth({ year: 465, month: 1, day: 37 }) // returns 4 (extended)
+   */
+  getWeekOfMonth(date: CalendarDateData): number | null {
+    if (!this.calendar.weeks) return null;
+
+    // Year-based weeks span months, not supported by this method
+    if (this.calendar.weeks.type === 'year-based') return null;
+
+    const dayOfMonth = date.day;
+    const daysPerWeek = this.calendar.weeks.daysPerWeek || this.calendar.weekdays.length;
+
+    // Calculate raw week number (1-indexed)
+    const rawWeek = Math.floor((dayOfMonth - 1) / daysPerWeek) + 1;
+
+    // Check if we have a remainder
+    const monthDays = this.getMonthLength(date.month, date.year);
+    const remainder = monthDays % daysPerWeek;
+
+    if (remainder === 0) {
+      // Perfect alignment, no special handling needed
+      return rawWeek;
+    }
+
+    // Handle remainder days
+    const handling = this.calendar.weeks.remainderHandling || 'partial-last';
+    const expectedWeeks = this.calendar.weeks.perMonth || rawWeek;
+
+    if (handling === 'extend-last' && rawWeek === expectedWeeks + 1) {
+      // Fold extra days into the last named week
+      return expectedWeeks;
+    } else if (handling === 'none' && rawWeek > expectedWeeks) {
+      // Remainder days have no week number
+      return null;
+    }
+
+    return rawWeek;
+  }
+
+  /**
+   * Get week information (name, abbreviation, etc.) for a date
+   *
+   * Returns null if:
+   * - Calendar has no weeks configuration
+   * - Week naming pattern is "none"
+   * - Date falls on a remainder day with handling set to "none"
+   *
+   * @param date - The calendar date
+   * @returns Week information or null
+   *
+   * @example
+   * // Roshar calendar with Cosmere naming
+   * getWeekInfo({ year: 1173, month: 1, day: 1 })
+   * // returns { name: "First Week", abbreviation: "1st", suffix: "es" }
+   *
+   * @example
+   * // Coriolis calendar with novena names
+   * getWeekInfo({ year: 465, month: 1, day: 10 })
+   * // returns { name: "The Novena of Water", abbreviation: "Water", description: "..." }
+   */
+  getWeekInfo(date: CalendarDateData): CalendarWeek | null {
+    const weekNum = this.getWeekOfMonth(date);
+    if (weekNum === null || !this.calendar.weeks) return null;
+
+    // If explicit names are provided, use them
+    if (this.calendar.weeks.names && this.calendar.weeks.names[weekNum - 1]) {
+      return this.calendar.weeks.names[weekNum - 1];
+    }
+
+    // Auto-generate based on naming pattern
+    const pattern = this.calendar.weeks.namingPattern || 'numeric';
+    if (pattern === 'ordinal') {
+      return {
+        name: this.getOrdinalName(weekNum) + ' Week',
+        abbreviation: weekNum.toString(),
+      };
+    } else if (pattern === 'numeric') {
+      return {
+        name: `Week ${weekNum}`,
+        abbreviation: weekNum.toString(),
+      };
+    }
+
+    // Pattern is "none" or undefined
+    return null;
+  }
+
+  /**
+   * Convert a number to its ordinal form (1st, 2nd, 3rd, etc.)
+   * @private
+   */
+  private getOrdinalName(num: number): string {
+    const suffixes = ['th', 'st', 'nd', 'rd'];
+    const v = num % 100;
+    return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
   }
 
   /**
