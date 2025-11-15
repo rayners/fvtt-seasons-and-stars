@@ -4,7 +4,7 @@
 
 import type { CalendarDate as ICalendarDate } from './calendar-date';
 import { CalendarDate } from './calendar-date';
-import type { SeasonsStarsCalendar } from '../types/calendar';
+import type { SeasonsStarsCalendar, CalendarWeek, CalendarDateData } from '../types/calendar';
 import { renderIconHtml } from './constants';
 
 export class DateFormatter {
@@ -649,13 +649,13 @@ export class DateFormatter {
         return ''; // No formatter available
       }
 
-      // Get week number and info from CalendarEngine
-      const weekNum = formatter.calendarEngine.getWeekOfMonth(dateData);
+      // Get week number and info from DateFormatter
+      const weekNum = formatter.getWeekOfMonth(dateData);
       if (weekNum === null) {
         return ''; // No week number for this date
       }
 
-      const weekInfo = formatter.calendarEngine.getWeekInfo(dateData);
+      const weekInfo = formatter.getWeekInfo(dateData);
 
       switch (format) {
         case 'numeric':
@@ -671,7 +671,7 @@ export class DateFormatter {
           return weekInfo?.suffix || '';
         case 'ordinal':
           // Return ordinal form of the week number
-          return formatter.calendarEngine['getOrdinalName'](weekNum);
+          return formatter['getOrdinalName'](weekNum);
         default:
           // Default to numeric
           return weekNum.toString();
@@ -1223,6 +1223,153 @@ export class DateFormatter {
       return name.substring(0, 3);
     }
     return 'Unk';
+  }
+
+  /**
+   * Get the week number within the current month (1-indexed)
+   *
+   * Returns null if:
+   * - Calendar has no weeks configuration
+   * - Date falls on a remainder day with handling set to "none"
+   * - Week configuration is year-based (not supported for formatting)
+   *
+   * @param date - The calendar date data
+   * @returns Week number (1-based) or null
+   */
+  getWeekOfMonth(date: CalendarDateData): number | null {
+    if (!this.calendar.weeks) return null;
+
+    // Year-based weeks span months, not supported by this method
+    if (this.calendar.weeks.type === 'year-based') return null;
+
+    const dayOfMonth = date.day;
+    const daysPerWeek = this.calendar.weeks.daysPerWeek || this.calendar.weekdays.length;
+
+    // Calculate raw week number (1-indexed)
+    const rawWeek = Math.floor((dayOfMonth - 1) / daysPerWeek) + 1;
+
+    // Check if we have a remainder
+    const monthDays = this.getMonthLength(date.month, date.year);
+    const remainder = monthDays % daysPerWeek;
+
+    if (remainder === 0) {
+      // Perfect alignment, no special handling needed
+      return rawWeek;
+    }
+
+    // Handle remainder days
+    const handling = this.calendar.weeks.remainderHandling || 'partial-last';
+    const expectedWeeks = this.calendar.weeks.perMonth || rawWeek;
+
+    if (handling === 'extend-last' && rawWeek === expectedWeeks + 1) {
+      // Fold extra days into the last named week
+      return expectedWeeks;
+    } else if (handling === 'none' && rawWeek > expectedWeeks) {
+      // Remainder days have no week number
+      return null;
+    }
+
+    return rawWeek;
+  }
+
+  /**
+   * Get week information (name, abbreviation, etc.) for a date
+   *
+   * Returns null if:
+   * - Calendar has no weeks configuration
+   * - Week naming pattern is "none"
+   * - Date falls on a remainder day with handling set to "none"
+   *
+   * @param date - The calendar date data
+   * @returns Week information or null
+   */
+  getWeekInfo(date: CalendarDateData): CalendarWeek | null {
+    const weekNum = this.getWeekOfMonth(date);
+    if (weekNum === null || !this.calendar.weeks) return null;
+
+    // If explicit names are provided, use them
+    if (this.calendar.weeks.names && this.calendar.weeks.names[weekNum - 1]) {
+      return this.calendar.weeks.names[weekNum - 1];
+    }
+
+    // Auto-generate based on naming pattern
+    const pattern = this.calendar.weeks.namingPattern || 'numeric';
+    if (pattern === 'ordinal') {
+      return {
+        name: this.getOrdinalName(weekNum) + ' Week',
+        abbreviation: weekNum.toString(),
+      };
+    } else if (pattern === 'numeric') {
+      return {
+        name: `Week ${weekNum}`,
+        abbreviation: weekNum.toString(),
+      };
+    }
+
+    // Pattern is "none" or undefined
+    return null;
+  }
+
+  /**
+   * Get length of a specific month in a specific year (accounting for leap years)
+   */
+  private getMonthLength(month: number, year: number): number {
+    const baseMonth = this.calendar.months[month - 1];
+    if (!baseMonth) return 0;
+
+    let monthLength = baseMonth.days;
+
+    // Adjust for leap year if applicable
+    if (this.isLeapYear(year) && this.calendar.leapYear?.month === baseMonth.name) {
+      const dayAdjustment = this.calendar.leapYear.extraDays ?? 1;
+      monthLength += dayAdjustment;
+
+      // Ensure month length doesn't go below 1
+      if (monthLength < 1) {
+        monthLength = 1;
+      }
+    }
+
+    return monthLength;
+  }
+
+  /**
+   * Check if a year is a leap year
+   */
+  private isLeapYear(year: number): boolean {
+    const leapYear = this.calendar.leapYear;
+    if (!leapYear) return false;
+
+    const { rule, interval, offset = 0 } = leapYear;
+
+    switch (rule) {
+      case 'none':
+        return false;
+
+      case 'gregorian':
+        return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+
+      case 'custom': {
+        if (!interval) return false;
+        const normalizedYear = year - offset;
+        const remainder = normalizedYear % interval;
+        // Check if the year is divisible by the interval.
+        // For negative remainders, we need to normalize them to positive values.
+        return remainder === 0 || (remainder < 0 && remainder + interval === 0);
+      }
+
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Convert a number to its ordinal form (1st, 2nd, 3rd, etc.)
+   */
+  private getOrdinalName(num: number): string {
+    const suffixes = ['th', 'st', 'nd', 'rd'];
+    const v = num % 100;
+    return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
   }
 
   /**
