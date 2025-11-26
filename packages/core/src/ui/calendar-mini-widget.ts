@@ -178,7 +178,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     if (showYear) {
       const yearPrefix = activeCalendar.year?.prefix || '';
       const yearSuffix = activeCalendar.year?.suffix || '';
-      yearDisplay = `${yearPrefix}${currentDate.year}${yearSuffix}`.trim();
+      const parts = [yearPrefix, String(currentDate.year), yearSuffix].filter(p => p);
+      yearDisplay = parts.join(' ').replace(/\s+/g, ' ').trim();
     }
 
     // Check the always show quick time buttons setting

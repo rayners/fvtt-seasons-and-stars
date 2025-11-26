@@ -727,6 +727,9 @@ function registerSettings(): void {
     config: false,
     type: Boolean,
     default: false,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowYear');
+    },
   });
 
   // Note: defaultWidget setting is registered later in registerDefaultWidgetSetting()
