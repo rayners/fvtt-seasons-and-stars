@@ -2,6 +2,21 @@ import type { CalendarDateData, CalendarSeason, SeasonsStarsCalendar } from '../
 import type { CalendarEngineInterface } from '../types/foundry-extensions';
 
 /**
+ * Internal representation of a solar keyframe used for interpolation.
+ * Both season starts and solar anchors are converted to this unified format.
+ */
+interface SolarKeyframe {
+  /** Day of year (1-based) when this keyframe occurs */
+  dayOfYear: number;
+  /** Sunrise time in decimal hours */
+  sunrise: number;
+  /** Sunset time in decimal hours */
+  sunset: number;
+  /** Source identifier for debugging */
+  source: string;
+}
+
+/**
  * Utility class for calculating sunrise and sunset times based on calendar seasons.
  * Handles interpolation between seasons and provides defaults when data is not available.
  */
@@ -31,16 +46,184 @@ export class SunriseSunsetCalculator {
     calendar: SeasonsStarsCalendar,
     engine: CalendarEngineInterface
   ): { sunrise: number; sunset: number } {
-    if (!calendar.seasons || calendar.seasons.length === 0) {
-      const defaultTimes = this.getDefaultTimes(calendar);
-      return {
-        sunrise: this.decimalHoursToSeconds(defaultTimes.sunrise, calendar),
-        sunset: this.decimalHoursToSeconds(defaultTimes.sunset, calendar),
-      };
+    // Build unified keyframes from seasons and solar anchors
+    const keyframes = this.buildKeyframes(calendar, engine, date.year);
+
+    // If we have keyframes with sunrise/sunset data, use keyframe-based interpolation
+    if (keyframes.length > 0) {
+      return this.calculateFromKeyframes(date, keyframes, calendar, engine);
     }
 
+    // Fall back to existing season-based logic for backwards compatibility
+    if (calendar.seasons && calendar.seasons.length > 0) {
+      return this.calculateFromSeasons(date, calendar, engine);
+    }
+
+    // Final fallback: default 50/50 day/night split
+    const defaultTimes = this.getDefaultTimes(calendar);
+    return {
+      sunrise: this.decimalHoursToSeconds(defaultTimes.sunrise, calendar),
+      sunset: this.decimalHoursToSeconds(defaultTimes.sunset, calendar),
+    };
+  }
+
+  /**
+   * Build a unified list of keyframes from both seasons and solar anchors
+   * Only includes keyframes that have sunrise AND sunset defined
+   */
+  private static buildKeyframes(
+    calendar: SeasonsStarsCalendar,
+    engine: CalendarEngineInterface,
+    year: number
+  ): SolarKeyframe[] {
+    const keyframes: SolarKeyframe[] = [];
+
+    // Add keyframes from seasons (season start dates)
+    if (calendar.seasons) {
+      for (const season of calendar.seasons) {
+        const times = this.getSeasonTimes(season, calendar);
+        // Only include if we have actual sunrise/sunset data
+        if (season.sunrise || season.sunset || this.GREGORIAN_DEFAULTS[season.name]) {
+          const dayOfYear = this.seasonStartToDayOfYear(season, calendar, engine, year);
+          keyframes.push({
+            dayOfYear,
+            sunrise: times.sunrise,
+            sunset: times.sunset,
+            source: `season:${season.name}`,
+          });
+        }
+      }
+    }
+
+    // Add keyframes from solar anchors
+    if (calendar.solarAnchors) {
+      for (const anchor of calendar.solarAnchors) {
+        // Only include if anchor has sunrise AND sunset defined
+        if (anchor.sunrise && anchor.sunset) {
+          const dayOfYear = this.dateToDayOfYear(
+            { year, month: anchor.month, day: anchor.day, weekday: 0 },
+            calendar,
+            engine
+          );
+          keyframes.push({
+            dayOfYear,
+            sunrise: this.timeStringToHours(anchor.sunrise, calendar),
+            sunset: this.timeStringToHours(anchor.sunset, calendar),
+            source: `anchor:${anchor.id}`,
+          });
+        }
+      }
+    }
+
+    // Sort keyframes by day of year
+    keyframes.sort((a, b) => a.dayOfYear - b.dayOfYear);
+
+    return keyframes;
+  }
+
+  /**
+   * Calculate sunrise/sunset using keyframe-based interpolation
+   */
+  private static calculateFromKeyframes(
+    date: CalendarDateData,
+    keyframes: SolarKeyframe[],
+    calendar: SeasonsStarsCalendar,
+    engine: CalendarEngineInterface
+  ): { sunrise: number; sunset: number } {
+    const currentDayOfYear = this.dateToDayOfYear(date, calendar, engine);
+    const yearLength = engine.getYearLength(date.year);
+
+    // Find the surrounding keyframes
+    const { prev, next } = this.findSurroundingKeyframes(currentDayOfYear, keyframes, yearLength);
+
+    // Calculate progress between keyframes
+    const progress = this.calculateKeyframeProgress(
+      currentDayOfYear,
+      prev.dayOfYear,
+      next.dayOfYear,
+      yearLength
+    );
+
+    // Interpolate sunrise and sunset
+    const sunriseHours = this.interpolate(prev.sunrise, next.sunrise, progress);
+    const sunsetHours = this.interpolate(prev.sunset, next.sunset, progress);
+
+    return {
+      sunrise: this.decimalHoursToSeconds(sunriseHours, calendar),
+      sunset: this.decimalHoursToSeconds(sunsetHours, calendar),
+    };
+  }
+
+  /**
+   * Find the keyframes immediately before and after the given day of year
+   */
+  private static findSurroundingKeyframes(
+    dayOfYear: number,
+    keyframes: SolarKeyframe[],
+    _yearLength: number
+  ): { prev: SolarKeyframe; next: SolarKeyframe } {
+    // Handle single keyframe case
+    if (keyframes.length === 1) {
+      return { prev: keyframes[0], next: keyframes[0] };
+    }
+
+    // Find the first keyframe that comes after the current day
+    let nextIndex = keyframes.findIndex(kf => kf.dayOfYear > dayOfYear);
+
+    // If no keyframe comes after, wrap to the first keyframe of next year
+    if (nextIndex === -1) {
+      nextIndex = 0;
+    }
+
+    // Previous keyframe is the one before next (with wrap-around)
+    const prevIndex = nextIndex === 0 ? keyframes.length - 1 : nextIndex - 1;
+
+    return {
+      prev: keyframes[prevIndex],
+      next: keyframes[nextIndex],
+    };
+  }
+
+  /**
+   * Calculate progress between two keyframes, handling year wrap-around
+   */
+  private static calculateKeyframeProgress(
+    currentDay: number,
+    prevDay: number,
+    nextDay: number,
+    yearLength: number
+  ): number {
+    // Handle year wrap-around (when next keyframe is in the "next year")
+    let totalDays: number;
+    let daysIntoPeriod: number;
+
+    if (nextDay > prevDay) {
+      // Normal case: both keyframes in same year order
+      totalDays = nextDay - prevDay;
+      daysIntoPeriod = currentDay - prevDay;
+    } else {
+      // Year wrap-around case
+      totalDays = yearLength - prevDay + nextDay;
+      if (currentDay >= prevDay) {
+        daysIntoPeriod = currentDay - prevDay;
+      } else {
+        daysIntoPeriod = yearLength - prevDay + currentDay;
+      }
+    }
+
+    return totalDays > 0 ? daysIntoPeriod / totalDays : 0;
+  }
+
+  /**
+   * Legacy calculation using season-based interpolation (for backward compatibility)
+   */
+  private static calculateFromSeasons(
+    date: CalendarDateData,
+    calendar: SeasonsStarsCalendar,
+    engine: CalendarEngineInterface
+  ): { sunrise: number; sunset: number } {
     // Find current season and next season
-    const currentSeasonIndex = this.findSeasonIndex(date, calendar.seasons, calendar);
+    const currentSeasonIndex = this.findSeasonIndex(date, calendar.seasons!, calendar);
     if (currentSeasonIndex === -1) {
       const defaultTimes = this.getDefaultTimes(calendar);
       return {
@@ -49,9 +232,9 @@ export class SunriseSunsetCalculator {
       };
     }
 
-    const currentSeason = calendar.seasons[currentSeasonIndex];
-    const nextSeasonIndex = (currentSeasonIndex + 1) % calendar.seasons.length;
-    const nextSeason = calendar.seasons[nextSeasonIndex];
+    const currentSeason = calendar.seasons![currentSeasonIndex];
+    const nextSeasonIndex = (currentSeasonIndex + 1) % calendar.seasons!.length;
+    const nextSeason = calendar.seasons![nextSeasonIndex];
 
     // Get sunrise/sunset for current and next season (in decimal hours)
     const currentTimes = this.getSeasonTimes(currentSeason, calendar);

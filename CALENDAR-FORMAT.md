@@ -143,30 +143,31 @@ disable leap years entirely, include `"leapYear": { "rule": "none" }`.
 
 ### Root Level Fields
 
-| Field            | Type   | Required | Description                                                |
-| ---------------- | ------ | -------- | ---------------------------------------------------------- |
-| `id`             | string | ✅       | Unique identifier for the calendar                         |
-| `translations`   | object | ✅       | Localized labels and descriptions (language code keyed)    |
-| `sources`        | array  | ❌       | URLs (or user-provided citations) verifying data           |
-| `year`           | object | ❌       | Year configuration (defaults to Gregorian settings)        |
-| `months`         | array  | ❌       | Month definitions (defaults to Gregorian months)           |
-| `weekdays`       | array  | ❌       | Weekday definitions (defaults to Gregorian weekdays)       |
-| `intercalary`    | array  | ❌       | Intercalary days outside normal calendar structure         |
-| `leapYear`       | object | ❌       | Leap year rules (defaults to Gregorian rules)              |
-| `time`           | object | ❌       | Time configuration (defaults to 24-hour clock)             |
-| `dateFormats`    | object | ❌       | Handlebars templates for date formatting                   |
-| `worldTime`      | object | ❌       | World time interpretation for game system integration      |
-| `seasons`        | array  | ❌       | Seasonal definitions with start/end dates                  |
-| `moons`          | array  | ❌       | Celestial body definitions with phases                     |
-| `canonicalHours` | array  | ❌       | Named time periods (e.g., matins, vespers)                 |
-| `events`         | array  | ❌       | Calendar events (holidays, festivals, recurring occasions) |
-| `variants`       | object | ❌       | Calendar variant definitions                               |
-| `extensions`     | object | ❌       | Module-specific extensions and custom data                 |
-| `baseCalendar`   | string | ❌       | ID of base calendar this calendar extends                  |
-| `name`           | string | ❌       | Human-readable name for calendar collection                |
-| `description`    | string | ❌       | Description of calendar or collection                      |
-| `author`         | string | ❌       | Author or creator of the calendar                          |
-| `version`        | string | ❌       | Version number in semantic versioning format               |
+| Field            | Type   | Required | Description                                                  |
+| ---------------- | ------ | -------- | ------------------------------------------------------------ |
+| `id`             | string | ✅       | Unique identifier for the calendar                           |
+| `translations`   | object | ✅       | Localized labels and descriptions (language code keyed)      |
+| `sources`        | array  | ❌       | URLs (or user-provided citations) verifying data             |
+| `year`           | object | ❌       | Year configuration (defaults to Gregorian settings)          |
+| `months`         | array  | ❌       | Month definitions (defaults to Gregorian months)             |
+| `weekdays`       | array  | ❌       | Weekday definitions (defaults to Gregorian weekdays)         |
+| `intercalary`    | array  | ❌       | Intercalary days outside normal calendar structure           |
+| `leapYear`       | object | ❌       | Leap year rules (defaults to Gregorian rules)                |
+| `time`           | object | ❌       | Time configuration (defaults to 24-hour clock)               |
+| `dateFormats`    | object | ❌       | Handlebars templates for date formatting                     |
+| `worldTime`      | object | ❌       | World time interpretation for game system integration        |
+| `seasons`        | array  | ❌       | Seasonal definitions with start/end dates                    |
+| `solarAnchors`   | array  | ❌       | Solar keyframes (solstices, equinoxes) for sun interpolation |
+| `moons`          | array  | ❌       | Celestial body definitions with phases                       |
+| `canonicalHours` | array  | ❌       | Named time periods (e.g., matins, vespers)                   |
+| `events`         | array  | ❌       | Calendar events (holidays, festivals, recurring occasions)   |
+| `variants`       | object | ❌       | Calendar variant definitions                                 |
+| `extensions`     | object | ❌       | Module-specific extensions and custom data                   |
+| `baseCalendar`   | string | ❌       | ID of base calendar this calendar extends                    |
+| `name`           | string | ❌       | Human-readable name for calendar collection                  |
+| `description`    | string | ❌       | Description of calendar or collection                        |
+| `author`         | string | ❌       | Author or creator of the calendar                            |
+| `version`        | string | ❌       | Version number in semantic versioning format                 |
 
 ### Translations
 
@@ -492,6 +493,106 @@ When `sunrise` and `sunset` are specified for seasons:
 - Non-standard calendars can have extended hours (e.g., 30-hour days) or extended minutes
 - Times are displayed in widgets and day tooltips across the UI
 - Reference the Gregorian calendar for Baltimore, MD values as a guide
+
+### Solar Anchors
+
+> Optional – defines precise solar keyframes (solstices, equinoxes, or custom dates) for sunrise/sunset interpolation.
+
+Solar anchors provide additional precision for sunrise/sunset calculations by defining specific dates with known sun times. They work alongside seasons to create a unified set of interpolation keyframes.
+
+| Field         | Type   | Required | Description                                               |
+| ------------- | ------ | -------- | --------------------------------------------------------- |
+| `id`          | string | ✅       | Unique identifier for this anchor                         |
+| `label`       | string | ✅       | Human-readable name (e.g., "Winter Solstice")             |
+| `type`        | string | ✅       | Type of solar event: "solstice", "equinox", or "other"    |
+| `subtype`     | string | ❌       | Clarifier (e.g., "winter", "summer", "vernal", "magical") |
+| `month`       | number | ✅       | Month when this anchor occurs (1-based)                   |
+| `day`         | number | ✅       | Day within the month                                      |
+| `sunrise`     | string | ❌       | Sunrise time at this anchor (format: H:M to HHH:MMM)      |
+| `sunset`      | string | ❌       | Sunset time at this anchor (format: H:M to HHH:MMM)       |
+| `description` | string | ❌       | Description of the solar anchor                           |
+
+**How Solar Anchors Work with Seasons:**
+
+Solar anchors and season-start dates both serve as keyframes for sunrise/sunset interpolation:
+
+1. **Keyframe Collection**: When a calendar loads, the system collects all keyframes from:
+   - Season start dates that define `sunrise` and `sunset`
+   - Solar anchors that define `sunrise` and `sunset`
+
+2. **Day-of-Year Conversion**: Each keyframe is converted to its absolute day-of-year position (accounting for intercalary days).
+
+3. **Sorting**: Keyframes are sorted by day-of-year to create a chronological sequence.
+
+4. **Interpolation**: For any given date:
+   - The system finds the nearest previous and next keyframes
+   - Sunrise and sunset times are linearly interpolated based on progress between keyframes
+   - Year-wrapping is handled automatically (last keyframe interpolates to first)
+
+**Example:**
+
+```json
+"solarAnchors": [
+  {
+    "id": "winter-solstice",
+    "label": "Winter Solstice",
+    "type": "solstice",
+    "subtype": "winter",
+    "month": 12,
+    "day": 21,
+    "sunrise": "07:23",
+    "sunset": "16:32",
+    "description": "Shortest day of the year"
+  },
+  {
+    "id": "vernal-equinox",
+    "label": "Vernal Equinox",
+    "type": "equinox",
+    "subtype": "vernal",
+    "month": 3,
+    "day": 20,
+    "sunrise": "06:00",
+    "sunset": "18:00",
+    "description": "Day and night are approximately equal"
+  },
+  {
+    "id": "summer-solstice",
+    "label": "Summer Solstice",
+    "type": "solstice",
+    "subtype": "summer",
+    "month": 6,
+    "day": 21,
+    "sunrise": "05:42",
+    "sunset": "20:35",
+    "description": "Longest day of the year"
+  },
+  {
+    "id": "autumnal-equinox",
+    "label": "Autumnal Equinox",
+    "type": "equinox",
+    "subtype": "autumnal",
+    "month": 9,
+    "day": 22,
+    "sunrise": "06:00",
+    "sunset": "18:00",
+    "description": "Day and night are approximately equal"
+  }
+]
+```
+
+**Use Cases:**
+
+- **Astronomical Precision**: Define solstices and equinoxes for accurate sun position throughout the year
+- **Fantasy Calendars**: Add magical events that affect daylight (e.g., "The Long Night" where sunset comes early)
+- **Custom Solar Patterns**: Create worlds with unusual solar behavior (multiple suns, irregular orbits)
+- **Hybrid Approach**: Use seasons for general periods and solar anchors for precise astronomical dates
+
+**Notes:**
+
+- Solar anchors are optional; calendars work fine with only season-based interpolation
+- If no keyframes have sunrise/sunset data, the system falls back to 50/50 day/night split
+- Anchors without sunrise/sunset defined are included in the calendar but don't affect interpolation
+- Seasons remain free-form and can define any number of periods independent of solar anchors
 
 ### Canonical Hours
 
