@@ -51,6 +51,7 @@ export interface SeasonsStarsCalendar {
   months: CalendarMonth[];
   weekdays: CalendarWeekday[];
   intercalary: CalendarIntercalary[];
+  weeks?: WeekConfiguration;
   seasons?: CalendarSeason[];
   moons?: CalendarMoon[];
   canonicalHours?: CalendarCanonicalHour[];
@@ -142,6 +143,8 @@ export interface CalendarMonth {
   id?: string;
   name: string;
   abbreviation?: string;
+  prefix?: string; // For Cosmere-style combinatorial date formats
+  suffix?: string; // For other combinatorial systems
   days: number;
   description?: string;
   translations?: {
@@ -155,12 +158,116 @@ export interface CalendarWeekday {
   id?: string;
   name: string;
   abbreviation?: string;
+  prefix?: string; // For combinatorial date formats
+  suffix?: string; // For Cosmere-style combinatorial date formats
   description?: string;
   translations?: {
     [languageCode: string]: {
       description?: string;
     };
   };
+}
+
+/**
+ * Named week definition for calendars with week-of-month naming
+ *
+ * Used for calendars like Roshar (10 weeks per month) or Coriolis (4 novenas per segment).
+ * Supports combinatorial date formats like Cosmere RPG's "Jeseses" (month prefix + week suffix + day suffix).
+ */
+export interface CalendarWeek {
+  /** Full name of the week (e.g., "First Week", "The Novena of Grain") */
+  name: string;
+  /** Short abbreviation (e.g., "1st", "Grain") */
+  abbreviation?: string;
+  /** Prefix for combinatorial date formats */
+  prefix?: string;
+  /** Suffix for combinatorial date formats (e.g., "es" in Cosmere RPG) */
+  suffix?: string;
+  /** Optional description of the week's significance */
+  description?: string;
+  /** Localized translations */
+  translations?: {
+    [languageCode: string]: {
+      name?: string;
+      description?: string;
+    };
+  };
+}
+
+/**
+ * Week configuration for calendars with named weeks or week-of-month concepts
+ *
+ * Supports two organizational types:
+ * - "month-based": Weeks reset at month boundaries (Roshar, Coriolis)
+ * - "year-based": Weeks span months ISO 8601-style (Gregorian)
+ *
+ * @example Roshar calendar (perfect alignment)
+ * ```json
+ * {
+ *   "type": "month-based",
+ *   "perMonth": 10,
+ *   "daysPerWeek": 5,
+ *   "names": [...]
+ * }
+ * ```
+ *
+ * @example Coriolis calendar (with remainder handling)
+ * ```json
+ * {
+ *   "type": "month-based",
+ *   "perMonth": 4,
+ *   "daysPerWeek": 9,
+ *   "remainderHandling": "extend-last",
+ *   "names": [...]
+ * }
+ * ```
+ */
+export interface WeekConfiguration {
+  /**
+   * Week organization type:
+   * - "month-based": Weeks reset at month boundaries (default)
+   * - "year-based": Weeks span months (ISO 8601 style)
+   */
+  type?: 'month-based' | 'year-based';
+
+  /**
+   * Number of weeks per month (for month-based weeks)
+   * Required when type is "month-based" or undefined
+   */
+  perMonth?: number;
+
+  /**
+   * Days per week
+   * Defaults to weekdays.length if not specified
+   */
+  daysPerWeek?: number;
+
+  /**
+   * How to handle remainder days when month doesn't divide evenly:
+   * - "partial-last": Last week can be shorter (default)
+   * - "extend-last": Add remainder days to last named week
+   * - "none": Remainder days have no week number
+   *
+   * @example Coriolis: 37 days ÷ 9 = 4 weeks + 1 day
+   * - "extend-last": Week 4 becomes 10 days (includes remainder)
+   * - "partial-last": Creates a 5th week with 1 day
+   * - "none": Day 37 returns null for getWeekOfMonth()
+   */
+  remainderHandling?: 'partial-last' | 'extend-last' | 'none';
+
+  /**
+   * Named weeks (for month-based only)
+   * Array length should equal perMonth for perfect alignment
+   */
+  names?: CalendarWeek[];
+
+  /**
+   * Automatic naming pattern when names array is not provided:
+   * - "ordinal": "1st Week", "2nd Week", etc.
+   * - "numeric": "Week 1", "Week 2", etc.
+   * - "none": No automatic week names
+   */
+  namingPattern?: 'ordinal' | 'numeric' | 'none';
 }
 
 export type CalendarIntercalary = {

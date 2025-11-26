@@ -4,11 +4,13 @@
 
 import type { CalendarDate as ICalendarDate } from './calendar-date';
 import { CalendarDate } from './calendar-date';
-import type { SeasonsStarsCalendar } from '../types/calendar';
+import type { SeasonsStarsCalendar, CalendarWeek, CalendarDateData } from '../types/calendar';
 import { renderIconHtml } from './constants';
+import type { CalendarEngine } from './calendar-engine';
 
 export class DateFormatter {
   private calendar: SeasonsStarsCalendar;
+  private engine: CalendarEngine | null = null;
 
   /**
    * Template compilation cache - intentionally unlimited size
@@ -75,8 +77,12 @@ export class DateFormatter {
     { name: 'Saturday', abbreviation: 'Sat' },
   ];
 
-  constructor(calendar: SeasonsStarsCalendar) {
+  constructor(calendar: SeasonsStarsCalendar, engine?: CalendarEngine) {
     this.calendar = calendar;
+    // Store engine if provided (will be lazily created when needed to avoid circular dependency)
+    if (engine) {
+      this.engine = engine;
+    }
     // Register this instance for helper access
     DateFormatter.helperRegistry.set(calendar.id, this);
     // Only register helpers once globally to avoid unnecessary re-registration
@@ -627,6 +633,84 @@ export class DateFormatter {
       }
     });
 
+    // Week helper - supports numeric, name, abbr, prefix, and suffix formats
+    Handlebars.registerHelper('ss-week', function (this: any, ...args: any[]) {
+      // Handlebars passes options as the last argument
+      const options = args[args.length - 1];
+
+      // Get date data from context
+      const context = options?.data?.root;
+      const day = context?.day || 1;
+      const dateData = {
+        year: context?.year || 1,
+        month: context?.month || 1,
+        day,
+        weekday: context?.weekday || 0,
+      };
+
+      const format = options?.hash?.format;
+      const calendarId = options?.data?.root?._calendarId;
+      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
+
+      if (!formatter) {
+        return ''; // No formatter available
+      }
+
+      // Get week number and info from DateFormatter (if weeks config exists)
+      let weekNum: number | null = null;
+      try {
+        weekNum = formatter.getWeekOfMonth(dateData);
+      } catch {
+        // If getWeekOfMonth fails, fall through to backward compatibility
+        weekNum = null;
+      }
+
+      // Backward compatibility: if no weeks config, calculate simple week number
+      if (weekNum === null) {
+        // Get daysPerWeek from calendar weekdays array, with fallback to 7
+        let daysPerWeek = 7;
+        if (formatter.calendar.weekdays) {
+          daysPerWeek = formatter.calendar.weekdays.length;
+        }
+        // Allow override via hash options for special cases
+        if (options?.hash?.daysPerWeek) {
+          daysPerWeek = options.hash.daysPerWeek;
+        }
+        // Calculate week within month (1-based)
+        weekNum = Math.ceil(day / daysPerWeek);
+      }
+
+      let weekInfo: CalendarWeek | null = null;
+      try {
+        weekInfo = formatter.getWeekInfo(dateData);
+      } catch {
+        // If getWeekInfo fails, weekInfo remains null
+        weekInfo = null;
+      }
+
+      switch (format) {
+        case 'numeric':
+          return weekNum.toString();
+        case 'name':
+          return weekInfo?.name || `Week ${weekNum}`;
+        case 'abbr':
+        case 'abbreviation':
+          return weekInfo?.abbreviation || weekNum.toString();
+        case 'prefix':
+          return weekInfo?.prefix || '';
+        case 'suffix':
+          return weekInfo?.suffix || '';
+        case 'ordinal':
+          // Return ordinal form of the week number using static method
+          return DateFormatter.addOrdinalSuffix(weekNum);
+        case 'pad':
+          return weekNum.toString().padStart(2, '0');
+        default:
+          // Default to numeric
+          return weekNum.toString();
+      }
+    });
+
     // Format embedding helper - use "{{ss-dateFmt \"name\"}}" syntax
     // Note: This helper is mainly for documentation. The actual format embedding
     // is handled by preprocessing in the format() method to avoid circular issues.
@@ -792,50 +876,6 @@ export class DateFormatter {
           return secondValue.toString().padStart(2, '0');
         default:
           return secondValue.toString();
-      }
-    });
-
-    // Week helper - supports calculating week within month for Roshar-style calendars
-    Handlebars.registerHelper('ss-week', function (this: any, ...args: any[]) {
-      // Handlebars passes options as the last argument
-      const options = args[args.length - 1];
-
-      // If day is provided as first argument (and not undefined/null), use it; otherwise use context
-      let dayValue =
-        args.length > 1 && args[0] !== undefined && args[0] !== null
-          ? args[0]
-          : options?.data?.root?.day;
-
-      // Handle undefined/null values gracefully
-      if (dayValue === undefined || dayValue === null) {
-        dayValue = 1;
-      }
-
-      const format = options?.hash?.format;
-      const calendarId = options?.data?.root?._calendarId;
-      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
-
-      // Get daysPerWeek from calendar weekdays array, with fallback to 7
-      let daysPerWeek = 7;
-      if (formatter && formatter.calendar.weekdays) {
-        daysPerWeek = formatter.calendar.weekdays.length;
-      }
-
-      // Allow override via hash options for special cases
-      if (options?.hash?.daysPerWeek) {
-        daysPerWeek = options.hash.daysPerWeek;
-      }
-
-      // Calculate week within month (1-based)
-      const weekValue = Math.ceil(dayValue / daysPerWeek);
-
-      switch (format) {
-        case 'pad':
-          return weekValue.toString().padStart(2, '0');
-        case 'ordinal':
-          return DateFormatter.addOrdinalSuffix(weekValue);
-        default:
-          return weekValue.toString();
       }
     });
 
@@ -1172,6 +1212,52 @@ export class DateFormatter {
       return name.substring(0, 3);
     }
     return 'Unk';
+  }
+
+  /**
+   * Get the week number within the current month (1-indexed)
+   *
+   * Delegates to CalendarEngine for canonical implementation.
+   *
+   * @param date - The calendar date data
+   * @returns Week number (1-based) or null
+   */
+  getWeekOfMonth(date: CalendarDateData): number | null {
+    // Lazy initialization to avoid circular dependency
+    if (!this.engine) {
+      // Use dynamic import to avoid circular dependency issues
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const CalendarEngineModule = require('./calendar-engine');
+      const CalendarEngineClass =
+        CalendarEngineModule.CalendarEngine || CalendarEngineModule.default;
+      this.engine = new CalendarEngineClass(this.calendar);
+    }
+    // Explicit null check for TypeScript
+    if (!this.engine) return null;
+    return this.engine.getWeekOfMonth(date);
+  }
+
+  /**
+   * Get week information (name, abbreviation, etc.) for a date
+   *
+   * Delegates to CalendarEngine for canonical implementation.
+   *
+   * @param date - The calendar date data
+   * @returns Week information or null
+   */
+  getWeekInfo(date: CalendarDateData): CalendarWeek | null {
+    // Lazy initialization to avoid circular dependency
+    if (!this.engine) {
+      // Use dynamic import to avoid circular dependency issues
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const CalendarEngineModule = require('./calendar-engine');
+      const CalendarEngineClass =
+        CalendarEngineModule.CalendarEngine || CalendarEngineModule.default;
+      this.engine = new CalendarEngineClass(this.calendar);
+    }
+    // Explicit null check for TypeScript
+    if (!this.engine) return null;
+    return this.engine.getWeekInfo(date);
   }
 
   /**
