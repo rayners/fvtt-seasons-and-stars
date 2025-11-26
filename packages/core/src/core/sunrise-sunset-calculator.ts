@@ -81,9 +81,9 @@ export class SunriseSunsetCalculator {
     // Add keyframes from seasons (season start dates)
     if (calendar.seasons) {
       for (const season of calendar.seasons) {
-        const times = this.getSeasonTimes(season, calendar);
-        // Only include if we have actual sunrise/sunset data
-        if (season.sunrise || season.sunset || this.GREGORIAN_DEFAULTS[season.name]) {
+        // Only include if we have both sunrise AND sunset (either explicit or via Gregorian defaults)
+        if ((season.sunrise && season.sunset) || this.GREGORIAN_DEFAULTS[season.name]) {
+          const times = this.getSeasonTimes(season, calendar);
           const dayOfYear = this.seasonStartToDayOfYear(season, calendar, engine, year);
           keyframes.push({
             dayOfYear,
@@ -134,7 +134,7 @@ export class SunriseSunsetCalculator {
     const yearLength = engine.getYearLength(date.year);
 
     // Find the surrounding keyframes
-    const { prev, next } = this.findSurroundingKeyframes(currentDayOfYear, keyframes, yearLength);
+    const { prev, next } = this.findSurroundingKeyframes(currentDayOfYear, keyframes);
 
     // Calculate progress between keyframes
     const progress = this.calculateKeyframeProgress(
@@ -159,8 +159,7 @@ export class SunriseSunsetCalculator {
    */
   private static findSurroundingKeyframes(
     dayOfYear: number,
-    keyframes: SolarKeyframe[],
-    _yearLength: number
+    keyframes: SolarKeyframe[]
   ): { prev: SolarKeyframe; next: SolarKeyframe } {
     // Handle single keyframe case
     if (keyframes.length === 1) {
@@ -222,8 +221,17 @@ export class SunriseSunsetCalculator {
     calendar: SeasonsStarsCalendar,
     engine: CalendarEngineInterface
   ): { sunrise: number; sunset: number } {
+    // Validate we have seasons to work with
+    if (!calendar.seasons || calendar.seasons.length === 0) {
+      const defaultTimes = this.getDefaultTimes(calendar);
+      return {
+        sunrise: this.decimalHoursToSeconds(defaultTimes.sunrise, calendar),
+        sunset: this.decimalHoursToSeconds(defaultTimes.sunset, calendar),
+      };
+    }
+
     // Find current season and next season
-    const currentSeasonIndex = this.findSeasonIndex(date, calendar.seasons!, calendar);
+    const currentSeasonIndex = this.findSeasonIndex(date, calendar.seasons, calendar);
     if (currentSeasonIndex === -1) {
       const defaultTimes = this.getDefaultTimes(calendar);
       return {
@@ -232,9 +240,9 @@ export class SunriseSunsetCalculator {
       };
     }
 
-    const currentSeason = calendar.seasons![currentSeasonIndex];
-    const nextSeasonIndex = (currentSeasonIndex + 1) % calendar.seasons!.length;
-    const nextSeason = calendar.seasons![nextSeasonIndex];
+    const currentSeason = calendar.seasons[currentSeasonIndex];
+    const nextSeasonIndex = (currentSeasonIndex + 1) % calendar.seasons.length;
+    const nextSeason = calendar.seasons[nextSeasonIndex];
 
     // Get sunrise/sunset for current and next season (in decimal hours)
     const currentTimes = this.getSeasonTimes(currentSeason, calendar);

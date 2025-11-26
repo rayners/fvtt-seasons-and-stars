@@ -508,9 +508,11 @@ Solar anchors provide additional precision for sunrise/sunset calculations by de
 | `subtype`     | string | ❌       | Clarifier (e.g., "winter", "summer", "vernal", "magical") |
 | `month`       | number | ✅       | Month when this anchor occurs (1-based)                   |
 | `day`         | number | ✅       | Day within the month                                      |
-| `sunrise`     | string | ❌       | Sunrise time at this anchor (format: H:M to HHH:MMM)      |
-| `sunset`      | string | ❌       | Sunset time at this anchor (format: H:M to HHH:MMM)       |
+| `sunrise`     | string | ⚠️       | Sunrise time at this anchor (format: H:M to HHH:MMM)      |
+| `sunset`      | string | ⚠️       | Sunset time at this anchor (format: H:M to HHH:MMM)       |
 | `description` | string | ❌       | Description of the solar anchor                           |
+
+> **Note:** Both `sunrise` and `sunset` must be defined together for a solar anchor to be used in interpolation. Anchors with only one time defined (or neither) are included in the calendar but don't affect sunrise/sunset calculations.
 
 **How Solar Anchors Work with Seasons:**
 

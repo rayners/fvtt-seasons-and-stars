@@ -947,6 +947,56 @@ describe('SunriseSunsetCalculator - Solar Anchors', () => {
       expect(result.sunrise).toBe(21600); // 6.0 × 3600
       expect(result.sunset).toBe(64800); // 18.0 × 3600
     });
+
+    test('should ignore anchors with only sunrise defined', () => {
+      const calendarWithPartialAnchor: SeasonsStarsCalendar = {
+        ...solarAnchorOnlyCalendar,
+        solarAnchors: [
+          {
+            id: 'partial-anchor',
+            label: 'Partial Anchor',
+            type: 'other',
+            month: 5,
+            day: 1,
+            sunrise: '06:00',
+            // sunset missing
+          },
+        ],
+      };
+
+      const date: CalendarDate = { year: 2024, month: 5, day: 1 };
+      const engine = createMockEngine(calendarWithPartialAnchor);
+      const result = SunriseSunsetCalculator.calculate(date, calendarWithPartialAnchor, engine);
+
+      // Should fall back to default 50/50 split
+      expect(result.sunrise).toBe(21600); // 6.0 × 3600
+      expect(result.sunset).toBe(64800); // 18.0 × 3600
+    });
+
+    test('should ignore anchors with only sunset defined', () => {
+      const calendarWithPartialAnchor: SeasonsStarsCalendar = {
+        ...solarAnchorOnlyCalendar,
+        solarAnchors: [
+          {
+            id: 'partial-anchor',
+            label: 'Partial Anchor',
+            type: 'other',
+            month: 5,
+            day: 1,
+            // sunrise missing
+            sunset: '18:00',
+          },
+        ],
+      };
+
+      const date: CalendarDate = { year: 2024, month: 5, day: 1 };
+      const engine = createMockEngine(calendarWithPartialAnchor);
+      const result = SunriseSunsetCalculator.calculate(date, calendarWithPartialAnchor, engine);
+
+      // Should fall back to default 50/50 split
+      expect(result.sunrise).toBe(21600); // 6.0 × 3600
+      expect(result.sunset).toBe(64800); // 18.0 × 3600
+    });
   });
 
   describe('Single Solar Anchor', () => {
