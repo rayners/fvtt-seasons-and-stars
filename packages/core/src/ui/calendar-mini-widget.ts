@@ -170,6 +170,19 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     }
 
+    // Check if year should be displayed in mini widget
+    const showYear =
+      game.settings?.get('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR) || false;
+
+    // Build year string with prefix/suffix when enabled
+    let yearDisplay = '';
+    if (showYear) {
+      const yearPrefix = activeCalendar.year?.prefix || '';
+      const yearSuffix = activeCalendar.year?.suffix || '';
+      const parts = [yearPrefix, String(currentDate.year), yearSuffix].filter(p => p);
+      yearDisplay = parts.join(' ').replace(/\s+/g, ' ').trim();
+    }
+
     // Check the always show quick time buttons setting
     // This setting controls whether to show time controls even when SmallTime is present
     const alwaysShowQuickTimeButtons =
@@ -293,6 +306,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           : '',
       showDayOfWeek: showDayOfWeek,
       weekdayDisplay: weekdayDisplay,
+      showYear: showYear,
+      yearDisplay: yearDisplay,
       timeAdvancementActive: timeAdvancementActive,
       advancementRatioDisplay: advancementRatioDisplay,
       compactMode: compactMode,
@@ -683,6 +698,21 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
             game.settings?.get('seasons-and-stars', 'miniWidgetShowDayOfWeek')
           );
           await game.settings?.set('seasons-and-stars', 'miniWidgetShowDayOfWeek', !currentValue);
+          await this.render();
+        },
+      },
+      {
+        name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_year'),
+        icon: '<i class="fas fa-calendar-alt"></i>',
+        callback: async () => {
+          const currentValue = Boolean(
+            game.settings?.get('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR)
+          );
+          await game.settings?.set(
+            'seasons-and-stars',
+            SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR,
+            !currentValue
+          );
           await this.render();
         },
       },
