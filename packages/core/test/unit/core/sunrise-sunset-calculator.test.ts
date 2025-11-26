@@ -738,6 +738,296 @@ describe('SunriseSunsetCalculator - Time Components Conversion', () => {
 });
 
 /**
+ * Test solar anchors functionality
+ * Validates that solar anchors (solstices, equinoxes, custom dates) work
+ * as keyframes for sunrise/sunset interpolation
+ */
+describe('SunriseSunsetCalculator - Solar Anchors', () => {
+  // Calendar with only solar anchors (no seasons)
+  const solarAnchorOnlyCalendar: SeasonsStarsCalendar = {
+    id: 'solar-anchor-only',
+    year: { epoch: 2000, currentYear: 2024, startDay: 0 },
+    leapYear: { rule: 'none' },
+    months: [
+      { name: 'January', abbreviation: 'Jan', days: 31 },
+      { name: 'February', abbreviation: 'Feb', days: 28 },
+      { name: 'March', abbreviation: 'Mar', days: 31 },
+      { name: 'April', abbreviation: 'Apr', days: 30 },
+      { name: 'May', abbreviation: 'May', days: 31 },
+      { name: 'June', abbreviation: 'Jun', days: 30 },
+      { name: 'July', abbreviation: 'Jul', days: 31 },
+      { name: 'August', abbreviation: 'Aug', days: 31 },
+      { name: 'September', abbreviation: 'Sep', days: 30 },
+      { name: 'October', abbreviation: 'Oct', days: 31 },
+      { name: 'November', abbreviation: 'Nov', days: 30 },
+      { name: 'December', abbreviation: 'Dec', days: 31 },
+    ],
+    weekdays: [{ name: 'Day1' }],
+    intercalary: [],
+    solarAnchors: [
+      {
+        id: 'winter-solstice',
+        label: 'Winter Solstice',
+        type: 'solstice',
+        subtype: 'winter',
+        month: 12,
+        day: 21,
+        sunrise: '07:30',
+        sunset: '16:30',
+      },
+      {
+        id: 'vernal-equinox',
+        label: 'Vernal Equinox',
+        type: 'equinox',
+        subtype: 'vernal',
+        month: 3,
+        day: 20,
+        sunrise: '06:00',
+        sunset: '18:00',
+      },
+      {
+        id: 'summer-solstice',
+        label: 'Summer Solstice',
+        type: 'solstice',
+        subtype: 'summer',
+        month: 6,
+        day: 21,
+        sunrise: '05:30',
+        sunset: '20:30',
+      },
+      {
+        id: 'autumnal-equinox',
+        label: 'Autumnal Equinox',
+        type: 'equinox',
+        subtype: 'autumnal',
+        month: 9,
+        day: 22,
+        sunrise: '06:00',
+        sunset: '18:00',
+      },
+    ],
+    time: {
+      hoursInDay: 24,
+      minutesInHour: 60,
+      secondsInMinute: 60,
+    },
+  };
+
+  // Calendar with both seasons and solar anchors
+  const hybridCalendar: SeasonsStarsCalendar = {
+    id: 'hybrid-calendar',
+    year: { epoch: 2000, currentYear: 2024, startDay: 0 },
+    leapYear: { rule: 'none' },
+    months: [
+      { name: 'January', abbreviation: 'Jan', days: 31 },
+      { name: 'February', abbreviation: 'Feb', days: 28 },
+      { name: 'March', abbreviation: 'Mar', days: 31 },
+      { name: 'April', abbreviation: 'Apr', days: 30 },
+      { name: 'May', abbreviation: 'May', days: 31 },
+      { name: 'June', abbreviation: 'Jun', days: 30 },
+      { name: 'July', abbreviation: 'Jul', days: 31 },
+      { name: 'August', abbreviation: 'Aug', days: 31 },
+      { name: 'September', abbreviation: 'Sep', days: 30 },
+      { name: 'October', abbreviation: 'Oct', days: 31 },
+      { name: 'November', abbreviation: 'Nov', days: 30 },
+      { name: 'December', abbreviation: 'Dec', days: 31 },
+    ],
+    weekdays: [{ name: 'Day1' }],
+    intercalary: [],
+    seasons: [
+      {
+        name: 'Spring',
+        startMonth: 3,
+        endMonth: 5,
+        sunrise: '06:30',
+        sunset: '17:45',
+      },
+    ],
+    solarAnchors: [
+      {
+        id: 'summer-solstice',
+        label: 'Summer Solstice',
+        type: 'solstice',
+        subtype: 'summer',
+        month: 6,
+        day: 21,
+        sunrise: '05:30',
+        sunset: '20:30',
+      },
+    ],
+    time: {
+      hoursInDay: 24,
+      minutesInHour: 60,
+      secondsInMinute: 60,
+    },
+  };
+
+  describe('Solar Anchors Only', () => {
+    test('should use solar anchor values on exact anchor date', () => {
+      // Test on the summer solstice date
+      const date: CalendarDate = { year: 2024, month: 6, day: 21 };
+      const engine = createMockEngine(solarAnchorOnlyCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, solarAnchorOnlyCalendar, engine);
+
+      // Summer solstice: sunrise 05:30 (5.5 hours), sunset 20:30 (20.5 hours)
+      expect(result.sunrise).toBe(19800); // 5.5 × 3600
+      expect(result.sunset).toBe(73800); // 20.5 × 3600
+    });
+
+    test('should interpolate between adjacent solar anchors', () => {
+      // April 20 is roughly halfway between vernal equinox (Mar 20) and summer solstice (Jun 21)
+      // That's about 31 days into a 93-day period (roughly 1/3 through)
+      const date: CalendarDate = { year: 2024, month: 4, day: 20 };
+      const engine = createMockEngine(solarAnchorOnlyCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, solarAnchorOnlyCalendar, engine);
+
+      // Vernal equinox: sunrise 06:00 (21600s), sunset 18:00 (64800s)
+      // Summer solstice: sunrise 05:30 (19800s), sunset 20:30 (73800s)
+      // Should be interpolated between these values
+      expect(result.sunrise).toBeLessThan(21600); // Earlier than equinox
+      expect(result.sunrise).toBeGreaterThan(19800); // Later than solstice
+      expect(result.sunset).toBeGreaterThan(64800); // Later than equinox
+      expect(result.sunset).toBeLessThan(73800); // Earlier than solstice
+    });
+
+    test('should handle year wrap-around interpolation', () => {
+      // January 20 is between winter solstice (Dec 21) and vernal equinox (Mar 20)
+      const date: CalendarDate = { year: 2024, month: 1, day: 20 };
+      const engine = createMockEngine(solarAnchorOnlyCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, solarAnchorOnlyCalendar, engine);
+
+      // Winter solstice: sunrise 07:30 (27000s), sunset 16:30 (59400s)
+      // Vernal equinox: sunrise 06:00 (21600s), sunset 18:00 (64800s)
+      // Should be interpolated between these values
+      expect(result.sunrise).toBeLessThan(27000); // Earlier than winter solstice
+      expect(result.sunrise).toBeGreaterThan(21600); // Later than equinox
+      expect(result.sunset).toBeGreaterThan(59400); // Later than winter solstice
+      expect(result.sunset).toBeLessThan(64800); // Earlier than equinox
+    });
+  });
+
+  describe('Hybrid Calendars (Seasons + Solar Anchors)', () => {
+    test('should combine season and solar anchor keyframes', () => {
+      // Test on a date between the season start (Mar 1) and solar anchor (Jun 21)
+      const date: CalendarDate = { year: 2024, month: 5, day: 1 };
+      const engine = createMockEngine(hybridCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, hybridCalendar, engine);
+
+      // Spring season: sunrise 06:30 (23400s), sunset 17:45 (63900s)
+      // Summer solstice: sunrise 05:30 (19800s), sunset 20:30 (73800s)
+      // May 1 should be interpolated between these
+      expect(result.sunrise).toBeLessThan(23400); // Earlier than spring
+      expect(result.sunrise).toBeGreaterThan(19800); // Later than summer solstice
+      expect(result.sunset).toBeGreaterThan(63900); // Later than spring
+      expect(result.sunset).toBeLessThan(73800); // Earlier than summer solstice
+    });
+  });
+
+  describe('Solar Anchors Without Times', () => {
+    test('should ignore anchors without sunrise/sunset', () => {
+      const calendarWithEmptyAnchor: SeasonsStarsCalendar = {
+        ...solarAnchorOnlyCalendar,
+        solarAnchors: [
+          {
+            id: 'empty-anchor',
+            label: 'Empty Anchor',
+            type: 'other',
+            month: 5,
+            day: 1,
+            // No sunrise or sunset defined
+          },
+        ],
+      };
+
+      const date: CalendarDate = { year: 2024, month: 5, day: 1 };
+      const engine = createMockEngine(calendarWithEmptyAnchor);
+      const result = SunriseSunsetCalculator.calculate(date, calendarWithEmptyAnchor, engine);
+
+      // Should fall back to default 50/50 split
+      expect(result.sunrise).toBe(21600); // 6.0 × 3600
+      expect(result.sunset).toBe(64800); // 18.0 × 3600
+    });
+
+    test('should ignore anchors with only sunrise defined', () => {
+      const calendarWithPartialAnchor: SeasonsStarsCalendar = {
+        ...solarAnchorOnlyCalendar,
+        solarAnchors: [
+          {
+            id: 'partial-anchor',
+            label: 'Partial Anchor',
+            type: 'other',
+            month: 5,
+            day: 1,
+            sunrise: '06:00',
+            // sunset missing
+          },
+        ],
+      };
+
+      const date: CalendarDate = { year: 2024, month: 5, day: 1 };
+      const engine = createMockEngine(calendarWithPartialAnchor);
+      const result = SunriseSunsetCalculator.calculate(date, calendarWithPartialAnchor, engine);
+
+      // Should fall back to default 50/50 split
+      expect(result.sunrise).toBe(21600); // 6.0 × 3600
+      expect(result.sunset).toBe(64800); // 18.0 × 3600
+    });
+
+    test('should ignore anchors with only sunset defined', () => {
+      const calendarWithPartialAnchor: SeasonsStarsCalendar = {
+        ...solarAnchorOnlyCalendar,
+        solarAnchors: [
+          {
+            id: 'partial-anchor',
+            label: 'Partial Anchor',
+            type: 'other',
+            month: 5,
+            day: 1,
+            // sunrise missing
+            sunset: '18:00',
+          },
+        ],
+      };
+
+      const date: CalendarDate = { year: 2024, month: 5, day: 1 };
+      const engine = createMockEngine(calendarWithPartialAnchor);
+      const result = SunriseSunsetCalculator.calculate(date, calendarWithPartialAnchor, engine);
+
+      // Should fall back to default 50/50 split
+      expect(result.sunrise).toBe(21600); // 6.0 × 3600
+      expect(result.sunset).toBe(64800); // 18.0 × 3600
+    });
+  });
+
+  describe('Single Solar Anchor', () => {
+    test('should use single anchor value for all dates', () => {
+      const singleAnchorCalendar: SeasonsStarsCalendar = {
+        ...solarAnchorOnlyCalendar,
+        solarAnchors: [
+          {
+            id: 'only-anchor',
+            label: 'Only Anchor',
+            type: 'other',
+            month: 6,
+            day: 1,
+            sunrise: '06:00',
+            sunset: '20:00',
+          },
+        ],
+      };
+
+      const date: CalendarDate = { year: 2024, month: 1, day: 15 };
+      const engine = createMockEngine(singleAnchorCalendar);
+      const result = SunriseSunsetCalculator.calculate(date, singleAnchorCalendar, engine);
+
+      // With only one keyframe, interpolation returns the same value
+      expect(result.sunrise).toBe(21600); // 6.0 × 3600
+      expect(result.sunset).toBe(72000); // 20.0 × 3600
+    });
+  });
+});
+
+/**
  * Test flexible sunrise/sunset time format support
  * Validates that 1-3 digit hours and minutes work correctly
  */
