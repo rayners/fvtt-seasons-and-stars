@@ -20,7 +20,7 @@
     "validate:calendars": "tsx ../core/scripts/validate-calendars.ts"
   },
   "devDependencies": {
-    "vitest": "^3.2.2"
+    "vitest": "^4.0.14"
   },
   "repository": {
     "type": "git",
