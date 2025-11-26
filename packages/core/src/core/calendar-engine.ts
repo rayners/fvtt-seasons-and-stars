@@ -1035,7 +1035,7 @@ export class CalendarEngine {
 
     // Handle remainder days
     const handling = this.calendar.weeks.remainderHandling || 'partial-last';
-    const expectedWeeks = this.calendar.weeks.perMonth || rawWeek;
+    const expectedWeeks = this.calendar.weeks.perMonth ?? Math.floor(monthDays / daysPerWeek);
 
     if (handling === 'extend-last' && rawWeek === expectedWeeks + 1) {
       // Fold extra days into the last named week
