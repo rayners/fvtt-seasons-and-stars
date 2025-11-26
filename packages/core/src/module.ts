@@ -721,6 +721,14 @@ function registerSettings(): void {
     },
   });
 
+  game.settings.register('seasons-and-stars', 'miniWidgetShowYear', {
+    name: 'Display Year in Mini Widget',
+    scope: 'client',
+    config: false,
+    type: Boolean,
+    default: false,
+  });
+
   // Note: defaultWidget setting is registered later in registerDefaultWidgetSetting()
   // called from ready hook to include custom registered widgets
 

@@ -170,6 +170,17 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       }
     }
 
+    // Check if year should be displayed in mini widget
+    const showYear = game.settings?.get('seasons-and-stars', 'miniWidgetShowYear') || false;
+
+    // Build year string with prefix/suffix when enabled
+    let yearDisplay = '';
+    if (showYear) {
+      const yearPrefix = activeCalendar.year?.prefix || '';
+      const yearSuffix = activeCalendar.year?.suffix || '';
+      yearDisplay = `${yearPrefix}${currentDate.year}${yearSuffix}`.trim();
+    }
+
     // Check the always show quick time buttons setting
     // This setting controls whether to show time controls even when SmallTime is present
     const alwaysShowQuickTimeButtons =
@@ -293,6 +304,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           : '',
       showDayOfWeek: showDayOfWeek,
       weekdayDisplay: weekdayDisplay,
+      showYear: showYear,
+      yearDisplay: yearDisplay,
       timeAdvancementActive: timeAdvancementActive,
       advancementRatioDisplay: advancementRatioDisplay,
       compactMode: compactMode,
@@ -683,6 +696,17 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
             game.settings?.get('seasons-and-stars', 'miniWidgetShowDayOfWeek')
           );
           await game.settings?.set('seasons-and-stars', 'miniWidgetShowDayOfWeek', !currentValue);
+          await this.render();
+        },
+      },
+      {
+        name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_year'),
+        icon: '<i class="fas fa-calendar-alt"></i>',
+        callback: async () => {
+          const currentValue = Boolean(
+            game.settings?.get('seasons-and-stars', 'miniWidgetShowYear')
+          );
+          await game.settings?.set('seasons-and-stars', 'miniWidgetShowYear', !currentValue);
           await this.render();
         },
       },

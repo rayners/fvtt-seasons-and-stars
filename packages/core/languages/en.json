@@ -97,6 +97,7 @@
       "context_menu": {
         "toggle_time": "Toggle Time",
         "toggle_weekday": "Toggle Weekday",
+        "toggle_year": "Toggle Year",
         "toggle_moon_phases": "Toggle Moon Phases",
         "toggle_sunrise_sunset": "Toggle Sunrise/Sunset",
         "toggle_time_controls": "Toggle Time Controls",
