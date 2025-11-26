@@ -21,6 +21,7 @@ import {
   getQuickTimeButtonsFromSettings,
 } from '../../../src/core/quick-time-buttons';
 import { registerSettings } from '../../../src/module';
+import { SETTINGS_KEYS } from '../../../src/core/constants';
 
 // Mock time advancement service
 vi.mock('../../../src/core/time-advancement-service', () => ({
@@ -963,7 +964,9 @@ describe('CalendarMiniWidget - Feature Integration Tests', () => {
       it('should register miniWidgetShowYear setting with onChange hook', () => {
         registerSettings();
 
-        const settingConfig = mockRegisteredSettings.get('seasons-and-stars.miniWidgetShowYear');
+        const settingConfig = mockRegisteredSettings.get(
+          `seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`
+        );
         expect(settingConfig).toBeDefined();
         expect(settingConfig.name).toBe('Display Year in Mini Widget');
         expect(settingConfig.scope).toBe('client');
@@ -976,18 +979,18 @@ describe('CalendarMiniWidget - Feature Integration Tests', () => {
       it('should trigger hook when setting changes', async () => {
         registerSettings();
 
-        await game.settings.set('seasons-and-stars', 'miniWidgetShowYear', true);
+        await game.settings.set('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR, true);
 
         expect(Hooks.callAll).toHaveBeenCalledWith(
           'seasons-stars:settingsChanged',
-          'miniWidgetShowYear'
+          SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR
         );
       });
     });
 
     describe('Year String Formatting', () => {
       it('should format year with both prefix and suffix', async () => {
-        mockSettings.set('seasons-and-stars.miniWidgetShowYear', true);
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, true);
 
         const context = await widget._prepareContext({});
 
@@ -995,7 +998,7 @@ describe('CalendarMiniWidget - Feature Integration Tests', () => {
       });
 
       it('should format year with suffix only', async () => {
-        mockSettings.set('seasons-and-stars.miniWidgetShowYear', true);
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, true);
         const mockDateNoPrefix = new CalendarDate(
           {
             year: 2024,
@@ -1015,7 +1018,7 @@ describe('CalendarMiniWidget - Feature Integration Tests', () => {
       });
 
       it('should format year with no prefix or suffix', async () => {
-        mockSettings.set('seasons-and-stars.miniWidgetShowYear', true);
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, true);
         const mockCalendarNoPrefixSuffix = {
           ...mockCalendarWithYear,
           year: { ...mockCalendarWithYear.year, prefix: '', suffix: '' },
@@ -1041,7 +1044,7 @@ describe('CalendarMiniWidget - Feature Integration Tests', () => {
       });
 
       it('should not add extra spaces when prefix has trailing space', async () => {
-        mockSettings.set('seasons-and-stars.miniWidgetShowYear', true);
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, true);
         const mockCalendarWithTrailingSpace = {
           ...mockCalendarWithYear,
           year: { ...mockCalendarWithYear.year, prefix: 'Year ' },
@@ -1067,7 +1070,7 @@ describe('CalendarMiniWidget - Feature Integration Tests', () => {
       });
 
       it('should return empty string when year display is disabled', async () => {
-        mockSettings.set('seasons-and-stars.miniWidgetShowYear', false);
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, false);
 
         const context = await widget._prepareContext({});
 
@@ -1078,11 +1081,13 @@ describe('CalendarMiniWidget - Feature Integration Tests', () => {
     describe('Context Menu Toggle', () => {
       it('should toggle year display setting through context menu', async () => {
         registerSettings();
-        mockSettings.set('seasons-and-stars.miniWidgetShowYear', false);
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, false);
 
-        await game.settings.set('seasons-and-stars', 'miniWidgetShowYear', true);
+        await game.settings.set('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR, true);
 
-        expect(mockSettings.get('seasons-and-stars.miniWidgetShowYear')).toBe(true);
+        expect(mockSettings.get(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`)).toBe(
+          true
+        );
       });
     });
   });

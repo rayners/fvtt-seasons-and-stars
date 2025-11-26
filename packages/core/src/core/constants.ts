@@ -55,6 +55,7 @@ export const HOOK_NAMES = {
 // Note: Only includes settings added/modified in current work to keep PR scope focused
 export const SETTINGS_KEYS = {
   MINI_WIDGET_SHOW_SUNRISE_SUNSET: 'miniWidgetShowSunriseSunset',
+  MINI_WIDGET_SHOW_YEAR: 'miniWidgetShowYear',
 } as const;
 
 // UI constants for consistent styling

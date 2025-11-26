@@ -171,7 +171,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     }
 
     // Check if year should be displayed in mini widget
-    const showYear = game.settings?.get('seasons-and-stars', 'miniWidgetShowYear') || false;
+    const showYear =
+      game.settings?.get('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR) || false;
 
     // Build year string with prefix/suffix when enabled
     let yearDisplay = '';
@@ -705,9 +706,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
         icon: '<i class="fas fa-calendar-alt"></i>',
         callback: async () => {
           const currentValue = Boolean(
-            game.settings?.get('seasons-and-stars', 'miniWidgetShowYear')
+            game.settings?.get('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR)
           );
-          await game.settings?.set('seasons-and-stars', 'miniWidgetShowYear', !currentValue);
+          await game.settings?.set(
+            'seasons-and-stars',
+            SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR,
+            !currentValue
+          );
           await this.render();
         },
       },

@@ -721,14 +721,14 @@ function registerSettings(): void {
     },
   });
 
-  game.settings.register('seasons-and-stars', 'miniWidgetShowYear', {
+  game.settings.register('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR, {
     name: 'Display Year in Mini Widget',
     scope: 'client',
     config: false,
     type: Boolean,
     default: false,
     onChange: () => {
-      Hooks.callAll('seasons-stars:settingsChanged', 'miniWidgetShowYear');
+      Hooks.callAll('seasons-stars:settingsChanged', SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR);
     },
   });
 
