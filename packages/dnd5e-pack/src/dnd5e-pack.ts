@@ -69,6 +69,8 @@ export class SeasonsStarsCalendarData5e {
   config: Record<string, unknown>;
   private sunriseSeconds: number;
   private sunsetSeconds: number;
+  private secondsInMinute: number;
+  private minutesInHour: number;
 
   constructor(config: Record<string, unknown>) {
     this.config = config;
@@ -77,15 +79,21 @@ export class SeasonsStarsCalendarData5e {
     const sunrise = config.sunrise as { hour: number; minute?: number } | undefined;
     const sunset = config.sunset as { hour: number; minute?: number } | undefined;
 
+    // Extract time constants from config (calendar-dependent)
+    const timeConfig = config.timeConfig as { secondsInMinute?: number; minutesInHour?: number } | undefined;
+    this.secondsInMinute = timeConfig?.secondsInMinute ?? 60;
+    this.minutesInHour = timeConfig?.minutesInHour ?? 60;
+
     // Default to 6:00 AM / 6:00 PM if not specified
     const sunriseHour = sunrise?.hour ?? 6;
     const sunriseMinute = sunrise?.minute ?? 0;
     const sunsetHour = sunset?.hour ?? 18;
     const sunsetMinute = sunset?.minute ?? 0;
 
-    // Convert to seconds since midnight
-    this.sunriseSeconds = sunriseHour * 3600 + sunriseMinute * 60;
-    this.sunsetSeconds = sunsetHour * 3600 + sunsetMinute * 60;
+    // Convert to seconds since midnight using calendar-specific constants
+    const secondsInHour = this.minutesInHour * this.secondsInMinute;
+    this.sunriseSeconds = sunriseHour * secondsInHour + sunriseMinute * this.secondsInMinute;
+    this.sunsetSeconds = sunsetHour * secondsInHour + sunsetMinute * this.secondsInMinute;
   }
 
   /**
@@ -181,7 +189,10 @@ export class DnD5eIntegration {
    * Handle calendar change events from Seasons & Stars
    */
   private handleCalendarChanged(hookData: { calendarId: string; calendar: SeasonsStarsCalendar }): void {
-    if (!hookData?.calendar) return;
+    if (!hookData?.calendar?.id) {
+      console.warn('Seasons & Stars D&D 5e Pack: Invalid calendar data in hook', hookData);
+      return;
+    }
 
     // Register the new calendar with dnd5e
     this.registerCalendar(hookData.calendar);
@@ -238,6 +249,10 @@ export class DnD5eIntegration {
     const calendarClassConfig = {
       sunrise: calendar.time?.sunrise,
       sunset: calendar.time?.sunset,
+      timeConfig: {
+        secondsInMinute: calendar.time?.secondsInMinute,
+        minutesInHour: calendar.time?.minutesInHour,
+      },
       calendarId: calendar.id,
     };
 
@@ -313,7 +328,8 @@ export class DnD5eIntegration {
       const monthName = calendar?.months[date.month - 1]?.name || `Month ${date.month}`;
 
       return `${date.day} ${monthName}, ${date.year}`;
-    } catch {
+    } catch (error) {
+      console.warn('Seasons & Stars D&D 5e Pack: Error formatting date', error);
       return 'Unknown Date';
     }
   }
@@ -330,7 +346,8 @@ export class DnD5eIntegration {
       const minute = date.time.minute.toString().padStart(2, '0');
 
       return `${hour}:${minute}`;
-    } catch {
+    } catch (error) {
+      console.warn('Seasons & Stars D&D 5e Pack: Error formatting time', error);
       return 'Unknown Time';
     }
   }
@@ -449,14 +466,21 @@ Hooks.on(
 
 // Also initialize during dnd5e.setupCalendar hook for early registration
 Hooks.on('dnd5e.setupCalendar', () => {
-  // Check if seasons-stars is loaded
-  if (typeof game !== 'undefined' && game.modules?.get('seasons-and-stars')?.active) {
-    console.log(
-      'Seasons & Stars D&D 5e Pack: dnd5e.setupCalendar hook fired - preparing integration'
-    );
-    // Integration will be fully initialized when seasons-stars:dnd5e:systemDetected fires
+  const seasonsStarsModule = (typeof game !== 'undefined') ? game.modules?.get('seasons-and-stars') : null;
+  if (!seasonsStarsModule?.active) {
+    console.warn('Seasons & Stars D&D 5e Pack: Seasons & Stars not loaded during setupCalendar hook');
+    return undefined;
   }
-  // Return undefined to allow normal calendar initialization
+
+  console.log(
+    'Seasons & Stars D&D 5e Pack: dnd5e.setupCalendar hook fired - preparing integration'
+  );
+
+  // Ensure integration is initialized even if systemDetected hasn't fired yet
+  if (!DnD5eIntegration.getInstance()) {
+    DnD5eIntegration.initialize();
+  }
+
   return undefined;
 });
 
@@ -464,8 +488,50 @@ Hooks.on('dnd5e.setupCalendar', () => {
 Hooks.once('ready', () => {
   console.log('Seasons & Stars D&D 5e Pack: Module loaded and ready');
 
+  // Validate version requirements
+  const seasonsStarsModule = game.modules?.get('seasons-and-stars');
+  const seasonsStarsVersion = seasonsStarsModule?.version;
+  const dnd5eVersion = game.system?.version;
+
+  if (seasonsStarsModule?.active && seasonsStarsVersion && isVersionLessThan(seasonsStarsVersion, '0.8.0')) {
+    const message = 'Seasons & Stars D&D 5e Pack requires Seasons & Stars v0.8.0 or later';
+    console.error(message);
+    if (typeof ui !== 'undefined' && ui.notifications) {
+      ui.notifications.error(message);
+    }
+    return;
+  }
+
+  if (game.system?.id === 'dnd5e' && dnd5eVersion && isVersionLessThan(dnd5eVersion, '4.0.0')) {
+    const message = 'Seasons & Stars D&D 5e Pack requires D&D 5e System v4.0.0 or later';
+    console.error(message);
+    if (typeof ui !== 'undefined' && ui.notifications) {
+      ui.notifications.error(message);
+    }
+    return;
+  }
+
   // If dnd5e system is active but systemDetected hasn't fired, initialize now
   if (game.system?.id === 'dnd5e' && !DnD5eIntegration.getInstance()) {
     DnD5eIntegration.initialize();
   }
 });
+
+/**
+ * Compare semantic versions (simple implementation)
+ * Returns true if version1 < version2
+ */
+function isVersionLessThan(version1: string, version2: string): boolean {
+  const v1Parts = version1.split('.').map(Number);
+  const v2Parts = version2.split('.').map(Number);
+
+  for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+    const v1Part = v1Parts[i] || 0;
+    const v2Part = v2Parts[i] || 0;
+
+    if (v1Part < v2Part) return true;
+    if (v1Part > v2Part) return false;
+  }
+
+  return false;
+}
