@@ -1,0 +1,53 @@
+{
+  "name": "seasons-and-stars-dnd5e",
+  "version": "0.1.0",
+  "description": "D&D 5th Edition integration pack for Seasons & Stars - integrates with the dnd5e system calendar API",
+  "type": "module",
+  "calendar-pack": {
+    "type": "system-integration",
+    "name": "D&D 5e Pack",
+    "description": "D&D 5th Edition integration with dnd5e system calendar API",
+    "tags": [
+      "dnd5e",
+      "dnd",
+      "5e",
+      "system-integration"
+    ]
+  },
+  "main": "dist/module.js",
+  "scripts": {
+    "prebuild": "node ../../scripts/generate-calendar-list.js dnd5e-pack",
+    "build": "rollup -c ../../rollup.config.dnd5e-pack.js",
+    "watch": "rollup -c ../../rollup.config.dnd5e-pack.js -w",
+    "typecheck": "tsc --noEmit",
+    "test": "cd ../../ && vitest --config vitest.config.ts packages/dnd5e-pack/test",
+    "test:ui": "cd ../../ && vitest --ui --config vitest.config.ts packages/dnd5e-pack/test",
+    "test:run": "cd ../../ && vitest run --config vitest.config.ts packages/dnd5e-pack/test",
+    "prevalidate:calendars": "node ../../scripts/generate-calendar-list.js dnd5e-pack",
+    "validate:calendars": "tsx ../../packages/core/scripts/validate-calendars.ts"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@rayners/foundry-dev-tools": "^1.6.1",
+    "@rayners/foundry-test-utils": "^1.1.1",
+    "rollup": "^4.24.0",
+    "rollup-plugin-copy": "^3.4.0",
+    "tslib": "^2.5.0",
+    "typescript": "^5.0.4",
+    "vitest": "^3.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rayners/fvtt-seasons-and-stars.git",
+    "directory": "packages/dnd5e-pack"
+  },
+  "bugs": {
+    "url": "https://github.com/rayners/fvtt-seasons-and-stars/issues"
+  },
+  "homepage": "https://github.com/rayners/fvtt-seasons-and-stars#readme",
+  "author": "David Raynes",
+  "license": "MIT"
+}

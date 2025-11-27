@@ -880,6 +880,7 @@ interface FoundryNamespace {
   utils: {
     deepClone<T>(obj: T): T;
     mergeObject<T, U>(original: T, other: U, options?: any): T & U;
+    isNewerVersion(v1: string, v0: string): boolean;
   };
 }
 

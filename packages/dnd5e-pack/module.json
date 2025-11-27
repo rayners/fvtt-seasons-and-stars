@@ -1,0 +1,48 @@
+{
+  "id": "seasons-and-stars-dnd5e",
+  "title": "Seasons & Stars - D&D 5e Pack",
+  "description": "D&D 5th Edition integration pack for Seasons & Stars - integrates with the dnd5e system calendar API for seamless date/time display coordination",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "David Raynes",
+      "email": "rayners@gmail.com",
+      "discord": "rayners78",
+      "github": "rayners"
+    }
+  ],
+  "esmodules": [
+    "dnd5e-pack.js"
+  ],
+  "relationships": {
+    "requires": [
+      {
+        "id": "seasons-and-stars",
+        "type": "module",
+        "compatibility": {
+          "minimum": "0.8.0"
+        }
+      }
+    ],
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "4.0.0"
+        }
+      }
+    ]
+  },
+  "url": "https://github.com/rayners/fvtt-seasons-and-stars",
+  "manifest": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.json",
+  "download": "https://github.com/rayners/fvtt-seasons-and-stars/releases/latest/download/module.zip",
+  "readme": "https://github.com/rayners/fvtt-seasons-and-stars/blob/main/README_FOUNDRY.md",
+  "license": "https://github.com/rayners/fvtt-seasons-and-stars/blob/main/LICENSE",
+  "bugs": "https://github.com/rayners/fvtt-seasons-and-stars/issues",
+  "changelog": "https://github.com/rayners/fvtt-seasons-and-stars/blob/main/CHANGELOG.md"
+}
