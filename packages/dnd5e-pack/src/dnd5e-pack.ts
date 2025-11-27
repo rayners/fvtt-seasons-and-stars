@@ -493,7 +493,7 @@ Hooks.once('ready', () => {
   const seasonsStarsVersion = seasonsStarsModule?.version;
   const dnd5eVersion = game.system?.version;
 
-  if (seasonsStarsModule?.active && seasonsStarsVersion && isVersionLessThan(seasonsStarsVersion, '0.8.0')) {
+  if (seasonsStarsModule?.active && seasonsStarsVersion && foundry.utils.isNewerVersion('0.8.0', seasonsStarsVersion)) {
     const message = 'Seasons & Stars D&D 5e Pack requires Seasons & Stars v0.8.0 or later';
     console.error(message);
     if (typeof ui !== 'undefined' && ui.notifications) {
@@ -502,7 +502,7 @@ Hooks.once('ready', () => {
     return;
   }
 
-  if (game.system?.id === 'dnd5e' && dnd5eVersion && isVersionLessThan(dnd5eVersion, '4.0.0')) {
+  if (game.system?.id === 'dnd5e' && dnd5eVersion && foundry.utils.isNewerVersion('4.0.0', dnd5eVersion)) {
     const message = 'Seasons & Stars D&D 5e Pack requires D&D 5e System v4.0.0 or later';
     console.error(message);
     if (typeof ui !== 'undefined' && ui.notifications) {
@@ -516,22 +516,3 @@ Hooks.once('ready', () => {
     DnD5eIntegration.initialize();
   }
 });
-
-/**
- * Compare semantic versions (simple implementation)
- * Returns true if version1 < version2
- */
-function isVersionLessThan(version1: string, version2: string): boolean {
-  const v1Parts = version1.split('.').map(Number);
-  const v2Parts = version2.split('.').map(Number);
-
-  for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
-    const v1Part = v1Parts[i] || 0;
-    const v2Part = v2Parts[i] || 0;
-
-    if (v1Part < v2Part) return true;
-    if (v1Part > v2Part) return false;
-  }
-
-  return false;
-}
