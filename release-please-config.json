@@ -74,6 +74,21 @@
           "jsonpath": "$.version"
         }
       ]
+    },
+    "packages/dnd5e-pack": {
+      "package-name": "seasons-and-stars-dnd5e",
+      "release-type": "simple",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": false,
+      "draft": false,
+      "prerelease": false,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "module.json",
+          "jsonpath": "$.version"
+        }
+      ]
     }
   },
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"

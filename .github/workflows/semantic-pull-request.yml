@@ -59,6 +59,7 @@ jobs:
             fantasy-pack
             scifi-pack
             pf2e-pack
+            dnd5e-pack
             calendar-builder
             golarion
             monorepo
@@ -66,5 +67,3 @@ jobs:
             actions
             events
             main
-
-
