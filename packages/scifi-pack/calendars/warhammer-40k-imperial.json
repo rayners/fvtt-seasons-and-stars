@@ -1,0 +1,166 @@
+{
+  "id": "warhammer-40k-imperial",
+  "translations": {
+    "en": {
+      "label": "Imperial Dating System (Warhammer 40K)",
+      "description": "The Imperial Dating System used throughout the Imperium of Man in Warhammer 40,000, based on the ancient Terran calendar with specialized formatting for administrative purposes",
+      "setting": "Warhammer 40,000"
+    }
+  },
+  "sources": [
+    "https://wh40k.lexicanum.com/wiki/Imperial_Dating_System",
+    "https://warhammer40k.fandom.com/wiki/Imperial_Dating_System"
+  ],
+
+  "year": {
+    "epoch": 0,
+    "currentYear": 41999,
+    "prefix": "",
+    "suffix": "",
+    "startDay": 6
+  },
+
+  "leapYear": {
+    "rule": "gregorian",
+    "month": "February",
+    "extraDays": 1
+  },
+
+  "months": [
+    {
+      "name": "January",
+      "abbreviation": "Jan",
+      "days": 31,
+      "description": "First month of the Terran standard year"
+    },
+    {
+      "name": "February",
+      "abbreviation": "Feb",
+      "days": 28,
+      "description": "Second month of the Terran standard year"
+    },
+    {
+      "name": "March",
+      "abbreviation": "Mar",
+      "days": 31,
+      "description": "Third month of the Terran standard year"
+    },
+    {
+      "name": "April",
+      "abbreviation": "Apr",
+      "days": 30,
+      "description": "Fourth month of the Terran standard year"
+    },
+    {
+      "name": "May",
+      "abbreviation": "May",
+      "days": 31,
+      "description": "Fifth month of the Terran standard year"
+    },
+    {
+      "name": "June",
+      "abbreviation": "Jun",
+      "days": 30,
+      "description": "Sixth month of the Terran standard year"
+    },
+    {
+      "name": "July",
+      "abbreviation": "Jul",
+      "days": 31,
+      "description": "Seventh month of the Terran standard year"
+    },
+    {
+      "name": "August",
+      "abbreviation": "Aug",
+      "days": 31,
+      "description": "Eighth month of the Terran standard year"
+    },
+    {
+      "name": "September",
+      "abbreviation": "Sep",
+      "days": 30,
+      "description": "Ninth month of the Terran standard year"
+    },
+    {
+      "name": "October",
+      "abbreviation": "Oct",
+      "days": 31,
+      "description": "Tenth month of the Terran standard year"
+    },
+    {
+      "name": "November",
+      "abbreviation": "Nov",
+      "days": 30,
+      "description": "Eleventh month of the Terran standard year"
+    },
+    {
+      "name": "December",
+      "abbreviation": "Dec",
+      "days": 31,
+      "description": "Twelfth month of the Terran standard year"
+    }
+  ],
+
+  "weekdays": [
+    {
+      "name": "Sunday",
+      "abbreviation": "Sun",
+      "description": "First day of the Terran week"
+    },
+    {
+      "name": "Monday",
+      "abbreviation": "Mon",
+      "description": "Second day of the Terran week"
+    },
+    {
+      "name": "Tuesday",
+      "abbreviation": "Tue",
+      "description": "Third day of the Terran week"
+    },
+    {
+      "name": "Wednesday",
+      "abbreviation": "Wed",
+      "description": "Fourth day of the Terran week"
+    },
+    {
+      "name": "Thursday",
+      "abbreviation": "Thu",
+      "description": "Fifth day of the Terran week"
+    },
+    {
+      "name": "Friday",
+      "abbreviation": "Fri",
+      "description": "Sixth day of the Terran week"
+    },
+    {
+      "name": "Saturday",
+      "abbreviation": "Sat",
+      "description": "Seventh day of the Terran week"
+    }
+  ],
+
+  "intercalary": [],
+
+  "time": {
+    "hoursInDay": 24,
+    "minutesInHour": 60,
+    "secondsInMinute": 60
+  },
+
+  "dateFormats": {
+    "terran": "{{ss-month format=\"name\"}} {{ss-day}}, {{year}}",
+    "standard": "{{ss-month format=\"abbr\"}} {{ss-day}}, {{year}}",
+    "short": "{{ss-month format=\"abbr\"}} {{ss-day}}",
+    "long": "{{ss-weekday format=\"name\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}}, {{year}}",
+    "date": "{{ss-weekday format=\"name\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}}, {{year}}",
+    "time": "{{ss-hour format=\"pad\"}}:{{ss-minute format=\"pad\"}}:{{ss-second format=\"pad\"}}",
+    "datetime": "{{ss-dateFmt \"date\"}} at {{ss-dateFmt \"time\"}} Terran Standard",
+    "formal": "The {{ss-day format=\"ordinal\"}} day of {{ss-month format=\"name\"}}, {{year}}",
+
+    "widgets": {
+      "mini": "M{{ss-math year op=\"divide\" value=1000}}.{{ss-math year op=\"modulo\" value=1000}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-month format=\"name\"}} {{ss-day format=\"ordinal\"}}",
+      "grid": "{{ss-day}}"
+    }
+  }
+}
