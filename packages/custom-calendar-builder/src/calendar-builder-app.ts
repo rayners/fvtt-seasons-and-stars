@@ -664,6 +664,37 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     input.click();
   }
 
+  /**
+   * Import JSON from external source (e.g., compat module)
+   * Public method that can be called by other modules
+   *
+   * @param jsonString - The JSON string to import
+   * @param source - The source of the import (e.g., 'simple-calendar')
+   */
+  public async importFromExternal(jsonString: string, source: string): Promise<void> {
+    // Parse to validate JSON first
+    const data = JSON.parse(jsonString);
+
+    // Check for Simple Calendar format
+    if (await this._detectAndHandleSimpleCalendar(data, jsonString, `${source}-import`)) {
+      // Already handled by _detectAndHandleSimpleCalendar
+      return;
+    }
+
+    // Set the JSON content
+    this.currentJson = jsonString;
+
+    // Trigger validation
+    await this._validateCurrentJson();
+
+    // Render only if not already visible
+    if (!this.rendered) {
+      this.render(true);
+    }
+
+    this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
+  }
+
   private async _handleImportedJson(text: string, filename?: string): Promise<void> {
     const data = JSON.parse(text);
 
@@ -730,8 +761,28 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
         : await this._selectCalendar(scExport.calendars);
     }
 
-    const converter = new SimpleCalendarConverter();
-    const result = converter.convert(calendarToConvert, filename);
+    // Try to use compat module's converter first, fall back to builtin
+    let result: any;
+    let converter: any;
+
+    try {
+      // Check for compat module's converter
+      const compatModule = (game as any)?.modules?.get('foundryvtt-simple-calendar-compat');
+      if (compatModule?.active && compatModule.api?.getConverter) {
+        converter = compatModule.api.getConverter();
+        result = converter.convert(calendarToConvert, filename);
+      } else {
+        // Fall back to builtin converter
+        converter = new SimpleCalendarConverter();
+        result = converter.convert(calendarToConvert, filename);
+      }
+    } catch (error) {
+      // If compat converter fails, warn and fall back to builtin
+      console.warn('Compat module converter failed, falling back to builtin:', error);
+      this._notify('Compat converter failed, using builtin converter', 'warn');
+      converter = new SimpleCalendarConverter();
+      result = converter.convert(calendarToConvert, filename);
+    }
 
     this.currentJson = JSON.stringify(result.calendar, null, 2);
     this.render(true);
