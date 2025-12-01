@@ -142,6 +142,273 @@
     "secondsInMinute": 60
   },
 
+  "moons": [
+    {
+      "name": "Zarantyr",
+      "cycleLength": 28,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 1
+      },
+      "color": "#4a90e2",
+      "phases": [
+        { "name": "New Moon", "length": 3.5, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 3.5, "icon": "🌒" },
+        { "name": "First Quarter", "length": 3.5, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 3.5, "icon": "🌔" },
+        { "name": "Full Moon", "length": 3.5, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 3.5, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 3.5, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 3.5, "icon": "🌘" }
+      ]
+    },
+    {
+      "name": "Olarune",
+      "cycleLength": 35,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 3
+      },
+      "color": "#8b4789",
+      "phases": [
+        { "name": "New Moon", "length": 4.375, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 4.375, "icon": "🌒" },
+        { "name": "First Quarter", "length": 4.375, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 4.375, "icon": "🌔" },
+        { "name": "Full Moon", "length": 4.375, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 4.375, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 4.375, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 4.375, "icon": "🌘" }
+      ]
+    },
+    {
+      "name": "Therendor",
+      "cycleLength": 42,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 5
+      },
+      "color": "#50c878",
+      "phases": [
+        { "name": "New Moon", "length": 5.25, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 5.25, "icon": "🌒" },
+        { "name": "First Quarter", "length": 5.25, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 5.25, "icon": "🌔" },
+        { "name": "Full Moon", "length": 5.25, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 5.25, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 5.25, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 5.25, "icon": "🌘" }
+      ]
+    },
+    {
+      "name": "Eyre",
+      "cycleLength": 56,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 7
+      },
+      "color": "#ffa500",
+      "phases": [
+        { "name": "New Moon", "length": 7, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 7, "icon": "🌒" },
+        { "name": "First Quarter", "length": 7, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 7, "icon": "🌔" },
+        { "name": "Full Moon", "length": 7, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 7, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 7, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 7, "icon": "🌘" }
+      ]
+    },
+    {
+      "name": "Dravago",
+      "cycleLength": 84,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 10
+      },
+      "color": "#8b7355",
+      "phases": [
+        { "name": "New Moon", "length": 10.5, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 10.5, "icon": "🌒" },
+        { "name": "First Quarter", "length": 10.5, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 10.5, "icon": "🌔" },
+        { "name": "Full Moon", "length": 10.5, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 10.5, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 10.5, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 10.5, "icon": "🌘" }
+      ]
+    },
+    {
+      "name": "Nymm",
+      "cycleLength": 112,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 12
+      },
+      "color": "#ffc0cb",
+      "phases": [
+        { "name": "New Moon", "length": 14, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 14, "icon": "🌒" },
+        { "name": "First Quarter", "length": 14, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 14, "icon": "🌔" },
+        { "name": "Full Moon", "length": 14, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 14, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 14, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 14, "icon": "🌘" }
+      ]
+    },
+    {
+      "name": "Lharvion",
+      "cycleLength": 140,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 15
+      },
+      "color": "#9370db",
+      "phases": [
+        { "name": "New Moon", "length": 17.5, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 17.5, "icon": "🌒" },
+        { "name": "First Quarter", "length": 17.5, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 17.5, "icon": "🌔" },
+        { "name": "Full Moon", "length": 17.5, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 17.5, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 17.5, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 17.5, "icon": "🌘" }
+      ]
+    },
+    {
+      "name": "Barrakas",
+      "cycleLength": 168,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 18
+      },
+      "color": "#dc143c",
+      "phases": [
+        { "name": "New Moon", "length": 21, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 21, "icon": "🌒" },
+        { "name": "First Quarter", "length": 21, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 21, "icon": "🌔" },
+        { "name": "Full Moon", "length": 21, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 21, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 21, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 21, "icon": "🌘" }
+      ]
+    },
+    {
+      "name": "Rhaan",
+      "cycleLength": 224,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 20
+      },
+      "color": "#4682b4",
+      "phases": [
+        { "name": "New Moon", "length": 28, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 28, "icon": "🌒" },
+        { "name": "First Quarter", "length": 28, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 28, "icon": "🌔" },
+        { "name": "Full Moon", "length": 28, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 28, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 28, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 28, "icon": "🌘" }
+      ]
+    },
+    {
+      "name": "Sypheros",
+      "cycleLength": 280,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 23
+      },
+      "color": "#2f4f4f",
+      "phases": [
+        { "name": "New Moon", "length": 35, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 35, "icon": "🌒" },
+        { "name": "First Quarter", "length": 35, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 35, "icon": "🌔" },
+        { "name": "Full Moon", "length": 35, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 35, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 35, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 35, "icon": "🌘" }
+      ]
+    },
+    {
+      "name": "Aryth",
+      "cycleLength": 336,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 25
+      },
+      "color": "#20b2aa",
+      "phases": [
+        { "name": "New Moon", "length": 42, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 42, "icon": "🌒" },
+        { "name": "First Quarter", "length": 42, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 42, "icon": "🌔" },
+        { "name": "Full Moon", "length": 42, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 42, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 42, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 42, "icon": "🌘" }
+      ]
+    },
+    {
+      "name": "Vult",
+      "cycleLength": 672,
+      "firstNewMoon": {
+        "year": 998,
+        "month": 1,
+        "day": 27
+      },
+      "color": "#708090",
+      "phases": [
+        { "name": "New Moon", "length": 84, "icon": "🌑" },
+        { "name": "Waxing Crescent", "length": 84, "icon": "🌒" },
+        { "name": "First Quarter", "length": 84, "icon": "🌓" },
+        { "name": "Waxing Gibbous", "length": 84, "icon": "🌔" },
+        { "name": "Full Moon", "length": 84, "icon": "🌕" },
+        { "name": "Waning Gibbous", "length": 84, "icon": "🌖" },
+        { "name": "Last Quarter", "length": 84, "icon": "🌗" },
+        { "name": "Waning Crescent", "length": 84, "icon": "🌘" }
+      ]
+    }
+  ],
+
+  "variants": {
+    "with-moons": {
+      "name": "Eberron Calendar with Moons",
+      "description": "The standard Eberron calendar featuring the twelve moons that orbit the world, each associated with a dragonmark and month",
+      "default": true,
+      "overrides": {
+        "dateFormats": {
+          "moon-phase": "{{ss-moon-phase}}{{#if (ss-moon-phase)}} - {{/if}}{{ss-dateFmt 'date'}}",
+          "widgets": {
+            "mini": "{{ss-month format='abbr'}} {{ss-day}}{{#if (ss-moon-phase)}} {{ss-moon-phase format='icon'}}{{/if}}",
+            "main": "{{ss-weekday format='abbr'}}, {{ss-day format='ordinal'}} {{ss-month format='name'}}{{#if (ss-moon-phase)}} - {{ss-moon-phase}}{{/if}}"
+          }
+        }
+      }
+    },
+    "no-moons": {
+      "name": "Eberron Calendar (Simple)",
+      "description": "The standard Eberron calendar without moon tracking",
+      "overrides": {
+        "moons": []
+      }
+    }
+  },
+
   "dateFormats": {
     "iso": "{{year}}-{{ss-month format=\"pad\"}}-{{ss-day format=\"pad\"}}",
     "short": "{{ss-month format=\"abbr\"}} {{ss-day}}",
