@@ -374,7 +374,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (!(key in current) || typeof current[key] !== 'object' || current[key] === null) {
-        if (!isNaN(Number(keys[i + 1]))) {
+        if (i + 1 < keys.length && !isNaN(Number(keys[i + 1]))) {
           current[key] = [];
         } else {
           current[key] = {};
@@ -517,6 +517,16 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     // For now, use ui.notifications as ApplicationV2 doesn't have built-in notifications
     // In future versions we could create a custom notification area within the app
     ui.notifications?.[type](message);
+  }
+
+  /**
+   * Update the CodeMirror editor with new JSON content
+   */
+  private _updateCodeMirror(json: string): void {
+    const codeMirror = this.element?.querySelector('#calendar-json-editor') as HTMLElement & { value: string };
+    if (codeMirror) {
+      codeMirror.value = json;
+    }
   }
 
   /**
@@ -834,11 +844,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     });
 
     this.currentJson = JSON.stringify(calendar, null, 2);
-
-    const codeMirror = this.element?.querySelector('#calendar-json-editor') as HTMLElement & { value: string };
-    if (codeMirror) {
-      codeMirror.value = this.currentJson;
-    }
+    this._updateCodeMirror(this.currentJson);
 
     this.render(true);
     this._validateCurrentJson();
@@ -863,7 +869,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     calendar.weekdays.splice(index, 1);
 
     if (!calendar.year) {
-      calendar.year = { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 };
+      calendar.year = { startDay: 0 } as SeasonsStarsCalendar['year'];
     }
 
     if (currentStartDay === index) {
@@ -873,11 +879,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     }
 
     this.currentJson = JSON.stringify(calendar, null, 2);
-
-    const codeMirror = this.element?.querySelector('#calendar-json-editor') as HTMLElement & { value: string };
-    if (codeMirror) {
-      codeMirror.value = this.currentJson;
-    }
+    this._updateCodeMirror(this.currentJson);
 
     this.render(true);
     this._validateCurrentJson();
