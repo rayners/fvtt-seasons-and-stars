@@ -3,10 +3,12 @@
  */
 
 /// <reference types="../../core/src/types/foundry-v13-essentials" />
+/// <reference types="../../core/src/types/foundry-extensions" />
 
 import { SimpleCalendarConverter } from './simple-calendar-converter';
 import type { SimpleCalendarExport, SimpleCalendarData } from './simple-calendar-types';
 import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
+import type { CalendarManagerInterface } from '../../core/src/types/foundry-extensions';
 
 export class CalendarBuilderApp extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -663,8 +665,13 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   async _onLoadCurrentCalendar(_event: Event, _target: HTMLElement): Promise<void> {
     try {
       // Get the active calendar from the manager
-      const activeCalendar = (game as any).seasonsStars?.manager?.getActiveCalendar();
+      const manager = game.seasonsStars?.manager as CalendarManagerInterface | undefined;
+      if (!manager) {
+        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_current_calendar'), 'warn');
+        return;
+      }
 
+      const activeCalendar = manager.getActiveCalendar();
       if (!activeCalendar) {
         this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_current_calendar'), 'warn');
         return;
@@ -687,12 +694,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       // The in-memory calendar might be stale if the file was updated
 
       // Use CalendarLoader to handle module URLs and fetch logic
-      const manager = (game as any).seasonsStars?.manager;
-      const loader = manager?.getCalendarLoader();
-
-      if (!loader) {
-        throw new Error('CalendarLoader not available');
-      }
+      const loader = manager.getCalendarLoader();
 
       const result = await loader.loadFromUrl(sourceUrl, { validate: false });
 
