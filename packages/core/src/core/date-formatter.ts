@@ -990,10 +990,9 @@ export class DateFormatter {
           const halfDay = Math.floor(hoursInDay / 2);
           const hourInHalf = h % halfDay;
           const hour12 = hourInHalf === 0 ? halfDay : hourInHalf;
-          const ampm =
-            h < halfDay
-              ? formatter.calendar.time.amPmNotation!.am
-              : formatter.calendar.time.amPmNotation!.pm;
+          // Type assertion: we know amPmNotation exists because has12HourSupport checked it
+          const amPmNotation = formatter.calendar.time.amPmNotation!;
+          const ampm = h < halfDay ? amPmNotation.am : amPmNotation.pm;
           return `${hour12}:${m.toString().padStart(2, '0')} ${ampm}`;
         }
 
