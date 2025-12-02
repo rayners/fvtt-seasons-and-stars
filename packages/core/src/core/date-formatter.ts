@@ -7,6 +7,7 @@ import { CalendarDate } from './calendar-date';
 import type { SeasonsStarsCalendar, CalendarWeek, CalendarDateData } from '../types/calendar';
 import { renderIconHtml } from './constants';
 import { CalendarEngine } from './calendar-engine';
+import { Logger } from './logger';
 
 export class DateFormatter {
   private calendar: SeasonsStarsCalendar;
@@ -660,8 +661,8 @@ export class DateFormatter {
       let weekNum: number | null = null;
       try {
         weekNum = formatter.getWeekOfMonth(dateData);
-      } catch {
-        // If getWeekOfMonth fails, fall through to backward compatibility
+      } catch (error) {
+        Logger.warn('ss-week helper: getWeekOfMonth failed', error);
         weekNum = null;
       }
 
@@ -683,8 +684,8 @@ export class DateFormatter {
       let weekInfo: CalendarWeek | null = null;
       try {
         weekInfo = formatter.getWeekInfo(dateData);
-      } catch {
-        // If getWeekInfo fails, weekInfo remains null
+      } catch (error) {
+        Logger.warn('ss-week helper: getWeekInfo failed', error);
         weekInfo = null;
       }
 
