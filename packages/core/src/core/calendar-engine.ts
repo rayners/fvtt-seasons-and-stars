@@ -1101,9 +1101,15 @@ export class CalendarEngine {
    * @private
    */
   private getOrdinalName(num: number): string {
+    const lastDigit = num % 10;
+    const lastTwoDigits = num % 100;
+
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+      return num + 'th';
+    }
+
     const suffixes = ['th', 'st', 'nd', 'rd'];
-    const v = num % 100;
-    return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+    return num + (suffixes[lastDigit] || suffixes[0]);
   }
 
   /**
