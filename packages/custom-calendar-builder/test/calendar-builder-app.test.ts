@@ -153,11 +153,11 @@ describe('CalendarBuilderApp', () => {
   });
 
   describe('context preparation', () => {
-    it('should prepare context with empty state initially', async () => {
+    it('should prepare context with default template initially', async () => {
       const context = await app._prepareContext();
 
-      expect(context.currentJson).toBe('');
-      expect(context.hasContent).toBe(false);
+      expect(context.currentJson).toContain('my-custom-calendar');
+      expect(context.hasContent).toBe(true);
       expect(context.validationResult).toBeNull();
     });
 
@@ -639,6 +639,303 @@ describe('CalendarBuilderApp', () => {
       expect(app['currentJson']).toContain('January');
       expect(app['currentJson']).not.toContain('second-calendar');
       expect(app['currentJson']).not.toContain('Month1');
+    });
+  });
+
+  describe('weekday management', () => {
+    describe('_onAddWeekday', () => {
+      it('should add a new weekday with default naming', async () => {
+        app['currentJson'] = JSON.stringify({
+          id: 'test',
+          weekdays: [
+            { name: 'Monday', abbreviation: 'Mon' },
+            { name: 'Tuesday', abbreviation: 'Tue' },
+          ],
+        });
+
+        const mockCodeMirror = { value: '' };
+        const mockElement = {
+          querySelector: vi.fn((selector: string) => {
+            if (selector === '#calendar-json-editor') return mockCodeMirror;
+            return null;
+          }),
+        };
+        app['element'] = mockElement as any;
+
+        await app._onAddWeekday(new Event('click'), mockElement as any);
+
+        const calendar = JSON.parse(app['currentJson']);
+        expect(calendar.weekdays).toHaveLength(3);
+        expect(calendar.weekdays[2]).toEqual({
+          name: 'Day 3',
+          abbreviation: 'D3',
+        });
+        expect(mockCodeMirror.value).toBe(app['currentJson']);
+      });
+
+      it('should initialize weekdays array if it does not exist', async () => {
+        app['currentJson'] = JSON.stringify({
+          id: 'test',
+        });
+
+        const mockCodeMirror = { value: '' };
+        const mockElement = {
+          querySelector: vi.fn((selector: string) => {
+            if (selector === '#calendar-json-editor') return mockCodeMirror;
+            return null;
+          }),
+        };
+        app['element'] = mockElement as any;
+
+        await app._onAddWeekday(new Event('click'), mockElement as any);
+
+        const calendar = JSON.parse(app['currentJson']);
+        expect(calendar.weekdays).toHaveLength(1);
+        expect(calendar.weekdays[0]).toEqual({
+          name: 'Day 1',
+          abbreviation: 'D1',
+        });
+      });
+
+      it('should warn if no calendar is loaded', async () => {
+        app['currentJson'] = '';
+
+        await app._onAddWeekday(new Event('click'), mockElement as any);
+
+        expect(mockUI.notifications.warn).toHaveBeenCalledWith(
+          'Please create or load a calendar first'
+        );
+      });
+
+      it('should update CodeMirror editor with new JSON', async () => {
+        app['currentJson'] = JSON.stringify({
+          id: 'test',
+          weekdays: [],
+        });
+
+        const mockCodeMirror = { value: '' };
+        const mockElement = {
+          querySelector: vi.fn((selector: string) => {
+            if (selector === '#calendar-json-editor') return mockCodeMirror;
+            return null;
+          }),
+        };
+        app['element'] = mockElement as any;
+
+        await app._onAddWeekday(new Event('click'), mockElement as any);
+
+        expect(mockCodeMirror.value).toBe(app['currentJson']);
+      });
+    });
+
+    describe('_onRemoveWeekday', () => {
+      it('should remove a weekday at specified index', async () => {
+        app['currentJson'] = JSON.stringify({
+          id: 'test',
+          weekdays: [
+            { name: 'Monday', abbreviation: 'Mon' },
+            { name: 'Tuesday', abbreviation: 'Tue' },
+            { name: 'Wednesday', abbreviation: 'Wed' },
+          ],
+          year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 },
+        });
+
+        const mockCodeMirror = { value: '' };
+        const mockElement = {
+          querySelector: vi.fn((selector: string) => {
+            if (selector === '#calendar-json-editor') return mockCodeMirror;
+            return null;
+          }),
+        };
+        app['element'] = mockElement as any;
+
+        const target = { dataset: { index: '1' } } as any;
+        await app._onRemoveWeekday(new Event('click'), target);
+
+        const calendar = JSON.parse(app['currentJson']);
+        expect(calendar.weekdays).toHaveLength(2);
+        expect(calendar.weekdays[0].name).toBe('Monday');
+        expect(calendar.weekdays[1].name).toBe('Wednesday');
+        expect(mockUI.notifications.info).toHaveBeenCalledWith('Removed weekday: Tuesday');
+      });
+
+      it('should prevent removing the last weekday', async () => {
+        app['currentJson'] = JSON.stringify({
+          id: 'test',
+          weekdays: [{ name: 'Monday', abbreviation: 'Mon' }],
+        });
+
+        const target = { dataset: { index: '0' } } as any;
+        await app._onRemoveWeekday(new Event('click'), target);
+
+        expect(mockUI.notifications.warn).toHaveBeenCalledWith('Cannot remove the last weekday');
+        const calendar = JSON.parse(app['currentJson']);
+        expect(calendar.weekdays).toHaveLength(1);
+      });
+
+      it('should adjust startDay to 0 when removing the selected weekday', async () => {
+        app['currentJson'] = JSON.stringify({
+          id: 'test',
+          weekdays: [
+            { name: 'Monday', abbreviation: 'Mon' },
+            { name: 'Tuesday', abbreviation: 'Tue' },
+            { name: 'Wednesday', abbreviation: 'Wed' },
+          ],
+          year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 1 },
+        });
+
+        const mockCodeMirror = { value: '' };
+        const mockElement = {
+          querySelector: vi.fn((selector: string) => {
+            if (selector === '#calendar-json-editor') return mockCodeMirror;
+            return null;
+          }),
+        };
+        app['element'] = mockElement as any;
+
+        const target = { dataset: { index: '1' } } as any;
+        await app._onRemoveWeekday(new Event('click'), target);
+
+        const calendar = JSON.parse(app['currentJson']);
+        expect(calendar.year.startDay).toBe(0);
+      });
+
+      it('should decrement startDay when removing weekday before selected weekday', async () => {
+        app['currentJson'] = JSON.stringify({
+          id: 'test',
+          weekdays: [
+            { name: 'Monday', abbreviation: 'Mon' },
+            { name: 'Tuesday', abbreviation: 'Tue' },
+            { name: 'Wednesday', abbreviation: 'Wed' },
+          ],
+          year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 2 },
+        });
+
+        const mockCodeMirror = { value: '' };
+        const mockElement = {
+          querySelector: vi.fn((selector: string) => {
+            if (selector === '#calendar-json-editor') return mockCodeMirror;
+            return null;
+          }),
+        };
+        app['element'] = mockElement as any;
+
+        const target = { dataset: { index: '0' } } as any;
+        await app._onRemoveWeekday(new Event('click'), target);
+
+        const calendar = JSON.parse(app['currentJson']);
+        expect(calendar.year.startDay).toBe(1);
+      });
+
+      it('should keep startDay unchanged when removing weekday after selected weekday', async () => {
+        app['currentJson'] = JSON.stringify({
+          id: 'test',
+          weekdays: [
+            { name: 'Monday', abbreviation: 'Mon' },
+            { name: 'Tuesday', abbreviation: 'Tue' },
+            { name: 'Wednesday', abbreviation: 'Wed' },
+          ],
+          year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 },
+        });
+
+        const mockCodeMirror = { value: '' };
+        const mockElement = {
+          querySelector: vi.fn((selector: string) => {
+            if (selector === '#calendar-json-editor') return mockCodeMirror;
+            return null;
+          }),
+        };
+        app['element'] = mockElement as any;
+
+        const target = { dataset: { index: '2' } } as any;
+        await app._onRemoveWeekday(new Event('click'), target);
+
+        const calendar = JSON.parse(app['currentJson']);
+        expect(calendar.year.startDay).toBe(0);
+      });
+
+      it('should initialize year object if it does not exist', async () => {
+        app['currentJson'] = JSON.stringify({
+          id: 'test',
+          weekdays: [
+            { name: 'Monday', abbreviation: 'Mon' },
+            { name: 'Tuesday', abbreviation: 'Tue' },
+          ],
+        });
+
+        const mockCodeMirror = { value: '' };
+        const mockElement = {
+          querySelector: vi.fn((selector: string) => {
+            if (selector === '#calendar-json-editor') return mockCodeMirror;
+            return null;
+          }),
+        };
+        app['element'] = mockElement as any;
+
+        const target = { dataset: { index: '1' } } as any;
+        await app._onRemoveWeekday(new Event('click'), target);
+
+        const calendar = JSON.parse(app['currentJson']);
+        expect(calendar.year).toBeDefined();
+        expect(calendar.year.startDay).toBe(0);
+      });
+
+      it('should handle missing weekday name gracefully', async () => {
+        app['currentJson'] = JSON.stringify({
+          id: 'test',
+          weekdays: [{ name: 'Monday', abbreviation: 'Mon' }, { abbreviation: 'Tue' }],
+          year: { epoch: 0, currentYear: 1, prefix: '', suffix: '', startDay: 0 },
+        });
+
+        const mockCodeMirror = { value: '' };
+        const mockElement = {
+          querySelector: vi.fn((selector: string) => {
+            if (selector === '#calendar-json-editor') return mockCodeMirror;
+            return null;
+          }),
+        };
+        app['element'] = mockElement as any;
+
+        const target = { dataset: { index: '1' } } as any;
+        await app._onRemoveWeekday(new Event('click'), target);
+
+        expect(mockUI.notifications.info).toHaveBeenCalledWith('Removed weekday: Unknown');
+      });
+
+      it('should ignore invalid index', async () => {
+        app['currentJson'] = JSON.stringify({
+          id: 'test',
+          weekdays: [{ name: 'Monday', abbreviation: 'Mon' }],
+        });
+
+        const target = { dataset: {} } as any;
+        await app._onRemoveWeekday(new Event('click'), target);
+
+        const calendar = JSON.parse(app['currentJson']);
+        expect(calendar.weekdays).toHaveLength(1);
+      });
+    });
+
+    describe('_setNestedProperty array handling', () => {
+      it('should create array when next key is numeric', () => {
+        const obj: any = {};
+        app['_setNestedProperty'](obj, 'weekdays.0.name', 'Monday');
+        expect(Array.isArray(obj.weekdays)).toBe(true);
+        expect(obj.weekdays[0].name).toBe('Monday');
+      });
+
+      it('should create object when next key is not numeric', () => {
+        const obj: any = {};
+        app['_setNestedProperty'](obj, 'weekdays.first.name', 'Monday');
+        expect(Array.isArray(obj.weekdays)).toBe(false);
+        expect(obj.weekdays.first.name).toBe('Monday');
+      });
+
+      it('should handle nested array paths', () => {
+        const obj: any = {};
+        app['_setNestedProperty'](obj, 'weekdays.0.abbreviation', 'Mon');
+        expect(obj.weekdays[0].abbreviation).toBe('Mon');
+      });
     });
   });
 });

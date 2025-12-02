@@ -35,7 +35,8 @@ declare global {
           rendered: boolean;
 
           // Core lifecycle methods
-          render(force?: boolean): Promise<void>;
+          render(force?: boolean): Promise<this>;
+          render(options?: Partial<ApplicationV2.RenderOptions>): Promise<this>;
           close(options?: any): Promise<any>;
 
           // Protected lifecycle hooks
