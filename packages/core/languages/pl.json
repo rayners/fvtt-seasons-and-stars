@@ -97,6 +97,7 @@
       "context_menu": {
         "toggle_time": "Przełącz czas",
         "toggle_weekday": "Przełącz dzień tygodnia",
+        "toggle_year": "Przełącz rok",
         "toggle_moon_phases": "Przełącz fazy księżyca",
         "toggle_sunrise_sunset": "Przełączanie wschodu / zachodu słońca",
         "toggle_time_controls": "Przełącz sterowanie czasem",
