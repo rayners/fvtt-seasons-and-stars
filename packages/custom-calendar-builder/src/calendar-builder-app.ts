@@ -68,6 +68,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   private validationTimeout: number | null = null;
   private validationSequence: number = 0;
   private calendarData: SeasonsStarsCalendar | null = null;
+  // Browser setTimeout returns number, not NodeJS.Timeout
   private renderTimeout: number | null = null;
 
   // Type declaration for HandlebarsApplicationMixin method
@@ -374,6 +375,11 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
   /**
    * Set a nested property in an object using dot notation
+   *
+   * Note: This implementation uses numeric string detection to identify array paths.
+   * Limitation: Paths with numeric property names (e.g., "year.2024.property") will
+   * be treated as arrays rather than objects. This is acceptable for current calendar
+   * schema which uses arrays for weekdays, months, intercalary days, etc.
    */
   private _setNestedProperty(obj: SeasonsStarsCalendar, path: string, value: string): void {
     const keys = path.split('.');
@@ -383,6 +389,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (!(key in current) || typeof current[key] !== 'object' || current[key] === null) {
+        // Detect array vs object based on whether the next key is numeric
         if (i + 1 < keys.length && !isNaN(Number(keys[i + 1]))) {
           current[key] = [];
         } else {
@@ -431,12 +438,13 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     }
 
     // Set new timeout - re-render after 500ms of no changes
+    // Cast to number for browser environment (Node types conflict with window.setTimeout)
     this.renderTimeout = window.setTimeout(() => {
       this.renderTimeout = null;
       // Re-render only the form tabs, not the editor tab
       // This prevents the CodeMirror editor from jumping back to line 1
       this.render({ parts: [...CalendarBuilderApp.FORM_TAB_IDS] });
-    }, 500);
+    }, 500) as unknown as number;
   }
 
 
@@ -897,8 +905,16 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
     calendar.weekdays.splice(index, 1);
 
+    // Initialize year object with minimal defaults if it doesn't exist
+    // We only initialize the properties we need to avoid overwriting user configuration
     if (!calendar.year) {
-      calendar.year = { startDay: 0 } as SeasonsStarsCalendar['year'];
+      calendar.year = {
+        epoch: 0,
+        currentYear: 1,
+        prefix: '',
+        suffix: '',
+        startDay: 0,
+      };
     }
 
     if (currentStartDay === index) {

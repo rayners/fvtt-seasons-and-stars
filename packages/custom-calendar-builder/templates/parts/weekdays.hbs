@@ -30,7 +30,7 @@
               <input type="text" name="weekdays.{{@index}}.abbreviation" id="weekday-abbr-{{@index}}" value="{{this.abbreviation}}" placeholder="Mon" />
             </td>
             <td class="weekday-actions">
-              <button type="button" class="button danger icon-only" data-action="removeWeekday" data-index="{{@index}}" aria-label="Remove weekday" {{#if (eq ../calendar.weekdays.length 1)}}disabled{{/if}}>
+              <button type="button" class="button danger icon-only" data-action="removeWeekday" data-index="{{@index}}" aria-label="Remove weekday: {{this.name}}" title="Remove weekday: {{this.name}}" {{#if (eq ../calendar.weekdays.length 1)}}disabled{{/if}}>
                 <i class="fas fa-trash"></i>
               </button>
             </td>
