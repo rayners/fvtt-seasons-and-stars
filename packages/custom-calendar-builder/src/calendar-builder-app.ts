@@ -685,31 +685,28 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
       // Always fetch from the source file/URL to get the latest version
       // The in-memory calendar might be stale if the file was updated
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-      const response = await fetch(sourceUrl, {
-        signal: controller.signal,
-        cache: 'no-store'
-      });
-      clearTimeout(timeoutId);
+      // Use CalendarLoader to handle module URLs and fetch logic
+      const manager = (game as any).seasonsStars?.manager;
+      const loader = manager?.getCalendarLoader();
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (!loader) {
+        throw new Error('CalendarLoader not available');
       }
 
-      const calendarData = await response.text();
-      this.currentJson = calendarData;
+      const result = await loader.loadFromUrl(sourceUrl, { validate: false });
+
+      if (!result.success || !result.calendar) {
+        throw new Error(result.error || 'Failed to load calendar from URL');
+      }
+
+      this.currentJson = JSON.stringify(result.calendar, null, 2);
       this.render({ force: true });
       this._validateCurrentJson();
       this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_loaded'));
     } catch (error) {
-      if ((error as Error).name === 'AbortError') {
-        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.timeout'), 'error');
-      } else {
-        console.error('Failed to load current calendar:', error);
-        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_load_failed'), 'error');
-      }
+      console.error('Failed to load current calendar:', error);
+      this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_load_failed'), 'error');
     }
   }
 
