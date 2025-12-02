@@ -275,21 +275,31 @@ describe('CalendarBuilderApp', () => {
       });
 
       it('should load current calendar successfully', async () => {
-        const calendarJson = JSON.stringify({
+        const calendarData = {
           id: 'gregorian',
           translations: { en: { label: 'Gregorian Calendar' } },
           months: [],
           weekdays: [],
-        });
-
-        // Mock game.settings to return a calendar file path
-        const mockGameWithSettings = {
-          ...mockGame,
-          settings: {
-            get: vi.fn().mockReturnValue('modules/seasons-and-stars/calendars/gregorian.json'),
+          sourceInfo: {
+            type: 'external',
+            sourceName: 'Custom File',
+            description: 'Test calendar',
+            icon: 'fa-file',
+            url: 'modules/seasons-and-stars/calendars/gregorian.json',
           },
         };
-        Object.defineProperty(globalThis, 'game', { value: mockGameWithSettings, writable: true });
+        const calendarJson = JSON.stringify(calendarData);
+
+        // Mock game.seasonsStars.manager.getActiveCalendar() to return calendar with sourceInfo.url
+        const mockGameWithManager = {
+          ...mockGame,
+          seasonsStars: {
+            manager: {
+              getActiveCalendar: vi.fn().mockReturnValue(calendarData),
+            },
+          },
+        };
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithManager, writable: true });
 
         // Mock successful fetch
         globalThis.fetch = vi.fn().mockResolvedValue({
@@ -310,48 +320,44 @@ describe('CalendarBuilderApp', () => {
       });
 
       it('should handle builtin calendar (not just custom calendars)', async () => {
-        const builtinCalendarJson = JSON.stringify({
+        const builtinCalendarData = {
           id: 'harptos',
           translations: { en: { label: 'Calendar of Harptos' } },
           months: [],
           weekdays: [],
-        });
+        };
+        const builtinCalendarJson = JSON.stringify(builtinCalendarData, null, 2);
 
-        // Mock game.settings to return a builtin calendar path
-        const mockGameWithSettings = {
+        // Mock builtin calendar without sourceInfo.url (falls back to JSON.stringify)
+        const mockGameWithManager = {
           ...mockGame,
-          settings: {
-            get: vi
-              .fn()
-              .mockReturnValue('modules/seasons-and-stars-fantasy/calendars/harptos.json'),
+          seasonsStars: {
+            manager: {
+              getActiveCalendar: vi.fn().mockReturnValue(builtinCalendarData),
+            },
           },
         };
-        Object.defineProperty(globalThis, 'game', { value: mockGameWithSettings, writable: true });
-
-        globalThis.fetch = vi.fn().mockResolvedValue({
-          ok: true,
-          text: vi.fn().mockResolvedValue(builtinCalendarJson),
-        } as any);
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithManager, writable: true });
 
         await app._onLoadCurrentCalendar(new Event('click'), mockElement as any);
 
-        expect(globalThis.fetch).toHaveBeenCalledWith(
-          'modules/seasons-and-stars-fantasy/calendars/harptos.json',
-          expect.objectContaining({ cache: 'no-store' })
-        );
+        // Should NOT fetch (no sourceInfo.url), should use in-memory calendar
+        expect(globalThis.fetch).not.toHaveBeenCalled();
         expect(app['currentJson']).toBe(builtinCalendarJson);
         expect(mockUI.notifications.info).toHaveBeenCalled();
       });
 
       it('should warn when no active calendar is loaded', async () => {
-        // Mock game.settings to return undefined/empty
-        const mockGameWithSettings = {
+        // Mock manager returning null (no active calendar)
+        const mockGameWithManager = {
           ...mockGame,
-          settings: {
-            get: vi.fn().mockReturnValue(undefined),
+          seasonsStars: {
+            manager: {
+              getActiveCalendar: vi.fn().mockReturnValue(null),
+            },
           },
         };
-        Object.defineProperty(globalThis, 'game', { value: mockGameWithSettings, writable: true });
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithManager, writable: true });
 
         await app._onLoadCurrentCalendar(new Event('click'), mockElement as any);
 
@@ -362,13 +368,16 @@ describe('CalendarBuilderApp', () => {
       });
 
       it('should warn when activeCalendarFile setting is empty string', async () => {
-        const mockGameWithSettings = {
+        // Updated: Now tests manager returning undefined (same as no calendar)
+        const mockGameWithManager = {
           ...mockGame,
-          settings: {
-            get: vi.fn().mockReturnValue(''),
+          seasonsStars: {
+            manager: {
+              getActiveCalendar: vi.fn().mockReturnValue(undefined),
+            },
           },
         };
-        Object.defineProperty(globalThis, 'game', { value: mockGameWithSettings, writable: true });
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithManager, writable: true });
 
         await app._onLoadCurrentCalendar(new Event('click'), mockElement as any);
 
@@ -379,13 +388,25 @@ describe('CalendarBuilderApp', () => {
       });
 
       it('should handle HTTP errors', async () => {
-        const mockGameWithSettings = {
-          ...mockGame,
-          settings: {
-            get: vi.fn().mockReturnValue('modules/seasons-and-stars/calendars/test.json'),
+        const calendarData = {
+          id: 'test',
+          sourceInfo: {
+            type: 'external',
+            sourceName: 'Test',
+            description: 'Test',
+            icon: 'fa-file',
+            url: 'modules/seasons-and-stars/calendars/test.json',
           },
         };
-        Object.defineProperty(globalThis, 'game', { value: mockGameWithSettings, writable: true });
+        const mockGameWithManager = {
+          ...mockGame,
+          seasonsStars: {
+            manager: {
+              getActiveCalendar: vi.fn().mockReturnValue(calendarData),
+            },
+          },
+        };
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithManager, writable: true });
 
         globalThis.fetch = vi.fn().mockResolvedValue({
           ok: false,
@@ -401,13 +422,25 @@ describe('CalendarBuilderApp', () => {
       });
 
       it('should handle timeout errors', async () => {
-        const mockGameWithSettings = {
-          ...mockGame,
-          settings: {
-            get: vi.fn().mockReturnValue('modules/seasons-and-stars/calendars/test.json'),
+        const calendarData = {
+          id: 'test',
+          sourceInfo: {
+            type: 'external',
+            sourceName: 'Test',
+            description: 'Test',
+            icon: 'fa-file',
+            url: 'modules/seasons-and-stars/calendars/test.json',
           },
         };
-        Object.defineProperty(globalThis, 'game', { value: mockGameWithSettings, writable: true });
+        const mockGameWithManager = {
+          ...mockGame,
+          seasonsStars: {
+            manager: {
+              getActiveCalendar: vi.fn().mockReturnValue(calendarData),
+            },
+          },
+        };
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithManager, writable: true });
 
         // Mock fetch to reject with AbortError
         const abortError = new Error('The operation was aborted');
@@ -422,13 +455,25 @@ describe('CalendarBuilderApp', () => {
       });
 
       it('should handle network errors', async () => {
-        const mockGameWithSettings = {
-          ...mockGame,
-          settings: {
-            get: vi.fn().mockReturnValue('modules/seasons-and-stars/calendars/test.json'),
+        const calendarData = {
+          id: 'test',
+          sourceInfo: {
+            type: 'external',
+            sourceName: 'Test',
+            description: 'Test',
+            icon: 'fa-file',
+            url: 'modules/seasons-and-stars/calendars/test.json',
           },
         };
-        Object.defineProperty(globalThis, 'game', { value: mockGameWithSettings, writable: true });
+        const mockGameWithManager = {
+          ...mockGame,
+          seasonsStars: {
+            manager: {
+              getActiveCalendar: vi.fn().mockReturnValue(calendarData),
+            },
+          },
+        };
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithManager, writable: true });
 
         globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
@@ -440,13 +485,25 @@ describe('CalendarBuilderApp', () => {
       });
 
       it('should use cache: no-store to bypass cached data', async () => {
-        const mockGameWithSettings = {
-          ...mockGame,
-          settings: {
-            get: vi.fn().mockReturnValue('modules/seasons-and-stars/calendars/test.json'),
+        const calendarData = {
+          id: 'test',
+          sourceInfo: {
+            type: 'external',
+            sourceName: 'Test',
+            description: 'Test',
+            icon: 'fa-file',
+            url: 'modules/seasons-and-stars/calendars/test.json',
           },
         };
-        Object.defineProperty(globalThis, 'game', { value: mockGameWithSettings, writable: true });
+        const mockGameWithManager = {
+          ...mockGame,
+          seasonsStars: {
+            manager: {
+              getActiveCalendar: vi.fn().mockReturnValue(calendarData),
+            },
+          },
+        };
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithManager, writable: true });
 
         globalThis.fetch = vi.fn().mockResolvedValue({
           ok: true,
@@ -465,10 +522,10 @@ describe('CalendarBuilderApp', () => {
       });
 
       it('should handle game.settings being undefined gracefully', async () => {
-        const mockGameWithoutSettings = { ...mockGame };
-        delete (mockGameWithoutSettings as any).settings;
+        // Updated: tests manager being undefined
+        const mockGameWithoutManager = { ...mockGame };
         Object.defineProperty(globalThis, 'game', {
-          value: mockGameWithoutSettings,
+          value: mockGameWithoutManager,
           writable: true,
         });
 
@@ -481,13 +538,25 @@ describe('CalendarBuilderApp', () => {
 
       it('should validate the loaded calendar after loading', async () => {
         const calendarJson = '{"id": "test"}';
-        const mockGameWithSettings = {
-          ...mockGame,
-          settings: {
-            get: vi.fn().mockReturnValue('modules/seasons-and-stars/calendars/test.json'),
+        const calendarData = {
+          id: 'test',
+          sourceInfo: {
+            type: 'external',
+            sourceName: 'Test',
+            description: 'Test',
+            icon: 'fa-file',
+            url: 'modules/seasons-and-stars/calendars/test.json',
           },
         };
-        Object.defineProperty(globalThis, 'game', { value: mockGameWithSettings, writable: true });
+        const mockGameWithManager = {
+          ...mockGame,
+          seasonsStars: {
+            manager: {
+              getActiveCalendar: vi.fn().mockReturnValue(calendarData),
+            },
+          },
+        };
+        Object.defineProperty(globalThis, 'game', { value: mockGameWithManager, writable: true });
 
         globalThis.fetch = vi.fn().mockResolvedValue({
           ok: true,

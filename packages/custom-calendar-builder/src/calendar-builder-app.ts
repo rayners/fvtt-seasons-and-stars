@@ -662,19 +662,33 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    */
   async _onLoadCurrentCalendar(_event: Event, _target: HTMLElement): Promise<void> {
     try {
-      // Get the active calendar file path from settings
-      const activeCalendarFile = game.settings?.get('seasons-and-stars', 'activeCalendarFile') as string;
+      // Get the active calendar from the manager
+      const activeCalendar = (game as any).seasonsStars?.manager?.getActiveCalendar();
 
-      if (!activeCalendarFile) {
+      if (!activeCalendar) {
         this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_current_calendar'), 'warn');
         return;
       }
 
-      // Fetch the calendar file directly (bypassing cache)
+      // Check if the calendar has a source URL (file path or external URL)
+      const sourceUrl = activeCalendar.sourceInfo?.url;
+
+      if (!sourceUrl) {
+        // No source URL - this is a built-in calendar loaded from memory
+        // Use the in-memory calendar object but warn user it can't be saved back to a file
+        this.currentJson = JSON.stringify(activeCalendar, null, 2);
+        this.render({ force: true });
+        this._validateCurrentJson();
+        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_loaded'));
+        return;
+      }
+
+      // Always fetch from the source file/URL to get the latest version
+      // The in-memory calendar might be stale if the file was updated
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-      const response = await fetch(activeCalendarFile, {
+      const response = await fetch(sourceUrl, {
         signal: controller.signal,
         cache: 'no-store'
       });
@@ -686,13 +700,14 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
       const calendarData = await response.text();
       this.currentJson = calendarData;
-      this.render(true);
+      this.render({ force: true });
       this._validateCurrentJson();
       this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_loaded'));
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
         this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.timeout'), 'error');
       } else {
+        console.error('Failed to load current calendar:', error);
         this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_load_failed'), 'error');
       }
     }
