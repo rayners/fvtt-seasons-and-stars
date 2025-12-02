@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.26.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.25.0...seasons-and-stars-v0.26.0) (2025-12-02)
+
+
+### Features
+
+* add optional year display to mini widget ([#491](https://github.com/rayners/fvtt-seasons-and-stars/issues/491)) ([23cb659](https://github.com/rayners/fvtt-seasons-and-stars/commit/23cb6596b1c8097f6814ae08372b5f2fc733a610))
+* **calendar-builder:** add load current calendar button ([#481](https://github.com/rayners/fvtt-seasons-and-stars/issues/481)) ([8532527](https://github.com/rayners/fvtt-seasons-and-stars/commit/85325272fb86726c4fe5a787318989203c54ca67))
+* **calendar-builder:** implement interactive weekdays tab ([#477](https://github.com/rayners/fvtt-seasons-and-stars/issues/477)) ([0ee869d](https://github.com/rayners/fvtt-seasons-and-stars/commit/0ee869dc4b96c6176fd4431419ea15f8be236a9f))
+* **i18n:** cs for SaS 0.25.0 ([#466](https://github.com/rayners/fvtt-seasons-and-stars/issues/466)) ([e1f0348](https://github.com/rayners/fvtt-seasons-and-stars/commit/e1f034849dc04ee1c4dd83690db3a4eacad25d62))
+* **i18n:** update Polish translate ([#494](https://github.com/rayners/fvtt-seasons-and-stars/issues/494)) ([799f079](https://github.com/rayners/fvtt-seasons-and-stars/commit/799f079dd6db7c4d4b74212026009001b8fcde66))
+
+
+### Bug Fixes
+
+* **ui:** scope .dialog-buttons selector to prevent global CSS leak ([#498](https://github.com/rayners/fvtt-seasons-and-stars/issues/498)) ([134de59](https://github.com/rayners/fvtt-seasons-and-stars/commit/134de592970598df88a6e48b78a2f37823540fa1)), closes [#485](https://github.com/rayners/fvtt-seasons-and-stars/issues/485)
+
 ## [0.25.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.24.1...seasons-and-stars-v0.25.0) (2025-11-10)
 
 
