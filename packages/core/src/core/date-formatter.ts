@@ -763,7 +763,10 @@ export class DateFormatter {
           const customAm = options?.hash?.am;
           const customPm = options?.hash?.pm;
 
-          // Use custom notation if provided, otherwise use calendar notation or defaults
+          // AM/PM notation precedence chain:
+          // 1. Helper parameters (am="..." / pm="...") - highest priority
+          // 2. Calendar-level time.amPmNotation configuration
+          // 3. Default English notation ("AM"/"PM") - fallback
           const amNotation = customAm || formatter?.calendar?.time?.amPmNotation?.am || 'AM';
           const pmNotation = customPm || formatter?.calendar?.time?.amPmNotation?.pm || 'PM';
 
