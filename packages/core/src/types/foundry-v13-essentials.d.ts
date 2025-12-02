@@ -384,6 +384,7 @@ declare class ApplicationV2<
   constructor(options?: Partial<Configuration>);
 
   // Core lifecycle methods
+  render(force?: boolean): Promise<this>;
   render(options?: Partial<RenderOptions>): Promise<this>;
   close(options?: ApplicationV2.CloseOptions): Promise<this>;
 
