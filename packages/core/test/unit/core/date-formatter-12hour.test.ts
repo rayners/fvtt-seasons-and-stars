@@ -326,4 +326,234 @@ describe('DateFormatter - 12-Hour Clock Support', () => {
       expect(datetime).toBe('Jan 15, 2024 2:30 PM');
     });
   });
+
+  describe('Non-24-Hour Calendars', () => {
+    it('should handle 20-hour days correctly', () => {
+      const calendar20Hour: SeasonsStarsCalendar = {
+        ...mockCalendar,
+        time: {
+          hoursInDay: 20,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+          amPmNotation: {
+            am: 'AM',
+            pm: 'PM',
+          },
+        },
+      };
+
+      formatter = new DateFormatter(calendar20Hour);
+
+      // Hour 0 - start of day (midnight equivalent) → should be 10 AM (first half)
+      const midnight = { ...mockDate, time: { hour: 0, minute: 0, second: 0 } };
+      expect(formatter.format(midnight, '{{ss-hour format="12hour"}}')).toBe('10');
+      expect(formatter.format(midnight, '{{ss-hour format="ampm"}}')).toBe('AM');
+
+      // Hour 5 - 25% through day → should be 5 AM (before midday)
+      const hour5 = { ...mockDate, time: { hour: 5, minute: 0, second: 0 } };
+      expect(formatter.format(hour5, '{{ss-hour format="12hour"}}')).toBe('5');
+      expect(formatter.format(hour5, '{{ss-hour format="ampm"}}')).toBe('AM');
+
+      // Hour 9 - just before midday → should be 9 AM (last hour before noon)
+      const hour9 = { ...mockDate, time: { hour: 9, minute: 0, second: 0 } };
+      expect(formatter.format(hour9, '{{ss-hour format="12hour"}}')).toBe('9');
+      expect(formatter.format(hour9, '{{ss-hour format="ampm"}}')).toBe('AM');
+
+      // Hour 10 - midday (50% through 20-hour day) → should be 10 PM (second half starts)
+      const midday = { ...mockDate, time: { hour: 10, minute: 0, second: 0 } };
+      expect(formatter.format(midday, '{{ss-hour format="12hour"}}')).toBe('10');
+      expect(formatter.format(midday, '{{ss-hour format="ampm"}}')).toBe('PM');
+
+      // Hour 14 - 70% through day → should be 4 PM (second half)
+      const hour14 = { ...mockDate, time: { hour: 14, minute: 0, second: 0 } };
+      expect(formatter.format(hour14, '{{ss-hour format="12hour"}}')).toBe('4');
+      expect(formatter.format(hour14, '{{ss-hour format="ampm"}}')).toBe('PM');
+
+      // Hour 19 - last hour of day → should be 9 PM
+      const hour19 = { ...mockDate, time: { hour: 19, minute: 0, second: 0 } };
+      expect(formatter.format(hour19, '{{ss-hour format="12hour"}}')).toBe('9');
+      expect(formatter.format(hour19, '{{ss-hour format="ampm"}}')).toBe('PM');
+    });
+
+    it('should handle 30-hour days correctly', () => {
+      const calendar30Hour: SeasonsStarsCalendar = {
+        ...mockCalendar,
+        time: {
+          hoursInDay: 30,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+          amPmNotation: {
+            am: 'AM',
+            pm: 'PM',
+          },
+        },
+      };
+
+      formatter = new DateFormatter(calendar30Hour);
+
+      // Hour 0 - start of day → should be 15 AM (using 15 as "half")
+      const midnight = { ...mockDate, time: { hour: 0, minute: 0, second: 0 } };
+      expect(formatter.format(midnight, '{{ss-hour format="12hour"}}')).toBe('15');
+      expect(formatter.format(midnight, '{{ss-hour format="ampm"}}')).toBe('AM');
+
+      // Hour 7 - 7/30 through day → should be 7 AM
+      const hour7 = { ...mockDate, time: { hour: 7, minute: 0, second: 0 } };
+      expect(formatter.format(hour7, '{{ss-hour format="12hour"}}')).toBe('7');
+      expect(formatter.format(hour7, '{{ss-hour format="ampm"}}')).toBe('AM');
+
+      // Hour 14 - just before midday → should be 14 AM
+      const hour14 = { ...mockDate, time: { hour: 14, minute: 0, second: 0 } };
+      expect(formatter.format(hour14, '{{ss-hour format="12hour"}}')).toBe('14');
+      expect(formatter.format(hour14, '{{ss-hour format="ampm"}}')).toBe('AM');
+
+      // Hour 15 - midday (50% through 30-hour day) → should be 15 PM
+      const midday = { ...mockDate, time: { hour: 15, minute: 0, second: 0 } };
+      expect(formatter.format(midday, '{{ss-hour format="12hour"}}')).toBe('15');
+      expect(formatter.format(midday, '{{ss-hour format="ampm"}}')).toBe('PM');
+
+      // Hour 22 - 22/30 through day → should be 7 PM
+      const hour22 = { ...mockDate, time: { hour: 22, minute: 0, second: 0 } };
+      expect(formatter.format(hour22, '{{ss-hour format="12hour"}}')).toBe('7');
+      expect(formatter.format(hour22, '{{ss-hour format="ampm"}}')).toBe('PM');
+
+      // Hour 29 - last hour of day → should be 14 PM
+      const hour29 = { ...mockDate, time: { hour: 29, minute: 0, second: 0 } };
+      expect(formatter.format(hour29, '{{ss-hour format="12hour"}}')).toBe('14');
+      expect(formatter.format(hour29, '{{ss-hour format="ampm"}}')).toBe('PM');
+    });
+
+    it('should handle 18-hour days correctly', () => {
+      const calendar18Hour: SeasonsStarsCalendar = {
+        ...mockCalendar,
+        time: {
+          hoursInDay: 18,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+          amPmNotation: {
+            am: 'AM',
+            pm: 'PM',
+          },
+        },
+      };
+
+      formatter = new DateFormatter(calendar18Hour);
+
+      // Hour 0 - start of day → should be 9 AM
+      const midnight = { ...mockDate, time: { hour: 0, minute: 0, second: 0 } };
+      expect(formatter.format(midnight, '{{ss-hour format="12hour"}}')).toBe('9');
+      expect(formatter.format(midnight, '{{ss-hour format="ampm"}}')).toBe('AM');
+
+      // Hour 4 - before midday → should be 4 AM
+      const hour4 = { ...mockDate, time: { hour: 4, minute: 0, second: 0 } };
+      expect(formatter.format(hour4, '{{ss-hour format="12hour"}}')).toBe('4');
+      expect(formatter.format(hour4, '{{ss-hour format="ampm"}}')).toBe('AM');
+
+      // Hour 9 - midday (50% through 18-hour day) → should be 9 PM
+      const midday = { ...mockDate, time: { hour: 9, minute: 0, second: 0 } };
+      expect(formatter.format(midday, '{{ss-hour format="12hour"}}')).toBe('9');
+      expect(formatter.format(midday, '{{ss-hour format="ampm"}}')).toBe('PM');
+
+      // Hour 13 - after midday → should be 4 PM (13 % 9 = 4)
+      const hour13 = { ...mockDate, time: { hour: 13, minute: 0, second: 0 } };
+      expect(formatter.format(hour13, '{{ss-hour format="12hour"}}')).toBe('4');
+      expect(formatter.format(hour13, '{{ss-hour format="ampm"}}')).toBe('PM');
+
+      // Hour 17 - last hour of day → should be 8 PM (17 % 9 = 8)
+      const hour17 = { ...mockDate, time: { hour: 17, minute: 0, second: 0 } };
+      expect(formatter.format(hour17, '{{ss-hour format="12hour"}}')).toBe('8');
+      expect(formatter.format(hour17, '{{ss-hour format="ampm"}}')).toBe('PM');
+    });
+
+    it('should handle 36-hour days correctly', () => {
+      const calendar36Hour: SeasonsStarsCalendar = {
+        ...mockCalendar,
+        time: {
+          hoursInDay: 36,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+          amPmNotation: {
+            am: 'AM',
+            pm: 'PM',
+          },
+        },
+      };
+
+      formatter = new DateFormatter(calendar36Hour);
+
+      // Hour 0 - start of day → should be 18 AM (36/2 = 18 hours per half)
+      const midnight = { ...mockDate, time: { hour: 0, minute: 0, second: 0 } };
+      expect(formatter.format(midnight, '{{ss-hour format="12hour"}}')).toBe('18');
+      expect(formatter.format(midnight, '{{ss-hour format="ampm"}}')).toBe('AM');
+
+      // Hour 12 - 12/36 through day → should be 12 AM (12 % 18 = 12)
+      const hour12 = { ...mockDate, time: { hour: 12, minute: 0, second: 0 } };
+      expect(formatter.format(hour12, '{{ss-hour format="12hour"}}')).toBe('12');
+      expect(formatter.format(hour12, '{{ss-hour format="ampm"}}')).toBe('AM');
+
+      // Hour 18 - midday (50% through 36-hour day) → should be 18 PM
+      const midday = { ...mockDate, time: { hour: 18, minute: 0, second: 0 } };
+      expect(formatter.format(midday, '{{ss-hour format="12hour"}}')).toBe('18');
+      expect(formatter.format(midday, '{{ss-hour format="ampm"}}')).toBe('PM');
+
+      // Hour 30 - 30/36 through day → should be 12 PM (30 % 18 = 12)
+      const hour30 = { ...mockDate, time: { hour: 30, minute: 0, second: 0 } };
+      expect(formatter.format(hour30, '{{ss-hour format="12hour"}}')).toBe('12');
+      expect(formatter.format(hour30, '{{ss-hour format="ampm"}}')).toBe('PM');
+    });
+
+    it('should handle complete 12-hour time format with non-24-hour days', () => {
+      const calendar20Hour: SeasonsStarsCalendar = {
+        ...mockCalendar,
+        time: {
+          hoursInDay: 20,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+          amPmNotation: {
+            am: 'AM',
+            pm: 'PM',
+          },
+        },
+      };
+
+      formatter = new DateFormatter(calendar20Hour);
+
+      // Hour 5:30 in a 20-hour day (before midday at hour 10)
+      const morning = { ...mockDate, time: { hour: 5, minute: 30, second: 0 } };
+      const resultMorning = formatter.format(
+        morning,
+        '{{ss-hour format="12hour"}}:{{ss-minute format="pad"}} {{ss-hour format="ampm"}}'
+      );
+      expect(resultMorning).toBe('5:30 AM');
+
+      // Hour 14:45 in a 20-hour day (after midday at hour 10)
+      const afternoon = { ...mockDate, time: { hour: 14, minute: 45, second: 0 } };
+      const resultAfternoon = formatter.format(
+        afternoon,
+        '{{ss-hour format="12hour"}}:{{ss-minute format="pad"}} {{ss-hour format="ampm"}}'
+      );
+      expect(resultAfternoon).toBe('4:45 PM');
+    });
+
+    it('should fallback to 24-hour logic when hoursInDay is undefined', () => {
+      const calendarWithoutHours: SeasonsStarsCalendar = {
+        ...mockCalendar,
+        time: {
+          hoursInDay: undefined as any,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+          amPmNotation: {
+            am: 'AM',
+            pm: 'PM',
+          },
+        },
+      };
+
+      formatter = new DateFormatter(calendarWithoutHours);
+
+      // Should fallback to standard 24-hour logic
+      const afternoon = { ...mockDate, time: { hour: 14, minute: 30, second: 0 } };
+      expect(formatter.format(afternoon, '{{ss-hour format="12hour"}}')).toBe('2');
+      expect(formatter.format(afternoon, '{{ss-hour format="ampm"}}')).toBe('PM');
+    });
+  });
 });

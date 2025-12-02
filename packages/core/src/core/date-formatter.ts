@@ -737,19 +737,25 @@ export class DateFormatter {
       const calendarId = options?.data?.root?._calendarId;
       const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
 
+      // Get hoursInDay from calendar, default to 24 for backward compatibility
+      const hoursInDay = formatter?.calendar?.time?.hoursInDay ?? 24;
+      const halfDay = hoursInDay / 2;
+
       switch (format) {
         case 'pad':
           return hourValue.toString().padStart(2, '0');
         case '12hour': {
-          // Convert 24-hour to 12-hour format
-          let hour12 = hourValue % 12;
-          if (hour12 === 0) hour12 = 12; // 0 and 12 both show as 12
+          // Convert to 12-hour format based on day length
+          // The display cycles through the half-day range twice per day
+          const hourInHalf = hourValue % halfDay;
+          // Display hour 0 as halfDay (like midnight shows as 12), others show their position
+          const hour12 = hourInHalf === 0 ? halfDay : hourInHalf;
           return hour12.toString();
         }
         case '12hour-pad': {
-          // Convert 24-hour to 12-hour format with padding
-          let hour12 = hourValue % 12;
-          if (hour12 === 0) hour12 = 12;
+          // Convert to 12-hour format with padding based on day length
+          const hourInHalf = hourValue % halfDay;
+          const hour12 = hourInHalf === 0 ? halfDay : hourInHalf;
           return hour12.toString().padStart(2, '0');
         }
         case 'ampm': {
@@ -761,8 +767,8 @@ export class DateFormatter {
           const amNotation = customAm || formatter?.calendar?.time?.amPmNotation?.am || 'AM';
           const pmNotation = customPm || formatter?.calendar?.time?.amPmNotation?.pm || 'PM';
 
-          // Hour < 12 is AM, hour >= 12 is PM
-          return hourValue < 12 ? amNotation : pmNotation;
+          // Determine AM/PM based on which half of the day we're in
+          return hourValue < halfDay ? amNotation : pmNotation;
         }
         default:
           return hourValue.toString();
