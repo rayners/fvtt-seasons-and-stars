@@ -104,7 +104,10 @@ export class CompatibilityManager {
     };
 
     // Emit hook to allow external modules to register compatibility
-    Hooks.callAll('seasons-stars:registerCompatibility', registry);
+    // Guard against module load in test environments where Hooks may not be defined yet
+    if (typeof Hooks !== 'undefined') {
+      Hooks.callAll('seasons-stars:registerCompatibility', registry);
+    }
   }
 
   /**
@@ -126,6 +129,11 @@ export class CompatibilityManager {
    * Initialize system detection to emit appropriate system-specific hooks
    */
   private initializeSystemDetection(): void {
+    // Guard against module load in test environments where Hooks may not be defined yet
+    if (typeof Hooks === 'undefined') {
+      return;
+    }
+
     // Wait for Foundry to be ready so game.system is available
     Hooks.once('ready', () => {
       const currentSystem = game.system?.id;
