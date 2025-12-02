@@ -5,6 +5,7 @@
 
 /// <reference types="../../core/src/types/foundry-v13-essentials" />
 
+import './styles/calendar-builder.scss';
 import { CalendarBuilderApp } from './calendar-builder-app';
 
 let calendarBuilderApp: CalendarBuilderApp | null = null;
