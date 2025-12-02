@@ -2,8 +2,6 @@
  * Calendar Builder ApplicationV2 for creating and editing custom calendars
  */
 
-/// <reference types="../../core/src/types/foundry-v13-essentials" />
-
 import { SimpleCalendarConverter } from './simple-calendar-converter';
 import type { SimpleCalendarExport, SimpleCalendarData } from './simple-calendar-types';
 import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
@@ -126,6 +124,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     actions: {
       newCalendar: CalendarBuilderApp.prototype._onNewCalendar,
       openCalendar: CalendarBuilderApp.prototype._onOpenCalendar,
+      loadCurrentCalendar: CalendarBuilderApp.prototype._onLoadCurrentCalendar,
       exportJson: CalendarBuilderApp.prototype._onExportJson,
       importJson: CalendarBuilderApp.prototype._onImportJson,
       validateJson: CalendarBuilderApp.prototype._onValidateJson,
@@ -640,9 +639,8 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
             this._validateCurrentJson();
             this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
           } catch (error) {
-            console.error('Failed to load calendar file:', error);
             if ((error as Error).name === 'AbortError') {
-              this._notify('Request timeout - file too large or server unavailable', 'error');
+              this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.timeout'), 'error');
             } else {
               this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.import_failed'), 'error');
             }
@@ -654,6 +652,62 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     } catch (error) {
       console.error('Failed to open file picker:', error);
       this._notify('Failed to open file picker', 'error');
+    }
+  }
+
+  /**
+   * Load current calendar from file action
+   */
+  async _onLoadCurrentCalendar(_event: Event, _target: HTMLElement): Promise<void> {
+    try {
+      // Get the active calendar from the manager
+      const manager = game.seasonsStars?.manager as {
+        getActiveCalendar(): SeasonsStarsCalendar | null;
+        getCalendarLoader(): { loadFromUrl(url: string, options?: { validate?: boolean }): Promise<any> };
+      } | undefined;
+      if (!manager) {
+        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_current_calendar'), 'warn');
+        return;
+      }
+
+      const activeCalendar = manager.getActiveCalendar();
+      if (!activeCalendar) {
+        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_current_calendar'), 'warn');
+        return;
+      }
+
+      // Check if the calendar has a source URL (file path or external URL)
+      const sourceUrl = activeCalendar.sourceInfo?.url;
+
+      if (!sourceUrl) {
+        // No source URL - this is a built-in calendar loaded from memory
+        // Use the in-memory calendar object but warn user it can't be saved back to a file
+        this.currentJson = JSON.stringify(activeCalendar, null, 2);
+        this.render({ force: true });
+        this._validateCurrentJson();
+        this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_loaded'));
+        return;
+      }
+
+      // Always fetch from the source file/URL to get the latest version
+      // The in-memory calendar might be stale if the file was updated
+
+      // Use CalendarLoader to handle module URLs and fetch logic
+      const loader = manager.getCalendarLoader();
+
+      const result = await loader.loadFromUrl(sourceUrl, { validate: false });
+
+      if (!result.success || !result.calendar) {
+        throw new Error(result.error || 'Failed to load calendar from URL');
+      }
+
+      this.currentJson = JSON.stringify(result.calendar, null, 2);
+      this.render({ force: true });
+      this._validateCurrentJson();
+      this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_loaded'));
+    } catch (error) {
+      console.error('Failed to load current calendar:', error);
+      this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.current_calendar_load_failed'), 'error');
     }
   }
 

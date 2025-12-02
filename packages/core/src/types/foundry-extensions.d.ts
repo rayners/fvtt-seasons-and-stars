@@ -206,6 +206,9 @@ export interface CalendarManagerInterface {
   advanceWeeks(weeks: number): Promise<void>;
   advanceMonths(months: number): Promise<void>;
   advanceYears(years: number): Promise<void>;
+  getCalendarLoader(): {
+    loadFromUrl(url: string, options?: { validate?: boolean }): Promise<LoadResult>;
+  };
 }
 
 // Calendar Engine interface for date calculations
