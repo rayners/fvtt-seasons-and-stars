@@ -9,29 +9,36 @@
     <p class="hint">Define the days of the week in your calendar</p>
   </div>
 
-  <div class="weekday-list">
-    {{#if calendar.weekdays}}
-      {{#each calendar.weekdays}}
-        <div class="weekday-item" data-index="{{@index}}">
-          <div class="weekday-fields">
-            <div class="form-group">
-              <label for="weekday-name-{{@index}}">Name</label>
+  {{#if calendar.weekdays}}
+    <table class="weekday-table">
+      <thead>
+        <tr>
+          <th class="weekday-col-index">#</th>
+          <th class="weekday-col-name">Name</th>
+          <th class="weekday-col-abbr">Abbreviation</th>
+          <th class="weekday-col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each calendar.weekdays}}
+          <tr class="weekday-row" data-index="{{@index}}">
+            <td class="weekday-index"></td>
+            <td class="weekday-name">
               <input type="text" name="weekdays.{{@index}}.name" id="weekday-name-{{@index}}" value="{{this.name}}" placeholder="Monday" />
-            </div>
-            <div class="form-group">
-              <label for="weekday-abbr-{{@index}}">Abbreviation</label>
+            </td>
+            <td class="weekday-abbr">
               <input type="text" name="weekdays.{{@index}}.abbreviation" id="weekday-abbr-{{@index}}" value="{{this.abbreviation}}" placeholder="Mon" />
-            </div>
-            <div class="weekday-actions">
-              <button type="button" class="button danger" data-action="removeWeekday" data-index="{{@index}}" aria-label="Remove weekday" {{#if (eq ../calendar.weekdays.length 1)}}disabled{{/if}}>
+            </td>
+            <td class="weekday-actions">
+              <button type="button" class="button danger icon-only" data-action="removeWeekday" data-index="{{@index}}" aria-label="Remove weekday" {{#if (eq ../calendar.weekdays.length 1)}}disabled{{/if}}>
                 <i class="fas fa-trash"></i>
               </button>
-            </div>
-          </div>
-        </div>
-      {{/each}}
-    {{else}}
-      <p class="no-weekdays">No weekdays defined. Click "Add Weekday" to get started.</p>
-    {{/if}}
-  </div>
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+    <p class="no-weekdays">No weekdays defined. Click "Add Weekday" to get started.</p>
+  {{/if}}
 </section>

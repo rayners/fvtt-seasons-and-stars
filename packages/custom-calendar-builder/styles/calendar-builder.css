@@ -449,66 +449,108 @@ body.theme-light .calendar-tabs {
   }
 }
 
-/* Weekday list styles */
-.weekday-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* Weekday table styles */
+.weekday-table {
+  width: 100%;
   margin-top: 12px;
+  border-collapse: collapse;
+  font-size: 13px;
+  counter-reset: weekday-counter;
 }
 
-.weekday-item {
-  padding: 12px;
+.weekday-table thead {
   background: var(--color-bg-option);
-  border: 1px solid var(--color-border-light);
-  border-radius: 4px;
+  border-bottom: 2px solid var(--color-border-light);
 }
 
-.weekday-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 12px;
-  align-items: end;
-}
-
-.weekday-fields .form-group {
-  margin: 0;
-}
-
-.weekday-fields label {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 12px;
+.weekday-table th {
+  padding: 6px 8px;
+  text-align: left;
   font-weight: 600;
+  font-size: 12px;
+  color: var(--color-text-dark-secondary);
 }
 
-.weekday-fields input {
+.weekday-table tbody tr {
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background-color 0.1s ease;
+}
+
+.weekday-table tbody tr:hover {
+  background: rgba(0, 120, 215, 0.08);
+}
+
+.weekday-table td {
+  padding: 6px 8px;
+}
+
+.weekday-col-index {
+  width: 40px;
+}
+
+.weekday-col-name {
+  width: auto;
+}
+
+.weekday-col-abbr {
+  width: 150px;
+}
+
+.weekday-col-actions {
+  width: 60px;
+}
+
+.weekday-row {
+  counter-increment: weekday-counter;
+}
+
+.weekday-index {
+  color: var(--color-text-dark-inactive);
+  font-weight: 600;
+  text-align: center;
+}
+
+.weekday-index::before {
+  content: counter(weekday-counter);
+}
+
+.weekday-name input,
+.weekday-abbr input {
   width: 100%;
   padding: 4px 8px;
   font-size: 13px;
+  border: 1px solid var(--color-border-light);
+  background: var(--color-bg-btn);
+  border-radius: 3px;
+}
+
+.weekday-name input:focus,
+.weekday-abbr input:focus {
+  outline: none;
+  border-color: var(--color-border-highlight);
+  background: white;
 }
 
 .weekday-actions {
-  display: flex;
-  gap: 4px;
-  align-items: flex-end;
+  text-align: center;
 }
 
-.weekday-actions .button {
-  padding: 6px 10px;
+.weekday-actions .button.icon-only {
+  padding: 4px 8px;
+  min-width: 32px;
   font-size: 13px;
-  min-width: 36px;
 }
 
 .weekday-actions .button.danger {
-  background: var(--color-bg-btn);
+  background: transparent;
   color: #cc0000;
-  border-color: #cc0000;
+  border-color: transparent;
 }
 
 .weekday-actions .button.danger:hover:not(:disabled) {
   background: #cc0000;
   color: white;
+  border-color: #cc0000;
 }
 
 .weekday-actions .button:disabled {
@@ -524,7 +566,28 @@ body.theme-light .calendar-tabs {
 }
 
 /* Dark theme weekday styles */
-body.theme-dark .weekday-item {
+body.theme-dark .weekday-table thead {
+  background: var(--color-bg-darker);
+  border-bottom-color: var(--color-border-dark);
+}
+
+body.theme-dark .weekday-table tbody tr {
+  border-bottom-color: var(--color-border-dark);
+}
+
+body.theme-dark .weekday-table tbody tr:hover {
+  background: rgba(100, 180, 255, 0.12);
+}
+
+body.theme-dark .weekday-name input,
+body.theme-dark .weekday-abbr input {
   background: var(--color-bg-darker);
   border-color: var(--color-border-dark);
+  color: var(--color-text-light-primary);
+}
+
+body.theme-dark .weekday-name input:focus,
+body.theme-dark .weekday-abbr input:focus {
+  background: var(--color-bg-btn);
+  border-color: var(--color-border-highlight);
 }
