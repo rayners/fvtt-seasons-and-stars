@@ -2,13 +2,9 @@
  * Calendar Builder ApplicationV2 for creating and editing custom calendars
  */
 
-/// <reference types="../../core/src/types/foundry-v13-essentials" />
-/// <reference types="../../core/src/types/foundry-extensions" />
-
 import { SimpleCalendarConverter } from './simple-calendar-converter';
 import type { SimpleCalendarExport, SimpleCalendarData } from './simple-calendar-types';
 import type { SeasonsStarsCalendar } from '../../core/src/types/calendar';
-import type { CalendarManagerInterface } from '../../core/src/types/foundry-extensions';
 
 export class CalendarBuilderApp extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
@@ -665,7 +661,10 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   async _onLoadCurrentCalendar(_event: Event, _target: HTMLElement): Promise<void> {
     try {
       // Get the active calendar from the manager
-      const manager = game.seasonsStars?.manager as CalendarManagerInterface | undefined;
+      const manager = game.seasonsStars?.manager as {
+        getActiveCalendar(): SeasonsStarsCalendar | null;
+        getCalendarLoader(): { loadFromUrl(url: string, options?: { validate?: boolean }): Promise<any> };
+      } | undefined;
       if (!manager) {
         this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.no_current_calendar'), 'warn');
         return;

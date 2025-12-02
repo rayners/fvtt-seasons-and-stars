@@ -3,7 +3,8 @@
  * Provides a user interface for creating and editing custom calendar JSON files
  */
 
-/// <reference types="../../core/src/types/foundry-v13-essentials" />
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../core/src/types/foundry-v13-essentials.d.ts" />
 
 import './styles/calendar-builder.scss';
 import { CalendarBuilderApp } from './calendar-builder-app';
