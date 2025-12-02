@@ -5,6 +5,7 @@
 
 /// <reference types="../../core/src/types/foundry-v13-essentials" />
 
+import './styles/calendar-builder.scss';
 import { CalendarBuilderApp } from './calendar-builder-app';
 
 let calendarBuilderApp: CalendarBuilderApp | null = null;
@@ -33,7 +34,7 @@ Hooks.once('seasons-and-stars.ready', () => {
     icon: 'fa-solid fa-hammer',
     tooltip: 'Open Calendar Builder',
     callback: () => {
-      calendarBuilderApp?.render(true);
+      calendarBuilderApp?.render({ force: true });
     }
   });
 });
@@ -47,7 +48,7 @@ Hooks.once('ready', () => {
   // Ensure the app is available globally for debugging
   (globalThis as any).CalendarBuilder = {
     app: calendarBuilderApp,
-    open: () => calendarBuilderApp?.render(true)
+    open: () => calendarBuilderApp?.render({ force: true })
   };
 });
 

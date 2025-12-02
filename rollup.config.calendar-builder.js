@@ -2,6 +2,7 @@ import typescript from '@rollup/plugin-typescript';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import copy from 'rollup-plugin-copy';
+import scss from 'rollup-plugin-scss';
 
 export default {
   input: './src/module.ts',
@@ -11,8 +12,6 @@ export default {
     sourcemap: true,
   },
   plugins: [
-    nodeResolve(),
-    commonjs(),
     typescript({
       tsconfig: '../../tsconfig.json',
       include: ['src/**/*'],
@@ -27,6 +26,14 @@ export default {
         declaration: false,
         declarationMap: false,
       },
+    }),
+    nodeResolve(),
+    commonjs(),
+    scss({
+      fileName: 'styles/calendar-builder.css',
+      outputStyle: 'compressed',
+      watch: 'src/styles',
+      verbose: false,
     }),
     copy({
       targets: [
@@ -44,11 +51,6 @@ export default {
         {
           src: 'languages/**/*',
           dest: '../../dist/custom-calendar-builder/languages',
-        },
-        // Copy styles
-        {
-          src: 'styles/**/*',
-          dest: '../../dist/custom-calendar-builder/styles',
         },
       ],
     }),
