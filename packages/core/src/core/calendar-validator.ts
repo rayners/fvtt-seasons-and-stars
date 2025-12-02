@@ -683,7 +683,7 @@ export class CalendarValidator {
 
       // Validate week names uniqueness
       if (Array.isArray(calendar.weeks.names)) {
-        const weekNames = calendar.weeks.names.map((w: any) => w.name).filter(Boolean);
+        const weekNames = calendar.weeks.names.map(w => w.name).filter(Boolean);
         const uniqueNames = new Set(weekNames);
 
         if (weekNames.length !== uniqueNames.size) {
