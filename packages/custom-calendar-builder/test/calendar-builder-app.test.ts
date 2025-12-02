@@ -153,11 +153,11 @@ describe('CalendarBuilderApp', () => {
   });
 
   describe('context preparation', () => {
-    it('should prepare context with empty state initially', async () => {
+    it('should prepare context with default template initially', async () => {
       const context = await app._prepareContext();
 
-      expect(context.currentJson).toBe('');
-      expect(context.hasContent).toBe(false);
+      expect(context.currentJson).toContain('my-custom-calendar');
+      expect(context.hasContent).toBe(true);
       expect(context.validationResult).toBeNull();
     });
 

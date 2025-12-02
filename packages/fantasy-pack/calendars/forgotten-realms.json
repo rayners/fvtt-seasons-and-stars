@@ -202,7 +202,7 @@
     {
       "name": "Selûne",
       "cycleLength": 30,
-      "firstNewMoon": { "year": 1495, "month": 1, "day": 1 },
+      "firstNewMoon": { "year": 1495, "month": 1, "day": 15 },
       "phases": [
         { "name": "New Moon", "length": 1, "singleDay": true, "icon": "new" },
         { "name": "Waxing Crescent", "length": 7, "singleDay": false, "icon": "waxing-crescent" },
