@@ -68,6 +68,8 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   private validationTimeout: number | null = null;
   private validationSequence: number = 0;
   private calendarData: SeasonsStarsCalendar | null = null;
+  // Browser setTimeout returns number, not NodeJS.Timeout
+  private renderTimeout: number | null = null;
 
   // Type declaration for HandlebarsApplicationMixin method
   declare _prepareTabs: (group: string) => Record<string, any>;
@@ -97,6 +99,11 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       clearTimeout(this.validationTimeout);
       this.validationTimeout = null;
     }
+    // Clean up render timeout
+    if (this.renderTimeout) {
+      clearTimeout(this.renderTimeout);
+      this.renderTimeout = null;
+    }
     return super.close(options);
   }
 
@@ -124,6 +131,8 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       importJson: CalendarBuilderApp.prototype._onImportJson,
       validateJson: CalendarBuilderApp.prototype._onValidateJson,
       clearEditor: CalendarBuilderApp.prototype._onClearEditor,
+      addWeekday: CalendarBuilderApp.prototype._onAddWeekday,
+      removeWeekday: CalendarBuilderApp.prototype._onRemoveWeekday,
     },
   };
 
@@ -178,6 +187,9 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       template: 'modules/seasons-and-stars-calendar-builder/templates/parts/seasons.hbs',
     },
   };
+
+  // Form tabs that should be re-rendered when JSON changes (excludes editor tab)
+  static readonly FORM_TAB_IDS = ['basic', 'time', 'months', 'weekdays', 'leapyear', 'intercalary', 'events', 'moons', 'seasons'] as const;
 
   static TABS = {
     main: {
@@ -240,7 +252,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     }
 
     // Use event delegation for form field changes on interactive tabs
-    if (partId === 'basic' || partId === 'time' || partId === 'leapyear') {
+    if (partId === 'basic' || partId === 'time' || partId === 'leapyear' || partId === 'weekdays') {
       htmlElement.addEventListener('change', this._onFormFieldChange.bind(this));
       htmlElement.addEventListener('blur', this._onFormFieldBlur.bind(this), true); // Use capture phase for blur
     }
@@ -364,6 +376,11 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
   /**
    * Set a nested property in an object using dot notation
+   *
+   * Note: This implementation uses numeric string detection to identify array paths.
+   * Limitation: Paths with numeric property names (e.g., "year.2024.property") will
+   * be treated as arrays rather than objects. This is acceptable for current calendar
+   * schema which uses arrays for weekdays, months, intercalary days, etc.
    */
   private _setNestedProperty(obj: SeasonsStarsCalendar, path: string, value: string): void {
     const keys = path.split('.');
@@ -373,7 +390,12 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (!(key in current) || typeof current[key] !== 'object' || current[key] === null) {
-        current[key] = {};
+        // Detect array vs object based on whether the next key is numeric
+        if (i + 1 < keys.length && !isNaN(Number(keys[i + 1]))) {
+          current[key] = [];
+        } else {
+          current[key] = {};
+        }
       }
       current = current[key];
     }
@@ -402,7 +424,28 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       this.currentJson = codeMirror.value || '';
       // Validate when the form changes
       this._validateCurrentJson();
+      // Debounced re-render to update form tabs with new JSON data
+      this._debouncedRender();
     }
+  }
+
+  /**
+   * Debounced re-render to avoid excessive renders while typing in JSON editor
+   */
+  private _debouncedRender(): void {
+    // Clear existing timeout
+    if (this.renderTimeout) {
+      clearTimeout(this.renderTimeout);
+    }
+
+    // Set new timeout - re-render after 500ms of no changes
+    // Cast to number for browser environment (Node types conflict with window.setTimeout)
+    this.renderTimeout = window.setTimeout(() => {
+      this.renderTimeout = null;
+      // Re-render only the form tabs, not the editor tab
+      // This prevents the CodeMirror editor from jumping back to line 1
+      this.render({ parts: [...CalendarBuilderApp.FORM_TAB_IDS] });
+    }, 500) as unknown as number;
   }
 
 
@@ -515,6 +558,16 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   }
 
   /**
+   * Update the CodeMirror editor with new JSON content
+   */
+  private _updateCodeMirror(json: string): void {
+    const codeMirror = this.element?.querySelector('#calendar-json-editor') as HTMLElement & { value: string };
+    if (codeMirror) {
+      codeMirror.value = json;
+    }
+  }
+
+  /**
    * Basic JSON structure validation fallback
    */
   private _basicValidation(data: any): any {
@@ -549,7 +602,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
    */
   async _onNewCalendar(_event: Event, _target: HTMLElement): Promise<void> {
     this.currentJson = JSON.stringify(CalendarBuilderApp.DEFAULT_TEMPLATE, null, 2);
-    this.render(true);
+    this.render({ force: true });
     this._validateCurrentJson();
     this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.new_template'));
   }
@@ -584,7 +637,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
             const calendarData = await response.text();
             this.currentJson = calendarData;
-            this.render(true);
+            this.render({ force: true });
             this._validateCurrentJson();
             this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
           } catch (error) {
@@ -713,7 +766,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     }
 
     this.currentJson = text;
-    this.render(true);
+    this.render({ force: true });
     this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.imported'));
   }
 
@@ -744,7 +797,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
 
     if (!confirmed) {
       this.currentJson = originalText;
-      this.render(true);
+      this.render({ force: true });
       this._notify('Loaded Simple Calendar JSON without conversion - validation will likely fail', 'warn');
       return true;
     }
@@ -775,7 +828,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
     const result = converter.convert(calendarToConvert, filename);
 
     this.currentJson = JSON.stringify(result.calendar, null, 2);
-    this.render(true);
+    this.render({ force: true });
 
     // Validate the converted calendar to ensure it's valid current S&S format
     await this._validateCurrentJson();
@@ -840,12 +893,82 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
       if (confirmed) {
         this.currentJson = '';
         this.lastValidationResult = null;
-        this.render(true);
+        this.render({ force: true });
         this._notify(game.i18n.localize('CALENDAR_BUILDER.app.notifications.cleared'));
       }
     } catch (error) {
       console.error('Failed to show confirmation dialog:', error);
       this._notify('Failed to show confirmation dialog', 'error');
     }
+  }
+
+  /**
+   * Add a new weekday
+   */
+  async _onAddWeekday(_event: Event, _target: HTMLElement): Promise<void> {
+    const calendar = this.parseCalendarData();
+    if (!calendar) {
+      this._notify('Please create or load a calendar first', 'warn');
+      return;
+    }
+
+    if (!calendar.weekdays) {
+      calendar.weekdays = [];
+    }
+
+    calendar.weekdays.push({
+      name: `Day ${calendar.weekdays.length + 1}`,
+      abbreviation: `D${calendar.weekdays.length + 1}`,
+    });
+
+    this.currentJson = JSON.stringify(calendar, null, 2);
+    this._updateCodeMirror(this.currentJson);
+
+    this.render({ force: true });
+    this._validateCurrentJson();
+  }
+
+  /**
+   * Remove a weekday
+   */
+  async _onRemoveWeekday(_event: Event, target: HTMLElement): Promise<void> {
+    const index = parseInt(target.dataset.index || '-1', 10);
+    if (index < 0) return;
+
+    const calendar = this.parseCalendarData();
+    if (!calendar || !calendar.weekdays || calendar.weekdays.length <= 1) {
+      this._notify('Cannot remove the last weekday', 'warn');
+      return;
+    }
+
+    const removedWeekdayName = calendar.weekdays[index]?.name || 'Unknown';
+    const currentStartDay = calendar.year?.startDay || 0;
+
+    calendar.weekdays.splice(index, 1);
+
+    // Initialize year object with minimal defaults if it doesn't exist
+    // We only initialize the properties we need to avoid overwriting user configuration
+    if (!calendar.year) {
+      calendar.year = {
+        epoch: 0,
+        currentYear: 1,
+        prefix: '',
+        suffix: '',
+        startDay: 0,
+      };
+    }
+
+    if (currentStartDay === index) {
+      calendar.year.startDay = 0;
+    } else if (currentStartDay > index) {
+      calendar.year.startDay = currentStartDay - 1;
+    }
+
+    this.currentJson = JSON.stringify(calendar, null, 2);
+    this._updateCodeMirror(this.currentJson);
+
+    this.render({ force: true });
+    this._validateCurrentJson();
+    this._notify(`Removed weekday: ${removedWeekdayName}`);
   }
 }
