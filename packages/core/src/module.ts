@@ -799,6 +799,20 @@ function registerSettings(): void {
     },
   });
 
+  // === TIME FORMAT SETTINGS ===
+
+  game.settings.register('seasons-and-stars', 'prefer12HourFormat', {
+    name: 'Prefer 12-Hour Time Format',
+    hint: 'When enabled, times are displayed in 12-hour format with AM/PM notation instead of 24-hour format (e.g., "2:30 PM" instead of "14:30"). Requires calendar support for 12-hour formatting.',
+    scope: 'client',
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: () => {
+      Hooks.callAll('seasons-stars:settingsChanged', 'prefer12HourFormat');
+    },
+  });
+
   // === TIME ADVANCEMENT SETTINGS ===
 
   game.settings.register('seasons-and-stars', 'timeAdvancementRatio', {

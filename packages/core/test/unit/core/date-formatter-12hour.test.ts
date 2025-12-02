@@ -556,4 +556,182 @@ describe('DateFormatter - 12-Hour Clock Support', () => {
       expect(formatter.format(afternoon, '{{ss-hour format="ampm"}}')).toBe('PM');
     });
   });
+
+  describe('ss-time-display helper with 12-hour preference setting', () => {
+    let mockGame: any;
+
+    beforeEach(() => {
+      // Mock game.settings for preference testing
+      mockGame = {
+        settings: {
+          get: vi.fn((module: string, setting: string) => {
+            if (module === 'seasons-and-stars' && setting === 'prefer12HourFormat') {
+              return false; // Default to 24-hour format
+            }
+            return undefined;
+          }),
+        },
+      };
+      (global as any).game = mockGame;
+    });
+
+    it('should display 24-hour format when preference is disabled', () => {
+      const calendarWithAmPm: SeasonsStarsCalendar = {
+        ...mockCalendar,
+        time: {
+          hoursInDay: 24,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+          amPmNotation: { am: 'AM', pm: 'PM' },
+        },
+      };
+
+      formatter = new DateFormatter(calendarWithAmPm);
+
+      const afternoon = { ...mockDate, time: { hour: 14, minute: 30, second: 0 } };
+      const result = formatter.format(afternoon, '{{ss-time-display mode="exact"}}');
+      expect(result).toBe('14:30');
+    });
+
+    it('should display 12-hour format when preference is enabled and calendar supports it', () => {
+      // Enable 12-hour preference
+      mockGame.settings.get = vi.fn((module: string, setting: string) => {
+        if (module === 'seasons-and-stars' && setting === 'prefer12HourFormat') {
+          return true;
+        }
+        return undefined;
+      });
+
+      const calendarWithAmPm: SeasonsStarsCalendar = {
+        ...mockCalendar,
+        time: {
+          hoursInDay: 24,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+          amPmNotation: { am: 'AM', pm: 'PM' },
+        },
+      };
+
+      formatter = new DateFormatter(calendarWithAmPm);
+
+      const afternoon = { ...mockDate, time: { hour: 14, minute: 30, second: 0 } };
+      const result = formatter.format(afternoon, '{{ss-time-display mode="exact"}}');
+      expect(result).toBe('2:30 PM');
+
+      const morning = { ...mockDate, time: { hour: 9, minute: 15, second: 0 } };
+      const resultMorning = formatter.format(morning, '{{ss-time-display mode="exact"}}');
+      expect(resultMorning).toBe('9:15 AM');
+
+      const midnight = { ...mockDate, time: { hour: 0, minute: 0, second: 0 } };
+      const resultMidnight = formatter.format(midnight, '{{ss-time-display mode="exact"}}');
+      expect(resultMidnight).toBe('12:00 AM');
+
+      const noon = { ...mockDate, time: { hour: 12, minute: 0, second: 0 } };
+      const resultNoon = formatter.format(noon, '{{ss-time-display mode="exact"}}');
+      expect(resultNoon).toBe('12:00 PM');
+    });
+
+    it('should fall back to 24-hour format when calendar does not support am/pm notation', () => {
+      // Enable 12-hour preference
+      mockGame.settings.get = vi.fn((module: string, setting: string) => {
+        if (module === 'seasons-and-stars' && setting === 'prefer12HourFormat') {
+          return true;
+        }
+        return undefined;
+      });
+
+      // Calendar without amPmNotation
+      formatter = new DateFormatter(mockCalendar);
+
+      const afternoon = { ...mockDate, time: { hour: 14, minute: 30, second: 0 } };
+      const result = formatter.format(afternoon, '{{ss-time-display mode="exact"}}');
+      expect(result).toBe('14:30');
+    });
+
+    it('should work with non-24-hour days when 12-hour format is enabled', () => {
+      // Enable 12-hour preference
+      mockGame.settings.get = vi.fn((module: string, setting: string) => {
+        if (module === 'seasons-and-stars' && setting === 'prefer12HourFormat') {
+          return true;
+        }
+        return undefined;
+      });
+
+      const calendar20Hour: SeasonsStarsCalendar = {
+        ...mockCalendar,
+        time: {
+          hoursInDay: 20,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+          amPmNotation: { am: 'AM', pm: 'PM' },
+        },
+      };
+
+      formatter = new DateFormatter(calendar20Hour);
+
+      // Hour 5 in 20-hour day (before midday at 10)
+      const morning = { ...mockDate, time: { hour: 5, minute: 30, second: 0 } };
+      const resultMorning = formatter.format(morning, '{{ss-time-display mode="exact"}}');
+      expect(resultMorning).toBe('5:30 AM');
+
+      // Hour 15 in 20-hour day (after midday at 10)
+      const afternoon = { ...mockDate, time: { hour: 15, minute: 45, second: 0 } };
+      const resultAfternoon = formatter.format(afternoon, '{{ss-time-display mode="exact"}}');
+      expect(resultAfternoon).toBe('5:45 PM');
+
+      // Hour 0 (midnight equivalent, displays as 10 AM)
+      const midnight = { ...mockDate, time: { hour: 0, minute: 0, second: 0 } };
+      const resultMidnight = formatter.format(midnight, '{{ss-time-display mode="exact"}}');
+      expect(resultMidnight).toBe('10:00 AM');
+
+      // Hour 10 (midday in 20-hour system, displays as 10 PM)
+      const midday = { ...mockDate, time: { hour: 10, minute: 0, second: 0 } };
+      const resultMidday = formatter.format(midday, '{{ss-time-display mode="exact"}}');
+      expect(resultMidday).toBe('10:00 PM');
+    });
+
+    it('should prefer canonical hours over 12-hour format when mode is canonical-or-exact', () => {
+      // Enable 12-hour preference
+      mockGame.settings.get = vi.fn((module: string, setting: string) => {
+        if (module === 'seasons-and-stars' && setting === 'prefer12HourFormat') {
+          return true;
+        }
+        return undefined;
+      });
+
+      const calendarWithCanonical: SeasonsStarsCalendar = {
+        ...mockCalendar,
+        time: {
+          hoursInDay: 24,
+          minutesInHour: 60,
+          secondsInMinute: 60,
+          amPmNotation: { am: 'AM', pm: 'PM' },
+        },
+        canonicalHours: [
+          {
+            name: 'Noon',
+            startHour: 12,
+            startMinute: 0,
+            endHour: 13,
+            endMinute: 0,
+          },
+        ],
+      };
+
+      formatter = new DateFormatter(calendarWithCanonical);
+
+      // Should display canonical hour name, not 12-hour format
+      const noon = { ...mockDate, time: { hour: 12, minute: 0, second: 0 } };
+      const result = formatter.format(noon, '{{ss-time-display mode="canonical-or-exact"}}');
+      expect(result).toBe('Noon');
+
+      // Should use 12-hour format when no canonical hour matches
+      const afternoon = { ...mockDate, time: { hour: 14, minute: 30, second: 0 } };
+      const resultAfternoon = formatter.format(
+        afternoon,
+        '{{ss-time-display mode="canonical-or-exact"}}'
+      );
+      expect(resultAfternoon).toBe('2:30 PM');
+    });
+  });
 });

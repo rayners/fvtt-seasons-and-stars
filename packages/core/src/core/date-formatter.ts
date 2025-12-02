@@ -946,7 +946,7 @@ export class DateFormatter {
       );
     });
 
-    // Time display helper - supports canonical hours with exact time fallback
+    // Time display helper - supports canonical hours with exact time fallback and 12-hour format
     Handlebars.registerHelper('ss-time-display', function (this: any, ...args: any[]) {
       // Handlebars passes options as the last argument
       const options = args[args.length - 1];
@@ -970,9 +970,37 @@ export class DateFormatter {
       // Check for canonical hours
       const canonicalHours = formatter.calendar.canonicalHours;
 
+      // Helper function to format time based on user preference
+      const formatTime = (h: number, m: number): string => {
+        // Check if user prefers 12-hour format and calendar supports it
+        const prefer12Hour =
+          typeof game !== 'undefined' &&
+          game.settings?.get('seasons-and-stars', 'prefer12HourFormat') === true;
+        const has12HourSupport =
+          formatter.calendar.time?.amPmNotation &&
+          formatter.calendar.time.amPmNotation.am &&
+          formatter.calendar.time.amPmNotation.pm;
+
+        if (prefer12Hour && has12HourSupport) {
+          // Use 12-hour format with am/pm
+          const hoursInDay = formatter.calendar.time?.hoursInDay || 24;
+          const halfDay = Math.floor(hoursInDay / 2);
+          const hourInHalf = h % halfDay;
+          const hour12 = hourInHalf === 0 ? halfDay : hourInHalf;
+          const ampm =
+            h < halfDay
+              ? formatter.calendar.time.amPmNotation!.am
+              : formatter.calendar.time.amPmNotation!.pm;
+          return `${hour12}:${m.toString().padStart(2, '0')} ${ampm}`;
+        }
+
+        // Default 24-hour format
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      };
+
       if (mode === 'exact' || !canonicalHours || canonicalHours.length === 0) {
         // Force exact time or no canonical hours available
-        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        return formatTime(hour, minute);
       }
 
       if (mode === 'canonical-or-exact' || mode === 'canonical') {
@@ -995,11 +1023,11 @@ export class DateFormatter {
         }
 
         // Fallback to exact time for canonical-or-exact mode
-        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        return formatTime(hour, minute);
       }
 
       // Default fallback
-      return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      return formatTime(hour, minute);
     });
 
     // Icon rendering helper - safely renders icons from icon or iconUrl with XSS protection
