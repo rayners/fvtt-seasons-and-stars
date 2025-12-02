@@ -6,7 +6,7 @@ import type { CalendarDate as ICalendarDate } from './calendar-date';
 import { CalendarDate } from './calendar-date';
 import type { SeasonsStarsCalendar, CalendarWeek, CalendarDateData } from '../types/calendar';
 import { renderIconHtml } from './constants';
-import type { CalendarEngine } from './calendar-engine';
+import { CalendarEngine } from './calendar-engine';
 
 export class DateFormatter {
   private calendar: SeasonsStarsCalendar;
@@ -1225,15 +1225,8 @@ export class DateFormatter {
   getWeekOfMonth(date: CalendarDateData): number | null {
     // Lazy initialization to avoid circular dependency
     if (!this.engine) {
-      // Use dynamic import to avoid circular dependency issues
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const CalendarEngineModule = require('./calendar-engine');
-      const CalendarEngineClass =
-        CalendarEngineModule.CalendarEngine || CalendarEngineModule.default;
-      this.engine = new CalendarEngineClass(this.calendar);
+      this.engine = new CalendarEngine(this.calendar);
     }
-    // Explicit null check for TypeScript
-    if (!this.engine) return null;
     return this.engine.getWeekOfMonth(date);
   }
 
@@ -1248,15 +1241,8 @@ export class DateFormatter {
   getWeekInfo(date: CalendarDateData): CalendarWeek | null {
     // Lazy initialization to avoid circular dependency
     if (!this.engine) {
-      // Use dynamic import to avoid circular dependency issues
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const CalendarEngineModule = require('./calendar-engine');
-      const CalendarEngineClass =
-        CalendarEngineModule.CalendarEngine || CalendarEngineModule.default;
-      this.engine = new CalendarEngineClass(this.calendar);
+      this.engine = new CalendarEngine(this.calendar);
     }
-    // Explicit null check for TypeScript
-    if (!this.engine) return null;
     return this.engine.getWeekInfo(date);
   }
 
