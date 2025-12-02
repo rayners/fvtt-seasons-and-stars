@@ -362,6 +362,26 @@
           "minimum": 1,
           "maximum": 120,
           "description": "Number of seconds in a minute"
+        },
+        "amPmNotation": {
+          "type": "object",
+          "required": ["am", "pm"],
+          "additionalProperties": false,
+          "properties": {
+            "am": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 10,
+              "description": "Text to display for ante meridiem (before noon)"
+            },
+            "pm": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 10,
+              "description": "Text to display for post meridiem (after noon)"
+            }
+          },
+          "description": "Optional AM/PM notation for 12-hour time display"
         }
       }
     },

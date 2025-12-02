@@ -421,7 +421,7 @@ export class CalendarValidator {
       return ['rule', 'interval', 'offset', 'month', 'extraDays'];
     }
     if (path.includes('/time')) {
-      return ['hoursInDay', 'minutesInHour', 'secondsInMinute'];
+      return ['hoursInDay', 'minutesInHour', 'secondsInMinute', 'amPmNotation'];
     }
     if (path.includes('/months/')) {
       return ['name', 'length', 'days', 'description', 'abbreviation'];

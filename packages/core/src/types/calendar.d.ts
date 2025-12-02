@@ -60,6 +60,24 @@ export interface SeasonsStarsCalendar {
     hoursInDay: number;
     minutesInHour: number;
     secondsInMinute: number;
+    /**
+     * Optional am/pm notation for 12-hour time display
+     * @example
+     * // Standard English
+     * { am: "AM", pm: "PM" }
+     *
+     * @example
+     * // With periods
+     * { am: "a.m.", pm: "p.m." }
+     *
+     * @example
+     * // Japanese
+     * { am: "午前", pm: "午後" }
+     */
+    amPmNotation?: {
+      am: string;
+      pm: string;
+    };
   };
 
   // Date formatting templates using Handlebars syntax

@@ -64,6 +64,10 @@
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
-    "secondsInMinute": 60
+    "secondsInMinute": 60,
+    "amPmNotation": {
+      "am": "AM",
+      "pm": "PM"
+    }
   }
 }

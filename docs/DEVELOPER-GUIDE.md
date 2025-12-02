@@ -1754,6 +1754,10 @@ interface SeasonsStarsCalendar {
     hoursInDay: number; // Usually 24
     minutesInHour: number; // Usually 60
     secondsInMinute: number; // Usually 60
+    amPmNotation?: {
+      am: string; // Text for ante meridiem (e.g., "AM", "a.m.")
+      pm: string; // Text for post meridiem (e.g., "PM", "p.m.")
+    }; // Optional AM/PM notation for 12-hour clock display
   }; // Defaults to 24/60/60
 
   // Optional canonical hours for time period naming (added in v0.8.0)
