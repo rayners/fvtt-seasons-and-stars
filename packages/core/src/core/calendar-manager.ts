@@ -1099,8 +1099,9 @@ export class CalendarManager {
           continue;
         }
 
-        // Determine source information based on URL
-        const sourceInfo = this.determineSourceInfo(url, result);
+        // Determine source information using the individual calendar URL from result.sourceUrl
+        // This ensures sourceInfo.url points to the actual calendar file, not the collection index
+        const sourceInfo = this.determineSourceInfo(result.sourceUrl || url, result);
 
         const loadSuccess = this.loadCalendar(result.calendar, sourceInfo);
         if (loadSuccess) {

@@ -21,6 +21,7 @@ import {
   getQuickTimeButtonsFromSettings,
 } from '../../../src/core/quick-time-buttons';
 import { registerSettings } from '../../../src/module';
+import { SETTINGS_KEYS } from '../../../src/core/constants';
 
 // Mock time advancement service
 vi.mock('../../../src/core/time-advancement-service', () => ({
@@ -863,6 +864,230 @@ describe('CalendarMiniWidget - Feature Integration Tests', () => {
         } finally {
           globalThis.game = originalGame;
         }
+      });
+    });
+  });
+
+  describe('Year Display Feature', () => {
+    let widget: CalendarMiniWidget;
+    const mockSettings = new Map();
+    const mockRegisteredSettings = new Map();
+
+    const mockCalendarWithYear: SeasonsStarsCalendar = {
+      id: 'test-year',
+      translations: { en: { label: 'Test Year Calendar' } },
+      year: { epoch: 0, currentYear: 2024, prefix: 'Year', suffix: 'AD', startDay: 0 },
+      leapYear: { rule: 'none' },
+      months: [{ name: 'January', days: 31 }],
+      weekdays: [{ name: 'Sunday' }],
+      intercalary: [],
+      time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+    };
+
+    const mockCalendarNoPrefix: SeasonsStarsCalendar = {
+      id: 'test-no-prefix',
+      translations: { en: { label: 'Test No Prefix Calendar' } },
+      year: { epoch: 0, currentYear: 2024, prefix: '', suffix: 'CE', startDay: 0 },
+      leapYear: { rule: 'none' },
+      months: [{ name: 'January', days: 31 }],
+      weekdays: [{ name: 'Sunday' }],
+      intercalary: [],
+      time: { hoursInDay: 24, minutesInHour: 60, secondsInMinute: 60 },
+    };
+
+    beforeEach(() => {
+      const mockDate = new CalendarDate(
+        {
+          year: 2024,
+          month: 1,
+          day: 15,
+          weekday: 0,
+          time: { hour: 12, minute: 0, second: 0 },
+        },
+        mockCalendarWithYear
+      );
+
+      globalThis.game = {
+        user: { isGM: true },
+        settings: {
+          get: vi.fn((module: string, key: string) => {
+            return mockSettings.get(`${module}.${key}`);
+          }),
+          set: vi.fn((module: string, key: string, value: any) => {
+            mockSettings.set(`${module}.${key}`, value);
+
+            const settingConfig = mockRegisteredSettings.get(`${module}.${key}`);
+            if (settingConfig && typeof settingConfig.onChange === 'function') {
+              settingConfig.onChange();
+            }
+
+            return Promise.resolve();
+          }),
+          register: vi.fn((module: string, key: string, data: any) => {
+            mockRegisteredSettings.set(`${module}.${key}`, data);
+          }),
+          registerMenu: vi.fn(),
+        },
+        seasonsStars: {
+          manager: {
+            getActiveCalendar: vi.fn().mockReturnValue(mockCalendarWithYear),
+            getCurrentDate: vi.fn().mockReturnValue(mockDate),
+            getActiveEngine: vi.fn().mockReturnValue({
+              getMoonPhaseInfo: vi.fn().mockReturnValue([]),
+            }),
+          },
+        },
+      } as any;
+
+      globalThis.ui = {
+        notifications: {
+          warn: vi.fn(),
+          error: vi.fn(),
+          info: vi.fn(),
+        },
+      } as any;
+
+      globalThis.Hooks = {
+        on: vi.fn(),
+        call: vi.fn(),
+        callAll: vi.fn(),
+      } as any;
+
+      mockSettings.clear();
+      mockRegisteredSettings.clear();
+      vi.clearAllMocks();
+
+      widget = new CalendarMiniWidget();
+    });
+
+    describe('Setting Registration', () => {
+      it('should register miniWidgetShowYear setting with onChange hook', () => {
+        registerSettings();
+
+        const settingConfig = mockRegisteredSettings.get(
+          `seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`
+        );
+        expect(settingConfig).toBeDefined();
+        expect(settingConfig.name).toBe('Display Year in Mini Widget');
+        expect(settingConfig.scope).toBe('client');
+        expect(settingConfig.config).toBe(false);
+        expect(settingConfig.type).toBe(Boolean);
+        expect(settingConfig.default).toBe(false);
+        expect(typeof settingConfig.onChange).toBe('function');
+      });
+
+      it('should trigger hook when setting changes', async () => {
+        registerSettings();
+
+        await game.settings.set('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR, true);
+
+        expect(Hooks.callAll).toHaveBeenCalledWith(
+          'seasons-stars:settingsChanged',
+          SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR
+        );
+      });
+    });
+
+    describe('Year String Formatting', () => {
+      it('should format year with both prefix and suffix', async () => {
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, true);
+
+        const context = await widget._prepareContext({});
+
+        expect(context.yearDisplay).toBe('Year 2024 AD');
+      });
+
+      it('should format year with suffix only', async () => {
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, true);
+        const mockDateNoPrefix = new CalendarDate(
+          {
+            year: 2024,
+            month: 1,
+            day: 15,
+            weekday: 0,
+            time: { hour: 12, minute: 0, second: 0 },
+          },
+          mockCalendarNoPrefix
+        );
+        (game.seasonsStars.manager.getActiveCalendar as Mock).mockReturnValue(mockCalendarNoPrefix);
+        (game.seasonsStars.manager.getCurrentDate as Mock).mockReturnValue(mockDateNoPrefix);
+
+        const context = await widget._prepareContext({});
+
+        expect(context.yearDisplay).toBe('2024 CE');
+      });
+
+      it('should format year with no prefix or suffix', async () => {
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, true);
+        const mockCalendarNoPrefixSuffix = {
+          ...mockCalendarWithYear,
+          year: { ...mockCalendarWithYear.year, prefix: '', suffix: '' },
+        };
+        const mockDateNoPrefixSuffix = new CalendarDate(
+          {
+            year: 2024,
+            month: 1,
+            day: 15,
+            weekday: 0,
+            time: { hour: 12, minute: 0, second: 0 },
+          },
+          mockCalendarNoPrefixSuffix
+        );
+        (game.seasonsStars.manager.getActiveCalendar as Mock).mockReturnValue(
+          mockCalendarNoPrefixSuffix
+        );
+        (game.seasonsStars.manager.getCurrentDate as Mock).mockReturnValue(mockDateNoPrefixSuffix);
+
+        const context = await widget._prepareContext({});
+
+        expect(context.yearDisplay).toBe('2024');
+      });
+
+      it('should not add extra spaces when prefix has trailing space', async () => {
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, true);
+        const mockCalendarWithTrailingSpace = {
+          ...mockCalendarWithYear,
+          year: { ...mockCalendarWithYear.year, prefix: 'Year ' },
+        };
+        const mockDateTrailingSpace = new CalendarDate(
+          {
+            year: 2024,
+            month: 1,
+            day: 15,
+            weekday: 0,
+            time: { hour: 12, minute: 0, second: 0 },
+          },
+          mockCalendarWithTrailingSpace
+        );
+        (game.seasonsStars.manager.getActiveCalendar as Mock).mockReturnValue(
+          mockCalendarWithTrailingSpace
+        );
+        (game.seasonsStars.manager.getCurrentDate as Mock).mockReturnValue(mockDateTrailingSpace);
+
+        const context = await widget._prepareContext({});
+
+        expect(context.yearDisplay).toBe('Year 2024 AD');
+      });
+
+      it('should return empty string when year display is disabled', async () => {
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, false);
+
+        const context = await widget._prepareContext({});
+
+        expect(context.yearDisplay).toBe('');
+      });
+    });
+
+    describe('Context Menu Toggle', () => {
+      it('should toggle year display setting through context menu', async () => {
+        registerSettings();
+        mockSettings.set(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`, false);
+
+        await game.settings.set('seasons-and-stars', SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR, true);
+
+        expect(mockSettings.get(`seasons-and-stars.${SETTINGS_KEYS.MINI_WIDGET_SHOW_YEAR}`)).toBe(
+          true
+        );
       });
     });
   });
