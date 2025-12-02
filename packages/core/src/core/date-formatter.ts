@@ -717,7 +717,7 @@ export class DateFormatter {
       }
     });
 
-    // Hour helper - supports pad format
+    // Hour helper - supports pad, 12hour, 12hour-pad, and ampm formats
     Handlebars.registerHelper('ss-hour', function (this: any, ...args: any[]) {
       // Handlebars passes options as the last argument
       const options = args[args.length - 1];
@@ -734,10 +734,36 @@ export class DateFormatter {
       }
 
       const format = options?.hash?.format;
+      const calendarId = options?.data?.root?._calendarId;
+      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
 
       switch (format) {
         case 'pad':
           return hourValue.toString().padStart(2, '0');
+        case '12hour': {
+          // Convert 24-hour to 12-hour format
+          let hour12 = hourValue % 12;
+          if (hour12 === 0) hour12 = 12; // 0 and 12 both show as 12
+          return hour12.toString();
+        }
+        case '12hour-pad': {
+          // Convert 24-hour to 12-hour format with padding
+          let hour12 = hourValue % 12;
+          if (hour12 === 0) hour12 = 12;
+          return hour12.toString().padStart(2, '0');
+        }
+        case 'ampm': {
+          // Get am/pm notation from calendar or options
+          const customAm = options?.hash?.am;
+          const customPm = options?.hash?.pm;
+
+          // Use custom notation if provided, otherwise use calendar notation or defaults
+          const amNotation = customAm || formatter?.calendar?.time?.amPmNotation?.am || 'AM';
+          const pmNotation = customPm || formatter?.calendar?.time?.amPmNotation?.pm || 'PM';
+
+          // Hour < 12 is AM, hour >= 12 is PM
+          return hourValue < 12 ? amNotation : pmNotation;
+        }
         default:
           return hourValue.toString();
       }

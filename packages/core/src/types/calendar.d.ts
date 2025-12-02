@@ -60,6 +60,10 @@ export interface SeasonsStarsCalendar {
     hoursInDay: number;
     minutesInHour: number;
     secondsInMinute: number;
+    amPmNotation?: {
+      am: string;
+      pm: string;
+    };
   };
 
   // Date formatting templates using Handlebars syntax
