@@ -137,6 +137,16 @@ export function init(): void {
     // Initialize chat integration with calendar manager
     ChatIntegration.getInstance().setCalendarManager(calendarManager);
 
+    // Register chat message hooks for per-message timestamps
+    Hooks.on('preCreateChatMessage', (chatMessage: any) => {
+      ChatIntegration.getInstance().addTimestampToMessage(chatMessage);
+      return true; // Allow message creation to continue
+    });
+
+    Hooks.on('renderChatMessage', (chatMessage: any, html: any) => {
+      ChatIntegration.getInstance().renderTimestamp(chatMessage, html);
+    });
+
     // Register Errors and Echoes integration
     // Note: Uses global game.seasonsStars.manager access, so must be called after API setup
     // However, the actual registration happens in the errorsAndEchoesReady hook, so we can
@@ -934,6 +944,32 @@ function registerSettings(): void {
     type: String,
     default:
       "It is now {{ss-weekday format='name'}}, {{ss-month format='name'}} {{ss-day format='ordinal'}}, {{ss-year}}",
+  });
+
+  game.settings.register('seasons-and-stars', SETTINGS_KEYS.CHAT_TIMESTAMPS_ENABLED, {
+    name: 'SEASONS_STARS.settings.chat_timestamps_enabled',
+    hint: 'SEASONS_STARS.settings.chat_timestamps_enabled_hint',
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: false,
+    onChange: () => {
+      // Update all visible timestamps when setting changes
+      ChatIntegration.getInstance().updateAllTimestamps();
+    },
+  });
+
+  game.settings.register('seasons-and-stars', SETTINGS_KEYS.CHAT_TIMESTAMPS_FORMAT, {
+    name: 'SEASONS_STARS.settings.chat_timestamps_format',
+    hint: 'SEASONS_STARS.settings.chat_timestamps_format_hint',
+    scope: 'world',
+    config: true,
+    type: String,
+    default: "{{ss-time format='short'}}",
+    onChange: () => {
+      // Update all visible timestamps when format changes
+      ChatIntegration.getInstance().updateAllTimestamps();
+    },
   });
 
   // === EVENTS SYSTEM SETTINGS ===
