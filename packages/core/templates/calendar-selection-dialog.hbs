@@ -140,17 +140,23 @@
               </div>
             </div>
 
-            <div class="card-actions flexrow">
+            <div class="card-actions flexcol">
               {{#if selectedFilePath}}
               <button type="button" data-action="clearFilePicker" class="button" data-tooltip="{{localize 'SEASONS_STARS.dialog.calendar_selection.clear_file'}}">
                 <i class="fas fa-times"></i>
                 {{localize "SEASONS_STARS.dialog.calendar_selection.clear"}}
               </button>
               {{else}}
-              <button type="button" data-action="openFilePicker" class="button" data-tooltip="{{localize 'SEASONS_STARS.dialog.calendar_selection.browse_tooltip'}}">
-                <i class="fas fa-folder-open"></i>
-                {{localize "SEASONS_STARS.dialog.calendar_selection.browse"}}
-              </button>
+              <div class="file-input-options flexrow">
+                <button type="button" data-action="openFilePicker" class="button" data-tooltip="{{localize 'SEASONS_STARS.dialog.calendar_selection.browse_tooltip'}}">
+                  <i class="fas fa-folder-open"></i>
+                  {{localize "SEASONS_STARS.dialog.calendar_selection.browse"}}
+                </button>
+                <button type="button" data-action="openUrlInput" class="button" data-tooltip="{{localize 'SEASONS_STARS.dialog.calendar_selection.url_tooltip'}}">
+                  <i class="fas fa-link"></i>
+                  {{localize "SEASONS_STARS.dialog.calendar_selection.url"}}
+                </button>
+              </div>
               {{/if}}
               {{#if filePickerActive}}
               <i class="fas fa-check-circle selected-indicator"></i>

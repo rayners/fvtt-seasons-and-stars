@@ -136,6 +136,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       cancel: CalendarSelectionDialog.prototype._onCancel,
       openFilePicker: CalendarSelectionDialog.prototype._onOpenFilePicker,
       clearFilePicker: CalendarSelectionDialog.prototype._onClearFilePicker,
+      openUrlInput: CalendarSelectionDialog.prototype._onOpenUrlInput,
     },
   };
 
@@ -875,6 +876,87 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     } catch (error) {
       Logger.error('Failed to clear file picker:', error as Error);
       ui.notifications?.error(game.i18n.localize('SEASONS_STARS.errors.clear_file_failed'));
+    }
+  }
+
+  /**
+   * Instance action handler for opening URL input dialog
+   */
+  async _onOpenUrlInput(event: Event, target: HTMLElement): Promise<void> {
+    Logger.debug('URL input action triggered', { event, target });
+
+    try {
+      // Create a dialog to get the URL from the user
+      const dialog = new foundry.applications.api.DialogV2({
+        window: {
+          title: game.i18n.localize('SEASONS_STARS.dialog.url_input.title'),
+        },
+        content: `
+          <div class="form-group">
+            <label for="calendar-url">${game.i18n.localize('SEASONS_STARS.dialog.url_input.label')}</label>
+            <input type="text" id="calendar-url" name="calendar-url" placeholder="https://example.com/path/to/calendar.json" value="" style="width: 100%;">
+            <p class="hint">${game.i18n.localize('SEASONS_STARS.dialog.url_input.hint')}</p>
+          </div>
+        `,
+        buttons: [
+          {
+            action: 'cancel',
+            icon: 'fas fa-times',
+            label: game.i18n.localize('SEASONS_STARS.dialog.cancel'),
+            callback: (): void => {},
+          },
+          {
+            action: 'submit',
+            icon: 'fas fa-check',
+            label: game.i18n.localize('SEASONS_STARS.dialog.url_input.submit'),
+            default: true,
+            callback: (event, button, dialogHtml): void => {
+              const input = dialogHtml.querySelector('#calendar-url') as HTMLInputElement;
+              const url = input?.value?.trim() || '';
+
+              if (!url) {
+                ui.notifications?.warn(game.i18n.localize('SEASONS_STARS.errors.url_empty'));
+                return;
+              }
+
+              // Validate URL format
+              try {
+                const parsedUrl = new URL(url);
+                if (!parsedUrl.protocol.startsWith('http')) {
+                  ui.notifications?.error(
+                    game.i18n.localize('SEASONS_STARS.errors.url_invalid_protocol')
+                  );
+                  return;
+                }
+              } catch {
+                ui.notifications?.error(game.i18n.localize('SEASONS_STARS.errors.url_invalid'));
+                return;
+              }
+
+              // Store the URL as the pending file path
+              this.pendingFilePath = url;
+
+              // Update dialog state to show file picker is selected
+              this.selectedCalendarId = '__FILE_PICKER__';
+
+              Logger.debug('URL input received', { url });
+
+              // Re-render dialog to show updated state
+              this.render(true);
+            },
+          },
+        ],
+        classes: ['seasons-stars', 'url-input-dialog'],
+        position: {
+          width: 500,
+          height: 'auto',
+        },
+      });
+
+      await dialog.render(true);
+    } catch (error) {
+      Logger.error('Failed to open URL input dialog:', error as Error);
+      ui.notifications?.error(game.i18n.localize('SEASONS_STARS.errors.url_input_failed'));
     }
   }
 

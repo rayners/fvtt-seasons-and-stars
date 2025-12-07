@@ -43,11 +43,20 @@
         "file_loaded": "Custom calendar file is loaded and ready to use",
         "file_path": "File Path",
         "status": "Status",
-        "click_to_select": "Click to select a calendar file"
+        "click_to_select": "Click to select a calendar file",
+        "url": "URL",
+        "url_tooltip": "Enter a full URL to a calendar JSON file"
+      },
+      "url_input": {
+        "title": "Enter Calendar File URL",
+        "label": "Calendar File URL",
+        "hint": "Enter the full URL to a calendar JSON file (e.g., https://example.com/path/to/calendar.json)",
+        "submit": "Use This URL"
       },
       "calendar_preview": {
         "title": "Calendar Preview: {calendar}"
       },
+      "cancel": "Cancel",
       "close": "Close"
     },
     "settings": {
@@ -91,7 +100,11 @@
       "manager_not_ready": "Calendar manager is not ready yet",
       "file_picker_failed": "Failed to open file picker dialog",
       "calendar_file_load_failed": "Failed to load calendar from file {path}: {error}",
-      "clear_file_failed": "Failed to clear custom calendar file selection"
+      "clear_file_failed": "Failed to clear custom calendar file selection",
+      "url_input_failed": "Failed to open URL input dialog",
+      "url_empty": "Please enter a URL",
+      "url_invalid": "Invalid URL format. Please enter a valid URL (e.g., https://example.com/calendar.json)",
+      "url_invalid_protocol": "Invalid URL protocol. Only HTTP and HTTPS URLs are supported."
     },
     "mini_widget": {
       "context_menu": {
