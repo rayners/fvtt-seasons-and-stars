@@ -56,6 +56,8 @@ export const HOOK_NAMES = {
 export const SETTINGS_KEYS = {
   MINI_WIDGET_SHOW_SUNRISE_SUNSET: 'miniWidgetShowSunriseSunset',
   MINI_WIDGET_SHOW_YEAR: 'miniWidgetShowYear',
+  CHAT_DAY_NOTIFICATIONS: 'chatDayChangeNotifications',
+  CHAT_DAY_FORMAT: 'chatDayChangeFormat',
 } as const;
 
 // UI constants for consistent styling

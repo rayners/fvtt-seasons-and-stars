@@ -50,12 +50,14 @@ declare global {
   const Dialog: typeof FoundryDialog;
   const Application: typeof FoundryApplication;
   const Scene: typeof FoundryScene;
+  const ChatMessage: typeof FoundryChatMessage;
 
   type Folder = FoundryFolder;
   type JournalEntry = FoundryJournalEntry;
   type User = FoundryUser;
   type Calendar = FoundryCalendar;
   type JournalSheet = FoundryJournalSheet;
+  type ChatMessage = FoundryChatMessage;
 
   // Global Node.js compatibility
   namespace NodeJS {
@@ -213,6 +215,42 @@ declare class FoundryScene {
   id: string;
   name: string;
   active?: boolean;
+}
+
+/**
+ * Chat message speaker information
+ */
+interface ChatSpeaker {
+  alias?: string;
+  actor?: string;
+  token?: string;
+  scene?: string;
+}
+
+/**
+ * Foundry VTT ChatMessage document
+ */
+declare class FoundryChatMessage {
+  id: string;
+  content: string;
+  speaker: ChatSpeaker;
+  type: number;
+  flags: Record<string, any>;
+
+  static create(data: {
+    content: string;
+    speaker?: ChatSpeaker;
+    type?: number;
+    flags?: Record<string, any>;
+    whisper?: string[];
+    blind?: boolean;
+    roll?: any;
+  }): Promise<FoundryChatMessage>;
+  update(data: any): Promise<FoundryChatMessage>;
+  delete(): Promise<void>;
+  setFlag(scope: string, key: string, value: any): Promise<void>;
+  getFlag(scope: string, key: string): any;
+  unsetFlag(scope: string, key: string): Promise<void>;
 }
 
 declare class FoundryJournalEntry {
@@ -727,6 +765,13 @@ declare global {
       DEFERRED: 0;
       NORMAL: 1;
       PRIORITY: 2;
+    };
+    CHAT_MESSAGE_STYLES: {
+      OTHER: 0;
+      OOC: 1;
+      IC: 2;
+      EMOTE: 3;
+      ROLL: 5;
     };
   };
 }

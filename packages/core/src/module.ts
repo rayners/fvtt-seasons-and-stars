@@ -31,6 +31,7 @@ import { APIWrapper } from './core/api-wrapper';
 import type { ValidationResult } from './core/calendar-validator';
 import { registerQuickTimeButtonsHelper } from './core/quick-time-buttons';
 import { TimeAdvancementService } from './core/time-advancement-service';
+import { ChatIntegration } from './core/chat-integration';
 import type { MemoryMageAPI } from './types/external-integrations';
 import { registerSettingsPreviewHooks } from './core/settings-preview';
 import { handleCalendarSelection } from './core/calendar-selection-handler';
@@ -132,6 +133,9 @@ export function init(): void {
     Logger.debug(
       'Calendar manager exposed to game.seasonsStars.manager early for Foundry integration'
     );
+
+    // Initialize chat integration with calendar manager
+    ChatIntegration.getInstance().setCalendarManager(calendarManager);
 
     // Register Errors and Echoes integration
     // Note: Uses global game.seasonsStars.manager access, so must be called after API setup
@@ -270,6 +274,9 @@ export function setup(): void {
 
         const previousDate = lastEventCheckDate ? { ...lastEventCheckDate } : undefined;
         lastEventCheckDate = { ...newDate };
+
+        // Post day change notification to chat (if enabled)
+        ChatIntegration.getInstance().postDayChangeNotification(data.newDate);
 
         // Get events for the new date with visibility filtering
         const events = eventsAPI.getEventsForDate(newDate.year, newDate.month, newDate.day);
@@ -905,6 +912,27 @@ function registerSettings(): void {
     config: true,
     type: Boolean,
     default: false,
+  });
+
+  // === CHAT INTEGRATION SETTINGS ===
+
+  game.settings.register('seasons-and-stars', SETTINGS_KEYS.CHAT_DAY_NOTIFICATIONS, {
+    name: 'SEASONS_STARS.settings.chat_day_notifications',
+    hint: 'SEASONS_STARS.settings.chat_day_notifications_hint',
+    scope: 'world',
+    config: true,
+    type: Boolean,
+    default: false,
+  });
+
+  game.settings.register('seasons-and-stars', SETTINGS_KEYS.CHAT_DAY_FORMAT, {
+    name: 'SEASONS_STARS.settings.chat_day_format',
+    hint: 'SEASONS_STARS.settings.chat_day_format_hint',
+    scope: 'world',
+    config: true,
+    type: String,
+    default:
+      "It is now {{ss-weekday format='name'}}, {{ss-month format='name'}} {{ss-day format='ordinal'}}, {{ss-year}}",
   });
 
   // === EVENTS SYSTEM SETTINGS ===
