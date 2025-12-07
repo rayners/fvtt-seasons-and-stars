@@ -58,6 +58,8 @@ export const SETTINGS_KEYS = {
   MINI_WIDGET_SHOW_YEAR: 'miniWidgetShowYear',
   CHAT_DAY_NOTIFICATIONS: 'chatDayChangeNotifications',
   CHAT_DAY_FORMAT: 'chatDayChangeFormat',
+  CHAT_TIMESTAMPS_ENABLED: 'chatTimestampsEnabled',
+  CHAT_TIMESTAMPS_FORMAT: 'chatTimestampsFormat',
 } as const;
 
 // UI constants for consistent styling

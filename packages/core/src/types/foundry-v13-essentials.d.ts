@@ -133,6 +133,7 @@ interface Game {
   user?: FoundryUser;
   users: FoundryCollection<FoundryUser>;
   journal: FoundryCollection<FoundryJournalEntry>;
+  messages?: FoundryCollection<FoundryChatMessage>;
   folders?: FoundryCollection<FoundryFolder>;
   keybindings?: FoundryKeybindings;
   paused: boolean; // Game pause state
