@@ -52,6 +52,7 @@ export interface SeasonsStarsCalendar {
   weekdays: CalendarWeekday[];
   intercalary: CalendarIntercalary[];
   seasons?: CalendarSeason[];
+  solarAnchors?: CalendarSolarAnchor[];
   moons?: CalendarMoon[];
   canonicalHours?: CalendarCanonicalHour[];
   events?: CalendarEvent[];
@@ -231,6 +232,37 @@ export interface CalendarSeason {
       description?: string;
     };
   };
+}
+
+/**
+ * Solar anchor definition for precise sunrise/sunset keyframes.
+ *
+ * Solar anchors define specific dates (like solstices, equinoxes, or custom dates)
+ * with known sunrise/sunset times. These are used as keyframes for interpolation,
+ * providing more accurate sunrise/sunset calculations than season-only definitions.
+ *
+ * When both seasons and solarAnchors are defined, all keyframes (season starts
+ * and solar anchors) are combined and sorted by day-of-year for interpolation.
+ */
+export interface CalendarSolarAnchor {
+  /** Unique identifier for this solar anchor */
+  id: string;
+  /** Human-readable name for this solar anchor */
+  label: string;
+  /** Type of solar event */
+  type: 'solstice' | 'equinox' | 'other';
+  /** Subtype clarifier (e.g., 'winter', 'summer', 'vernal', 'autumnal', 'magical') */
+  subtype?: string;
+  /** Month when this anchor occurs (1-based) */
+  month: number;
+  /** Day within the month when this anchor occurs */
+  day: number;
+  /** Sunrise time at this anchor point in HH:MM format */
+  sunrise?: string;
+  /** Sunset time at this anchor point in HH:MM format */
+  sunset?: string;
+  /** Description of the solar anchor */
+  description?: string;
 }
 
 export interface CalendarMoon {
