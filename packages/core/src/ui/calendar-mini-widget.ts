@@ -765,6 +765,17 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           );
           await this.render();
         },
+      },
+      {
+        name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_12hour'),
+        icon: '<i class="fas fa-clock"></i>',
+        callback: async () => {
+          const currentValue = Boolean(
+            game.settings?.get('seasons-and-stars', 'prefer12HourFormat')
+          );
+          await game.settings?.set('seasons-and-stars', 'prefer12HourFormat', !currentValue);
+          await this.render();
+        },
       }
     );
 
