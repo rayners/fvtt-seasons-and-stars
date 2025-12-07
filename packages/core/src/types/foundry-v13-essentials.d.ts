@@ -238,8 +238,8 @@ declare class FoundryChatMessage {
   type: number;
   flags: Record<string, any>;
 
-  static create(data: {
-    content: string;
+  static create(data?: {
+    content?: string;
     speaker?: ChatSpeaker;
     type?: number;
     style?: number;

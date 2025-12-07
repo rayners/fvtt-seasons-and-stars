@@ -113,7 +113,7 @@ export class ChatIntegration {
    * Post a day change notification to chat
    *
    * This method formats the current date using the configured format template
-   * and posts it as an OOC (out-of-character) chat message.
+   * and posts it as a chat message with style OTHER (uncategorized).
    *
    * Only posts if:
    * - Day change notifications are enabled in settings
