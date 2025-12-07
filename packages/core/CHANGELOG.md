@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.26.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.25.0...seasons-and-stars-v0.26.0) (2025-12-07)
+
+
+### Features
+
+* add day change notifications to chat log ([#506](https://github.com/rayners/fvtt-seasons-and-stars/issues/506)) ([5e0c00d](https://github.com/rayners/fvtt-seasons-and-stars/commit/5e0c00d9a03ee8a3a8ee24f0525800d3791a314e))
+* add optional year display to mini widget ([#491](https://github.com/rayners/fvtt-seasons-and-stars/issues/491)) ([23cb659](https://github.com/rayners/fvtt-seasons-and-stars/commit/23cb6596b1c8097f6814ae08372b5f2fc733a610))
+* add solar anchors for sunrise/sunset interpolation ([#492](https://github.com/rayners/fvtt-seasons-and-stars/issues/492)) ([4825442](https://github.com/rayners/fvtt-seasons-and-stars/commit/4825442268d7df68cf5523a5b8867290777cafb2))
+* add support for 12-hour clock format with am/pm notation ([#500](https://github.com/rayners/fvtt-seasons-and-stars/issues/500)) ([76746b7](https://github.com/rayners/fvtt-seasons-and-stars/commit/76746b7031001bc374ced23551e0e0dab0791f80))
+* add week-of-month naming system for calendars ([#490](https://github.com/rayners/fvtt-seasons-and-stars/issues/490)) ([e983821](https://github.com/rayners/fvtt-seasons-and-stars/commit/e983821bf0dc0f330e7722937e2942817ac6df54))
+* **calendar-builder:** add load current calendar button ([#481](https://github.com/rayners/fvtt-seasons-and-stars/issues/481)) ([8532527](https://github.com/rayners/fvtt-seasons-and-stars/commit/85325272fb86726c4fe5a787318989203c54ca67))
+* **calendar-builder:** implement interactive weekdays tab ([#477](https://github.com/rayners/fvtt-seasons-and-stars/issues/477)) ([0ee869d](https://github.com/rayners/fvtt-seasons-and-stars/commit/0ee869dc4b96c6176fd4431419ea15f8be236a9f))
+* **i18n:** cs for SaS 0.25.0 ([#466](https://github.com/rayners/fvtt-seasons-and-stars/issues/466)) ([e1f0348](https://github.com/rayners/fvtt-seasons-and-stars/commit/e1f034849dc04ee1c4dd83690db3a4eacad25d62))
+* **i18n:** update Polish translate ([#494](https://github.com/rayners/fvtt-seasons-and-stars/issues/494)) ([799f079](https://github.com/rayners/fvtt-seasons-and-stars/commit/799f079dd6db7c4d4b74212026009001b8fcde66))
+* redesign calendar selection dialog with master-detail layout ([#508](https://github.com/rayners/fvtt-seasons-and-stars/issues/508)) ([1ac8ed1](https://github.com/rayners/fvtt-seasons-and-stars/commit/1ac8ed14372d2bf90751276e53263814bb3415d1))
+
+
+### Bug Fixes
+
+* prevent spurious day change notification on page refresh ([#509](https://github.com/rayners/fvtt-seasons-and-stars/issues/509)) ([e750ac0](https://github.com/rayners/fvtt-seasons-and-stars/commit/e750ac08afaa0c8bf51cd75999b1d9ccefffa235))
+* **ui:** scope .dialog-buttons selector to prevent global CSS leak ([#498](https://github.com/rayners/fvtt-seasons-and-stars/issues/498)) ([134de59](https://github.com/rayners/fvtt-seasons-and-stars/commit/134de592970598df88a6e48b78a2f37823540fa1)), closes [#485](https://github.com/rayners/fvtt-seasons-and-stars/issues/485)
+* use FilePicker.implementation for Forge compatibility ([#504](https://github.com/rayners/fvtt-seasons-and-stars/issues/504)) ([04aaea9](https://github.com/rayners/fvtt-seasons-and-stars/commit/04aaea9d015b080c31eaca4f8af69d6419ff7f93))
+
 ## [0.25.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.24.1...seasons-and-stars-v0.25.0) (2025-11-10)
 
 

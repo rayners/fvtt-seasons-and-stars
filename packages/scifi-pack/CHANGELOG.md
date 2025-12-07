@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-scifi-v0.3.1...seasons-and-stars-scifi-v0.4.0) (2025-12-07)
+
+
+### Features
+
+* add week-of-month naming system for calendars ([#490](https://github.com/rayners/fvtt-seasons-and-stars/issues/490)) ([e983821](https://github.com/rayners/fvtt-seasons-and-stars/commit/e983821bf0dc0f330e7722937e2942817ac6df54))
+
 ## [0.3.1](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-scifi-v0.3.0...seasons-and-stars-scifi-v0.3.1) (2025-09-24)
 
 
