@@ -272,13 +272,6 @@ describe('ChatIntegration', () => {
       expect(mockChatMessage.create).toHaveBeenCalledTimes(1);
       expect(mockChatMessage.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          speaker: {
-            alias: 'Seasons & Stars',
-            user: null,
-            actor: null,
-            token: null,
-            scene: null,
-          },
           type: 1, // OOC
           flags: {
             'seasons-and-stars': {
@@ -287,6 +280,12 @@ describe('ChatIntegration', () => {
           },
         })
       );
+      // Verify content includes module branding
+      const callArgs = mockChatMessage.create.mock.calls[0][0];
+      expect(callArgs.content).toContain('Seasons & Stars');
+      expect(callArgs.content).toContain('seasons-stars-notification');
+      // Verify no speaker is set (to avoid user attribution)
+      expect(callArgs.speaker).toBeUndefined();
     });
 
     it('should handle errors gracefully', async () => {
