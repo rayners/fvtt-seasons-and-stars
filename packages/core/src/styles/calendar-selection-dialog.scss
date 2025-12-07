@@ -1,646 +1,710 @@
 /**
- * Calendar Selection Dialog - Native Foundry Integration
+ * Calendar Selection Dialog - Master-Detail Layout
  */
 
 .seasons-stars.calendar-selection-dialog {
-  // Use native Foundry CSS Grid system with scrolling
-  .calendar-selection-grid {
+  // Main container uses CSS Grid for master-detail layout
+  .window-content {
     display: grid;
-    grid-template-columns: 1fr; // Single column for wider cards
-    gap: 1.25rem;
-    min-height: 300px;
-    max-height: 520px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 0.5rem 0.75rem 0.5rem 0.5rem; // Better padding with scrollbar space
-    
-    // Ensure smooth scrolling
-    scroll-behavior: smooth;
-    
-    // Enhanced scrollbar styling for Foundry
-    &::-webkit-scrollbar {
-      width: 8px;
-    }
-    
-    &::-webkit-scrollbar-track {
-      background: var(--color-bg-alt);
-      border-radius: 4px;
-      margin: 4px 0;
-    }
-    
-    &::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, var(--color-border-light-secondary), var(--color-border-light-tertiary));
-      border-radius: 4px;
-      border: 1px solid var(--color-bg-alt);
-      
-      &:hover {
-        background: linear-gradient(180deg, var(--color-border-light-primary), var(--color-border-light-secondary));
+    grid-template-rows: auto 1fr auto auto;
+    grid-template-columns: 35% 65%;
+    gap: 0;
+    height: 100%;
+    padding: 0;
+  }
+
+  // ===== SEARCH HEADER =====
+  .calendar-search-header {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border-light-tertiary);
+
+    .search-input-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      > i {
+        position: absolute;
+        left: 0.75rem;
+        color: var(--color-text-light-6);
+        pointer-events: none;
       }
-      
-      &:active {
-        background: var(--color-warm-3);
+
+      .calendar-search-input {
+        width: 100%;
+        padding: 0.5rem 0.75rem 0.5rem 2rem;
+        border: 1px solid var(--color-border-light-secondary);
+        border-radius: 4px;
+        background: var(--color-bg-option);
+        color: var(--color-text-light-primary);
+        font-size: 0.9rem;
+
+        &:focus {
+          outline: none;
+          border-color: var(--color-warm-2);
+          box-shadow: 0 0 4px var(--color-warm-2);
+        }
+
+        &::placeholder {
+          color: var(--color-text-light-6);
+        }
+      }
+
+      .clear-filters-btn {
+        position: absolute;
+        right: 0.5rem;
+        background: none;
+        border: none;
+        color: var(--color-text-light-6);
+        cursor: pointer;
+        padding: 0.25rem;
+
+        &:hover {
+          color: var(--color-warm-1);
+        }
       }
     }
-    
-    // Add subtle fade effect at top/bottom when scrolling
-    &::before, &::after {
-      content: '';
-      position: sticky;
-      display: block;
-      height: 8px;
-      margin: 0 -0.5rem;
-      z-index: 1;
-      pointer-events: none;
+
+    .tag-filter-container {
+      .tag-filter {
+        min-width: 120px;
+        padding: 0.375rem;
+        border: 1px solid var(--color-border-light-secondary);
+        border-radius: 4px;
+        background: var(--color-bg-option);
+        color: var(--color-text-light-primary);
+        font-size: 0.85rem;
+      }
     }
-    
-    &::before {
-      top: 0;
-      background: linear-gradient(to bottom, var(--color-bg-option), transparent);
-    }
-    
-    &::after {
-      bottom: 0;
-      background: linear-gradient(to top, var(--color-bg-option), transparent);
+
+    .result-count {
+      font-size: 0.85rem;
+      color: var(--color-text-light-6);
+      white-space: nowrap;
     }
   }
 
-  // Calendar cards using native ui-control pattern
-  .calendar-card {
-    // Extend Foundry's ui-control base styling
-    padding: 1.25rem;
-    border-radius: 6px;
-    min-height: 220px;
-    cursor: var(--cursor-pointer, pointer);
-    width: 100%; // Ensure cards use full available width
-    position: relative;
+  // ===== LIST PANE (LEFT) =====
+  .calendar-list-pane {
+    grid-row: 2;
+    grid-column: 1;
+    border-right: 1px solid var(--color-border-light-tertiary);
     overflow: hidden;
-    
-    // Use Foundry's interactive colors with enhanced gradients
-    border: 1px solid var(--color-border-light-tertiary);
-    background: linear-gradient(145deg, var(--color-bg-option), var(--color-bg-alt));
-    transition: all 0.3s ease;
-    
-    // Add subtle inner shadow for depth
-    box-shadow: 
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
 
-    // Enhanced Foundry hover effect
-    &:hover {
-      text-shadow: 0 0 8px var(--color-shadow-primary);
-      border-color: var(--color-warm-2);
-      background: linear-gradient(145deg, var(--color-bg-primary), var(--color-bg-option));
-      box-shadow: 
-        inset 0 1px 0 rgba(255, 255, 255, 0.15),
-        0 4px 12px rgba(0, 0, 0, 0.15),
-        0 0 8px var(--color-shadow-primary);
-      transform: translateY(-2px);
-    }
-
-    // Enhanced active state
-    &.active {
-      background: linear-gradient(145deg, var(--color-bg-primary), var(--color-warm-5));
-      border-color: var(--color-warm-2);
-      box-shadow: 
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 0 12px var(--color-warm-1);
-      
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--color-warm-1), var(--color-warm-2), var(--color-warm-1));
-        z-index: 1;
-      }
-    }
-
-    // Enhanced picked/selected state
-    &.picked {
-      outline: 2px solid var(--color-warm-1);
-      outline-offset: -1px;
-      box-shadow: 
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 0 16px var(--color-warm-1),
-        inset 0 0 20px rgba(255, 200, 100, 0.1);
-      background: linear-gradient(145deg, var(--color-bg-primary), var(--color-warm-5));
-      border-color: var(--color-warm-1);
-      
-      &::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 0;
-        height: 0;
-        border-top: 24px solid var(--color-warm-1);
-        border-left: 24px solid transparent;
-        z-index: 2;
-      }
-      
-      // Add checkmark in corner
-      &::before {
-        content: '✓';
-        position: absolute;
-        top: 4px;
-        right: 6px;
-        color: white;
-        font-size: 12px;
-        font-weight: bold;
-        z-index: 3;
-      }
-    }
-    
-    // Variant calendar cards have a subtle visual distinction
-    &.variant {
-      border-left: 3px solid var(--color-cool-2);
-      margin-left: 1rem;
-      
-      // No connecting line - just indentation and border
-      
-      &:hover {
-        border-left-color: var(--color-cool-1);
-      }
-      
-      &.picked {
-        border-left-color: var(--color-warm-1);
-      }
-      
-      .calendar-name .variant-indicator i {
-        transform: rotate(45deg);
-      }
-    }
-
-    // Hierarchical indentation for variants
-    &.hierarchy-level-1 {
-      margin-left: 1.5rem;
-      border-left: 2px solid var(--color-cool-3);
-      
-      // No connecting line - just indentation and border
-      
-      .calendar-name {
-        font-size: 1rem; // Slightly smaller for hierarchy
-        
-        .variant-indicator {
-          color: var(--color-cool-2);
-          opacity: 0.9;
-        }
-      }
-      
-      &:hover {
-        border-left-color: var(--color-cool-2);
-      }
-      
-      &.picked {
-        border-left-color: var(--color-warm-2);
-      }
-    }
-
-    .card-header {
-      margin-bottom: 0.5rem;
-      gap: 0.5rem;
-
-      .calendar-title-row {
-        align-items: flex-start;
-        gap: 0.5rem;
-
-        .calendar-title-info {
-          flex: 1;
-          min-width: 0;
-
-          .calendar-name {
-            margin: 0 0 0.25rem 0;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--color-text-light-primary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            
-            .variant-indicator {
-              color: var(--color-cool-1);
-              font-size: 0.9rem;
-              opacity: 0.8;
-              
-              i {
-                transform: rotate(0deg);
-                transition: transform 0.2s ease;
-              }
-            }
-          }
-
-          .calendar-setting {
-            font-size: 0.8rem;
-            color: var(--color-text-light-7);
-            font-style: italic;
-          }
-          
-          .variant-info {
-            font-size: 0.75rem;
-            color: var(--color-cool-2);
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: var(--color-bg-secondary);
-            padding: 0.125rem 0.375rem;
-            border-radius: 3px;
-            border: 1px solid var(--color-cool-5);
-            margin-top: 0.25rem;
-            display: inline-block;
-          }
-        }
-
-        .calendar-badges {
-          flex-shrink: 0;
-          align-items: center;
-          gap: 0.375rem;
-
-          .current-badge {
-            color: var(--color-warm-1);
-            font-size: 1.2rem;
-            filter: drop-shadow(0 0 4px var(--color-warm-1));
-            animation: current-star-glow 3s ease-in-out infinite alternate;
-            
-            i {
-              transform-origin: center;
-            }
-          }
-
-          .module-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            pointer-events: none; // Make it non-interactive
-            
-            // Default (dark theme) styling
-            background: linear-gradient(135deg, var(--color-cool-2), var(--color-cool-1));
-            color: var(--color-text-light-primary);
-            border: 1px solid var(--color-cool-3);
-            
-            i {
-              margin-right: 0.25rem;
-              font-size: 0.8rem;
-            }
-            
-            // Add "MODULE" text after icon for clarity
-            &::after {
-              content: 'MODULE';
-            }
-          }
-
-          .external-badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            pointer-events: none; // Make it non-interactive
-            
-            // Default (dark theme) styling
-            background: linear-gradient(135deg, var(--color-border-light-secondary), var(--color-border-light-tertiary));
-            color: var(--color-text-light-primary);
-            border: 1px solid var(--color-border-light-primary);
-            
-            i {
-              margin-right: 0.25rem;
-              font-size: 0.8rem;
-            }
-            
-            // Add "EXTERNAL" text after icon for clarity
-            &::after {
-              content: 'EXTERNAL';
-            }
-          }
-        }
-      }
-      
-      .source-info {
-        align-items: center;
-        gap: 0.625rem;
-        width: 100%; // Take full width now that it's on its own row
-        background: rgba(0, 0, 0, 0.1);
-        padding: 0.5rem 0.75rem;
-        border-radius: 4px;
-        margin-top: 0.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        
-        .source-icon {
-          font-size: 0.9rem;
-          color: var(--color-text-light-5);
-          flex-shrink: 0;
-          width: 1.1rem;
-          text-align: center;
-        }
-        
-        .source-label {
-          font-size: 0.85rem;
-          color: var(--color-text-light-5);
-          font-weight: 600;
-          word-break: break-word;
-          line-height: 1.3;
-          flex: 1;
-          text-transform: uppercase;
-          letter-spacing: 0.3px;
-        }
-      }
-    }
-
-    .card-content {
+    .calendar-list-container {
       flex: 1;
-      gap: 0.75rem;
+      overflow-y: auto;
+      padding: 0.5rem;
 
-      .calendar-description {
-        font-size: 0.9rem;
-        line-height: 1.4;
-        margin: 0;
-        color: var(--color-text-light-6);
+      &:focus {
+        outline: none;
       }
 
-      .preview-section {
-        margin-top: auto;
-        
-        .sample-preview, 
-        .mini-preview {
-          background: linear-gradient(145deg, var(--color-bg-secondary), var(--color-bg-alt));
-          border: 1px solid var(--color-border-light-tertiary);
-          border-radius: 5px;
-          padding: 0.75rem;
-          margin-bottom: 0.75rem;
-          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-          transition: all 0.2s ease;
-          
-          &:hover {
-            background: linear-gradient(145deg, var(--color-bg-alt), var(--color-bg-secondary));
-            border-color: var(--color-border-light-secondary);
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
-          }
+      // Custom scrollbar
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
 
-          label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--color-text-light-6);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 0.375rem;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            
-            &::before {
-              content: '◆';
-              font-size: 0.6rem;
-              color: var(--color-cool-2);
-            }
-          }
+      &::-webkit-scrollbar-track {
+        background: var(--color-bg-alt);
+      }
 
-          .sample-date,
-          .mini-format {
-            font-family: var(--font-mono);
-            font-size: 0.9rem;
-            color: var(--color-text-light-primary);
-            font-weight: 600;
-            line-height: 1.3;
-            background: rgba(0, 0, 0, 0.1);
-            padding: 0.25rem 0.5rem;
-            border-radius: 3px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-          }
-        }
-        
-        .mini-preview {
-          background: linear-gradient(145deg, var(--color-warm-5), var(--color-warm-4));
-          border-color: var(--color-warm-3);
-          
-          &:hover {
-            background: linear-gradient(145deg, var(--color-warm-4), var(--color-warm-3));
-            border-color: var(--color-warm-2);
-          }
-          
-          label {
-            color: var(--color-warm-1);
-            
-            &::before {
-              color: var(--color-warm-2);
-              content: '★';
-            }
-          }
-          
-          .mini-format {
-            color: var(--color-warm-1);
-            font-weight: 700;
-            background: rgba(255, 200, 100, 0.1);
-            border-color: var(--color-warm-3);
-          }
+      &::-webkit-scrollbar-thumb {
+        background: var(--color-border-light-secondary);
+        border-radius: 3px;
+
+        &:hover {
+          background: var(--color-border-light-primary);
         }
       }
     }
 
-    .card-actions {
-      margin-top: 0.75rem;
+    .calendar-list-item {
+      display: flex;
       align-items: center;
       gap: 0.5rem;
+      padding: 0.625rem 0.75rem;
+      margin-bottom: 2px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: transparent;
+      border: 1px solid transparent;
 
-      // Use native Foundry button styling
-      button.button {
-        flex: 1;
-        padding: 0.375rem 0.75rem;
-        font-size: 0.8rem;
-        
-        i {
-          margin-right: 0.25rem;
+      &:hover {
+        background: var(--color-bg-option);
+        border-color: var(--color-border-light-tertiary);
+      }
+
+      &.is-highlighted {
+        background: var(--color-bg-option);
+        border-color: var(--color-warm-2);
+        box-shadow: 0 0 4px rgba(255, 200, 100, 0.2);
+      }
+
+      &.is-current {
+        background: linear-gradient(145deg, var(--color-warm-5), transparent);
+
+        .current-badge {
+          color: var(--color-warm-1);
+          animation: current-star-pulse 2s infinite;
         }
       }
 
-      .selected-indicator {
-        color: var(--color-warm-1);
-        font-size: 1.1rem;
-        animation: foundry-pulse 2s infinite;
+      &.is-selected {
+        .selected-badge {
+          color: var(--color-warm-2);
+        }
+      }
+
+      .source-indicator {
+        font-size: 0.85rem;
+        color: var(--color-text-light-6);
+        width: 1.25rem;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .calendar-name {
+        flex: 1;
+        font-size: 0.9rem;
+        color: var(--color-text-light-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .current-badge,
+      .selected-badge {
+        flex-shrink: 0;
+        font-size: 0.8rem;
+      }
+
+      .variant-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: none;
+        border: none;
+        color: var(--color-text-light-6);
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 3px;
+
+        &:hover {
+          background: var(--color-bg-secondary);
+          color: var(--color-text-light-primary);
+        }
+
+        .variant-count {
+          font-size: 0.75rem;
+          background: var(--color-bg-secondary);
+          padding: 0.125rem 0.375rem;
+          border-radius: 10px;
+        }
+      }
+
+      // Variant items
+      &.variant-item {
+        padding-left: 2rem;
+        font-size: 0.85rem;
+
+        .variant-indicator {
+          color: var(--color-cool-2);
+          transform: rotate(45deg);
+        }
       }
     }
-  }
 
-  // No calendars state
-  .no-calendars {
-    padding: 3rem;
-    text-align: center;
-    color: var(--color-text-light-7);
-    min-height: 200px;
-    justify-content: center;
+    .empty-list-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      color: var(--color-text-light-6);
 
-    .no-calendars-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      opacity: 0.5;
-      color: var(--color-text-light-7);
-    }
-
-    .no-calendars-message {
-      h4 {
-        margin: 0 0 0.5rem 0;
-        color: var(--color-text-light-primary);
-        font-weight: 600;
+      i {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.5;
       }
 
       p {
         margin: 0;
         font-size: 0.9rem;
-        max-width: 300px;
+        text-align: center;
       }
     }
   }
 
-  .dialog-buttons {
-    padding: 1rem;
-    gap: 0.75rem;
-    justify-content: flex-end;
-    margin-top: auto;
+  // ===== DETAIL PANE (RIGHT) =====
+  .calendar-detail-pane {
+    grid-row: 2;
+    grid-column: 2;
+    overflow-y: auto;
+    padding: 0.75rem;
+    background: var(--color-bg-alt);
 
-    button {
-      padding: 0.5rem 1rem;
-      font-size: 0.9rem;
+    .detail-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      height: 100%;
+    }
 
-      i {
-        margin-right: 0.5rem;
+    .detail-header {
+      .calendar-name {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--color-text-light-primary);
       }
 
-      &.ss-button.primary {
-        background: var(--color-warm-2) !important;
-        color: white !important;
-        border-color: var(--color-warm-2) !important;
-        font-weight: 600;
+      .calendar-setting {
+        font-size: 0.85rem;
+        color: var(--color-text-light-6);
+        font-style: italic;
+      }
 
-        &:hover {
-          background: var(--color-warm-1) !important;
-          border-color: var(--color-warm-1) !important;
-          color: white !important;
+      .variant-info {
+        display: inline-block;
+        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        color: var(--color-cool-2);
+        background: var(--color-bg-secondary);
+        padding: 0.125rem 0.5rem;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    .detail-description {
+      p {
+        margin: 0;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: var(--color-text-light-primary);
+      }
+    }
+
+    // Well-style container for sample date and month browser
+    .detail-well {
+      padding: 0.75rem;
+      border-radius: 6px;
+      border: 2px solid var(--color-border-dark);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+
+      // Light theme: darker inset
+      body.theme-light & {
+        background: rgba(0, 0, 0, 0.12);
+        box-shadow:
+          inset 0 2px 4px rgba(0, 0, 0, 0.25),
+          inset 0 -1px 2px rgba(255, 255, 255, 0.1);
+      }
+
+      // Dark theme: lighter inset
+      body.theme-dark & {
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow:
+          inset 0 2px 4px rgba(0, 0, 0, 0.4),
+          inset 0 -1px 2px rgba(255, 255, 255, 0.08);
+      }
+
+      // Fallback for themes that don't set body class
+      background: rgba(0, 0, 0, 0.1);
+      box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 -1px 2px rgba(255, 255, 255, 0.05);
+    }
+
+    .detail-sample {
+      text-align: center;
+
+      label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--color-text-light-6);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+      }
+
+      .sample-date {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--color-text-light-primary);
+        letter-spacing: 0.3px;
+      }
+    }
+
+    // Month Browser
+    .month-browser {
+      background: var(--color-bg-option);
+      border: 1px solid var(--color-border-light-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+
+      .month-browser-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.375rem 0.5rem;
+        background: var(--color-bg-secondary);
+        border-bottom: 1px solid var(--color-border-light-tertiary);
+
+        .month-nav-btn {
+          background: none;
+          border: none;
+          color: var(--color-text-light-6);
+          cursor: pointer;
+          padding: 0.25rem 0.5rem;
+          border-radius: 3px;
+
+          &:hover {
+            background: var(--color-bg-option);
+            color: var(--color-text-light-primary);
+          }
+        }
+
+        .month-title {
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: var(--color-text-light-primary);
+        }
+      }
+
+      .month-grid {
+        padding: 0.375rem;
+
+        .weekday-headers {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 1px;
+          margin-bottom: 2px;
+
+          .weekday-header {
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--color-text-light-6);
+            text-transform: uppercase;
+            padding: 0.125rem;
+          }
+        }
+
+        .day-cells {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 1px;
+
+          .day-cell {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--color-text-light-primary);
+            padding: 0.25rem;
+            border-radius: 2px;
+            background: var(--color-bg-secondary);
+
+            &.empty {
+              background: transparent;
+            }
+          }
+        }
+      }
+    }
+
+    .detail-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+
+    .detail-tags {
+      flex: 1;
+
+      label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--color-text-light-6);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+      }
+
+      .tag-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+
+        .tag-chip {
+          font-size: 0.7rem;
+          background: var(--color-bg-secondary);
+          color: var(--color-text-light-primary);
+          padding: 0.125rem 0.375rem;
+          border-radius: 10px;
+          border: 1px solid var(--color-border-light-tertiary);
+        }
+      }
+    }
+
+    .detail-source {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.75rem;
+      color: var(--color-text-light-6);
+      padding: 0.25rem 0.5rem;
+      background: var(--color-bg-secondary);
+      border-radius: 4px;
+      border: 1px solid var(--color-border-light-tertiary);
+
+      i {
+        font-size: 0.8rem;
+      }
+    }
+
+    .detail-actions {
+      margin-top: auto;
+
+      .select-this-btn {
+        width: 100%;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        background: var(--color-bg-option);
+        border: 1px solid var(--color-border-light-secondary);
+        border-radius: 4px;
+        color: var(--color-text-light-primary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover:not(:disabled) {
+          background: var(--color-warm-4);
+          border-color: var(--color-warm-2);
+        }
+
+        &.selected {
+          background: var(--color-warm-2);
+          border-color: var(--color-warm-1);
+          color: white;
         }
 
         &:disabled {
           opacity: 0.6;
-          background: var(--color-bg-alt) !important;
-          color: var(--color-text-light-secondary) !important;
-          border-color: var(--color-border-light-secondary) !important;
+          cursor: not-allowed;
         }
+
+        i {
+          margin-right: 0.375rem;
+        }
+      }
+    }
+
+    .empty-detail-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--color-text-light-6);
+
+      i {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
+        opacity: 0.3;
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.9rem;
       }
     }
   }
-}
 
-// Calendar Preview Dialog Styles
-.seasons-stars.calendar-preview-dialog {
-  .calendar-preview {
-    padding: 1rem;
-    max-width: none;
-    
-    .preview-header {
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--color-border-light-secondary);
-      
-      h3 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.4rem;
-        font-weight: 600;
-        color: var(--color-text-light-primary);
-        line-height: 1.2;
-      }
-      
-      .preview-setting {
-        font-size: 0.9rem;
-        color: var(--color-text-light-secondary);
-        font-style: italic;
-        margin-top: 0.25rem;
-      }
+  // ===== CUSTOM FILE SECTION =====
+  .custom-file-section {
+    grid-column: 1 / -1;
+    padding: 0.625rem 1rem;
+    background: var(--color-bg-secondary);
+    border-top: 2px solid var(--color-border-light-secondary);
+
+    .custom-file-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
     }
-    
-    .preview-description {
-      margin-bottom: 1.5rem;
-      padding: 1rem;
-      background: var(--color-bg-secondary);
-      border: 1px solid var(--color-border-light-secondary);
-      border-radius: 4px;
-      font-size: 0.95rem;
-      line-height: 1.5;
+
+    .custom-file-label {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.85rem;
+      font-weight: 600;
       color: var(--color-text-light-primary);
-    }
-    
-    .preview-samples {
-      margin-bottom: 1.5rem;
-      
-      h4 {
-        margin: 0 0 0.75rem 0;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--color-text-light-primary);
-        display: flex;
-        align-items: center;
-        
-        &::before {
-          content: "📅";
-          margin-right: 0.5rem;
-          font-size: 1rem;
-        }
+      flex-shrink: 0;
+
+      > i {
+        color: var(--color-text-light-6);
       }
-      
-      .sample-date {
-        background: var(--color-bg-option);
-        border: 1px solid var(--color-border-light-secondary);
-        border-radius: 3px;
-        padding: 0.5rem 0.75rem;
-        margin-bottom: 0.5rem;
+    }
+
+    .no-file-selected {
+      flex: 1;
+      font-size: 0.85rem;
+      color: var(--color-text-light-6);
+      font-style: italic;
+    }
+
+    .file-path-display {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 0;
+      padding: 0.25rem 0.5rem;
+      background: var(--color-bg-option);
+      border: 1px solid var(--color-border-light-tertiary);
+      border-radius: 4px;
+
+      &.is-active {
+        border-color: var(--color-warm-2);
+        background: linear-gradient(90deg, var(--color-warm-5), var(--color-bg-option));
+      }
+
+      &.is-selected {
+        border-color: var(--color-warm-2);
+      }
+
+      > i {
+        flex-shrink: 0;
+        font-size: 0.8rem;
+        color: var(--color-text-light-6);
+      }
+
+      .path-text {
+        flex: 1;
+        font-size: 0.8rem;
         font-family: var(--font-mono);
-        font-size: 0.9rem;
         color: var(--color-text-light-primary);
-        font-weight: 500;
-        
-        &:last-child {
-          margin-bottom: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        flex-shrink: 0;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 0.125rem 0.375rem;
+        border-radius: 3px;
+
+        &.active {
+          color: var(--color-warm-1);
+          background: var(--color-warm-5);
+        }
+
+        &.selected {
+          color: white;
+          background: var(--color-warm-2);
+        }
+
+        i {
+          font-size: 0.65rem;
+        }
+      }
+
+      .clear-file-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 1.25rem;
+        height: 1.25rem;
+        padding: 0;
+        margin-left: 0.25rem;
+        background: none;
+        border: none;
+        border-radius: 3px;
+        color: var(--color-text-light-6);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: var(--color-bg-secondary);
+          color: var(--color-warm-1);
         }
       }
     }
-    
-    .preview-structure {
-      h4 {
-        margin: 0 0 0.75rem 0;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--color-text-light-primary);
+
+    .file-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+
+      .browse-btn {
         display: flex;
         align-items: center;
-        
-        &::before {
-          content: "📊";
-          margin-right: 0.5rem;
-          font-size: 1rem;
+        gap: 0.375rem;
+        padding: 0.375rem 0.625rem;
+        font-size: 0.8rem;
+        background: var(--color-bg-option);
+        border: 1px solid var(--color-border-light-primary);
+        border-radius: 4px;
+        color: var(--color-text-light-primary);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: var(--color-bg-primary);
+          border-color: var(--color-warm-2);
+        }
+
+        i {
+          font-size: 0.75rem;
         }
       }
-      
-      .structure-info {
-        background: var(--color-bg-secondary);
-        border: 1px solid var(--color-border-light-secondary);
+
+      .use-file-btn {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.8rem;
+        background: var(--color-bg-option);
+        border: 1px solid var(--color-border-light-primary);
         border-radius: 4px;
-        padding: 1rem;
-        
-        div {
-          margin-bottom: 0.5rem;
-          font-size: 0.9rem;
-          color: var(--color-text-light-primary);
-          
-          &:last-child {
-            margin-bottom: 0;
-          }
-          
-          strong {
-            color: var(--color-text-light-primary);
-            font-weight: 600;
+        color: var(--color-text-light-primary);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background: var(--color-bg-primary);
+          border-color: var(--color-warm-2);
+        }
+
+        &.selected {
+          background: var(--color-warm-2);
+          border-color: var(--color-warm-1);
+          color: white;
+          font-weight: 500;
+
+          i {
             margin-right: 0.25rem;
           }
         }
@@ -648,86 +712,78 @@
     }
   }
 
-  .dialog-buttons {
-    padding: 1rem;
-    gap: 0.75rem;
+  // ===== FOOTER =====
+  .dialog-footer {
+    grid-column: 1 / -1;
+    display: flex;
     justify-content: flex-end;
-    margin-top: auto;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-option);
+    border-top: 2px solid var(--color-border-light-secondary);
 
     button {
       padding: 0.5rem 1rem;
       font-size: 0.9rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
 
       i {
-        margin-right: 0.5rem;
+        margin-right: 0.375rem;
+      }
+    }
+
+    .cancel-btn {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-light-secondary);
+      color: var(--color-text-light-primary);
+
+      &:hover {
+        background: var(--color-bg-primary);
+      }
+    }
+
+    .select-btn {
+      background: var(--color-warm-2);
+      border: 1px solid var(--color-warm-2);
+      color: white;
+      font-weight: 600;
+
+      &:hover:not(:disabled) {
+        background: var(--color-warm-1);
+        border-color: var(--color-warm-1);
       }
 
-      &.ss-button.primary {
-        background: var(--color-warm-2) !important;
-        color: white !important;
-        border-color: var(--color-warm-2) !important;
-        font-weight: 600;
-
-        &:hover {
-          background: var(--color-warm-1) !important;
-          border-color: var(--color-warm-1) !important;
-          color: white !important;
-        }
-
-        &:disabled {
-          opacity: 0.6;
-          background: var(--color-bg-alt) !important;
-          color: var(--color-text-light-secondary) !important;
-          border-color: var(--color-border-light-secondary) !important;
-        }
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
     }
   }
 }
 
-// Native Foundry pulse animation
-@keyframes foundry-pulse {
-  0%, 100% { 
-    opacity: 1; 
-    transform: scale(1);
-  }
-  50% { 
-    opacity: 0.7; 
-    transform: scale(1.05);
-  }
-}
-
-// Current star glow animation
-@keyframes current-star-glow {
-  0% {
-    filter: drop-shadow(0 0 4px var(--color-warm-1));
+// Animations
+@keyframes current-star-pulse {
+  0%, 100% {
+    opacity: 1;
     transform: scale(1);
   }
   50% {
-    filter: drop-shadow(0 0 8px var(--color-warm-1)) drop-shadow(0 0 16px var(--color-warm-2));
+    opacity: 0.7;
     transform: scale(1.1);
-  }
-  100% {
-    filter: drop-shadow(0 0 4px var(--color-warm-1));
-    transform: scale(1);
   }
 }
 
 // Light theme overrides
 body.theme-light {
   .seasons-stars.calendar-selection-dialog {
-    .calendar-badges {
-      .module-badge {
-        background: linear-gradient(135deg, var(--color-cool-4), var(--color-cool-3));
-        color: var(--color-text-dark-primary);
-        border: 1px solid var(--color-cool-2);
-      }
-      
-      .external-badge {
-        background: linear-gradient(135deg, var(--color-border-light-secondary), var(--color-border-light-tertiary));
-        color: var(--color-text-dark-primary);
-        border: 1px solid var(--color-border-light-primary);
-      }
+    .calendar-list-item.is-highlighted {
+      background: var(--color-bg-secondary);
+    }
+
+    .tag-chip {
+      background: var(--color-cool-5);
     }
   }
 }

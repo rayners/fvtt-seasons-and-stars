@@ -1,0 +1,18 @@
+<footer class="dialog-footer" data-application-part="footer">
+  <button type="button" data-action="cancel" class="cancel-btn">
+    <i class="fas fa-times"></i>
+    {{localize "SEASONS_STARS.dialog.calendar_selection.cancel"}}
+  </button>
+  <button type="button"
+          data-action="chooseCalendar"
+          class="select-btn ss-button primary"
+          id="select-calendar"
+          {{#unless selectedCalendar}}disabled{{/unless}}>
+    <i class="fas fa-check"></i>
+    {{#if selectedCalendar}}
+      {{localize "SEASONS_STARS.dialog.calendar_selection.select"}}
+    {{else}}
+      {{localize "SEASONS_STARS.dialog.calendar_selection.select"}}
+    {{/if}}
+  </button>
+</footer>

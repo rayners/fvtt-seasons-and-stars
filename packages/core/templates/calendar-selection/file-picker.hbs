@@ -1,0 +1,48 @@
+<section class="custom-file-section" data-application-part="file-picker">
+  <div class="custom-file-row">
+    <div class="custom-file-label">
+      <i class="fas fa-file-import"></i>
+      <span>{{localize "SEASONS_STARS.dialog.calendar_selection.custom_file"}}:</span>
+    </div>
+    {{#if selectedFilePath}}
+    <div class="file-path-display {{#if filePickerActive}}is-active{{/if}} {{#if filePickerSelected}}is-selected{{/if}}">
+      <i class="fas fa-file-code"></i>
+      <span class="path-text" data-tooltip="{{selectedFilePath}}">{{selectedFilePath}}</span>
+      {{#if filePickerActive}}
+      <span class="status-badge active">
+        <i class="fas fa-star"></i>
+        {{localize "SEASONS_STARS.dialog.calendar_selection.current"}}
+      </span>
+      {{else if filePickerSelected}}
+      <span class="status-badge selected">
+        <i class="fas fa-check"></i>
+        {{localize "SEASONS_STARS.dialog.calendar_selection.selected"}}
+      </span>
+      {{/if}}
+      <button type="button" class="clear-file-btn" data-action="clearFilePicker" data-tooltip="{{localize 'SEASONS_STARS.dialog.calendar_selection.clear_file'}}">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    {{else}}
+    <span class="no-file-selected">{{localize "SEASONS_STARS.dialog.calendar_selection.no_file_selected"}}</span>
+    {{/if}}
+    <div class="file-actions">
+      <button type="button" class="browse-btn" data-action="openFilePicker">
+        <i class="fas fa-folder-open"></i>
+        {{localize "SEASONS_STARS.dialog.calendar_selection.browse"}}
+      </button>
+      {{#if selectedFilePath}}
+      {{#unless filePickerActive}}
+      {{#unless filePickerSelected}}
+      <button type="button"
+              class="use-file-btn"
+              data-action="selectCalendar"
+              data-calendar-id="__FILE_PICKER__">
+        {{localize "SEASONS_STARS.dialog.calendar_selection.use_this_file"}}
+      </button>
+      {{/unless}}
+      {{/unless}}
+      {{/if}}
+    </div>
+  </div>
+</section>

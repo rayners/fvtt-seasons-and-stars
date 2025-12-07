@@ -1,0 +1,72 @@
+<section class="calendar-list-pane" data-application-part="list">
+  <div class="calendar-list-container" role="listbox" aria-label="{{localize 'SEASONS_STARS.dialog.calendar_selection.choose_calendar'}}" tabindex="0">
+    {{#each groupedCalendars}}
+      {{!-- Base Calendar --}}
+      {{#if base}}
+      <div class="calendar-list-item {{#if base.isCurrent}}is-current{{/if}} {{#if base.isSelected}}is-selected{{/if}} {{#if base.isHighlighted}}is-highlighted{{/if}}"
+           role="option"
+           aria-selected="{{#if base.isHighlighted}}true{{else}}false{{/if}}"
+           data-action="highlightCalendar"
+           data-calendar-id="{{base.id}}"
+           tabindex="{{#if base.isHighlighted}}0{{else}}-1{{/if}}">
+        <i class="{{base.sourceIcon}} source-indicator" data-tooltip="{{base.sourceLabel}}"></i>
+        <span class="calendar-name">{{base.label}}</span>
+        {{#if base.isCurrent}}
+        <span class="current-badge" data-tooltip="{{localize 'SEASONS_STARS.dialog.calendar_selection.current'}}">
+          <i class="fas fa-star"></i>
+        </span>
+        {{/if}}
+        {{#if base.isSelected}}
+        <span class="selected-badge">
+          <i class="fas fa-check"></i>
+        </span>
+        {{/if}}
+        {{#if hasVariants}}
+        <button type="button"
+                class="variant-toggle"
+                data-action="toggleVariants"
+                data-base-id="{{id}}"
+                aria-expanded="{{isExpanded}}"
+                aria-label="{{localize 'SEASONS_STARS.dialog.calendar_selection.toggle_variants'}}">
+          <i class="fas fa-chevron-{{#if isExpanded}}down{{else}}right{{/if}}"></i>
+          <span class="variant-count">{{variants.length}}</span>
+        </button>
+        {{/if}}
+      </div>
+      {{/if}}
+
+      {{!-- Variants (if expanded) --}}
+      {{#if isExpanded}}
+        {{#each variants}}
+        <div class="calendar-list-item variant-item {{#if isCurrent}}is-current{{/if}} {{#if isSelected}}is-selected{{/if}} {{#if isHighlighted}}is-highlighted{{/if}}"
+             role="option"
+             aria-selected="{{#if isHighlighted}}true{{else}}false{{/if}}"
+             data-action="highlightCalendar"
+             data-calendar-id="{{id}}"
+             tabindex="{{#if isHighlighted}}0{{else}}-1{{/if}}">
+          <i class="fas fa-code-branch variant-indicator"></i>
+          <span class="calendar-name">{{label}}</span>
+          {{#if isCurrent}}
+          <span class="current-badge" data-tooltip="{{localize 'SEASONS_STARS.dialog.calendar_selection.current'}}">
+            <i class="fas fa-star"></i>
+          </span>
+          {{/if}}
+          {{#if isSelected}}
+          <span class="selected-badge">
+            <i class="fas fa-check"></i>
+          </span>
+          {{/if}}
+        </div>
+        {{/each}}
+      {{/if}}
+    {{/each}}
+
+    {{!-- Empty state when no calendars match filter --}}
+    {{#unless filteredCount}}
+    <div class="empty-list-state">
+      <i class="fas fa-search"></i>
+      <p>{{localize "SEASONS_STARS.dialog.calendar_selection.no_results"}}</p>
+    </div>
+    {{/unless}}
+  </div>
+</section>

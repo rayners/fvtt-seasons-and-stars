@@ -17,6 +17,45 @@ import {
   resolveCalendarFilePath,
 } from './calendar-file-helpers.js';
 
+/**
+ * Represents a calendar item in the list view
+ */
+interface CalendarListItem {
+  id: string;
+  label: string;
+  description: string | undefined;
+  setting: string | undefined;
+  sampleDate: string;
+  miniPreview: string;
+  isCurrent: boolean;
+  isSelected: boolean;
+  isHighlighted: boolean;
+  isVariant: boolean;
+  variantInfo: string;
+  baseCalendarId: string;
+  sourceType: 'builtin' | 'module' | 'external';
+  sourceIcon: string;
+  sourceLabel: string;
+  sourceDescription: string;
+  isModuleSource: boolean;
+  isBuiltinSource: boolean;
+  isExternalSource: boolean;
+  tags: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  monthPreview?: any;
+}
+
+/**
+ * Represents a grouped calendar with its variants
+ */
+interface GroupedCalendar {
+  id: string;
+  base: CalendarListItem | null;
+  variants: CalendarListItem[];
+  isExpanded: boolean;
+  hasVariants: boolean;
+}
+
 export class CalendarSelectionDialog extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
@@ -26,6 +65,16 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private externalSources: Map<string, ExternalCalendarSource>;
   private currentCalendarId: string;
   private pendingFilePath: string | null = null; // Track file selection before confirmation
+
+  // New state for master-detail UI
+  private searchQuery: string = '';
+  private selectedTags: string[] = [];
+  private expandedVariantGroups: Set<string> = new Set();
+  private highlightedCalendarId: string | null = null;
+  private detailViewMonth: number = 1;
+  private detailViewYear: number = 1000;
+  // Debounced search handler using Foundry's built-in debounce utility
+  private debouncedSearch: (value: string) => void;
 
   constructor(
     calendars?: Map<string, SeasonsStarsCalendar> | SeasonsStarsCalendar[],
@@ -111,6 +160,13 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         activeCalendarSetting,
       });
     }
+
+    // Initialize debounced search using Foundry's built-in debounce utility
+    this.debouncedSearch = foundry.utils.debounce((value: string) => {
+      this.searchQuery = value;
+      // Re-render only the list part
+      this.render({ parts: ['list'] });
+    }, 300);
   }
 
   static DEFAULT_OPTIONS = {
@@ -126,8 +182,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       resizable: true,
     },
     position: {
-      width: 600,
-      height: 750,
+      width: 850,
+      height: 650,
     },
     actions: {
       selectCalendar: CalendarSelectionDialog.prototype._onSelectCalendar,
@@ -136,14 +192,35 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       cancel: CalendarSelectionDialog.prototype._onCancel,
       openFilePicker: CalendarSelectionDialog.prototype._onOpenFilePicker,
       clearFilePicker: CalendarSelectionDialog.prototype._onClearFilePicker,
+      // New actions for master-detail UI
+      highlightCalendar: CalendarSelectionDialog.prototype._onHighlightCalendar,
+      toggleVariants: CalendarSelectionDialog.prototype._onToggleVariants,
+      browseMonth: CalendarSelectionDialog.prototype._onBrowseMonth,
+      clearFilters: CalendarSelectionDialog.prototype._onClearFilters,
     },
   };
 
   static PARTS = {
-    main: {
-      id: 'main',
-      template: 'modules/seasons-and-stars/templates/calendar-selection-dialog.hbs',
-      scrollable: ['.calendar-selection-grid'],
+    header: {
+      id: 'header',
+      template: 'modules/seasons-and-stars/templates/calendar-selection/header.hbs',
+    },
+    list: {
+      id: 'list',
+      template: 'modules/seasons-and-stars/templates/calendar-selection/list.hbs',
+      scrollable: ['.calendar-list-container'],
+    },
+    detail: {
+      id: 'detail',
+      template: 'modules/seasons-and-stars/templates/calendar-selection/detail.hbs',
+    },
+    filePicker: {
+      id: 'file-picker',
+      template: 'modules/seasons-and-stars/templates/calendar-selection/file-picker.hbs',
+    },
+    footer: {
+      id: 'footer',
+      template: 'modules/seasons-and-stars/templates/calendar-selection/footer.hbs',
     },
   };
 
@@ -169,9 +246,67 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     } else if (activeCalendarSetting) {
       this.currentCalendarId = activeCalendarSetting;
     }
-    const showFilePicker = true;
 
-    const calendarsData = Array.from(this.calendars.entries()).map(([id, calendar]) => {
+    // Build calendar list items
+    const calendarsData = this.buildCalendarListItems();
+
+    // Get all available tags for the filter dropdown
+    const availableTags = this.getAllTags();
+
+    // Apply filters (search query and selected tags)
+    const filteredCalendars = this.filterCalendars(calendarsData);
+
+    // Group calendars hierarchically
+    const groupedCalendars = this.groupCalendars(filteredCalendars);
+
+    // Get highlighted calendar data for detail pane
+    const highlightedCalendar = this.highlightedCalendarId
+      ? this.getHighlightedCalendarData(calendarsData)
+      : null;
+
+    // Determine if file picker should be considered "selected"
+    const filePickerSelected =
+      selectedFilePath !== '' &&
+      (this.selectedCalendarId === '__FILE_PICKER__' || filePickerActive);
+
+    // Check if there are active filters
+    const hasActiveFilters = this.searchQuery !== '' || this.selectedTags.length > 0;
+
+    return Object.assign(context, {
+      // List data
+      groupedCalendars,
+      totalCount: calendarsData.length,
+      filteredCount: filteredCalendars.length,
+
+      // Search/filter state
+      searchQuery: this.searchQuery,
+      selectedTags: this.selectedTags,
+      availableTags,
+      hasActiveFilters,
+
+      // Detail pane data
+      highlightedCalendar,
+      highlightedCalendarId: this.highlightedCalendarId,
+      detailViewMonth: this.detailViewMonth,
+      detailViewYear: this.detailViewYear,
+
+      // Selection state
+      selectedCalendar: this.selectedCalendarId,
+      currentCalendar: this.currentCalendarId,
+
+      // File picker state
+      showFilePicker: true,
+      selectedFilePath,
+      filePickerActive,
+      filePickerSelected,
+    });
+  }
+
+  /**
+   * Build calendar list items from the calendars map
+   */
+  private buildCalendarListItems(): CalendarListItem[] {
+    return Array.from(this.calendars.entries()).map(([id, calendar]) => {
       const label = CalendarLocalization.getCalendarLabel(calendar);
       const description = CalendarLocalization.getCalendarDescription(calendar);
       const setting = CalendarLocalization.getCalendarSetting(calendar);
@@ -182,7 +317,6 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       let baseCalendarId = id;
 
       if (isVariant) {
-        // Extract base calendar ID and variant name
         const match = id.match(/^(.+)\((.+)\)$/);
         if (match) {
           baseCalendarId = match[1];
@@ -194,12 +328,11 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       // Determine the source type and metadata
       const sourceInfo = this.getCalendarSourceInfo(id);
 
-      // Use collection preview if available, otherwise generate sample date
+      // Get collection entry for tags and preview
       const collectionEntry = this.collectionEntries.get(id);
       const sampleDate = collectionEntry?.preview || this.generateSampleDate(calendar);
-
-      // Generate mini widget preview (use collection preview for consistency if available)
       const miniPreview = collectionEntry?.preview || this.generateMiniWidgetPreview(calendar);
+      const tags = collectionEntry?.tags || [];
 
       return {
         id,
@@ -210,6 +343,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         miniPreview,
         isCurrent: id === this.currentCalendarId,
         isSelected: id === this.selectedCalendarId,
+        isHighlighted: id === this.highlightedCalendarId,
         isVariant,
         variantInfo,
         baseCalendarId,
@@ -220,75 +354,185 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         isModuleSource: sourceInfo.type === 'module',
         isBuiltinSource: sourceInfo.type === 'builtin',
         isExternalSource: sourceInfo.type === 'external',
+        tags,
       };
     });
+  }
 
-    // Group calendars hierarchically by base calendar
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const calendarGroups = new Map<string, { base: any | null; variants: any[] }>();
+  /**
+   * Get all unique tags from all calendars
+   */
+  private getAllTags(): string[] {
+    const tagSet = new Set<string>();
+    for (const entry of this.collectionEntries.values()) {
+      if (entry.tags) {
+        entry.tags.forEach(tag => tagSet.add(tag));
+      }
+    }
+    return Array.from(tagSet).sort();
+  }
 
-    for (const calendar of calendarsData) {
-      if (!calendarGroups.has(calendar.baseCalendarId)) {
-        calendarGroups.set(calendar.baseCalendarId, { base: null, variants: [] });
+  /**
+   * Filter calendars based on search query and selected tags
+   */
+  private filterCalendars(calendars: CalendarListItem[]): CalendarListItem[] {
+    let filtered = calendars;
+
+    // Apply search query filter
+    if (this.searchQuery) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(cal => {
+        const searchText = `${cal.label} ${cal.description} ${cal.tags.join(' ')}`.toLowerCase();
+        return searchText.includes(query);
+      });
+    }
+
+    // Apply tag filter (any match)
+    if (this.selectedTags.length > 0) {
+      filtered = filtered.filter(cal => {
+        return this.selectedTags.some(tag => cal.tags.includes(tag));
+      });
+    }
+
+    return filtered;
+  }
+
+  /**
+   * Group calendars by base calendar with variants nested
+   */
+  private groupCalendars(calendars: CalendarListItem[]): GroupedCalendar[] {
+    const groups = new Map<string, GroupedCalendar>();
+
+    // Build groups
+    for (const calendar of calendars) {
+      const baseId = calendar.baseCalendarId;
+
+      if (!groups.has(baseId)) {
+        // Check if this group should be expanded
+        const isExpanded =
+          this.expandedVariantGroups.has(baseId) ||
+          // Auto-expand if current calendar is in this group
+          calendar.isCurrent ||
+          // Auto-expand if highlighted calendar is in this group
+          calendar.isHighlighted;
+
+        groups.set(baseId, {
+          id: baseId,
+          base: null,
+          variants: [],
+          isExpanded,
+          hasVariants: false,
+        });
       }
 
-      const group = calendarGroups.get(calendar.baseCalendarId);
-      if (!group) continue;
+      const group = groups.get(baseId)!;
       if (calendar.isVariant) {
         group.variants.push(calendar);
+        group.hasVariants = true;
       } else {
         group.base = calendar;
+      }
+
+      // Update expansion state based on current/highlighted
+      if (calendar.isCurrent || calendar.isHighlighted) {
+        group.isExpanded = true;
       }
     }
 
     // Sort groups with Gregorian first, then alphabetically
-    const sortedGroups = Array.from(calendarGroups.entries()).sort(
-      ([aId, aGroup], [bId, bGroup]) => {
-        // Gregorian calendar always comes first
-        if (aId === 'gregorian') return -1;
-        if (bId === 'gregorian') return 1;
+    const sortedGroups = Array.from(groups.values()).sort((a, b) => {
+      if (a.id === 'gregorian') return -1;
+      if (b.id === 'gregorian') return 1;
 
-        // All other calendars sorted alphabetically by display label
-        const labelA = aGroup.base ? aGroup.base.label : aId;
-        const labelB = bGroup.base ? bGroup.base.label : bId;
-        return labelA.localeCompare(labelB);
-      }
-    );
+      const labelA = a.base ? a.base.label : a.id;
+      const labelB = b.base ? b.base.label : b.id;
+      return labelA.localeCompare(labelB);
+    });
 
-    // Build hierarchical calendar list
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sortedCalendars: any[] = [];
-    for (const [, group] of sortedGroups) {
-      // Add base calendar first
-      if (group.base) {
-        sortedCalendars.push(group.base);
-      }
-
-      // Sort variants alphabetically and add with hierarchy indicator
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      group.variants.sort((a: any, b: any) => a.label.localeCompare(b.label));
-      for (const variant of group.variants) {
-        // Add visual hierarchy level for CSS styling
-        variant.hierarchyLevel = 1;
-        sortedCalendars.push(variant);
-      }
+    // Sort variants within each group
+    for (const group of sortedGroups) {
+      group.variants.sort((a, b) => a.label.localeCompare(b.label));
     }
 
-    // Determine if file picker should be considered "selected"
-    // Only show as selected if there's actually a file selected AND it's either the selected ID or is currently active
-    const filePickerSelected =
-      selectedFilePath !== '' &&
-      (this.selectedCalendarId === '__FILE_PICKER__' || filePickerActive);
+    return sortedGroups;
+  }
 
-    return Object.assign(context, {
-      calendars: sortedCalendars,
-      selectedCalendar: this.selectedCalendarId,
-      currentCalendar: this.currentCalendarId,
-      showFilePicker,
-      selectedFilePath,
-      filePickerActive,
-      filePickerSelected,
-    });
+  /**
+   * Get data for the highlighted calendar (for detail pane)
+   */
+  private getHighlightedCalendarData(calendars: CalendarListItem[]): CalendarListItem | null {
+    const highlighted = calendars.find(c => c.id === this.highlightedCalendarId);
+    if (!highlighted) return null;
+
+    // Add month preview data for the detail pane
+    const calendar = this.calendars.get(highlighted.id);
+    if (calendar) {
+      // Generate month preview data and add to the highlighted item
+      highlighted.monthPreview = this.generateMonthPreviewData(calendar);
+    }
+
+    return highlighted;
+  }
+
+  /**
+   * Generate month preview data for the detail pane
+   */
+  private generateMonthPreviewData(calendar: SeasonsStarsCalendar): {
+    monthName: string;
+    year: number;
+    days: number[];
+    weekdayHeaders: string[];
+  } {
+    // Validate and correct month bounds
+    if (this.detailViewMonth < 1 || this.detailViewMonth > calendar.months.length) {
+      Logger.warn(
+        `Invalid month index ${this.detailViewMonth} for calendar with ${calendar.months.length} months, resetting to 1`
+      );
+      this.detailViewMonth = 1;
+    }
+    const monthIndex = this.detailViewMonth - 1;
+    const month = calendar.months[monthIndex];
+
+    // Get localized month name
+    const monthName = CalendarLocalization.getCalendarTranslation(
+      calendar,
+      `months.${month.id || month.name}`,
+      month.name
+    );
+
+    // Generate weekday headers
+    const weekdayHeaders = calendar.weekdays.map(wd =>
+      CalendarLocalization.getCalendarTranslation(
+        calendar,
+        `weekdays.${wd.id || wd.name}`,
+        wd.abbreviation || wd.name.substring(0, 2)
+      )
+    );
+
+    // Generate day numbers for the month
+    const days: number[] = [];
+    const daysInMonth = month.days;
+
+    // Calculate what weekday the month starts on (simplified - just use first day of first month of year)
+    // This is an approximation for the preview
+    const startWeekday = 0; // Simplified: assume month starts on first weekday
+
+    // Add empty cells for days before the month starts
+    for (let i = 0; i < startWeekday; i++) {
+      days.push(0); // 0 represents empty cell
+    }
+
+    // Add the actual days
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(day);
+    }
+
+    return {
+      monthName,
+      year: this.detailViewYear,
+      days,
+      weekdayHeaders,
+    };
   }
 
   /** @override */
@@ -297,48 +541,126 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     super._attachPartListeners(partId, htmlElement, options);
 
     Logger.debug('Attaching part listeners', { partId, element: htmlElement });
-    Logger.debug('Scrollable elements', htmlElement.querySelectorAll('.calendar-selection-grid'));
 
-    // Add action buttons to window and update button state after rendering
-    this.addActionButtons($(htmlElement));
-    this.updateSelectButton($(htmlElement));
+    // Handle search input with debouncing (header part)
+    if (partId === 'header') {
+      const searchInput = htmlElement.querySelector<HTMLInputElement>('.calendar-search-input');
+      if (searchInput) {
+        searchInput.addEventListener('input', e => {
+          const target = e.target as HTMLInputElement;
+          this.handleSearchInput(target.value);
+        });
 
-    // Debug: Check if scrolling is working
-    const scrollableGrid = htmlElement.querySelector('.calendar-selection-grid');
-    if (scrollableGrid) {
-      const style = getComputedStyle(scrollableGrid);
-      Logger.debug('Found scrollable grid', {
-        overflow: style.overflow,
-        clientHeight: scrollableGrid.clientHeight,
-        scrollHeight: scrollableGrid.scrollHeight,
-      });
+        // Restore focus to search input if it had focus before re-render
+        if (document.activeElement?.classList.contains('calendar-search-input')) {
+          searchInput.focus();
+        }
+      }
+
+      // Handle tag filter changes
+      const tagFilter = htmlElement.querySelector<HTMLSelectElement>('.tag-filter');
+      if (tagFilter) {
+        tagFilter.addEventListener('change', () => {
+          this.handleTagFilterChange(tagFilter);
+        });
+      }
+    }
+
+    // Handle list scrolling and keyboard navigation (list part)
+    if (partId === 'list') {
+      const listContainer = htmlElement.querySelector('.calendar-list-container');
+      if (listContainer) {
+        listContainer.addEventListener('keydown', e => this.handleListKeydown(e as KeyboardEvent));
+      }
+    }
+
+    // Update select button state (footer part)
+    if (partId === 'footer') {
+      this.updateSelectButton($(htmlElement));
     }
   }
 
   /**
-   * Add action buttons to the dialog
+   * Handle search input with debouncing
    */
-  private addActionButtons(html: JQuery): void {
-    const footer = $(`
-      <div class="dialog-buttons flexrow">
-        <button data-action="cancel" type="button" class="button">
-          <i class="fas fa-times"></i>
-          ${game.i18n.localize('SEASONS_STARS.dialog.calendar_selection.cancel')}
-        </button>
-        <button data-action="chooseCalendar" type="button" class="button ss-button primary" id="select-calendar">
-          <i class="fas fa-check"></i>
-          ${game.i18n.localize('SEASONS_STARS.dialog.calendar_selection.select')}
-        </button>
-      </div>
-    `);
+  private handleSearchInput(value: string): void {
+    // Use Foundry's built-in debounce (initialized in constructor)
+    this.debouncedSearch(value);
+  }
 
-    html.append(footer);
+  /**
+   * Handle tag filter selection changes
+   */
+  private handleTagFilterChange(selectElement: HTMLSelectElement): void {
+    const selectedOptions = Array.from(selectElement.selectedOptions);
+    this.selectedTags = selectedOptions.map(opt => opt.value);
+    // Re-render the list
+    this.render({ parts: ['list', 'header'] });
+  }
+
+  /**
+   * Get list of visible calendar IDs (respecting variant expansion state)
+   */
+  private getVisibleCalendarIds(): string[] {
+    const calendars = this.buildCalendarListItems();
+    const filtered = this.filterCalendars(calendars);
+    const grouped = this.groupCalendars(filtered);
+
+    const visibleIds: string[] = [];
+    for (const group of grouped) {
+      // Base calendar is always visible if it exists
+      if (group.base) {
+        visibleIds.push(group.base.id);
+      }
+      // Variants are only visible if the group is expanded
+      if (group.isExpanded) {
+        for (const variant of group.variants) {
+          visibleIds.push(variant.id);
+        }
+      }
+    }
+    return visibleIds;
+  }
+
+  /**
+   * Handle keyboard navigation in the list
+   */
+  private handleListKeydown(event: KeyboardEvent): void {
+    // Get only visible calendars (respecting variant expansion state)
+    const visibleIds = this.getVisibleCalendarIds();
+    const currentIndex = visibleIds.findIndex(id => id === this.highlightedCalendarId);
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        if (currentIndex < visibleIds.length - 1) {
+          this.highlightedCalendarId = visibleIds[currentIndex + 1];
+          this.render({ parts: ['list', 'detail'] });
+        }
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        if (currentIndex > 0) {
+          this.highlightedCalendarId = visibleIds[currentIndex - 1];
+          this.render({ parts: ['list', 'detail'] });
+        }
+        break;
+      case 'Enter':
+        event.preventDefault();
+        if (this.highlightedCalendarId) {
+          this.selectedCalendarId = this.highlightedCalendarId;
+          this.render({ parts: ['list', 'footer'] });
+        }
+        break;
+    }
   }
 
   /**
    * Select a calendar card
+   * @param calendarId - The calendar ID to select
+   * @param skipRender - If true, skip the render (caller will handle rendering)
    */
-  private selectCalendarCard(calendarId: string): void {
+  private selectCalendarCard(calendarId: string, skipRender: boolean = false): void {
     // Special handling for file picker selection
     if (calendarId === '__FILE_PICKER__') {
       const selectedFilePath =
@@ -353,8 +675,10 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
 
     this.selectedCalendarId = calendarId;
 
-    // Re-render to update UI state
-    this.render(true);
+    // Re-render to update UI state (unless caller will handle it)
+    if (!skipRender) {
+      this.render(true);
+    }
   }
 
   /**
@@ -876,6 +1200,101 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       Logger.error('Failed to clear file picker:', error as Error);
       ui.notifications?.error(game.i18n.localize('SEASONS_STARS.errors.clear_file_failed'));
     }
+  }
+
+  /**
+   * Instance action handler for highlighting a calendar in the list (updates detail pane)
+   */
+  async _onHighlightCalendar(event: Event, target: HTMLElement): Promise<void> {
+    const calendarId = target.getAttribute('data-calendar-id');
+    Logger.debug('Highlight calendar', { calendarId });
+
+    if (calendarId) {
+      this.highlightedCalendarId = calendarId;
+
+      // Also select this calendar (clicking = selecting)
+      // Pass skipRender=true to avoid double render
+      this.selectCalendarCard(calendarId, true);
+
+      // Reset month view when changing calendars
+      this.detailViewMonth = 1;
+
+      // Get calendar to set a reasonable default year
+      const calendar = this.calendars.get(calendarId);
+      if (calendar) {
+        // Use a sample year based on the calendar's epoch or default
+        this.detailViewYear = 1000;
+      }
+
+      // Single consolidated render for list (highlight + selection state), detail pane, and footer
+      this.render({ parts: ['list', 'detail', 'footer'] });
+    }
+  }
+
+  /**
+   * Instance action handler for toggling variant group expansion
+   */
+  async _onToggleVariants(event: Event, target: HTMLElement): Promise<void> {
+    event.stopPropagation();
+
+    const baseId = target.getAttribute('data-base-id');
+    Logger.debug('Toggle variants', { baseId });
+
+    if (baseId) {
+      if (this.expandedVariantGroups.has(baseId)) {
+        this.expandedVariantGroups.delete(baseId);
+      } else {
+        this.expandedVariantGroups.add(baseId);
+      }
+
+      // Re-render list only
+      this.render({ parts: ['list'] });
+    }
+  }
+
+  /**
+   * Instance action handler for browsing months in the detail pane
+   */
+  async _onBrowseMonth(event: Event, target: HTMLElement): Promise<void> {
+    const direction = target.getAttribute('data-direction');
+    Logger.debug('Browse month', { direction });
+
+    if (!this.highlightedCalendarId) return;
+
+    const calendar = this.calendars.get(this.highlightedCalendarId);
+    if (!calendar) return;
+
+    const totalMonths = calendar.months.length;
+
+    if (direction === 'prev') {
+      this.detailViewMonth--;
+      if (this.detailViewMonth < 1) {
+        this.detailViewMonth = totalMonths;
+        this.detailViewYear--;
+      }
+    } else if (direction === 'next') {
+      this.detailViewMonth++;
+      if (this.detailViewMonth > totalMonths) {
+        this.detailViewMonth = 1;
+        this.detailViewYear++;
+      }
+    }
+
+    // Re-render detail pane only
+    this.render({ parts: ['detail'] });
+  }
+
+  /**
+   * Instance action handler for clearing search/tag filters
+   */
+  async _onClearFilters(_event: Event, _target: HTMLElement): Promise<void> {
+    Logger.debug('Clear filters');
+
+    this.searchQuery = '';
+    this.selectedTags = [];
+
+    // Re-render header (to clear search input) and list
+    this.render({ parts: ['header', 'list'] });
   }
 
   /**

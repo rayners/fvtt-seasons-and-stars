@@ -928,6 +928,7 @@ interface FoundryNamespace {
   utils: {
     deepClone<T>(obj: T): T;
     mergeObject<T, U>(original: T, other: U, options?: any): T & U;
+    debounce<T extends (...args: any[]) => any>(fn: T, delay: number): T;
   };
 }
 

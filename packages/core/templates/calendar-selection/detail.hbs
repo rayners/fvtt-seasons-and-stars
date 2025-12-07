@@ -1,0 +1,84 @@
+<section class="calendar-detail-pane" data-application-part="detail" aria-live="polite">
+  {{#if highlightedCalendar}}
+    <div class="detail-content">
+      <div class="detail-header">
+        <h3 class="calendar-name">{{highlightedCalendar.label}}</h3>
+        {{#if highlightedCalendar.setting}}
+        <span class="calendar-setting">{{highlightedCalendar.setting}}</span>
+        {{/if}}
+        {{#if highlightedCalendar.variantInfo}}
+        <span class="variant-info">{{highlightedCalendar.variantInfo}}</span>
+        {{/if}}
+      </div>
+
+      {{#if highlightedCalendar.description}}
+      <div class="detail-description">
+        <p>{{highlightedCalendar.description}}</p>
+      </div>
+      {{/if}}
+
+      {{!-- Well container for sample date and month browser --}}
+      <div class="detail-well">
+        <div class="detail-sample">
+          <label>{{localize "SEASONS_STARS.dialog.calendar_selection.sample"}}</label>
+          <span class="sample-date">{{highlightedCalendar.sampleDate}}</span>
+        </div>
+
+        {{!-- Month Browser --}}
+        {{#if highlightedCalendar.monthPreview}}
+        <div class="month-browser">
+          <div class="month-browser-header">
+            <button type="button" class="month-nav-btn" data-action="browseMonth" data-direction="prev" aria-label="{{localize 'SEASONS_STARS.dialog.calendar_selection.prev_month'}}">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <span class="month-title">{{highlightedCalendar.monthPreview.monthName}} {{highlightedCalendar.monthPreview.year}}</span>
+            <button type="button" class="month-nav-btn" data-action="browseMonth" data-direction="next" aria-label="{{localize 'SEASONS_STARS.dialog.calendar_selection.next_month'}}">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="month-grid">
+            <div class="weekday-headers">
+              {{#each highlightedCalendar.monthPreview.weekdayHeaders}}
+              <span class="weekday-header">{{this}}</span>
+              {{/each}}
+            </div>
+            <div class="day-cells">
+              {{#each highlightedCalendar.monthPreview.days}}
+                {{#if this}}
+                <span class="day-cell">{{this}}</span>
+                {{else}}
+                <span class="day-cell empty"></span>
+                {{/if}}
+              {{/each}}
+            </div>
+          </div>
+        </div>
+        {{/if}}
+      </div>
+
+      {{!-- Tags and Source in a row --}}
+      <div class="detail-meta">
+        {{#if highlightedCalendar.tags.length}}
+        <div class="detail-tags">
+          <label>{{localize "SEASONS_STARS.dialog.calendar_selection.tags"}}</label>
+          <div class="tag-chips">
+            {{#each highlightedCalendar.tags}}
+            <span class="tag-chip">{{this}}</span>
+            {{/each}}
+          </div>
+        </div>
+        {{/if}}
+
+        <div class="detail-source">
+          <i class="{{highlightedCalendar.sourceIcon}}"></i>
+          <span class="source-label">{{highlightedCalendar.sourceLabel}}</span>
+        </div>
+      </div>
+    </div>
+  {{else}}
+    <div class="empty-detail-state">
+      <i class="fas fa-calendar-alt"></i>
+      <p>{{localize "SEASONS_STARS.dialog.calendar_selection.select_to_view"}}</p>
+    </div>
+  {{/if}}
+</section>

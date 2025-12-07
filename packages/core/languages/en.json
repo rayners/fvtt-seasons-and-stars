@@ -25,6 +25,8 @@
         "cancel": "Keep Current",
         "switch_to": "Switch to {calendar}",
         "current": "Currently Active",
+        "selected": "Selected",
+        "select_this": "Select This Calendar",
         "sample": "Sample",
         "preview": "Preview",
         "preview_tooltip": "View calendar details and sample dates",
@@ -43,7 +45,18 @@
         "file_loaded": "Custom calendar file is loaded and ready to use",
         "file_path": "File Path",
         "status": "Status",
-        "click_to_select": "Click to select a calendar file"
+        "click_to_select": "Click to select a calendar file",
+        "use_this_file": "Use This File",
+        "search_placeholder": "Search calendars...",
+        "filter_by_tag": "Filter by tag",
+        "clear_filters": "Clear filters",
+        "of": "of",
+        "no_results": "No calendars match your search",
+        "select_to_view": "Select a calendar to view details",
+        "toggle_variants": "Toggle variants",
+        "tags": "Tags",
+        "prev_month": "Previous month",
+        "next_month": "Next month"
       },
       "calendar_preview": {
         "title": "Calendar Preview: {calendar}"
