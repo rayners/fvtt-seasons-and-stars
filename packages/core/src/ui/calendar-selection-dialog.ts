@@ -832,7 +832,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     // Otherwise, open the file picker dialog
     try {
       // @ts-expect-error - FilePicker is available at runtime but TypeScript types may not reflect the full structure
-      const filePicker = new foundry.applications.apps.FilePicker({
+      const filePicker = new foundry.applications.apps.FilePicker.implementation({
         type: 'data',
         extensions: ['.json'],
         callback: async (path: string): Promise<void> => {

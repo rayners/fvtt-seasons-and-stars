@@ -402,13 +402,13 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
 
     // If exact mode or no calendar, always show exact time
     if (canonicalMode === 'exact' || !calendar) {
-      return this.formatExactTime(time);
+      return this.formatExactTime(time, calendar);
     }
 
     // Check for canonical hours
     const canonicalHours = calendar.canonicalHours;
     if (!canonicalHours || canonicalHours.length === 0) {
-      return this.formatExactTime(time);
+      return this.formatExactTime(time, calendar);
     }
 
     // Look for matching canonical hour
@@ -426,13 +426,39 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     }
 
     // Fallback to exact time for auto mode
-    return this.formatExactTime(time);
+    return this.formatExactTime(time, calendar);
   }
 
   /**
-   * Format exact time as HH:MM
+   * Format exact time as HH:MM, respecting 12-hour preference setting
    */
-  private formatExactTime(time: { hour: number; minute: number; second: number }): string {
+  private formatExactTime(
+    time: { hour: number; minute: number; second: number },
+    calendar?: import('../types/calendar').SeasonsStarsCalendar
+  ): string {
+    // Check if user prefers 12-hour format
+    const prefer12Hour =
+      typeof game !== 'undefined' &&
+      game.settings?.get('seasons-and-stars', 'prefer12HourFormat') === true;
+
+    // Check if calendar supports 12-hour format
+    const has12HourSupport =
+      calendar?.time?.amPmNotation &&
+      calendar.time.amPmNotation.am &&
+      calendar.time.amPmNotation.pm;
+
+    if (prefer12Hour && has12HourSupport) {
+      // Use 12-hour format with am/pm
+      const hoursInDay = calendar?.time?.hoursInDay || 24;
+      const halfDay = Math.floor(hoursInDay / 2);
+      const hourInHalf = time.hour % halfDay;
+      const hour12 = hourInHalf === 0 ? halfDay : hourInHalf;
+      const amPmNotation = calendar!.time!.amPmNotation!;
+      const ampm = time.hour < halfDay ? amPmNotation.am : amPmNotation.pm;
+      return `${hour12}:${time.minute.toString().padStart(2, '0')} ${ampm}`;
+    }
+
+    // Default 24-hour format
     const hour = time.hour.toString().padStart(2, '0');
     const minute = time.minute.toString().padStart(2, '0');
     return `${hour}:${minute}`;
@@ -757,6 +783,17 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           );
           await this.render();
         },
+      },
+      {
+        name: game.i18n.localize('SEASONS_STARS.mini_widget.context_menu.toggle_12hour'),
+        icon: '<i class="fas fa-clock"></i>',
+        callback: async () => {
+          const currentValue = Boolean(
+            game.settings?.get('seasons-and-stars', 'prefer12HourFormat')
+          );
+          await game.settings?.set('seasons-and-stars', 'prefer12HourFormat', !currentValue);
+          await this.render();
+        },
       }
     );
 
@@ -989,7 +1026,8 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
           settingName === 'miniWidgetShowMoonPhases' ||
           settingName === SETTINGS_KEYS.MINI_WIDGET_SHOW_SUNRISE_SUNSET ||
           settingName === 'miniWidgetShowExtensions' ||
-          settingName === 'alwaysShowQuickTimeButtons') &&
+          settingName === 'alwaysShowQuickTimeButtons' ||
+          settingName === 'prefer12HourFormat') &&
         CalendarMiniWidget.activeInstance?.rendered
       ) {
         CalendarMiniWidget.activeInstance.render();

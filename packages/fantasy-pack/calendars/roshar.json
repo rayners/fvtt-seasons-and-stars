@@ -224,7 +224,11 @@
   "time": {
     "hoursInDay": 20,
     "minutesInHour": 50,
-    "secondsInMinute": 100
+    "secondsInMinute": 100,
+    "amPmNotation": {
+      "am": "AM",
+      "pm": "PM"
+    }
   },
 
   "dateFormats": {
