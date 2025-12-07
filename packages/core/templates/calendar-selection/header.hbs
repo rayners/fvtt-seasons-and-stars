@@ -1,0 +1,31 @@
+<section class="calendar-search-header" data-application-part="header">
+  <div class="search-input-container">
+    <i class="fas fa-search"></i>
+    <input type="search"
+           class="calendar-search-input"
+           placeholder="{{localize 'SEASONS_STARS.dialog.calendar_selection.search_placeholder'}}"
+           value="{{searchQuery}}"
+           aria-label="{{localize 'SEASONS_STARS.dialog.calendar_selection.search_placeholder'}}">
+    {{#if hasActiveFilters}}
+    <button type="button" class="clear-filters-btn" data-action="clearFilters" data-tooltip="{{localize 'SEASONS_STARS.dialog.calendar_selection.clear_filters'}}">
+      <i class="fas fa-times"></i>
+    </button>
+    {{/if}}
+  </div>
+
+  {{#if availableTags.length}}
+  <div class="tag-filter-container">
+    <select class="tag-filter" multiple aria-label="{{localize 'SEASONS_STARS.dialog.calendar_selection.filter_by_tag'}}">
+      {{#each availableTags}}
+      <option value="{{this}}" {{#if (includes ../selectedTags this)}}selected{{/if}}>
+        {{this}}
+      </option>
+      {{/each}}
+    </select>
+  </div>
+  {{/if}}
+
+  <div class="result-count">
+    {{filteredCount}} {{localize "SEASONS_STARS.dialog.calendar_selection.of"}} {{totalCount}}
+  </div>
+</section>
