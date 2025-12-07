@@ -462,6 +462,14 @@ Hooks.once('ready', async () => {
   try {
     const currentDate = calendarManager.getCurrentDate();
     if (currentDate) {
+      // Initialize lastEventCheckDate to current date to prevent
+      // spurious day change notifications on first time advancement after page refresh
+      lastEventCheckDate = {
+        year: currentDate.year,
+        month: currentDate.month,
+        day: currentDate.day,
+      };
+
       // Get events for current date with visibility filtering
       const events = eventsAPI.getEventsForDate(
         currentDate.year,
@@ -480,13 +488,6 @@ Hooks.once('ready', async () => {
           isStartup: true,
           // No previousDate on startup
         });
-
-        // Update lastEventCheckDate to prevent duplicate hook fire on first dateChanged
-        lastEventCheckDate = {
-          year: currentDate.year,
-          month: currentDate.month,
-          day: currentDate.day,
-        };
       }
     }
   } catch (error) {
