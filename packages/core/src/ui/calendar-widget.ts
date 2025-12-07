@@ -212,7 +212,7 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       currentDate: currentDate.toObject(),
       formattedDate: currentDate.toLongString(),
       shortDate: currentDate.toDateString(),
-      timeString: currentDate.toTimeString(),
+      timeString: this.formatTimeString(currentDate.time, activeCalendar),
       isGM: game.user?.isGM || false,
       canAdvanceTime: game.user?.isGM || false,
       hasSmallTime: hasSmallTime,
@@ -598,6 +598,43 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   }
 
   /**
+   * Format time string respecting 12-hour preference setting
+   */
+  private formatTimeString(
+    time: { hour: number; minute: number; second: number } | undefined,
+    calendar: import('../types/calendar').SeasonsStarsCalendar
+  ): string {
+    if (!time) return '';
+
+    // Check if user prefers 12-hour format
+    const prefer12Hour =
+      typeof game !== 'undefined' &&
+      game.settings?.get('seasons-and-stars', 'prefer12HourFormat') === true;
+
+    // Check if calendar supports 12-hour format
+    const has12HourSupport =
+      calendar?.time?.amPmNotation &&
+      calendar.time.amPmNotation.am &&
+      calendar.time.amPmNotation.pm;
+
+    if (prefer12Hour && has12HourSupport) {
+      // Use 12-hour format with am/pm
+      const hoursInDay = calendar?.time?.hoursInDay || 24;
+      const halfDay = Math.floor(hoursInDay / 2);
+      const hourInHalf = time.hour % halfDay;
+      const hour12 = hourInHalf === 0 ? halfDay : hourInHalf;
+      const amPmNotation = calendar!.time!.amPmNotation!;
+      const ampm = time.hour < halfDay ? amPmNotation.am : amPmNotation.pm;
+      return `${hour12}:${time.minute.toString().padStart(2, '0')} ${ampm}`;
+    }
+
+    // Default 24-hour format
+    const hour = time.hour.toString().padStart(2, '0');
+    const minute = time.minute.toString().padStart(2, '0');
+    return `${hour}:${minute}`;
+  }
+
+  /**
    * Detect if SmallTime module is available and active
    */
   private detectSmallTime(): boolean {
@@ -674,12 +711,13 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       }
     });
 
-    // Update widget when settings change (especially quick time buttons)
+    // Update widget when settings change (especially quick time buttons and time format)
     Hooks.on('seasons-stars:settingsChanged', (settingName: string) => {
       if (
         (settingName === 'quickTimeButtons' ||
           settingName === 'miniWidgetQuickTimeButtons' ||
-          settingName === 'alwaysShowQuickTimeButtons') &&
+          settingName === 'alwaysShowQuickTimeButtons' ||
+          settingName === 'prefer12HourFormat') &&
         CalendarWidget.activeInstance?.rendered
       ) {
         CalendarWidget.activeInstance.render();

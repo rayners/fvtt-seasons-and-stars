@@ -100,6 +100,7 @@
         "toggle_year": "Toggle Year",
         "toggle_moon_phases": "Toggle Moon Phases",
         "toggle_sunrise_sunset": "Toggle Sunrise/Sunset",
+        "toggle_12hour": "Toggle 12-Hour Format",
         "toggle_time_controls": "Toggle Time Controls",
         "toggle_extensions": "Toggle Extension Buttons",
         "toggle_pin": "Toggle Pin"

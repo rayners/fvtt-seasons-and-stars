@@ -717,7 +717,7 @@ export class DateFormatter {
       }
     });
 
-    // Hour helper - supports pad format
+    // Hour helper - supports pad, 12hour, 12hour-pad, and ampm formats
     Handlebars.registerHelper('ss-hour', function (this: any, ...args: any[]) {
       // Handlebars passes options as the last argument
       const options = args[args.length - 1];
@@ -734,10 +734,45 @@ export class DateFormatter {
       }
 
       const format = options?.hash?.format;
+      const calendarId = options?.data?.root?._calendarId;
+      const formatter = calendarId ? DateFormatter.helperRegistry.get(calendarId) : null;
+
+      // Get hoursInDay from calendar, default to 24 for backward compatibility
+      const hoursInDay = formatter?.calendar?.time?.hoursInDay ?? 24;
+      const halfDay = hoursInDay / 2;
 
       switch (format) {
         case 'pad':
           return hourValue.toString().padStart(2, '0');
+        case '12hour': {
+          // Convert to 12-hour format based on day length
+          // The display cycles through the half-day range twice per day
+          const hourInHalf = hourValue % halfDay;
+          // Display hour 0 as halfDay (like midnight shows as 12), others show their position
+          const hour12 = hourInHalf === 0 ? halfDay : hourInHalf;
+          return hour12.toString();
+        }
+        case '12hour-pad': {
+          // Convert to 12-hour format with padding based on day length
+          const hourInHalf = hourValue % halfDay;
+          const hour12 = hourInHalf === 0 ? halfDay : hourInHalf;
+          return hour12.toString().padStart(2, '0');
+        }
+        case 'ampm': {
+          // Get am/pm notation from calendar or options
+          const customAm = options?.hash?.am;
+          const customPm = options?.hash?.pm;
+
+          // AM/PM notation precedence chain:
+          // 1. Helper parameters (am="..." / pm="...") - highest priority
+          // 2. Calendar-level time.amPmNotation configuration
+          // 3. Default English notation ("AM"/"PM") - fallback
+          const amNotation = customAm || formatter?.calendar?.time?.amPmNotation?.am || 'AM';
+          const pmNotation = customPm || formatter?.calendar?.time?.amPmNotation?.pm || 'PM';
+
+          // Determine AM/PM based on which half of the day we're in
+          return hourValue < halfDay ? amNotation : pmNotation;
+        }
         default:
           return hourValue.toString();
       }
@@ -914,7 +949,7 @@ export class DateFormatter {
       );
     });
 
-    // Time display helper - supports canonical hours with exact time fallback
+    // Time display helper - supports canonical hours with exact time fallback and 12-hour format
     Handlebars.registerHelper('ss-time-display', function (this: any, ...args: any[]) {
       // Handlebars passes options as the last argument
       const options = args[args.length - 1];
@@ -938,9 +973,36 @@ export class DateFormatter {
       // Check for canonical hours
       const canonicalHours = formatter.calendar.canonicalHours;
 
+      // Helper function to format time based on user preference
+      const formatTime = (h: number, m: number): string => {
+        // Check if user prefers 12-hour format and calendar supports it
+        const prefer12Hour =
+          typeof game !== 'undefined' &&
+          game.settings?.get('seasons-and-stars', 'prefer12HourFormat') === true;
+        const has12HourSupport =
+          formatter.calendar.time?.amPmNotation &&
+          formatter.calendar.time.amPmNotation.am &&
+          formatter.calendar.time.amPmNotation.pm;
+
+        if (prefer12Hour && has12HourSupport) {
+          // Use 12-hour format with am/pm
+          const hoursInDay = formatter.calendar.time?.hoursInDay || 24;
+          const halfDay = Math.floor(hoursInDay / 2);
+          const hourInHalf = h % halfDay;
+          const hour12 = hourInHalf === 0 ? halfDay : hourInHalf;
+          // Type assertion: we know amPmNotation exists because has12HourSupport checked it
+          const amPmNotation = formatter.calendar.time.amPmNotation!;
+          const ampm = h < halfDay ? amPmNotation.am : amPmNotation.pm;
+          return `${hour12}:${m.toString().padStart(2, '0')} ${ampm}`;
+        }
+
+        // Default 24-hour format
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      };
+
       if (mode === 'exact' || !canonicalHours || canonicalHours.length === 0) {
         // Force exact time or no canonical hours available
-        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        return formatTime(hour, minute);
       }
 
       if (mode === 'canonical-or-exact' || mode === 'canonical') {
@@ -963,11 +1025,11 @@ export class DateFormatter {
         }
 
         // Fallback to exact time for canonical-or-exact mode
-        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        return formatTime(hour, minute);
       }
 
       // Default fallback
-      return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      return formatTime(hour, minute);
     });
 
     // Icon rendering helper - safely renders icons from icon or iconUrl with XSS protection
