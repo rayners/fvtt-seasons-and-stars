@@ -151,15 +151,15 @@ export class ChatIntegration {
       const formatter = new DateFormatter(activeCalendar);
       const formattedDate = formatter.format(calendarDate, format);
 
-      // Wrap content in a styled container with module branding
-      const styledContent = `<div class="seasons-stars-notification">
-        <strong>📅 Seasons & Stars</strong>
-        <div>${formattedDate}</div>
-      </div>`;
-
       await ChatMessage.create({
-        content: styledContent,
-        type: CONST.CHAT_MESSAGE_STYLES.OOC,
+        content: formattedDate,
+        speaker: {
+          alias: '📅 Seasons & Stars',
+          actor: '',
+          token: '',
+          scene: '',
+        },
+        style: CONST.CHAT_MESSAGE_STYLES.OTHER,
         flags: {
           [SYSTEM_CONSTANTS.MODULE_ID]: {
             dayChangeNotification: true,

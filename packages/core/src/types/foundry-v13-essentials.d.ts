@@ -242,6 +242,7 @@ declare class FoundryChatMessage {
     content: string;
     speaker?: ChatSpeaker;
     type?: number;
+    style?: number;
     flags?: Record<string, any>;
     whisper?: string[];
     blind?: boolean;

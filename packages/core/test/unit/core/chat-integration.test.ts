@@ -55,7 +55,10 @@ const mockChatMessage = {
 
 const mockCONST = {
   CHAT_MESSAGE_STYLES: {
+    OTHER: 0,
     OOC: 1,
+    IC: 2,
+    EMOTE: 3,
   },
 };
 
@@ -272,7 +275,13 @@ describe('ChatIntegration', () => {
       expect(mockChatMessage.create).toHaveBeenCalledTimes(1);
       expect(mockChatMessage.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 1, // OOC
+          speaker: {
+            alias: '📅 Seasons & Stars',
+            actor: '',
+            token: '',
+            scene: '',
+          },
+          style: 0, // OTHER - uncategorized message
           flags: {
             'seasons-and-stars': {
               dayChangeNotification: true,
@@ -280,12 +289,6 @@ describe('ChatIntegration', () => {
           },
         })
       );
-      // Verify content includes module branding
-      const callArgs = mockChatMessage.create.mock.calls[0][0];
-      expect(callArgs.content).toContain('Seasons & Stars');
-      expect(callArgs.content).toContain('seasons-stars-notification');
-      // Verify no speaker is set (to avoid user attribution)
-      expect(callArgs.speaker).toBeUndefined();
     });
 
     it('should handle errors gracefully', async () => {
