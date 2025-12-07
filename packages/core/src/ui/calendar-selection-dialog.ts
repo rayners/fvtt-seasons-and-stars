@@ -73,7 +73,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   private highlightedCalendarId: string | null = null;
   private detailViewMonth: number = 1;
   private detailViewYear: number = 1000;
-  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  // Debounced search handler using Foundry's built-in debounce utility
+  private debouncedSearch: (value: string) => void;
 
   constructor(
     calendars?: Map<string, SeasonsStarsCalendar> | SeasonsStarsCalendar[],
@@ -159,6 +160,13 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         activeCalendarSetting,
       });
     }
+
+    // Initialize debounced search using Foundry's built-in debounce utility
+    this.debouncedSearch = foundry.utils.debounce((value: string) => {
+      this.searchQuery = value;
+      // Re-render only the list part
+      this.render({ parts: ['list'] });
+    }, 300);
   }
 
   static DEFAULT_OPTIONS = {
@@ -475,8 +483,14 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
     days: number[];
     weekdayHeaders: string[];
   } {
-    // Ensure month index is valid
-    const monthIndex = Math.max(0, Math.min(this.detailViewMonth - 1, calendar.months.length - 1));
+    // Validate and correct month bounds
+    if (this.detailViewMonth < 1 || this.detailViewMonth > calendar.months.length) {
+      Logger.warn(
+        `Invalid month index ${this.detailViewMonth} for calendar with ${calendar.months.length} months, resetting to 1`
+      );
+      this.detailViewMonth = 1;
+    }
+    const monthIndex = this.detailViewMonth - 1;
     const month = calendar.months[monthIndex];
 
     // Get localized month name
@@ -570,17 +584,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
    * Handle search input with debouncing
    */
   private handleSearchInput(value: string): void {
-    // Clear existing debounce timer
-    if (this.searchDebounceTimer) {
-      clearTimeout(this.searchDebounceTimer);
-    }
-
-    // Debounce the search for 300ms
-    this.searchDebounceTimer = setTimeout(() => {
-      this.searchQuery = value;
-      // Re-render only the list part
-      this.render({ parts: ['list'] });
-    }, 300);
+    // Use Foundry's built-in debounce (initialized in constructor)
+    this.debouncedSearch(value);
   }
 
   /**
@@ -594,25 +599,49 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
   }
 
   /**
+   * Get list of visible calendar IDs (respecting variant expansion state)
+   */
+  private getVisibleCalendarIds(): string[] {
+    const calendars = this.buildCalendarListItems();
+    const filtered = this.filterCalendars(calendars);
+    const grouped = this.groupCalendars(filtered);
+
+    const visibleIds: string[] = [];
+    for (const group of grouped) {
+      // Base calendar is always visible if it exists
+      if (group.base) {
+        visibleIds.push(group.base.id);
+      }
+      // Variants are only visible if the group is expanded
+      if (group.isExpanded) {
+        for (const variant of group.variants) {
+          visibleIds.push(variant.id);
+        }
+      }
+    }
+    return visibleIds;
+  }
+
+  /**
    * Handle keyboard navigation in the list
    */
   private handleListKeydown(event: KeyboardEvent): void {
-    const calendars = this.buildCalendarListItems();
-    const filtered = this.filterCalendars(calendars);
-    const currentIndex = filtered.findIndex(c => c.id === this.highlightedCalendarId);
+    // Get only visible calendars (respecting variant expansion state)
+    const visibleIds = this.getVisibleCalendarIds();
+    const currentIndex = visibleIds.findIndex(id => id === this.highlightedCalendarId);
 
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
-        if (currentIndex < filtered.length - 1) {
-          this.highlightedCalendarId = filtered[currentIndex + 1].id;
+        if (currentIndex < visibleIds.length - 1) {
+          this.highlightedCalendarId = visibleIds[currentIndex + 1];
           this.render({ parts: ['list', 'detail'] });
         }
         break;
       case 'ArrowUp':
         event.preventDefault();
         if (currentIndex > 0) {
-          this.highlightedCalendarId = filtered[currentIndex - 1].id;
+          this.highlightedCalendarId = visibleIds[currentIndex - 1];
           this.render({ parts: ['list', 'detail'] });
         }
         break;
@@ -628,8 +657,10 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
 
   /**
    * Select a calendar card
+   * @param calendarId - The calendar ID to select
+   * @param skipRender - If true, skip the render (caller will handle rendering)
    */
-  private selectCalendarCard(calendarId: string): void {
+  private selectCalendarCard(calendarId: string, skipRender: boolean = false): void {
     // Special handling for file picker selection
     if (calendarId === '__FILE_PICKER__') {
       const selectedFilePath =
@@ -644,8 +675,10 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
 
     this.selectedCalendarId = calendarId;
 
-    // Re-render to update UI state
-    this.render(true);
+    // Re-render to update UI state (unless caller will handle it)
+    if (!skipRender) {
+      this.render(true);
+    }
   }
 
   /**
@@ -1180,7 +1213,8 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
       this.highlightedCalendarId = calendarId;
 
       // Also select this calendar (clicking = selecting)
-      this.selectCalendarCard(calendarId);
+      // Pass skipRender=true to avoid double render
+      this.selectCalendarCard(calendarId, true);
 
       // Reset month view when changing calendars
       this.detailViewMonth = 1;
@@ -1192,7 +1226,7 @@ export class CalendarSelectionDialog extends foundry.applications.api.Handlebars
         this.detailViewYear = 1000;
       }
 
-      // Re-render list (for highlight state), detail pane, and footer
+      // Single consolidated render for list (highlight + selection state), detail pane, and footer
       this.render({ parts: ['list', 'detail', 'footer'] });
     }
   }
