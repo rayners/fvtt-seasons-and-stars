@@ -153,7 +153,13 @@ export class ChatIntegration {
 
       await ChatMessage.create({
         content: formattedDate,
-        speaker: { alias: 'Seasons & Stars' },
+        speaker: {
+          alias: 'Seasons & Stars',
+          user: null,
+          actor: null,
+          token: null,
+          scene: null,
+        },
         type: CONST.CHAT_MESSAGE_STYLES.OOC,
         flags: {
           [SYSTEM_CONSTANTS.MODULE_ID]: {

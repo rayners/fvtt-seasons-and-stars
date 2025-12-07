@@ -272,7 +272,13 @@ describe('ChatIntegration', () => {
       expect(mockChatMessage.create).toHaveBeenCalledTimes(1);
       expect(mockChatMessage.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          speaker: { alias: 'Seasons & Stars' },
+          speaker: {
+            alias: 'Seasons & Stars',
+            user: null,
+            actor: null,
+            token: null,
+            scene: null,
+          },
           type: 1, // OOC
           flags: {
             'seasons-and-stars': {

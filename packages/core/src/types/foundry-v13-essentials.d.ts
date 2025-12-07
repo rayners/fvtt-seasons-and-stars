@@ -222,9 +222,10 @@ declare class FoundryScene {
  */
 interface ChatSpeaker {
   alias?: string;
-  actor?: string;
-  token?: string;
-  scene?: string;
+  user?: string | null;
+  actor?: string | null;
+  token?: string | null;
+  scene?: string | null;
 }
 
 /**
