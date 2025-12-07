@@ -140,6 +140,18 @@
       letter-spacing: 0.5px;
     }
 
+    // Special display format (e.g., Cosmere combinatorial dates)
+    .special-format {
+      text-align: center;
+      font-size: 1em;
+      font-weight: 500;
+      font-style: italic;
+      color: var(--color-text-light-secondary);
+      margin-bottom: 8px;
+      letter-spacing: 0.1em;
+      cursor: help;
+    }
+
     .time-display {
       display: flex;
       flex-direction: column;

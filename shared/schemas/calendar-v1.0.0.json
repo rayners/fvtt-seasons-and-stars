@@ -156,6 +156,18 @@
             "minLength": 1,
             "maxLength": 10,
             "description": "Optional short form of the month name"
+          },
+          "prefix": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Optional prefix for combinatorial date formats (e.g., Cosmere RPG)"
+          },
+          "suffix": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Optional suffix for combinatorial date formats"
           }
         }
       }
@@ -186,6 +198,18 @@
             "minLength": 1,
             "maxLength": 10,
             "description": "Optional short form of the weekday name"
+          },
+          "prefix": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Optional prefix for combinatorial date formats"
+          },
+          "suffix": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Optional suffix for combinatorial date formats (e.g., Cosmere RPG)"
           }
         }
       }
@@ -256,6 +280,104 @@
             "type": "integer",
             "minimum": 1,
             "description": "Day number within the month where this intercalary day occurs"
+          }
+        }
+      }
+    },
+    "weeks": {
+      "type": "object",
+      "description": "Week configuration for calendars with named weeks or week-of-month concepts",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["month-based", "year-based"],
+          "default": "month-based",
+          "description": "Week organization type: 'month-based' (weeks reset at month boundaries) or 'year-based' (weeks span months ISO 8601-style)"
+        },
+        "perMonth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Number of weeks per month (for month-based weeks)"
+        },
+        "daysPerWeek": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 14,
+          "description": "Days per week (defaults to weekdays.length if not specified)"
+        },
+        "remainderHandling": {
+          "type": "string",
+          "enum": ["partial-last", "extend-last", "none"],
+          "default": "partial-last",
+          "description": "How to handle remainder days when month doesn't divide evenly: 'partial-last' (last week can be shorter), 'extend-last' (add remainder days to last named week), or 'none' (remainder days have no week number)"
+        },
+        "namingPattern": {
+          "type": "string",
+          "enum": ["ordinal", "numeric", "none"],
+          "description": "Automatic naming pattern when names array is not provided: 'ordinal' (1st Week, 2nd Week), 'numeric' (Week 1, Week 2), or 'none' (no automatic names)"
+        },
+        "names": {
+          "type": "array",
+          "description": "Named weeks (for month-based only). Array length should equal perMonth for perfect alignment.",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100,
+                "description": "Full name of the week (e.g., 'First Week', 'The Novena of Grain')"
+              },
+              "abbreviation": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 20,
+                "description": "Short abbreviation (e.g., '1st', 'Grain')"
+              },
+              "prefix": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 20,
+                "description": "Prefix for combinatorial date formats"
+              },
+              "suffix": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 20,
+                "description": "Suffix for combinatorial date formats (e.g., 'es' in Cosmere RPG)"
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 500,
+                "description": "Optional description of the week's significance"
+              },
+              "translations": {
+                "type": "object",
+                "patternProperties": {
+                  "^[a-z]{2}(-[A-Z]{2})?$": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "description": {
+                        "type": "string",
+                        "maxLength": 500
+                      }
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "description": "Localized translations for the week"
+              }
+            }
           }
         }
       }

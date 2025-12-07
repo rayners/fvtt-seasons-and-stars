@@ -294,6 +294,23 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
     // Load sidebar buttons and filter based on showExtensions setting
     const sidebarButtons = showExtensions ? loadButtonsFromRegistry('mini') : [];
 
+    // Get special display format if defined (e.g., Cosmere combinatorial format)
+    let specialDisplayFormat = '';
+    try {
+      const displayTemplate = activeCalendar.dateFormats?.widgets?.display;
+      if (displayTemplate && typeof displayTemplate === 'string') {
+        // Use the CalendarDate's built-in formatter to render the display template
+        const engine = manager.getActiveEngine();
+        if (engine) {
+          // Cast to any to avoid interface/class type mismatch issues
+          const formatter = new DateFormatter(activeCalendar, engine as any);
+          specialDisplayFormat = formatter.format(currentDate as any, displayTemplate);
+        }
+      }
+    } catch (error) {
+      Logger.debug('Failed to format special display format for mini widget', error);
+    }
+
     return Object.assign(context, {
       shortDate: currentDate.toShortString(),
       hasSmallTime: hasSmallTime,
@@ -324,6 +341,7 @@ export class CalendarMiniWidget extends foundry.applications.api.HandlebarsAppli
       showSunriseSunset: showSunriseSunset,
       sunrise: sunriseString,
       sunset: sunsetString,
+      specialDisplayFormat: specialDisplayFormat,
     }) as MiniWidgetContext;
   }
 

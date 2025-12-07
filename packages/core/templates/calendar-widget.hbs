@@ -27,6 +27,9 @@
     {{!-- Date Display --}}
     <div class="date-display" data-action="openDetailedView" data-tooltip="Click for detailed view">
       <div class="main-date">{{shortDate}}</div>
+      {{#if specialDisplayFormat}}
+        <div class="special-format" data-tooltip="Calendar-specific date format">{{specialDisplayFormat}}</div>
+      {{/if}}
       {{#if timeString}}
         <div class="time-display">
           <span class="time">{{timeString}}</span>

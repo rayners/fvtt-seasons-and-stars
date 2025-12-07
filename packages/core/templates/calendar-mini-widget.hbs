@@ -21,6 +21,12 @@
       {{/if}}
     </div>
 
+    {{#if specialDisplayFormat}}
+      <div class="mini-special-format" data-tooltip="Calendar-specific date format">
+        {{specialDisplayFormat}}
+      </div>
+    {{/if}}
+
     <div data-application-part="moonPhases"></div>
 
     <div data-application-part="sunriseSunset"></div>

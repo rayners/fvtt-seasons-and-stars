@@ -39,6 +39,8 @@ export interface MiniWidgetContext extends BaseWidgetContext {
     faIcon: string;
     moonColor?: string;
   }>;
+  /** Special display format for calendars with unique date representations (e.g., Cosmere) */
+  specialDisplayFormat?: string;
 }
 
 // Main widget specific context
@@ -59,6 +61,8 @@ export interface MainWidgetContext extends BaseWidgetContext {
     moonColor?: string;
     moonColorIndex: number;
   }>;
+  /** Special display format for calendars with unique date representations (e.g., Cosmere) */
+  specialDisplayFormat?: string;
 }
 
 // Grid widget specific context

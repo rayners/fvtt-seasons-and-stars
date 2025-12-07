@@ -116,6 +116,7 @@ export class CalendarValidator {
     'year',
     'months',
     'weekdays',
+    'weeks',
     'intercalary',
     'leapYear',
     'time',
@@ -424,10 +425,16 @@ export class CalendarValidator {
       return ['hoursInDay', 'minutesInHour', 'secondsInMinute', 'amPmNotation'];
     }
     if (path.includes('/months/')) {
-      return ['name', 'length', 'days', 'description', 'abbreviation'];
+      return ['name', 'length', 'days', 'description', 'abbreviation', 'prefix', 'suffix'];
     }
     if (path.includes('/weekdays/')) {
-      return ['name', 'description', 'abbreviation'];
+      return ['name', 'description', 'abbreviation', 'prefix', 'suffix'];
+    }
+    if (path.includes('/weeks')) {
+      return ['type', 'perMonth', 'daysPerWeek', 'remainderHandling', 'namingPattern', 'names'];
+    }
+    if (path.includes('/weeks/names/')) {
+      return ['name', 'abbreviation', 'prefix', 'suffix', 'description', 'translations'];
     }
 
     // For unknown paths, return empty array (will fall back to generic message)
@@ -651,6 +658,51 @@ export class CalendarValidator {
           }
         }
       });
+    }
+
+    // Validate weeks configuration
+    if (calendar.weeks && typeof calendar.weeks === 'object') {
+      const weekType = calendar.weeks.type || 'month-based';
+
+      // perMonth is required for month-based weeks
+      if (weekType === 'month-based' && calendar.weeks.perMonth === undefined) {
+        result.errors.push(
+          "weeks.perMonth is required when weeks.type is 'month-based' or undefined"
+        );
+      }
+
+      // perMonth must be positive if specified
+      if (calendar.weeks.perMonth !== undefined && calendar.weeks.perMonth <= 0) {
+        result.errors.push('weeks.perMonth must be greater than 0');
+      }
+
+      // daysPerWeek must be positive if specified
+      if (calendar.weeks.daysPerWeek !== undefined && calendar.weeks.daysPerWeek <= 0) {
+        result.errors.push('weeks.daysPerWeek must be greater than 0');
+      }
+
+      // Validate week names uniqueness
+      if (Array.isArray(calendar.weeks.names)) {
+        const weekNames = calendar.weeks.names.map(w => w.name).filter(Boolean);
+        const uniqueNames = new Set(weekNames);
+
+        if (weekNames.length !== uniqueNames.size) {
+          result.errors.push('Week names must be unique');
+        }
+
+        // Validate week names array length matches perMonth
+        if (calendar.weeks.perMonth !== undefined) {
+          const namesLength = calendar.weeks.names.length;
+          const perMonth = calendar.weeks.perMonth;
+
+          if (namesLength !== perMonth) {
+            result.warnings.push(
+              `weeks.names array length (${namesLength}) does not match weeks.perMonth (${perMonth}). ` +
+                `This may cause some weeks to have no name or some names to never be used.`
+            );
+          }
+        }
+      }
     }
   }
 

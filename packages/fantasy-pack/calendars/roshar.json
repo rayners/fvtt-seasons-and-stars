@@ -28,60 +28,70 @@
     {
       "name": "Jesnan",
       "abbreviation": "Jes",
+      "prefix": "Jes",
       "days": 50,
       "description": "First month of the Vorin calendar. Named after the number one in the Vorin numerical system."
     },
     {
       "name": "Nanan",
       "abbreviation": "Nan",
+      "prefix": "Nan",
       "days": 50,
       "description": "Second month of the Vorin calendar. Named after the number two in the Vorin numerical system."
     },
     {
       "name": "Chach",
       "abbreviation": "Cha",
+      "prefix": "Cha",
       "days": 50,
       "description": "Third month of the Vorin calendar. Named after the number three in the Vorin numerical system."
     },
     {
       "name": "Vev",
       "abbreviation": "Vev",
+      "prefix": "Vev",
       "days": 50,
       "description": "Fourth month of the Vorin calendar. Named after the number four in the Vorin numerical system."
     },
     {
       "name": "Palah",
       "abbreviation": "Pal",
+      "prefix": "Pal",
       "days": 50,
       "description": "Fifth month of the Vorin calendar. Named after the number five in the Vorin numerical system."
     },
     {
       "name": "Shash",
       "abbreviation": "Sha",
+      "prefix": "Sha",
       "days": 50,
       "description": "Sixth month of the Vorin calendar. Named after the number six in the Vorin numerical system."
     },
     {
       "name": "Betab",
       "abbreviation": "Bet",
+      "prefix": "Bet",
       "days": 50,
       "description": "Seventh month of the Vorin calendar. Named after the number seven in the Vorin numerical system."
     },
     {
       "name": "Kak",
       "abbreviation": "Kak",
+      "prefix": "Kak",
       "days": 50,
       "description": "Eighth month of the Vorin calendar. Named after the number eight in the Vorin numerical system."
     },
     {
       "name": "Tanat",
       "abbreviation": "Tan",
+      "prefix": "Tan",
       "days": 50,
       "description": "Ninth month of the Vorin calendar. Named after the number nine in the Vorin numerical system."
     },
     {
       "name": "Ishev",
       "abbreviation": "Ish",
+      "prefix": "Ish",
       "days": 50,
       "description": "Tenth month of the Vorin calendar. Named after the number ten in the Vorin numerical system."
     }
@@ -91,31 +101,104 @@
     {
       "name": "Jesdes",
       "abbreviation": "Je",
+      "suffix": "es",
       "description": "First day of the five-day Vorin week"
     },
     {
       "name": "Nandes",
       "abbreviation": "Na",
+      "suffix": "an",
       "description": "Second day of the five-day Vorin week"
     },
     {
       "name": "Chachel",
       "abbreviation": "Ch",
+      "suffix": "ach",
       "description": "Third day of the five-day Vorin week"
     },
     {
       "name": "Vevod",
       "abbreviation": "Ve",
+      "suffix": "ev",
       "description": "Fourth day of the five-day Vorin week"
     },
     {
       "name": "Palah",
       "abbreviation": "Pa",
+      "suffix": "ah",
       "description": "Fifth day of the five-day Vorin week"
     }
   ],
 
   "intercalary": [],
+
+  "weeks": {
+    "type": "month-based",
+    "perMonth": 10,
+    "daysPerWeek": 5,
+    "names": [
+      {
+        "name": "First Week",
+        "abbreviation": "1st",
+        "suffix": "es",
+        "description": "First week of the month, named after Jesnan/Jesdes"
+      },
+      {
+        "name": "Second Week",
+        "abbreviation": "2nd",
+        "suffix": "an",
+        "description": "Second week of the month, named after Nanan/Nandes"
+      },
+      {
+        "name": "Third Week",
+        "abbreviation": "3rd",
+        "suffix": "ach",
+        "description": "Third week of the month, named after Chach/Chachel"
+      },
+      {
+        "name": "Fourth Week",
+        "abbreviation": "4th",
+        "suffix": "ev",
+        "description": "Fourth week of the month, named after Vev/Vevod"
+      },
+      {
+        "name": "Fifth Week",
+        "abbreviation": "5th",
+        "suffix": "ah",
+        "description": "Fifth week of the month, named after Palah"
+      },
+      {
+        "name": "Sixth Week",
+        "abbreviation": "6th",
+        "suffix": "ash",
+        "description": "Sixth week of the month, named after Shash"
+      },
+      {
+        "name": "Seventh Week",
+        "abbreviation": "7th",
+        "suffix": "et",
+        "description": "Seventh week of the month, named after Betab"
+      },
+      {
+        "name": "Eighth Week",
+        "abbreviation": "8th",
+        "suffix": "ak",
+        "description": "Eighth week of the month, named after Kak"
+      },
+      {
+        "name": "Ninth Week",
+        "abbreviation": "9th",
+        "suffix": "anat",
+        "description": "Ninth week of the month, named after Tanat"
+      },
+      {
+        "name": "Tenth Week",
+        "abbreviation": "10th",
+        "suffix": "ishev",
+        "description": "Tenth week of the month, named after Ishev"
+      }
+    ]
+  },
 
   "seasons": [
     {
@@ -149,6 +232,7 @@
   },
 
   "dateFormats": {
+    "cosmere": "{{ss-month format=\"prefix\"}}{{ss-week format=\"suffix\"}}{{ss-weekday format=\"suffix\"}}",
     "roshar": "{{year}}.{{month}}.{{ss-week}}.{{ss-day-in-week}}",
     "roshar-simple": "{{year}}.{{month}}.{{ss-week}}.{{ss-day-in-week}}",
     "vorin": "{{ss-day format=\"ordinal\"}} day of {{ss-week format=\"ordinal\"}} week, {{ss-month format=\"name\"}}, {{year}}",
@@ -185,6 +269,7 @@
       "mini": "{{year}}.{{month}}.{{ss-week}}",
       "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day}} {{ss-month format=\"abbr\"}}",
       "grid": "{{ss-day}}",
+      "display": "{{ss-dateFmt \"cosmere\"}}",
 
       "mini-intercalary": "{{intercalary}} {{ss-day}}",
       "main-intercalary": "{{intercalary}}, {{ss-day format=\"ordinal\"}} day",

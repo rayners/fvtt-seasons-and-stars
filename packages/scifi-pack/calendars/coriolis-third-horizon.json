@@ -150,6 +150,35 @@
     }
   ],
 
+  "weeks": {
+    "type": "month-based",
+    "perMonth": 4,
+    "daysPerWeek": 9,
+    "remainderHandling": "extend-last",
+    "names": [
+      {
+        "name": "The Novena of Grain",
+        "abbreviation": "Grain",
+        "description": "The first novena of each segment, symbolizing sustenance and prosperity through the bounty of the harvest."
+      },
+      {
+        "name": "The Novena of Water",
+        "abbreviation": "Water",
+        "description": "The second novena, representing life and purification through the sacred element that sustains all beings."
+      },
+      {
+        "name": "The Novena of Light",
+        "abbreviation": "Light",
+        "description": "The third novena, honoring illumination and knowledge as beacons guiding humanity through the darkness of space."
+      },
+      {
+        "name": "The Novena of Incense",
+        "abbreviation": "Incense",
+        "description": "The fourth novena, sacred to prayer and communion with the Icons. In segments with 37 days, this novena extends to 10 days to encompass all remaining days of the segment."
+      }
+    ]
+  },
+
   "time": {
     "hoursInDay": 24,
     "minutesInHour": 60,
@@ -158,6 +187,8 @@
 
   "dateFormats": {
     "standard": "Segment {{ss-month}}, Day {{ss-day}} of Cycle {{year}}",
+    "with-novena": "{{ss-weekday format=\"name\"}}, {{ss-week}}, {{ss-month format=\"name\"}} of Cycle {{year}}",
+    "novena-long": "The {{ss-day format=\"ordinal\"}} day of {{ss-week}}, {{ss-month format=\"name\"}}, Cycle {{year}}",
     "short": "S{{ss-month}}.{{ss-day format=\"pad\"}}/CC{{year}}",
     "long": "The {{ss-day format=\"ordinal\"}} day of the {{ss-month format=\"name\"}} in Cycle {{year}}",
     "date": "{{ss-weekday format=\"name\"}}, {{ss-month format=\"name\"}} Day {{ss-day}}",
@@ -165,6 +196,8 @@
     "datetime": "{{ss-dateFmt \"date\"}} CC{{year}} at {{ss-dateFmt \"time\"}}",
 
     "standard-intercalary": "{{intercalary}} of Cycle {{year}}",
+    "with-novena-intercalary": "{{intercalary}}, Cycle {{year}}",
+    "novena-long-intercalary": "{{intercalary}} in Cycle {{year}}",
     "short-intercalary": "{{intercalary}}/CC{{year}}",
     "long-intercalary": "{{intercalary}} in Cycle {{year}}",
     "date-intercalary": "{{intercalary}}, Cycle {{year}}",
@@ -172,8 +205,9 @@
 
     "widgets": {
       "mini": "S{{ss-month}}.{{ss-day}}/CC{{year}}",
-      "main": "{{ss-weekday format=\"abbr\"}}, Seg {{ss-month}} Day {{ss-day}}",
+      "main": "{{ss-weekday format=\"abbr\"}}, {{ss-week format=\"abbr\"}}, Seg {{ss-month}}",
       "grid": "{{ss-day}}",
+      "display": "{{ss-dateFmt \"with-novena\"}}",
 
       "mini-intercalary": "{{intercalary}}/CC{{year}}",
       "main-intercalary": "{{intercalary}}",
