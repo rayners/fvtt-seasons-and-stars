@@ -689,6 +689,19 @@ export class CalendarValidator {
         if (weekNames.length !== uniqueNames.size) {
           result.errors.push('Week names must be unique');
         }
+
+        // Validate week names array length matches perMonth
+        if (calendar.weeks.perMonth !== undefined) {
+          const namesLength = calendar.weeks.names.length;
+          const perMonth = calendar.weeks.perMonth;
+
+          if (namesLength !== perMonth) {
+            result.warnings.push(
+              `weeks.names array length (${namesLength}) does not match weeks.perMonth (${perMonth}). ` +
+                `This may cause some weeks to have no name or some names to never be used.`
+            );
+          }
+        }
       }
     }
   }

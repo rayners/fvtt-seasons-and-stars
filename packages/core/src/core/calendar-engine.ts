@@ -1035,7 +1035,15 @@ export class CalendarEngine {
 
     // Handle remainder days
     const handling = this.calendar.weeks.remainderHandling || 'partial-last';
+    // Backward compatibility: if perMonth is not specified, calculate from month days.
+    // This fallback preserves behavior for calendars created before perMonth was introduced.
+    // For new calendars, perMonth should always be explicitly specified for clarity.
     const expectedWeeks = this.calendar.weeks.perMonth ?? Math.floor(monthDays / daysPerWeek);
+    if (this.calendar.weeks.perMonth === undefined) {
+      Logger.debug(
+        `[${this.calendar.id}] weeks.perMonth not specified, falling back to calculated value: ${expectedWeeks}`
+      );
+    }
 
     if (handling === 'extend-last' && rawWeek === expectedWeeks + 1) {
       // Fold extra days into the last named week
