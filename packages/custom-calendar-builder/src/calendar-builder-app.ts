@@ -611,7 +611,7 @@ export class CalendarBuilderApp extends foundry.applications.api.HandlebarsAppli
   async _onOpenCalendar(_event: Event, _target: HTMLElement): Promise<void> {
     try {
       // Check if FilePicker is available
-      const FoundryFilePicker = (foundry as any)?.applications?.apps?.FilePicker;
+      const FoundryFilePicker = (foundry as any)?.applications?.apps?.FilePicker?.implementation;
       if (!FoundryFilePicker) {
         this._notify('File picker not available in this Foundry version', 'error');
         return;
