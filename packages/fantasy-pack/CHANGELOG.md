@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.9.2...seasons-and-stars-fantasy-v0.10.0) (2025-12-07)
+
+
+### Features
+
+* add support for 12-hour clock format with am/pm notation ([#500](https://github.com/rayners/fvtt-seasons-and-stars/issues/500)) ([76746b7](https://github.com/rayners/fvtt-seasons-and-stars/commit/76746b7031001bc374ced23551e0e0dab0791f80))
+* add week-of-month naming system for calendars ([#490](https://github.com/rayners/fvtt-seasons-and-stars/issues/490)) ([e983821](https://github.com/rayners/fvtt-seasons-and-stars/commit/e983821bf0dc0f330e7722937e2942817ac6df54))
+
+
+### Bug Fixes
+
+* **fantasy-pack:** correct Harptos moon phase alignment ([#470](https://github.com/rayners/fvtt-seasons-and-stars/issues/470)) ([b969ed7](https://github.com/rayners/fvtt-seasons-and-stars/commit/b969ed7a238d1e68d7e2f38eeb9b426d55a1c304))
+
 ## [0.9.2](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-fantasy-v0.9.1...seasons-and-stars-fantasy-v0.9.2) (2025-10-30)
 
 
