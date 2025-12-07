@@ -51,21 +51,26 @@ export class CalendarDate implements ICalendarDate {
 
   /**
    * Format the date for display using the new template-based system
+   *
+   * @param options - Format options object, or a string format name (e.g., 'cosmere', 'roshar')
    */
-  format(options: DateFormatOptions = {}): string {
+  format(options: DateFormatOptions | string = {}): string {
+    // Normalize string options to object form
+    const opts: DateFormatOptions = typeof options === 'string' ? { format: options } : options;
+
     // Try to use calendar's dateFormats first
     const dateFormats = this.calendar.dateFormats;
 
     // Check for predefined formats in calendar
     if (dateFormats) {
-      const formatName = this.getFormatNameFromOptions(options);
+      const formatName = this.getFormatNameFromOptions(opts);
       if (formatName && dateFormats[formatName]) {
         return this.formatter.formatNamed(this, formatName);
       }
     }
 
     // Fallback to building a template based on options
-    const template = this.buildTemplateFromOptions(options);
+    const template = this.buildTemplateFromOptions(opts);
     return this.formatter.format(this, template);
   }
 
@@ -74,6 +79,19 @@ export class CalendarDate implements ICalendarDate {
    */
   private getFormatNameFromOptions(options: DateFormatOptions): string | null {
     const { includeTime, format } = options;
+    const dateFormats = this.calendar.dateFormats;
+    const standardFormats = ['short', 'long', 'numeric'];
+
+    // If format is a custom format name (not a standard type) that exists in calendar's dateFormats, use it directly
+    // This allows calendars to define custom formats like 'cosmere', 'roshar', 'vorin' etc.
+    if (
+      format &&
+      typeof format === 'string' &&
+      !standardFormats.includes(format) &&
+      dateFormats?.[format]
+    ) {
+      return format;
+    }
 
     // Look for common format names based on options
     const possibleNames: string[] = [];
@@ -94,7 +112,6 @@ export class CalendarDate implements ICalendarDate {
     }
 
     // Check if any of these formats exist in calendar
-    const dateFormats = this.calendar.dateFormats;
     if (dateFormats) {
       for (const name of possibleNames) {
         if (dateFormats[name]) {

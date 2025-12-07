@@ -12,6 +12,7 @@ import { loadButtonsFromRegistry } from './sidebar-button-mixin';
 import { MOON_PHASE_ICON_MAP, sanitizeColor } from '../core/constants';
 import { SunriseSunsetCalculator } from '../core/sunrise-sunset-calculator';
 import { CalendarDate } from '../core/calendar-date';
+import { DateFormatter } from '../core/date-formatter';
 import type { CalendarManagerInterface } from '../types/foundry-extensions';
 import type { MoonPhaseInfo } from '../types/calendar';
 import type { MainWidgetContext } from '../types/widget-types';
@@ -207,6 +208,22 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       Logger.debug('Failed to calculate sunrise/sunset for calendar widget', error);
     }
 
+    // Get special display format if defined (e.g., Cosmere combinatorial format)
+    let specialDisplayFormat = '';
+    try {
+      const displayTemplate = activeCalendar.dateFormats?.widgets?.display;
+      if (displayTemplate && typeof displayTemplate === 'string') {
+        const engine = manager.getActiveEngine();
+        if (engine) {
+          // Cast to any to avoid interface/class type mismatch issues
+          const formatter = new DateFormatter(activeCalendar, engine as any);
+          specialDisplayFormat = formatter.format(currentDate as any, displayTemplate);
+        }
+      }
+    } catch (error) {
+      Logger.debug('Failed to format special display format for calendar widget', error);
+    }
+
     const mainContext = Object.assign(context, {
       calendar: calendarInfo,
       currentDate: currentDate.toObject(),
@@ -234,6 +251,8 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       // Sunrise/sunset data
       sunrise: sunriseString,
       sunset: sunsetString,
+      // Special display format (e.g., Cosmere)
+      specialDisplayFormat: specialDisplayFormat,
     }) as MainWidgetContext;
 
     // Cache context for use in _attachPartListeners

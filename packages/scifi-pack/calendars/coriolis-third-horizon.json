@@ -207,6 +207,7 @@
       "mini": "S{{ss-month}}.{{ss-day}}/CC{{year}}",
       "main": "{{ss-weekday format=\"abbr\"}}, {{ss-week format=\"abbr\"}}, Seg {{ss-month}}",
       "grid": "{{ss-day}}",
+      "display": "{{ss-dateFmt \"with-novena\"}}",
 
       "mini-intercalary": "{{intercalary}}/CC{{year}}",
       "main-intercalary": "{{intercalary}}",

@@ -265,6 +265,7 @@
       "mini": "{{year}}.{{month}}.{{ss-week}}",
       "main": "{{ss-weekday format=\"abbr\"}}, {{ss-day}} {{ss-month format=\"abbr\"}}",
       "grid": "{{ss-day}}",
+      "display": "{{ss-dateFmt \"cosmere\"}}",
 
       "mini-intercalary": "{{intercalary}} {{ss-day}}",
       "main-intercalary": "{{intercalary}}, {{ss-day format=\"ordinal\"}} day",

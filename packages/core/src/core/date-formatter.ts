@@ -387,7 +387,7 @@ export class DateFormatter {
    * // Returns: "Midwinter Festival" (uses mini-intercalary)
    * ```
    */
-  formatWidget(date: ICalendarDate, widgetType: 'mini' | 'main' | 'grid'): string {
+  formatWidget(date: ICalendarDate, widgetType: 'mini' | 'main' | 'grid' | 'display'): string {
     const dateFormats = this.calendar.dateFormats;
 
     if (!dateFormats?.widgets) {
@@ -585,6 +585,18 @@ export class DateFormatter {
             const fallbackMonth = DateFormatter.fallbackMonths[monthValue - 1];
             return fallbackMonth ? fallbackMonth.abbreviation : `M${monthValue}`;
           }
+        case 'prefix':
+          if (formatter) {
+            const month = formatter.calendar.months?.[monthValue - 1];
+            return month?.prefix || month?.abbreviation || month?.name || '';
+          }
+          return '';
+        case 'suffix':
+          if (formatter) {
+            const month = formatter.calendar.months?.[monthValue - 1];
+            return month?.suffix || '';
+          }
+          return '';
         case 'pad':
           return monthValue.toString().padStart(2, '0');
         default:
@@ -592,7 +604,7 @@ export class DateFormatter {
       }
     });
 
-    // Weekday helper - supports name and abbr formats
+    // Weekday helper - supports name, abbr, prefix, and suffix formats
     Handlebars.registerHelper('ss-weekday', function (this: any, ...args: any[]) {
       // Handlebars passes options as the last argument
       const options = args[args.length - 1];
@@ -629,6 +641,18 @@ export class DateFormatter {
             const fallbackWeekday = DateFormatter.fallbackWeekdays[weekdayValue];
             return fallbackWeekday ? fallbackWeekday.abbreviation : `D${weekdayValue}`;
           }
+        case 'prefix':
+          if (formatter) {
+            const weekday = formatter.calendar.weekdays?.[weekdayValue];
+            return weekday?.prefix || weekday?.abbreviation || weekday?.name || '';
+          }
+          return '';
+        case 'suffix':
+          if (formatter) {
+            const weekday = formatter.calendar.weekdays?.[weekdayValue];
+            return weekday?.suffix || '';
+          }
+          return '';
         default:
           return weekdayValue.toString();
       }

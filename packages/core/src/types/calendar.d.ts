@@ -131,6 +131,16 @@ export interface CalendarDateFormats {
     mini?: string;
     main?: string;
     grid?: string;
+    /**
+     * Special display format shown below the date in the mini widget.
+     * This is where calendars can showcase their unique date format
+     * (e.g., Cosmere combinatorial format "Jeseses" for Roshar).
+     */
+    display?: string;
+    // Intercalary variants
+    'mini-intercalary'?: string;
+    'main-intercalary'?: string;
+    'grid-intercalary'?: string;
   };
 }
 
@@ -411,7 +421,12 @@ export interface DateFormatOptions {
   includeTime?: boolean;
   includeWeekday?: boolean;
   includeYear?: boolean;
-  format?: 'short' | 'long' | 'numeric';
+  /**
+   * Format specifier. Can be:
+   * - 'short', 'long', 'numeric': Standard format types
+   * - Any string: Custom format name from calendar's dateFormats (e.g., 'cosmere', 'roshar')
+   */
+  format?: 'short' | 'long' | 'numeric' | string;
 }
 
 // Calendar Variants System
