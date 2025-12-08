@@ -25,6 +25,9 @@ const mockFoundry = {
       }),
     },
   },
+  utils: {
+    saveDataToFile: vi.fn(),
+  },
 };
 
 const mockGame = {
