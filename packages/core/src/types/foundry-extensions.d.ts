@@ -88,6 +88,7 @@ declare global {
       function mergeObject(original: any, other: any, options?: any): any;
       function deepClone(obj: any): any;
       function debounce<T extends (...args: any[]) => any>(fn: T, delay: number): T;
+      function saveDataToFile(data: string, type: string, filename: string): void;
     }
   }
   interface String {
