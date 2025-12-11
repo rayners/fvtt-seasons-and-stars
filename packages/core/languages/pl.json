@@ -25,6 +25,8 @@
         "cancel": "Zachowaj bieżący stan",
         "switch_to": "Przełącz na {calendar}",
         "current": "Obecnie aktywny",
+        "selected": "Wybrane",
+        "select_this": "Wybierz ten kalendarz",
         "sample": "Próbka",
         "preview": "Podgląd",
         "preview_tooltip": "Zobacz szczegóły kalendarza i przykładowe daty",
@@ -43,7 +45,18 @@
         "file_loaded": "Plik kalendarza niestandardowego został załadowany i jest gotowy do użycia",
         "file_path": "Ścieżka pliku",
         "status": "Status",
-        "click_to_select": "Kliknij, aby wybrać plik kalendarza"
+        "click_to_select": "Kliknij, aby wybrać plik kalendarza",
+        "use_this_file": "Użyj tego pliku",
+        "search_placeholder": "Wyszukiwanie kalendarzy...",
+        "filter_by_tag": "Filtruj według tagu",
+        "clear_filters": "Wyczyść filtry",
+        "of": "z",
+        "no_results": "Żadne kalendarze nie pasują do wyszukiwania",
+        "select_to_view": "Wybierz kalendarz, aby wyświetlić szczegóły",
+        "toggle_variants": "Przełączanie wariantów",
+        "tags": "Tagi",
+        "prev_month": "Poprzedni miesiąc",
+        "next_month": "Następny miesiąc"
       },
       "calendar_preview": {
         "title": "Podgląd kalendarza: {calendar}"
@@ -58,6 +71,10 @@
       "active_calendar_hint": "Wybór systemu kalendarza używanego do wyświetlania daty i śledzenia czasu. Jest to podstawowe ustawienie służące do konfigurowania kalendarza świata.",
       "active_calendar_file": "📄 Ścieżka do pliku kalendarza niestandardowego",
       "active_calendar_file_hint": "Ścieżka do niestandardowego pliku JSON kalendarza na serwerze Foundry. To ustawienie jest zarządzane za pomocą okna dialogowego wyboru kalendarza.",
+      "chat_day_notifications": "📝 Powiadomienia o zmianie dnia na czacie",
+      "chat_day_notifications_hint": "Opublikuj wiadomość na czacie, gdy zmieni się dzień w grze, pomagając graczom śledzić upływ czasu w dzienniku czatu.",
+      "chat_day_format": "📝 Zmiana formatu dnia",
+      "chat_day_format_hint": "Szablon formatu powiadomień o zmianie dnia. Wykorzystuje składnię Handlebars z pomocnikami, takimi jak {{ss-weekday format='name'}}, {{ss-month format='name'}}, {{ss-day format='ordinal'}}, {{ss-year}}.",
       "current_date": "Bieżąca data",
       "current_date_hint": "Bieżąca data w grze (zarządzana automatycznie)",
       "default_widget": "🔧 Domyślny widżet kalendarza",
@@ -100,6 +117,7 @@
         "toggle_year": "Przełącz rok",
         "toggle_moon_phases": "Przełącz fazy księżyca",
         "toggle_sunrise_sunset": "Przełączanie wschodu / zachodu słońca",
+        "toggle_12hour": "Przełącz format 12-godzinny",
         "toggle_time_controls": "Przełącz sterowanie czasem",
         "toggle_extensions": "Przełącz przyciski rozszerzeń",
         "toggle_pin": "Przełącz przypinanie"
