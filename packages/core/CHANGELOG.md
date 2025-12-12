@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.26.0...seasons-and-stars-v0.27.0) (2025-12-12)
+
+
+### Features
+
+* **i18n:** update Polish translate ([#514](https://github.com/rayners/fvtt-seasons-and-stars/issues/514)) ([d372b0e](https://github.com/rayners/fvtt-seasons-and-stars/commit/d372b0e5b8896230c4081a486cf933971d346378))
+
 ## [0.26.0](https://github.com/rayners/fvtt-seasons-and-stars/compare/seasons-and-stars-v0.25.0...seasons-and-stars-v0.26.0) (2025-12-07)
 
 
