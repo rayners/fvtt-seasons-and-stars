@@ -71,9 +71,9 @@
   "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.57.0",
-    "eslint": "^9.39.1",
+    "eslint": "^9.39.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.7.3"
+    "prettier": "^3.7.4"
   }
 }
