@@ -617,13 +617,19 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
   }
 
   /**
-   * Format time string respecting 12-hour preference setting
+   * Format time string respecting calendar format and 12-hour preference setting
    */
   private formatTimeString(
     time: { hour: number; minute: number; second: number } | undefined,
     calendar: import('../types/calendar').SeasonsStarsCalendar
   ): string {
     if (!time) return '';
+
+    // Check if calendar's time format includes seconds
+    // Include seconds only when the calendar's time format explicitly uses ss-second
+    const timeFormatRaw = calendar?.dateFormats?.time;
+    const timeFormat = typeof timeFormatRaw === 'string' ? timeFormatRaw : '';
+    const includeSeconds = timeFormat.includes('ss-second');
 
     // Check if user prefers 12-hour format
     const prefer12Hour =
@@ -636,6 +642,9 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       calendar.time.amPmNotation.am &&
       calendar.time.amPmNotation.pm;
 
+    const minuteStr = time.minute.toString().padStart(2, '0');
+    const secondStr = time.second.toString().padStart(2, '0');
+
     if (prefer12Hour && has12HourSupport) {
       // Use 12-hour format with am/pm
       const hoursInDay = calendar?.time?.hoursInDay || 24;
@@ -644,13 +653,20 @@ export class CalendarWidget extends foundry.applications.api.HandlebarsApplicati
       const hour12 = hourInHalf === 0 ? halfDay : hourInHalf;
       const amPmNotation = calendar!.time!.amPmNotation!;
       const ampm = time.hour < halfDay ? amPmNotation.am : amPmNotation.pm;
-      return `${hour12}:${time.minute.toString().padStart(2, '0')} ${ampm}`;
+
+      if (includeSeconds) {
+        return `${hour12}:${minuteStr}:${secondStr} ${ampm}`;
+      }
+      return `${hour12}:${minuteStr} ${ampm}`;
     }
 
     // Default 24-hour format
     const hour = time.hour.toString().padStart(2, '0');
-    const minute = time.minute.toString().padStart(2, '0');
-    return `${hour}:${minute}`;
+
+    if (includeSeconds) {
+      return `${hour}:${minuteStr}:${secondStr}`;
+    }
+    return `${hour}:${minuteStr}`;
   }
 
   /**
