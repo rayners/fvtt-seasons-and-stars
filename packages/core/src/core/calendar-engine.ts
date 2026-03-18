@@ -539,6 +539,8 @@ export class CalendarEngine {
         ? intercalaryDays.filter(i => i.after === currentMonthName)
         : [];
 
+      // When processing intercalary days after a month, we need to check each one in sequence
+      // to correctly identify which specific intercalary day we're on
       for (const intercalary of intercalaryAfterMonth) {
         const intercalaryDayCount = intercalary.days || 1;
 
@@ -674,6 +676,21 @@ export class CalendarEngine {
               }, 0);
 
               totalDays += monthLengths[date.month - 1]; // All days of the month it comes after
+
+              // When multiple intercalary days come after the same month, we need to account for
+              // any intercalary days that come before this one in the sequence
+              const intercalaryAfterSameMonth = intercalaryDays.filter(
+                i => i.after === intercalaryDef.after
+              );
+              const currentIntercalaryIndex = intercalaryAfterSameMonth.findIndex(
+                i => i.name === date.intercalary
+              );
+
+              // Add days for all intercalary days that come before this one in the sequence
+              for (let i = 0; i < currentIntercalaryIndex; i++) {
+                totalDays += intercalaryAfterSameMonth[i].days || 1;
+              }
+
               totalDays += date.day - 1; // Position within the intercalary period (0-based)
             }
           } else {
@@ -705,6 +722,21 @@ export class CalendarEngine {
             } else {
               // Regular intercalary day before a month within a year
               // For "before" intercalary, we don't add the month's days since we come before it
+
+              // When multiple intercalary days come before the same month, we need to account for
+              // any intercalary days that come before this one in the sequence
+              const intercalaryBeforeSameMonth = intercalaryDays.filter(
+                i => i.before === intercalaryDef.before
+              );
+              const currentIntercalaryIndex = intercalaryBeforeSameMonth.findIndex(
+                i => i.name === date.intercalary
+              );
+
+              // Add days for all intercalary days that come before this one in the sequence
+              for (let i = 0; i < currentIntercalaryIndex; i++) {
+                totalDays += intercalaryBeforeSameMonth[i].days || 1;
+              }
+
               totalDays += date.day - 1; // Position within the intercalary period (0-based)
             }
           } else {
